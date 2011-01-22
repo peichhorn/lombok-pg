@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-  <info organisation="easytesting.org" module="lombok-javabeans" />
+  <info organisation="de.fips" module="lombok-pg" />
   <configurations>
     <conf name="eclipseBuild" />
     <conf name="build" extends="eclipseBuild" />
