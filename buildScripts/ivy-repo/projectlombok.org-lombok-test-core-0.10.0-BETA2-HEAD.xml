@@ -1,0 +1,20 @@
+<ivy-module version="2.0">
+	<info organisation="projectlombok.org" module="lombok-test-core"
+		revision="0.10.0-BETA2-HEAD" publication="2010120411200">
+		<license name="MIT License"
+			url="http://www.opensource.org/licenses/mit-license.php" />
+		<ivyauthor name="rzwitserloot" url="http://zwitserloot.com/" />
+		<ivyauthor name="rspilker" url="http://github.com/rspilker" />
+		<description homepage="http://projectlombok.org/" />
+	</info>
+	<configurations>
+		<conf name="test" />
+		<conf name="sources" />
+	</configurations>
+	<publications>
+		<artifact conf="test"
+			url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-test-core-0.10.0-BETA2-HEAD.jar" />
+		<artifact type="zip" conf="sources"
+			url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-test-core-0.10.0-BETA2-HEAD-src.jar" />
+	</publications>
+</ivy-module>

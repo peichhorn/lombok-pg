@@ -1,0 +1,8 @@
+/lib
+/bin
+/.classpath
+/.project
+/ivyCache
+/.settings
+/.factorypath
+/.apt_generated

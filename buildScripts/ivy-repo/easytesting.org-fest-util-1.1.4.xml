@@ -1,0 +1,15 @@
+<ivy-module version="2.0">
+  <info organisation="easytesting.org" module="fest-util" revision="1.1.4" publication="20100225011200">
+    <license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0" />
+    <ivyauthor name="AlexRuiz" url="http://www.linkedin.com/profile/view?id=3407668" />
+    <description homepage="http://fest.easytesting.org/" />
+  </info>
+  <configurations>
+    <conf name="test" />
+    <conf name="sources" />
+  </configurations>
+  <publications>
+    <artifact conf="test" url="http://repo1.maven.org/maven2/org/easytesting/fest-util/1.1.4/fest-util-1.1.4.jar" />
+    <artifact conf="sources" url="http://repo1.maven.org/maven2/org/easytesting/fest-util/1.1.4/fest-util-1.1.4-sources.jar" />
+  </publications>
+</ivy-module>
