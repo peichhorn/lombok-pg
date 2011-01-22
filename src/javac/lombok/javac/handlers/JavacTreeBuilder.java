@@ -1,0 +1,493 @@
+/*
+ * Copyright © 2010-2011 Philipp Eichhorn
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package lombok.javac.handlers;
+
+import static com.sun.tools.javac.code.Flags.ABSTRACT;
+import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.Flags.IPROXY;
+import static com.sun.tools.javac.code.Kinds.MTH;
+import static com.sun.tools.javac.code.TypeTags.CLASS;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
+
+import java.io.InputStream;
+import java.lang.reflect.Method;
+
+import lombok.core.AST.Kind;
+import lombok.javac.JavacAnnotationHandler;
+import lombok.javac.JavacNode;
+
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Scope;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.parser.JavacStringParser;
+import com.sun.tools.javac.parser.Parser;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.TreeCopier;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Name;
+
+// TODO add features if required
+public class JavacTreeBuilder {
+	private JavacTreeBuilder() {
+		//Prevent instantiation
+	}
+	
+	public static void deleteImportFromCompilationUnit(JavacNode node, String name) {
+		deleteImportFromCompilationUnit(node, name, false);
+	}
+	
+	public static void deleteImportFromCompilationUnit(JavacNode node, String name, boolean deleteStatic) {
+		if (!node.shouldDeleteLombokAnnotations()) return;
+		ListBuffer<JCTree> newDefs = ListBuffer.lb();
+		
+		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();
+		
+		for (JCTree def : unit.defs) {
+			boolean delete = false;
+			if (def instanceof JCImport) {
+				JCImport imp0rt = (JCImport)def;
+				delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.qualid.toString().equals(name));
+			}
+			if (!delete) newDefs.append(def);
+		}
+		unit.defs = newDefs.toList();
+	}
+	
+	public static MethodSymbol getFirstUndefinedMethod(JavacNode node) {
+		while (node != null && !(node.get() instanceof JCClassDecl)) {
+			node = node.up();
+		}
+		if (node != null) {
+			JCClassDecl tree = (JCClassDecl)node.get();
+			ClassSymbol c = tree.sym;
+			Types types = Types.instance(node.getAst().getContext());
+			MethodSymbol undefined = getFirstUndefinedMethod(c, c, types);
+			return createMethodSymbol(undefined, c, types);
+		}
+		return null;
+	}
+	
+	private static MethodSymbol getFirstUndefinedMethod(ClassSymbol impl, ClassSymbol c, Types types) {
+		MethodSymbol undef = null;
+		// Do not bother to search in classes that are not abstract, since they cannot have abstract members.
+		if (c == impl || (c.flags() & (ABSTRACT | INTERFACE)) != 0) {
+			Scope s = c.members();
+			for (Scope.Entry e = s.elems; undef == null && e != null; e = e.sibling) {
+				if (e.sym.kind == MTH && (e.sym.flags() & (ABSTRACT | IPROXY)) == ABSTRACT) {
+					MethodSymbol absmeth = (MethodSymbol) e.sym;
+					MethodSymbol implmeth = absmeth.implementation(impl, types, true);
+					if (implmeth == null || implmeth == absmeth) undef = absmeth;
+				}
+			}
+			if (undef == null) {
+				Type st = types.supertype(c.type);
+				if (st.tag == CLASS) undef = getFirstUndefinedMethod(impl, (ClassSymbol) st.tsym, types);
+			}
+			for (List<Type> l = types.interfaces(c.type); undef == null && l.nonEmpty(); l = l.tail) {
+				undef = getFirstUndefinedMethod(impl, (ClassSymbol) l.head.tsym, types);
+			}
+		}
+		return undef;
+	}
+	
+	/**
+	 * Adds the given class declaration to the provided type AST Node.
+	 * 
+	 * Also takes care of updating the JavacAST.
+	 */
+	public static void injectType(JavacNode typeNode, JCClassDecl type) {
+		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		typeDecl.defs = typeDecl.defs.append(type);
+		typeNode.add(type, Kind.TYPE).recursiveSetHandled();
+	}
+	
+	public static void injectMethodSymbol(JavacNode node, JCMethodDecl method, MethodSymbol methodSymbol) {
+		while (node != null && !(node.get() instanceof JCClassDecl)) {
+			node = node.up();
+		}
+		if (node != null) {
+			JCClassDecl tree = (JCClassDecl)node.get();
+			ClassSymbol c = tree.sym;
+			c.members_field.enter(methodSymbol, c.members_field, methodSymbol.enclClass().members_field);
+			method.sym = methodSymbol;
+		}
+	}
+	
+	private static MethodSymbol createMethodSymbol(MethodSymbol undefined, ClassSymbol c, Types types) {
+		MethodSymbol methodStubSym = null;
+		if (undefined != null) {
+			MethodType type = (MethodType) undefined.type;
+			Name name = undefined.name;
+			methodStubSym = new MethodSymbol(undefined.flags() & ~Flags.ABSTRACT, name, types.memberType(c.type, undefined), c);
+			ListBuffer<VarSymbol> paramSyms = new ListBuffer<VarSymbol>();
+			int i = 1;
+			if (type.argtypes != null) for (Type argType : type.argtypes) {
+				paramSyms.append(new VarSymbol(Flags.PARAMETER, Name.fromString(name.table, "arg" + i++), argType, methodStubSym));
+			}
+			methodStubSym.params = paramSyms.toList();
+		}
+		return methodStubSym;
+	}
+	
+	public static ConstructorBuilder constructor(JavacNode node, String methodString, Object... args) {
+		return new ConstructorBuilder(node, JavacStringParser.methodFromString(node.getContext(), String.format(methodString, args)));
+	}
+	
+	public static MethodBuilder method(JavacNode node, MethodSymbol methodSymbol) {
+		return new MethodBuilder(node, methodSymbol);
+	}
+	
+	public static MethodBuilder method(JavacNode node, String methodString, Object... args) {
+		return new MethodBuilder(node, JavacStringParser.methodFromString(node.getContext(), String.format(methodString, args)));
+	}
+	
+	public static ClassBuilder clazz(JavacNode node, long flags, String methodName) {
+		return new ClassBuilder(node, flags, methodName);
+	}
+	
+	public static ClassBuilder interfaze(JavacNode node, long flags, String methodName) {
+		return new ClassBuilder(node, flags | Flags.INTERFACE, methodName);
+	}
+	
+	public static List<JCStatement> statements(JavacNode node, String statementsString, Object... args) {
+		return JavacStringParser.statementsFromString(node.getContext(), String.format(statementsString, args));
+	}
+	
+	public static FieldBuilder field(JavacNode node, String fieldString, Object... args) {
+		return new FieldBuilder(node, JavacStringParser.fieldFromString(node.getContext(), String.format(fieldString, args)));
+	}
+	
+	public static class FieldBuilder extends AbstractTreeBuilder {
+		protected final JCModifiers mods;
+		protected final Name fieldName;
+		protected JCExpression fieldType;
+		protected JCExpression init;
+		
+		public FieldBuilder(JavacNode node, JCVariableDecl field) {
+			super(node);
+			this.mods = maker.Modifiers(field.mods.flags);
+			this.fieldName = field.name;
+			this.fieldType = field.vartype;
+			this.init = field.init;
+		}
+		
+		public JCVariableDecl build() {
+			JCVariableDecl proto = maker.VarDef(mods, fieldName, fieldType, init);
+			return new TreeCopier<JCVariableDecl>(maker).copy(proto); // defensive copy ftw
+		}
+		
+		public void inject() {
+			injectField(node, build());
+		}
+	}
+	
+	public static class ClassBuilder extends AbstractTreeBuilder  {
+		protected final JCModifiers mods;
+		protected final Name typeName;
+		protected JCTree extending;
+		protected ListBuffer<JCTree> defs = ListBuffer.lb();
+		protected ListBuffer<JCTypeParameter> typarams = ListBuffer.lb();
+		protected ListBuffer<JCExpression> implementing = ListBuffer.lb();
+		
+		protected ClassBuilder(JavacNode node, long flags, String typeName) {
+			this(node, flags, node.toName(typeName));
+		}
+		
+		protected ClassBuilder(JavacNode node, long flags, Name typeName) {
+			super(node);
+			this.mods = maker.Modifiers(flags);
+			this.typeName = typeName;
+		}
+		
+		public ClassBuilder implementing(List<String> interfazes) {
+			for (String typeName : interfazes) {
+				implementing.append(expressionFromString(typeName));
+			}
+			return this;
+		}
+		
+		public ClassBuilder withMethods(List<JCTree> methods) {
+			defs.appendList(methods);
+			return this;
+		}
+		
+		public ClassBuilder withMethod(JCMethodDecl method) {
+			defs.append(method);
+			return this;
+		}
+		
+		public ClassBuilder withFields(List<JCTree> fields) {
+			defs.appendList(fields);
+			return this;
+		}
+		
+		public JCClassDecl build() {
+			JCClassDecl proto = maker.ClassDef(mods, typeName, typarams.toList(), extending, implementing.toList(), defs.toList());
+			return new TreeCopier<JCClassDecl>(maker).copy(proto); // defensive copy ftw
+		}
+		
+		public void inject() {
+			injectType(node, build());
+		}
+		
+		public String toString() {
+			return build().toString();
+		}
+	}
+	
+	public static class MethodBuilder extends AbstractMethodBuilder<MethodBuilder> {
+		protected MethodBuilder(JavacNode node, MethodSymbol m) {
+			super(node, m.flags(), m.name);
+			Type mtype = m.type;
+			returnType = fixLeadingDot(maker, maker.Type(mtype.getReturnType()));
+			typarams.appendList(maker.TypeParams(mtype.getTypeArguments()));
+			for (JCTypeParameter typaram : typarams) {
+				ListBuffer<JCExpression> bounds = ListBuffer.lb();
+				for (JCExpression expr : typaram.bounds) {
+					bounds.append(fixLeadingDot(maker, expr));
+				}
+				typaram.bounds = bounds.toList();
+			}
+			params.appendList(maker.Params(mtype.getParameterTypes(), m));
+			for (JCVariableDecl param : params) {
+				param.vartype = fixLeadingDot(maker, param.vartype);
+			}
+			for (JCExpression expr : maker.Types(mtype.getThrownTypes())) {
+				thrownExceptions.append(fixLeadingDot(maker, expr));
+			}
+		}
+		
+		public MethodBuilder(JavacNode node, JCMethodDecl method) {
+			super(node, method);
+		}
+		
+		public MethodBuilder withReturnType(String returnTypeName) {
+			returnType = expressionFromString(returnTypeName);
+			return this;
+		}
+		
+
+		public MethodBuilder withoutBody() {
+			statements.clear();
+			forceBlock = false;
+			return this;
+		}
+		
+		public MethodBuilder withDefaultReturnStatement() {
+			if (returnType instanceof JCPrimitiveTypeTree) {
+				JCPrimitiveTypeTree primitiveType = (JCPrimitiveTypeTree) returnType;
+				if (primitiveType.typetag != TypeTags.VOID) {
+					return withReturnStatement(maker.Literal(primitiveType.typetag, 0)); // return const0;
+				} else {
+					forceBlock = true;
+				}
+			} else {
+				return withReturnStatement(maker.Literal(TypeTags.BOT, 0)); // return null;
+			}
+			return this;
+		}
+		
+		
+		public MethodBuilder withReturnStatement(String returnValue) {
+			return withReturnStatement(expressionFromString(returnValue));
+		}
+		
+		public MethodBuilder withReturnStatement(JCExpression returnValue) {
+			return withStatement(maker.Return(returnValue));
+		}
+	}
+	
+	public static class ConstructorBuilder extends AbstractMethodBuilder<ConstructorBuilder> {
+		public ConstructorBuilder(JavacNode node, JCMethodDecl method) {
+			super(node, method);
+		}
+	}
+	
+	private static abstract class AbstractMethodBuilder<E extends AbstractMethodBuilder<E>> extends AbstractTreeBuilder {
+		protected final JCModifiers mods;
+		protected ListBuffer<JCAnnotation> annotations = ListBuffer.lb();
+		protected ListBuffer<JCTypeParameter> typarams = ListBuffer.lb();
+		protected JCExpression returnType;
+		protected final Name methodName;
+		protected ListBuffer<JCVariableDecl> params = ListBuffer.lb();
+		protected ListBuffer<JCExpression> thrownExceptions = ListBuffer.lb();
+		protected ListBuffer<JCStatement> statements = ListBuffer.lb();
+		protected boolean forceBlock = false;
+		
+		protected AbstractMethodBuilder(JavacNode node, long flags, Name methodName) {
+			super(node);
+			this.mods = maker.Modifiers(flags);
+			this.methodName = methodName;
+		}
+		
+		public AbstractMethodBuilder(JavacNode node, JCMethodDecl method) {
+			this(node, method.mods.flags, method.name);
+			returnType = method.restype;
+			typarams.appendList(method.typarams);
+			params.appendList(method.params);
+			annotations.appendList(method.mods.annotations);
+			thrownExceptions.appendList(method.thrown);
+			if (method.body != null) {
+				statements.appendList(method.body.stats);
+			}
+		}
+		
+		@SuppressWarnings("unchecked")
+		protected final E self() {
+			return (E) this;
+		}
+		
+		public E withMods(long flags) {
+			mods.flags = flags;
+			annotations.clear();
+			return self();
+		}
+		
+		public E withThrownExceptions(List<JCExpression> thrownExceptions) {
+			this.thrownExceptions.appendList(thrownExceptions);
+			return self();
+		}
+		
+		public E withStatement(JCStatement statement) {
+			this.statements.append(statement);
+			return self();
+		}
+		
+		public JCMethodDecl build() {
+			JCBlock body = null;
+			if (!statements.isEmpty() || forceBlock) {
+				body = maker.Block(0, statements.toList());
+			}
+			mods.annotations = annotations.toList();
+			JCMethodDecl proto = maker.MethodDef(mods, methodName, returnType, typarams.toList(), params.toList(), thrownExceptions.toList(), body, null);
+			return new TreeCopier<JCMethodDecl>(maker).copy(proto); // defensive copy ftw
+		}
+		
+		public void inject() {
+			injectMethod(node, build());
+		}
+		
+		public void injectWithMethodSymbol(MethodSymbol methodSymbol) {
+			JCMethodDecl method = build(); 
+			injectMethod(node, method);
+			injectMethodSymbol(node, method, methodSymbol);
+		}
+		
+		public String toString() {
+			return build().toString();
+		}
+	}
+	
+	private static abstract class AbstractTreeBuilder {
+		protected final JavacNode node;
+		protected final TreeMaker maker;
+		
+		protected AbstractTreeBuilder(JavacNode node) {
+			this.node = node;
+			this.maker = node.getTreeMaker();
+		}
+		
+		protected final JCExpression expressionFromString(final String s) {
+			if ("void".equals(s)) {
+				return maker.TypeIdent(TypeTags.VOID);
+			} else if ("int".equals(s)) {
+				return maker.TypeIdent(TypeTags.INT);
+			} else if ("long".equals(s)) {
+				return maker.TypeIdent(TypeTags.LONG);
+			} else if ("short".equals(s)) {
+				return maker.TypeIdent(TypeTags.SHORT);
+			} else if ("boolean".equals(s)) {
+				return maker.TypeIdent(TypeTags.BOOLEAN);
+			} else if ("byte".equals(s)) {
+				return maker.TypeIdent(TypeTags.BYTE);
+			} else if ("char".equals(s)) {
+				return maker.TypeIdent(TypeTags.CHAR);
+			} else if ("float".equals(s)) {
+				return maker.TypeIdent(TypeTags.FLOAT);
+			} else if ("double".equals(s)) {
+				return maker.TypeIdent(TypeTags.DOUBLE);
+			} else {
+				return JavacHandlerUtil.chainDotsString(maker, node, s); 
+			}
+		}
+		
+		protected JCExpression fixLeadingDot(TreeMaker maker, JCExpression expr) {
+			if (expr instanceof JCFieldAccess) {
+				JCFieldAccess fieldAccess = (JCFieldAccess) expr;
+				JCExpression selExpr = fieldAccess.selected;
+				if (selExpr instanceof JCIdent) {
+					if ("".equals(selExpr.toString())) {
+						return maker.Ident(fieldAccess.name);
+					}
+				} else if (selExpr instanceof JCFieldAccess) {
+					fieldAccess.selected = fixLeadingDot(maker, selExpr);
+				}
+			}
+			return expr;
+		}
+	}
+	
+	static {
+		try {
+			reloadClass("com.sun.tools.javac.parser.JavacStringParser", Parser.class.getClassLoader());
+		} catch (Exception e) {
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T> Class<T> reloadClass(String claz, ClassLoader outClassLoader) throws Exception {
+		try {
+			return (Class<T>) outClassLoader.loadClass(claz);
+		} catch (ClassNotFoundException e) {}
+		String path = claz.replace('.', '/') + ".class";
+		ClassLoader incl = JavacAnnotationHandler.class.getClassLoader();
+		InputStream is = incl.getResourceAsStream(path);
+		byte[] bytes = new byte[is.available()];
+		is.read(bytes);
+		Method m = ClassLoader.class.getDeclaredMethod("defineClass", new Class[] {
+				String.class, byte[].class, int.class, int.class });
+		m.setAccessible(true);
+		return (Class<T>) m.invoke(outClassLoader, claz, bytes, 0, bytes.length);
+	}
+}

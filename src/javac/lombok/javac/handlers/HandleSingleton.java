@@ -1,0 +1,132 @@
+/*
+ * Copyright © 2010-2011 Philipp Eichhorn
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package lombok.javac.handlers;
+
+import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static com.sun.tools.javac.code.Flags.*;
+import lombok.Singleton;
+import lombok.core.AnnotationValues;
+import lombok.javac.JavacAnnotationHandler;
+import lombok.javac.JavacNode;
+
+import org.mangosdk.spi.ProviderFor;
+
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.util.List;
+
+@ProviderFor(JavacAnnotationHandler.class)
+public class HandleSingleton implements JavacAnnotationHandler<Singleton> {
+	@Override public boolean isResolutionBased() {
+		return false;
+	}
+	
+	@Override public boolean handle(AnnotationValues<Singleton> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		markAnnotationAsProcessed(annotationNode, Singleton.class);
+		
+		if (isNoConcreteClass(annotationNode)) {
+			return false;
+		}
+		
+		if (hasMultiArgumentConstructor(annotationNode)) {
+			return false;
+		}
+		
+		JavacNode typeNode = annotationNode.up();
+		JCClassDecl type = (JCClassDecl)typeNode.get();
+		type.mods.flags |= ENUM;
+		makeConstructorNonPublicAndNonProtected(type);
+		
+		TreeMaker maker = typeNode.getTreeMaker();
+		JCExpression typeRef = maker.Ident(type.name);
+		List<JCExpression> nilExp = List.nil();
+		JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
+		JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
+		JCVariableDecl field = maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init);
+		injectField(typeNode, field);
+		
+		typeNode.rebuild();
+		
+		return true;
+	}
+	
+	private static boolean isNoConcreteClass(JavacNode annotationNode) {
+		JavacNode typeNode = annotationNode.up();
+		JCClassDecl typeDecl = null;
+		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
+		long flags = typeDecl == null ? 0 : typeDecl.mods.flags;
+		boolean notAClass = (flags & (INTERFACE | ANNOTATION | ENUM)) != 0;
+		if (typeDecl == null || notAClass) {
+			annotationNode.addError("@Singleton is legal only on classes.");
+			return true;
+		}
+		if (typeDecl.extending != null) {
+			annotationNode.addError("@Singleton works only on concrete classes.");
+			return true;
+		} 
+		return false;
+	}
+	
+	private static boolean hasMultiArgumentConstructor(JavacNode annotationNode) {
+		JavacNode typeNode = annotationNode.up();
+		JCClassDecl type = (JCClassDecl)typeNode.get();
+		if (hasMultiArgumentConstructor(type)) {
+			annotationNode.addError("@Singleton works only on classes with default or no argument constructor.");
+			return true;
+		}
+		return false;
+	}
+	
+	private static void makeConstructorNonPublicAndNonProtected(JCClassDecl type) {
+		for (JCTree def : type.defs) {
+			if (isConstructor(def)) {
+				((JCMethodDecl)def).mods.flags &= ~(PUBLIC | PROTECTED);
+			}
+		}
+	}
+	
+	private static boolean hasMultiArgumentConstructor(JCClassDecl type) {
+		for (JCTree def : type.defs) {
+			if (isConstructor(def)) {
+				if (!((JCMethodDecl)def).params.isEmpty()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private static boolean isConstructor(JCTree def) {
+		if (def instanceof JCMethodDecl) {
+			JCMethodDecl method = (JCMethodDecl)def;
+			return method.name.contentEquals(method.name.table.init);
+		}
+		return false;
+	}
+}

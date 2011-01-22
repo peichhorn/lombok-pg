@@ -1,0 +1,2 @@
+9 error @Singleton works only on classes with default or no argument constructor.
+14 error @Singleton works only on concrete classes.
