@@ -21,6 +21,8 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
@@ -36,14 +38,9 @@ import lombok.javac.JavacNode;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.util.List;
 
 /**
  * Handles the {@code lombok.SwingInvokeLater} and {@code lombok.SwingInvokeAndWait} annotation for javac.
@@ -76,43 +73,28 @@ public class HandleSwingInvoke {
 		JavacNode methodNode = annotationNode.up();
 		
 		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof JCMethodDecl)) {
-			annotationNode.addError("@" + annotationType.getSimpleName() + " is legal only on methods.");
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return true;
 		}
 		
 		JCMethodDecl method = (JCMethodDecl)methodNode.get();
 		if (((method.mods.flags & ABSTRACT) != 0) || ((method.body == null))) {
-			annotationNode.addError("@" + annotationType.getSimpleName() + " is legal only on concrete methods.");
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return true;
 		}
 		
 		TreeMaker maker = methodNode.getTreeMaker();
 		
-		repaceWithQualifiedThisReference(maker, methodNode);
+		methodNode.get().accept(new ThisReferenceReplaceVisitor(chainDotsString(maker, methodNode, typeNodeOf(methodNode).getName() + ".this")), null);
 		
 		String fieldName = "$" + methodNode.getName() + "Runnable";
 		
 		String elseStatement = String.format(ELSE_STATEMENT, methodName, fieldName);
 		if ("invokeAndWait".equals(methodName)) elseStatement = String.format(TRY_CATCH_BLOCK, elseStatement);
-		List<JCStatement> methodBody = statements(methodNode, METHOD_BODY, fieldName, method.body, fieldName, elseStatement);
-		method.body = maker.Block(0, methodBody);
+		method.body = maker.Block(0, statements(methodNode, METHOD_BODY, fieldName, method.body, fieldName, elseStatement));
 		
 		methodNode.rebuild();
 		
 		return true;
-	}
-	
-	private static void repaceWithQualifiedThisReference(final TreeMaker maker, final JavacNode node) {
-		JavacNode parent = node;
-		while (parent != null && !(parent.get() instanceof JCClassDecl)) {
-			parent = parent.up();
-		}
-		if (parent != null) {
-			JCClassDecl typeDec = (JCClassDecl)parent.get();
-			JCExpression qualThisRef = chainDotsString(maker, node, typeDec.name + ".this");
-			
-			JCTree tree = node.get();
-			tree.accept(new ThisReferenceReplaceVisitor(qualThisRef), null);
-		}
 	}
 }

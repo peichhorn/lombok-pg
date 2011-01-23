@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 
 import lombok.core.AST.Kind;
+import lombok.core.util.Cast;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 
@@ -290,7 +291,7 @@ public class JavacTreeBuilder {
 		}
 		
 		protected final SELF_TYPE self() {
-			return uncheckedCast(this);
+			return Cast.<SELF_TYPE>uncheckedCast(this);
 		}
 		
 		public SELF_TYPE withMods(long flags) {

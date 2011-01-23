@@ -133,31 +133,30 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 	private boolean createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
 			Annotation[] onMethod , Annotation[] onParam) {
 		if (fieldNode.getKind() != Kind.FIELD) {
-			errorNode.addError("@Setter is only supported on a class or a field.");
+			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return true;
 		}
 		
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
+
 		String fieldName = new String(field.name);
-		
-		String setterName = fieldName;
 		
 		int modifier = toEclipseModifier(level) | (field.modifiers & AccStatic);
 		
-		switch (methodExists(setterName, fieldNode, false)) {
+		switch (methodExists(fieldName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
 		case EXISTS_BY_USER:
 			if (whineIfExists) errorNode.addWarning(
 				String.format("Not generating %s(%s %s): A method with that name already exists",
-				setterName, field.type, fieldName));
+						fieldName, field.type, fieldName));
 			return true;
 		default:
 		case NOT_EXISTS:
 			//continue with creating the setter
 		}
 
-		MethodDeclaration method = generateSetter((TypeDeclaration) fieldNode.up().get(), fieldNode, setterName, modifier, source, onParam);
+		MethodDeclaration method = generateSetter((TypeDeclaration) fieldNode.up().get(), fieldNode, fieldName, modifier, source, onParam);
 		Annotation[] copiedAnnotations = copyAnnotations(source, onMethod);
 		if (isNotEmpty(copiedAnnotations)) {
 			method.annotations = copiedAnnotations;

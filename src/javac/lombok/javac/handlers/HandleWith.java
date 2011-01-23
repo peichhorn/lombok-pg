@@ -21,6 +21,9 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.ErrorMessages.firstArgumentCanBeVariableNameOrNewClassStatementOnly;
+import static lombok.core.util.ErrorMessages.isNotAllowedHere;
+import static lombok.core.util.ErrorMessages.unsupportedExpressionIn;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.chainDots;
 import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
@@ -100,19 +103,32 @@ public class HandleWith extends JavacASTAdapter {
 			withCallStatements.append(maker.VarDef(maker.Modifiers(Flags.FINAL), methodCallNode.toName(withExprName), ((JCNewClass)withExpr).clazz, withExpr));
 			withExpr = chainDots(maker, methodCallNode, withExprName);
 		} else {
-			methodCallNode.addError("The first argument of 'with' can only be variable name or new-class statement.");
+			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
 			return false;
 		}
-		JavacNode parent = methodCallNode.directUp();
+		final JavacNode parent = methodCallNode.directUp();
 		JCTree statementThatUsesWith = parent.get();
-		boolean wasNoMethodCall = true;
+		Boolean wasNoMethodCall = tryToRemoveWithCall(methodCallNode, withCall, withExpr, statementThatUsesWith);
+		if (wasNoMethodCall == null) {
+			return false;
+		}
+		 
+		if (tryToTransformAllStatements(methodCallNode, withCall.args.tail, withExprName, withCallStatements)) {
+			return false;
+		}
+		
+		tryToInjectStatements(parent, statementThatUsesWith, wasNoMethodCall, withCallStatements.toList());
+		return true;
+	}
+
+	private Boolean tryToRemoveWithCall(JavacNode methodCallNode, JCMethodInvocation withCall, JCExpression withExpr, JCTree statementThatUsesWith) {
 		if ((statementThatUsesWith instanceof JCAssign) && ((JCAssign)statementThatUsesWith).rhs == withCall) {
 			((JCAssign)statementThatUsesWith).rhs = withExpr;
 		} else if (statementThatUsesWith instanceof JCFieldAccess) {
 			((JCFieldAccess)statementThatUsesWith).selected = withExpr;
 		} else if (statementThatUsesWith instanceof JCExpressionStatement) {
 			((JCExpressionStatement)statementThatUsesWith).expr = withExpr;
-			wasNoMethodCall = false;
+			return false;
 		} else if (statementThatUsesWith instanceof JCVariableDecl) {
 			((JCVariableDecl)statementThatUsesWith).init = withExpr;
 		} else if (statementThatUsesWith instanceof JCReturn) {
@@ -126,47 +142,52 @@ public class HandleWith extends JavacASTAdapter {
 			}
 			methodCall.args = newArgs.toList();
 		} else {
-			methodCallNode.addError("'with' is not allowed here.");
-			return false;
+			methodCallNode.addError(isNotAllowedHere("with"));
+			return null;
 		}
-		
-		for (JCExpression arg : withCall.args.tail) {
+		return true;
+	}
+	
+	private boolean tryToTransformAllStatements(JavacNode node, List<JCExpression> args, String withExprName, ListBuffer<JCStatement> withCallStatements) {
+		TreeMaker maker = node.getTreeMaker();
+		for (JCExpression arg : args) {
 			if (arg instanceof JCMethodInvocation) {
-				arg = (JCExpression)arg.accept(new WithReferenceReplaceVisitor(methodCallNode, withExprName), null);
+				arg = (JCExpression)arg.accept(new WithReferenceReplaceVisitor(node, withExprName), null);
 				withCallStatements.append(maker.Exec(arg));
 			} else {
-				methodCallNode.addError("Unsupported Expression in 'with': " + arg + ".");
-				return false;
+				node.addError(unsupportedExpressionIn("with", arg));
+				return true;
 			}
 		}
-		
+		return false;
+	}
+	
+	private void tryToInjectStatements(JavacNode parent, JCTree statementThatUsesWith, boolean wasNoMethodCall, List<JCStatement> withCallStatements) {
 		while (!(statementThatUsesWith instanceof JCStatement)) {
 			parent = parent.directUp();
 			statementThatUsesWith = parent.get();
 		}
 		if (!(statementThatUsesWith instanceof JCStatement)) {
 			// this would be odd odd but what the hell
-			return false;
+			return;
 		}
+		JCStatement statement = (JCStatement) statementThatUsesWith;
 		JavacNode grandParent = parent.directUp();
 		JCTree block = grandParent.get();
 		if (block instanceof JCBlock) {
-			((JCBlock)block).stats = injectStatements(((JCBlock)block).stats, (JCStatement)statementThatUsesWith, wasNoMethodCall, withCallStatements.toList());
+			((JCBlock)block).stats = injectStatements(((JCBlock)block).stats, statement, wasNoMethodCall, withCallStatements);
 		} else if (block instanceof JCCase) {
-			((JCCase)block).stats = injectStatements(((JCCase)block).stats, (JCStatement)statementThatUsesWith, wasNoMethodCall, withCallStatements.toList());
+			((JCCase)block).stats = injectStatements(((JCCase)block).stats, statement, wasNoMethodCall, withCallStatements);
 		} else if (block instanceof JCMethodDecl) {
-			((JCMethodDecl)block).body.stats = injectStatements(((JCMethodDecl)block).body.stats, (JCStatement)statementThatUsesWith, wasNoMethodCall, withCallStatements.toList());
+			((JCMethodDecl)block).body.stats = injectStatements(((JCMethodDecl)block).body.stats, statement, wasNoMethodCall, withCallStatements);
 		} else {
 			// this would be odd odd but what the hell
-			return false;
+			return;
 		}
-		
 		grandParent.rebuild();
-		
-		return true;
 	}
 	
-	private static List<JCStatement> injectStatements(List<JCStatement> statements, JCStatement statement, boolean wasNoMethodCall, List<JCStatement> withCallStatements) {
+	private List<JCStatement> injectStatements(List<JCStatement> statements, JCStatement statement, boolean wasNoMethodCall, List<JCStatement> withCallStatements) {
 		final ListBuffer<JCStatement> newStatements = ListBuffer.lb();
 		for (JCStatement stat : statements) {
 			if (stat == statement) {

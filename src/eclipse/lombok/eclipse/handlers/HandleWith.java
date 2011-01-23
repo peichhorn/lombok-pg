@@ -89,7 +89,6 @@ public class HandleWith extends EclipseASTAdapter {
 		}
 		
 		ASTNode source = withCall;
-		
 		List<Statement> withCallStatements = new ArrayList<Statement>();
 		Expression withExpr = withCall.arguments[0];
 		String withExprName;

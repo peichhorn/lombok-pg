@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.*;
 import static lombok.core.util.ErrorMessages.canBeUsedOnClassOnly;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
@@ -76,12 +77,8 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		markAnnotationAsProcessed(annotationNode, Builder.class);
 		JavacNode typeNode = annotationNode.up();
 		
-		JCClassDecl typeDecl = null;
-		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
-		long flags = typeDecl == null ? 0 : typeDecl.mods.flags;
-		boolean notAClass = (flags & (INTERFACE | ENUM | ANNOTATION)) != 0;
-		
-		if (typeDecl == null || notAClass) {
+		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ENUM | ANNOTATION);
+		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}

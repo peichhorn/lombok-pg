@@ -21,6 +21,8 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.javac.handlers.Javac.classDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static com.sun.tools.javac.code.Flags.*;
 import lombok.Singleton;
@@ -33,7 +35,6 @@ import org.mangosdk.spi.ProviderFor;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -65,42 +66,38 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		List<JCExpression> nilExp = List.nil();
 		JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
 		JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
-		JCVariableDecl field = maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init);
-		injectField(typeNode, field);
+		injectField(typeNode, maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init));
 		
 		typeNode.rebuild();
 		
 		return true;
 	}
 	
-	private static boolean isNoConcreteClass(JavacNode annotationNode) {
+	private boolean isNoConcreteClass(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
-		JCClassDecl typeDecl = null;
-		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
-		long flags = typeDecl == null ? 0 : typeDecl.mods.flags;
-		boolean notAClass = (flags & (INTERFACE | ANNOTATION | ENUM)) != 0;
-		if (typeDecl == null || notAClass) {
-			annotationNode.addError("@Singleton is legal only on classes.");
+		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
+		if (typeDecl == null) {
+			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
 			return true;
 		}
 		if (typeDecl.extending != null) {
-			annotationNode.addError("@Singleton works only on concrete classes.");
+			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
 			return true;
 		} 
 		return false;
 	}
 	
-	private static boolean hasMultiArgumentConstructor(JavacNode annotationNode) {
+	private boolean hasMultiArgumentConstructor(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
 		JCClassDecl type = (JCClassDecl)typeNode.get();
 		if (hasMultiArgumentConstructor(type)) {
-			annotationNode.addError("@Singleton works only on classes with default or no argument constructor.");
+			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
 			return true;
 		}
 		return false;
 	}
 	
-	private static void makeConstructorNonPublicAndNonProtected(JCClassDecl type) {
+	private void makeConstructorNonPublicAndNonProtected(JCClassDecl type) {
 		for (JCTree def : type.defs) {
 			if (isConstructor(def)) {
 				((JCMethodDecl)def).mods.flags &= ~(PUBLIC | PROTECTED);
@@ -108,7 +105,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		}
 	}
 	
-	private static boolean hasMultiArgumentConstructor(JCClassDecl type) {
+	private boolean hasMultiArgumentConstructor(JCClassDecl type) {
 		for (JCTree def : type.defs) {
 			if (isConstructor(def)) {
 				if (!((JCMethodDecl)def).params.isEmpty()) {
@@ -119,7 +116,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		return false;
 	}
 	
-	private static boolean isConstructor(JCTree def) {
+	private boolean isConstructor(JCTree def) {
 		if (def instanceof JCMethodDecl) {
 			JCMethodDecl method = (JCMethodDecl)def;
 			return method.name.contentEquals(method.name.table.init);
