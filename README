@@ -1,6 +1,6 @@
-This a playground for https://github.com/rzwitserloot/lombok where I fool around.
+This a playground for extensions to project lombok (https://github.com/rzwitserloot/lombok)
 
-The current extensions to project lombok are:
+The current extensions are:
 
   - @AutoGenMethodStub
   - @Builder and @BuilderExtension
@@ -10,4 +10,4 @@ The current extensions to project lombok are:
   - @Singleton
   - @SwingInvokeLater and @SwingInvokeAndWait
   - Interfaces lombok.Application and lombok.JVMAgent (Entrypoint Generation)
-  - Lombok.with(object, expr1, expr2, ...)
+  - With.with(object, expr1, expr2, ...)
