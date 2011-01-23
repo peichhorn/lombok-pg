@@ -21,13 +21,15 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.setGeneratedByAndCopyPos;
+import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import lombok.Singleton;
 import lombok.core.AnnotationValues;
-
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
@@ -35,9 +37,8 @@ import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
@@ -45,42 +46,32 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 	@Override public boolean handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
 		TypeDeclaration type = null;
-		switch (typeNode.getKind()) {
-		case TYPE:
-			if (typeNode.get() instanceof TypeDeclaration) type = (TypeDeclaration) typeNode.get();
-			int modifiers = type == null ? 0 : type.modifiers;
-			boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation | ClassFileConstants.AccEnum)) != 0;
-			
-			if (type == null || notAClass) {
-				annotationNode.addError("@Singleton is legal only on classes.");
-				return true;
-			}
-			if (type.superclass != null) {
-				annotationNode.addError("@Singleton works only on concrete classes.");
-				return true;
-			}
-			if (hasMultiArgumentConstructor(type)) {
-				annotationNode.addError("@Singleton works only on classes with default or no argument constructor.");
-				return true;
-			}
-			break;
-		default:
-			annotationNode.addError("@Singleton is legal only on types.");
+		if (typeNode.get() instanceof TypeDeclaration) type = (TypeDeclaration) typeNode.get();
+		int modifiers = type == null ? 0 : type.modifiers;
+		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
+		if (type == null || notAClass) {
+			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
 			return true;
 		}
+		if (type.superclass != null) {
+			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
+			return true;
+		}
+		if (hasMultiArgumentConstructor(type)) {
+			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
+			return true;
+		}
+
 		
 		type.modifiers |= 0x00004000; // Modifier.ENUM
 		replaceConstructorVisibility(type);
 		
 		AllocationExpression initialization = new AllocationExpression();
 		setGeneratedByAndCopyPos(initialization, source);
+		initialization.enumConstant = field(typeNode, source, 0, (TypeReference)null, "INSTANCE")
+			.withInitialization(initialization).build();
 		
-		FieldDeclaration field = new FieldDeclaration("INSTANCE".toCharArray(), 0, 0);
-		setGeneratedByAndCopyPos(field, source);
-		field.initialization = initialization;
-		initialization.enumConstant = field;
-		
-		injectField(typeNode, field);
+		injectField(typeNode, initialization.enumConstant);
 		
 		typeNode.rebuild();
 		
@@ -88,20 +79,14 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 	}
 	
 	private void replaceConstructorVisibility(TypeDeclaration type) {
-		if (type.methods != null) for (AbstractMethodDeclaration def : type.methods) {
-			if (def instanceof ConstructorDeclaration) {
-				def.modifiers &= ~(PUBLIC | PROTECTED);
-			}
+		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
+			if (def instanceof ConstructorDeclaration) def.modifiers &= ~(PUBLIC | PROTECTED);
 		}
 	}
 	
-	private boolean hasMultiArgumentConstructor(TypeDeclaration type) {
-		if (type.methods != null) for (AbstractMethodDeclaration def : type.methods) {
-			if (def instanceof ConstructorDeclaration) {
-				if ((def.arguments != null) && (def.arguments.length > 0)) {
-					return true;
-				}
-			}
+	private boolean hasMultiArgumentConstructor(TypeDeclaration type) {		
+		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
+			if ((def instanceof ConstructorDeclaration) && isNotEmpty(def.arguments)) return true;
 		}
 		return false;
 	}

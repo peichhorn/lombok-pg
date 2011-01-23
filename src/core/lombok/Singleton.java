@@ -27,6 +27,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * The nicest singleton templates of them all.
+ * <p>
+ * Although not much code is generated the annotation also acts as documentation.
+ * <p>
  * Before:
  * <pre>
  * &#64;Singleton
@@ -43,6 +47,9 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
+ * <p>
+ * <b>Note:</b> It is highly possible that I will add another more flexible
+ * Singleton template later on. But the fallback will always be this template. 
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)

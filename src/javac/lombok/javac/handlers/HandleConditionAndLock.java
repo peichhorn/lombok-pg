@@ -189,11 +189,7 @@ public class HandleConditionAndLock {
 			if (trim(lockName).isEmpty()) {
 				String awaitCondition = trim(await == null ? "" : await.condition);
 				String signalCondition = trim(signal == null ? "" : signal.condition);
-				if (!awaitCondition.isEmpty()) signalCondition = capitalize(signalCondition);
-				completeLockName = "$";
-				completeLockName += awaitCondition;
-				completeLockName += signalCondition;
-				completeLockName += "Lock";
+				completeLockName = "$" + camelCase(awaitCondition, signalCondition, "lock");
 			} else {
 				completeLockName = lockName;
 			}

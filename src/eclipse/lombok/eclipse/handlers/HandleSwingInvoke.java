@@ -21,6 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.Names.camelCase;
+import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
@@ -48,7 +52,6 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
 import org.eclipse.jdt.internal.compiler.ast.TryStatement;
@@ -78,22 +81,22 @@ public class HandleSwingInvoke {
 		EclipseNode methodNode = annotationNode.up();
 		
 		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof MethodDeclaration)) {
-			annotationNode.addError("@" + annotationType.getSimpleName() + " is legal only on methods.");
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return true;
 		}
 		
 		MethodDeclaration method = (MethodDeclaration)methodNode.get();
 		
 		if (method.isAbstract()) {
-			annotationNode.addError("@" + annotationType.getSimpleName() + " is legal only on concrete methods.");
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return true;
 		}
 		
-		if (method.statements == null) return false;
+		if (isEmpty(method.statements)) return false;
 		
 		replaceWithQualifiedThisReference(methodNode, source);
 		
-		String field = "$" + new String(method.selector) + "Runnable";
+		String field = "$" + camelCase(new String(method.selector), "runnable");
 		
 		MethodDeclaration runMethod = method(methodNode, source, PUBLIC, "void", "run").withAnnotation("java.lang.Override")
 			.withStatements(Arrays.asList(method.statements)).build();
@@ -107,27 +110,23 @@ public class HandleSwingInvoke {
 		
 		Block thenStatement = new Block(0);
 		setGeneratedByAndCopyPos(thenStatement, source);
-		thenStatement.statements = new Statement[1];
-		thenStatement.statements[0] = methodCall(source, field, "run");
+		thenStatement.statements = array(methodCall(source, field, "run"));
 		
 		MessageSend elseStatementRun = methodCall(source, "java.awt.EventQueue", methodName);
-		elseStatementRun.arguments = new Expression[] { nameReference(source, field) };
+		elseStatementRun.arguments = array(nameReference(source, field));
 		
 		Block elseStatement = new Block(0);
 		setGeneratedByAndCopyPos(elseStatement, source);
-		elseStatement.statements = new Statement[1];
-		
 		if ("invokeAndWait".equals(methodName)) {
-			elseStatement.statements[0] = generateTryCatchBlock(elseStatementRun, source);
+			elseStatement.statements = array(generateTryCatchBlock(elseStatementRun, source));
 		} else {
-			elseStatement.statements[0] = elseStatementRun;
+			elseStatement.statements = array(elseStatementRun);
 		}
 		
 		Expression condition = methodCall(source, "java.awt.EventQueue", "isDispatchThread");
 		
-		method.statements = new Statement[2];
-		method.statements[0] = local(methodNode, source, FINAL, "java.lang.Runnable", field).withInitialization(initialization).build();;
-		method.statements[1] = new IfStatement(condition, thenStatement, elseStatement, 0, 0);
+		method.statements = array(local(methodNode, source, FINAL, "java.lang.Runnable", field).withInitialization(initialization).build(),
+				new IfStatement(condition, thenStatement, elseStatement, 0, 0));
 		setGeneratedByAndCopyPos(method.statements[1], source);
 
 		methodNode.rebuild();
@@ -145,7 +144,7 @@ public class HandleSwingInvoke {
 		AllocationExpression newClassExp = new AllocationExpression();
 		setGeneratedByAndCopyPos(newClassExp, source);
 		newClassExp.type = typeReference(source, "java.lang.RuntimeException");
-		newClassExp.arguments = new Expression[] { methodCall(source, "$ex2", "getCause") };
+		newClassExp.arguments = array(methodCall(source, "$ex2", "getCause"));
 		
 		Statement rethrowStatement = new ThrowStatement(newClassExp, 0, 0);
 		setGeneratedByAndCopyPos(rethrowStatement, source);
@@ -161,32 +160,27 @@ public class HandleSwingInvoke {
 		
 		Block block2 = new Block(0);
 		setGeneratedByAndCopyPos(block2, source);
-		block2.statements = new Statement[] { ifStatement };
+		block2.statements = array(ifStatement);
 		
 		TryStatement tryStatement = new TryStatement();
 		setGeneratedByAndCopyPos(tryStatement, source);
 		tryStatement.tryBlock = new Block(0);
 		setGeneratedByAndCopyPos(tryStatement.tryBlock, source);
-		tryStatement.tryBlock.statements = new Statement[] { elseStatementRun };
-		tryStatement.catchArguments = new Argument[] { catchArg1, catchArg2 };
-		tryStatement.catchBlocks = new Block[] { block1, block2 };
+		tryStatement.tryBlock.statements = array(elseStatementRun);
+		tryStatement.catchArguments = array(catchArg1, catchArg2);
+		tryStatement.catchBlocks = array(block1, block2);
 		return tryStatement;
 	}
 
 	private static void replaceWithQualifiedThisReference(final EclipseNode node, final ASTNode source) {
-		EclipseNode parent = node;
-		while (parent != null && !(parent.get() instanceof TypeDeclaration)) {
-			parent = parent.up();
-		}
-		if (parent != null) {
-			final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
-			final IReplacementProvider replacement = new HandleSwingInvokeReplacementProvider(new String(typeDec.name), source);
-			ASTNode astNode = node.get();
-			if (astNode instanceof MethodDeclaration) {
-				((MethodDeclaration)astNode).traverse(new ThisReferenceReplaceVisitor(replacement), (ClassScope)null);
-			} else {
-				astNode.traverse(new ThisReferenceReplaceVisitor(replacement), null);
-			}
+		EclipseNode parent = typeNodeOf(node);
+		final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
+		final IReplacementProvider replacement = new HandleSwingInvokeReplacementProvider(new String(typeDec.name), source);
+		ASTNode astNode = node.get();
+		if (astNode instanceof MethodDeclaration) {
+			((MethodDeclaration)astNode).traverse(new ThisReferenceReplaceVisitor(replacement), (ClassScope)null);
+		} else {
+			astNode.traverse(new ThisReferenceReplaceVisitor(replacement), null);
 		}
 	}
 	
@@ -201,9 +195,7 @@ public class HandleSwingInvoke {
 		}
 		
 		@Override public Expression getReplacement() {
-			QualifiedThisReference qualThisRef = new QualifiedThisReference(typeReference(source, typeName), 0, 0);
-			setGeneratedByAndCopyPos(qualThisRef, source);
-			return qualThisRef;
+			return thisReference(source, typeReference(source, typeName));
 		}
 	}
 }

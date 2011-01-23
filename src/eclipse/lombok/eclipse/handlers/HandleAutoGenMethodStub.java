@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.makeType;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.injectMethod;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.setGeneratedByAndCopyPos;
@@ -64,19 +65,12 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 	// error handling only
 	@Override public boolean handle(AnnotationValues<AutoGenMethodStub> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode owner = annotationNode.up();
-		switch (owner.getKind()) {
-		case TYPE:
-			TypeDeclaration typeDecl = null;
-			if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
-			int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-			boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
-			
-			if (typeDecl == null || notAClass) {
-				annotationNode.addError("@AutoGenMethodStub is legal only on classes and enums.");
-			}
-			break;
-		default:
-			annotationNode.addError("@AutoGenMethodStub is legal only on types.");
+		TypeDeclaration typeDecl = null;
+		if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
+		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
+		boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
+		if (typeDecl == null || notAClass) {
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 		}
 		return false;
 	}

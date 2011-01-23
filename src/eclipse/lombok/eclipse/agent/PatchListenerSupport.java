@@ -37,12 +37,10 @@ import lombok.patcher.StackRequest;
 
 public class PatchListenerSupport {
 	static void addPatches(ScriptManager sm, boolean ecj) {
-		final String CLASSSCOPE_SIG = "org.eclipse.jdt.internal.compiler.lookup.ClassScope";
-		
 		sm.addScript(exitEarly()
-				.target(new MethodTarget(CLASSSCOPE_SIG, "buildFieldsAndMethods", "void"))
+				.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
 				.request(StackRequest.THIS)
-				.decisionMethod(new Hook(PatchListenerSupport.class.getName(), "onBuildFieldsAndMethods", "boolean", CLASSSCOPE_SIG))
+				.decisionMethod(new Hook(PatchListenerSupport.class.getName(), "onBuildFieldsAndMethods", "boolean", CLASSSCOPE))
 				.build());
 	}
 	

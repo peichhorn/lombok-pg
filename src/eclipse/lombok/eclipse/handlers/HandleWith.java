@@ -21,11 +21,13 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.eclipse.handlers.Eclipse.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.FINAL;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -39,7 +41,6 @@ import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
-import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
@@ -50,6 +51,7 @@ import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.mangosdk.spi.ProviderFor;
 
+import lombok.With;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -67,13 +69,9 @@ public class HandleWith extends EclipseASTAdapter {
 	
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
-			Collection<String> importedStatements = statementNode.getImportStatements();
 			MessageSend methodCall = (MessageSend) statement;
-			String name = new String(methodCall.selector);
-			if (("lombok.With.with".equals(name))
-					|| ("With.with".equals(name) && importedStatements.contains("lombok.With"))
-					|| ("with".equals(name) && importedStatements.contains("lombok.With.with"))) {
-				methodName = name;
+			methodName = new String(methodCall.selector);
+			if (methodCallIsValid(statementNode, methodName, With.class, "with")) {
 				handled = handle(statementNode, methodCall);
 			}
 		}
@@ -81,26 +79,12 @@ public class HandleWith extends EclipseASTAdapter {
 	
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		if (handled) {
-			if ("with".equals(methodName)) {
-				deleteImportFromCompilationUnit(top, "lombok.With.with", true);
-			} else if ("With.with".equals(methodName)) {
-				deleteImportFromCompilationUnit(top, "lombok.With", false);
-			}
+			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
-	}
-	
-	public static void deleteImportFromCompilationUnit(EclipseNode node, String name, boolean deleteStatic) {
-		CompilationUnitDeclaration unit = (CompilationUnitDeclaration) node.top().get();
-		List<ImportReference> newImports = new ArrayList<ImportReference>();
-		for (ImportReference imp0rt : unit.imports) {
-			boolean delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.toString().equals(name));
-			if (!delete) newImports.add(imp0rt);
-		}
-		unit.imports = newImports.toArray(new ImportReference[newImports.size()]);
 	}
 	
 	public boolean handle(EclipseNode methodCallNode, MessageSend withCall) {
-		if ((withCall.arguments == null) || (withCall.arguments.length < 2)) {
+		if (isEmpty(withCall.arguments) || (withCall.arguments.length < 2)) {
 			return true;
 		}
 		
@@ -116,7 +100,7 @@ public class HandleWith extends EclipseASTAdapter {
 			withCallStatements.add(local(methodCallNode, source, FINAL, ((AllocationExpression)withExpr).type, withExprName).withInitialization(withExpr).build());
 			withExpr = nameReference(source, withExprName);
 		} else {
-			methodCallNode.addError("The first argument of 'with' can only be variable name or new-class statement.");
+			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
 			return false;
 		}
 		EclipseNode parent = methodCallNode.directUp();
@@ -134,27 +118,22 @@ public class HandleWith extends EclipseASTAdapter {
 			if (methodCall.receiver == withCall) {
 				methodCall.receiver = withExpr;
 			} else {
-				if (methodCall.arguments != null) for (int i = 0; i < methodCall.arguments.length; i++) {
+				if (isNotEmpty(methodCall.arguments)) for (int i = 0; i < methodCall.arguments.length; i++) {
 					if (methodCall.arguments[i] == withCall) methodCall.arguments[i] = withExpr;
 				}
 			}
-		} else if (statementThatUsesWith instanceof AbstractMethodDeclaration) {
-			grandParent = parent;
-			parent = methodCallNode;
-			statementThatUsesWith = parent.get();
-			wasNoMethodCall = false;
-		} else if (statementThatUsesWith instanceof Block) {
+		} else if ((statementThatUsesWith instanceof AbstractMethodDeclaration) || (statementThatUsesWith instanceof Block)) {
 			grandParent = parent;
 			parent = methodCallNode;
 			statementThatUsesWith = parent.get();
 			wasNoMethodCall = false;
 		} else {
-			methodCallNode.addError("'with' is not allowed here.");
+			methodCallNode.addError(isNotAllowedHere("with"));
 			return false;
 		}
 		
 		Statement arg;
-		for (int i = 1; i < withCall.arguments.length; i++) {
+		for (int i = 1, iend = withCall.arguments.length; i < iend; i++) {
 			arg = withCall.arguments[i];
 			if (arg instanceof MessageSend) {
 				MessageSend methodCall = (MessageSend) arg;
@@ -162,7 +141,7 @@ public class HandleWith extends EclipseASTAdapter {
 				setGeneratedByAndCopyPos(methodCall, source);
 				withCallStatements.add(arg);
 			} else {
-				methodCallNode.addError("Unsupported Expression in 'with': " + arg + ".");
+				methodCallNode.addError(unsupportedExpressionIn("with", arg));
 				return false;
 			}
 		}
@@ -231,12 +210,14 @@ public class HandleWith extends EclipseASTAdapter {
 		}
 		
 		private Expression[] tryToReplace(Expression[] expressions) {
-			if (expressions == null) return null;
-			List<Expression> newExpressions = new ArrayList<Expression>();
-			for (Expression expr : expressions) {
-				newExpressions.add(tryToReplace(expr));
+			Expression[] newExpressions = expressions;
+			if (isNotEmpty(newExpressions)) {
+				newExpressions = copy(expressions);
+				for (int i = 0, iend = expressions.length; i < iend; i++) {
+					newExpressions[i] = tryToReplace(newExpressions[i]);
+				}
 			}
-			return newExpressions.toArray(new Expression[newExpressions.size()]);
+			return newExpressions;
 		}
 		
 		private Expression tryToReplace(Expression expr) {

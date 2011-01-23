@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Cast.uncheckedCast;
 import static lombok.eclipse.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
@@ -55,7 +56,9 @@ import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
@@ -148,6 +151,12 @@ public class EclipseNodeBuilder {
 		return nameReference;
 	}
 	
+	public static TypeReference typeReference(ASTNode source, String typeName, TypeReference[] refs) {
+		TypeReference typeReference = new ParameterizedSingleTypeReference(typeName.toCharArray(), refs, 0, 0);
+		setGeneratedByAndCopyPos(typeReference, source);
+		return typeReference;
+	}
+	
 	public static TypeReference typeReference(ASTNode source, String typeName) {
 		TypeReference typeReference;
 		int arrayDimensions = 0;
@@ -195,6 +204,12 @@ public class EclipseNodeBuilder {
 		ThisReference ref = new ThisReference(0, 0);
 		setGeneratedByAndCopyPos(ref, source);
 		return ref;
+	}
+	
+	public static QualifiedThisReference thisReference(ASTNode source, TypeReference typeReference) {
+		QualifiedThisReference qualThisRef = new QualifiedThisReference(typeReference, 0, 0);
+		setGeneratedByAndCopyPos(qualThisRef, source);
+		return qualThisRef;
 	}
 	
 	public static ConstructorBuilder constructor(EclipseNode node, ASTNode source, int modifiers, String typeName) {
@@ -452,6 +467,11 @@ public class EclipseNodeBuilder {
 			return self();
 		}
 		
+		public SELF_TYPE withParameter(Argument parameter) {
+			this.parameters.add(parameter);
+			return self();
+		}
+		
 		public SELF_TYPE withParameters(List<Argument> parameters) {
 			for (Argument parameter : parameters) {
 				withParameter(parameter.type, new String(parameter.name));
@@ -532,9 +552,8 @@ public class EclipseNodeBuilder {
 			return self();
 		}
 		
-		@SuppressWarnings("unchecked")
 		protected final SELF_TYPE self() {
-			return (SELF_TYPE) this;
+			return uncheckedCast(this);
 		}
 		
 		public abstract BUILDER_RETURN_TYPE build();

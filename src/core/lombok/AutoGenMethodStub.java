@@ -69,8 +69,8 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
- * Remember that this annotation a curve ball, decent interface design comes first.
- * But in a few cases it may remove massive amounts of boilerplate.
+ * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.
+ * But in few cases it may remove massive amounts of boilerplate.
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)

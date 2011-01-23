@@ -1,22 +1,11 @@
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Names.capitalize;
-import static lombok.core.util.Names.interfaceName;
-import static lombok.eclipse.Eclipse.fromQualifiedName;
-import static lombok.eclipse.Eclipse.makeType;
-import static lombok.eclipse.Eclipse.poss;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.argument;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.field;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.local;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.method;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.methodCall;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.nameReference;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.setGeneratedByAndCopyPos;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.typeReference;
-import static org.eclipse.jdt.core.dom.Modifier.FINAL;
-import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
-import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
-import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.Names.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
+import static org.eclipse.jdt.core.dom.Modifier.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -64,19 +53,12 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 	// error handling only
 	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, org.eclipse.jdt.internal.compiler.ast.Annotation ast, EclipseNode annotationNode) {
 		EclipseNode owner = annotationNode.up();
-		switch (owner.getKind()) {
-		case TYPE:
-			TypeDeclaration typeDecl = null;
-			if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
-			int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-			boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
-			
-			if (typeDecl == null || notAClass) {
-				annotationNode.addError("@AutoGenMethodStub is legal only on classes and enums.");
-			}
-			break;
-		default:
-			annotationNode.addError("@AutoGenMethodStub is legal only on types.");
+		TypeDeclaration typeDecl = null;
+		if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
+		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
+		boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
+		if (typeDecl == null || notAClass) {
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 		}
 		return false;
 	}
@@ -142,8 +124,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 	private TypeReference createTypeReference(ASTNode source, String typeName, TypeBinding binding) {
 		char[][] listNameTokens = fromQualifiedName(typeName);
 		TypeReference[][] args = new TypeReference[listNameTokens.length][];
-		args[listNameTokens.length - 1] = new TypeReference[1];
-		args[listNameTokens.length - 1][0] = makeType(binding, source, false);
+		args[listNameTokens.length - 1] = array(makeType(binding, source, false));
 		ParameterizedQualifiedTypeReference typeReference = new ParameterizedQualifiedTypeReference(listNameTokens, args, 0, poss(source, listNameTokens.length));
 		setGeneratedByAndCopyPos(typeReference, source);
 		return typeReference;
@@ -190,13 +171,13 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			List<Argument> params = new ArrayList<Argument>();
 			createParamsAndArgs(source, methodBinding, params, args);
 			forEach.action = methodCall(source, "l", methodName, args.toArray(new Expression[args.size()]));
-			method(typeNode, source, PROTECTED, typeReference(source, "void"), "fire" + capitalize(methodName)).withParameters(params)
+			method(typeNode, source, PROTECTED, typeReference(source, "void"), camelCase("fire", methodName)).withParameters(params)
 				.withStatement(forEach).inject();
 		}
 	}
 	
 	private void createParamsAndArgs(ASTNode source, MethodBinding methodBinding , List<Argument> params, List<Expression> args) {
-		if ((methodBinding.parameters == null) || (methodBinding.parameters.length == 0)) return;
+		if (isEmpty(methodBinding.parameters)) return;
 		int argCounter = 0;
 		String arg;
 		for (TypeBinding parameter : methodBinding.parameters) {
@@ -223,14 +204,14 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 				methods.add(mb);
 			}
 			ReferenceBinding[] interfaces = rb.superInterfaces();
-			if (interfaces != null) {
-				for (ReferenceBinding iface : interfaces) getInterfaceMethods(iface, methods, banList);
+			if (isNotEmpty(interfaces)) for (ReferenceBinding iface : interfaces) {
+				getInterfaceMethods(iface, methods, banList);
 			}
 		}
 	}
 	
 	private void ensureAllClassScopeMethodWereBuild(TypeBinding binding) {
-		if (binding instanceof SourceTypeBinding) { // we need to build all sourcetype methods not only membertypes
+		if (binding instanceof SourceTypeBinding) {
 			ClassScope cs = ((SourceTypeBinding)binding).scope;
 			if (cs != null) {
 				try {

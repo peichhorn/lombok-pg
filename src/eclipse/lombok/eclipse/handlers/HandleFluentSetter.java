@@ -21,13 +21,14 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.FluentSetter;
@@ -35,7 +36,6 @@ import lombok.Setter;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.handlers.TransformationsUtil;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.FieldAccess;
@@ -43,21 +43,12 @@ import lombok.eclipse.handlers.EclipseHandlerUtil.FieldAccess;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.NameReference;
-import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
-import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -77,8 +68,8 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			return createSetterForFields(level, annotationNode.upFromAnnotationToFields(), annotationNode, annotationNode.get(), true, onMethod, onParam);
 		}
 		if (node.getKind() == Kind.TYPE) {
-			if (onMethod != null && onMethod.length != 0) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
-			if (onParam != null && onParam.length != 0) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
+			if (isNotEmpty(onMethod)) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
+			if (isNotEmpty(onParam)) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
 			return generateSetterForType(node, annotationNode, level, false);
 		}
 		return false;
@@ -99,11 +90,10 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		TypeDeclaration typeDecl = null;
 		if (typeNode.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) typeNode.get();
 		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers &
-				(ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation | ClassFileConstants.AccEnum)) != 0;
+		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
 		
 		if (typeDecl == null || notAClass) {
-			pos.addError("@Setter is only supported on a class or a field.");
+			pos.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return false;
 		}
 		
@@ -113,25 +103,13 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			if (!EclipseHandlerUtil.filterField(fieldDecl)) continue;
 			
 			//Skip final fields.
-			if ((fieldDecl.modifiers & ClassFileConstants.AccFinal) != 0) continue;
+			if ((fieldDecl.modifiers & AccFinal) != 0) continue;
 
 			generateSetterForField(field, pos.get(), level, new Annotation[0], new Annotation[0]);
 		}
 		return true;
 	}
 	
-	/**
-	 * Generates a setter on the stated field.
-	 * 
-	 * Used by {@link HandleData}.
-	 * 
-	 * The difference between this call and the handle method is as follows:
-	 * 
-	 * If there is a {@code lombok.Setter} annotation on the field, it is used and the
-	 * same rules apply (e.g. warning if the method already exists, stated access level applies).
-	 * If not, the setter is still generated if it isn't already there, though there will not
-	 * be a warning if its already there. The default access level is used.
-	 */
 	public void generateSetterForField(EclipseNode fieldNode, ASTNode pos, AccessLevel level, Annotation[] onMethod , Annotation[] onParam) {
 		for (EclipseNode child : fieldNode.down()) {
 			if (child.getKind() == Kind.ANNOTATION) {
@@ -145,8 +123,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		createSetterForField(level, fieldNode, fieldNode, pos, false, onMethod, onParam);
 	}
 
-	private boolean createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
-			Annotation[] onMethod , Annotation[] onParam) {
+	private boolean createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists, Annotation[] onMethod , Annotation[] onParam) {
 		for (EclipseNode fieldNode : fieldNodes) {
 			createSetterForField(level, fieldNode, errorNode, source, whineIfExists, onMethod, onParam);
 		}
@@ -165,15 +142,15 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		
 		String setterName = fieldName;
 		
-		int modifier = toEclipseModifier(level) | (field.modifiers & ClassFileConstants.AccStatic);
+		int modifier = toEclipseModifier(level) | (field.modifiers & AccStatic);
 		
 		switch (methodExists(setterName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
 		case EXISTS_BY_USER:
 			if (whineIfExists) errorNode.addWarning(
-					String.format("Not generating %s(%s %s): A method with that name already exists",
-					setterName, field.type, fieldName));
+				String.format("Not generating %s(%s %s): A method with that name already exists",
+				setterName, field.type, fieldName));
 			return true;
 		default:
 		case NOT_EXISTS:
@@ -182,7 +159,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 
 		MethodDeclaration method = generateSetter((TypeDeclaration) fieldNode.up().get(), fieldNode, setterName, modifier, source, onParam);
 		Annotation[] copiedAnnotations = copyAnnotations(source, onMethod);
-		if (copiedAnnotations.length != 0) {
+		if (isNotEmpty(copiedAnnotations)) {
 			method.annotations = copiedAnnotations;
 		}
 		
@@ -193,66 +170,30 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 	
 	private MethodDeclaration generateSetter(TypeDeclaration parent, EclipseNode fieldNode, String name, int modifier, ASTNode source, Annotation[] onParam) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
-
-		int pS = source.sourceStart, pE = source.sourceEnd;
-		long p = (long)pS << 32 | pE;
-		MethodDeclaration method = new MethodDeclaration(parent.compilationResult);
-		Eclipse.setGeneratedBy(method, source);
-		method.modifiers = modifier;
-		if (parent.typeParameters != null && parent.typeParameters.length > 0) {
-			TypeReference[] refs = new TypeReference[parent.typeParameters.length];
-			int idx = 0;
-			for (TypeParameter param : parent.typeParameters) {
-				TypeReference typeRef = new SingleTypeReference(param.name, (long)param.sourceStart << 32 | param.sourceEnd);
-				Eclipse.setGeneratedBy(typeRef, source);
-				refs[idx++] = typeRef;
-			}
-			method.returnType = new ParameterizedSingleTypeReference(parent.name, refs, 0, p);
-		} else method.returnType = new SingleTypeReference(parent.name, p);		
-		method.returnType.sourceStart = pS; method.returnType.sourceEnd = pE;
-		Eclipse.setGeneratedBy(method.returnType, source);
-		method.annotations = null;
-		Argument param = new Argument(field.name, p, copyType(field.type, source), Modifier.FINAL);
-		param.sourceStart = pS; param.sourceEnd = pE;
-		Eclipse.setGeneratedBy(param, source);
-		method.arguments = new Argument[] { param };
-		method.selector = name.toCharArray();
-		method.binding = null;
-		method.thrownExceptions = null;
-		method.typeParameters = null;
-		method.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-		Expression fieldRef = createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source);
-		NameReference fieldNameRef = new SingleNameReference(field.name, p);
-		Eclipse.setGeneratedBy(fieldNameRef, source);
-		Assignment assignment = new Assignment(fieldRef, fieldNameRef, (int)p);
-		assignment.sourceStart = pS; assignment.sourceEnd = pE;
-		Eclipse.setGeneratedBy(assignment, source);
-		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
-		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
-		
 		Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
 		
-		List<Statement> statements = new ArrayList<Statement>();
+		TypeReference returnType;
+		if (isNotEmpty(parent.typeParameters)) {
+			TypeReference[] refs = new TypeReference[parent.typeParameters.length];
+			int idx = 0;
+			for (TypeParameter param : parent.typeParameters) {
+				refs[idx++] = typeReference(source, new String(param.name));
+			}
+			returnType = typeReference(source, new String(parent.name), refs);
+		} else returnType = typeReference(source, new String(parent.name));
 		
-		if (nonNulls.length == 0) {
-			statements.add(assignment);
-		} else {
-			Statement nullCheck = generateNullCheck(field, source);
-			if (nullCheck != null) statements.add(nullCheck); 
-			statements.add(assignment);
-		}
-		
-		Expression thisExpression = new ThisReference(pS, pE);
-		Eclipse.setGeneratedBy(thisExpression, source);
-		Statement returnStatement = new ReturnStatement(thisExpression, pS, pE);
-		Eclipse.setGeneratedBy(returnStatement, source);			
-		statements.add(returnStatement);
-		
-		method.statements = statements.toArray(new Statement[statements.size()]);
-		
+		Argument param = argument(source, field.type, new String(field.name));
 		Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables, onParam);
-		if (copiedAnnotations.length != 0) param.annotations = copiedAnnotations;
-		return method;
+		if (isNotEmpty(copiedAnnotations)) param.annotations = copiedAnnotations;
+		
+		MethodBuilder builder = method(fieldNode, source, modifier, returnType, name).withParameter(param);
+		if (isNotEmpty(nonNulls)) {
+			Statement nullCheck = generateNullCheck(field, source);
+			if (nullCheck != null) builder.withStatement(nullCheck); 
+		}
+		builder.withAssignStatement(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source), nameReference(source, new String(field.name)))
+			.withReturnStatement(thisReference(source));
+		return builder.build();
 	}
 }

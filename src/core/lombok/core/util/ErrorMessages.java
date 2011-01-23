@@ -30,16 +30,48 @@ public final class ErrorMessages {
 	private ErrorMessages() {
 	}
 	
+	public static String canBeUsedOnConcreteClassOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on concrete classes only", annotationType);
+	}
+	
 	public static String canBeUsedOnClassOnly(Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on classes only", annotationType);
 	}
 	
 	public static String canBeUsedOnClassAndEnumOnly(Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on classes and enums only", annotationType);
-	}
+	}	
+	
+	public static String canBeUsedOnClassAndFieldOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on classes and fields only", annotationType);
+	}	
 
 	public static String canBeUsedOnFieldOnly(Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on fields only", annotationType);
+	}
+	
+	public static String canBeUsedOnMethodOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on methods only", annotationType);
+	}
+	
+	public static String canBeUsedOnConcreteMethodOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on concrete methods only", annotationType);
+	}
+	
+	public static String requiresDefaultOrNoArgumentConstructor(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s requires a default or no-argument constructor", annotationType);
+	}
+	
+	public static String unsupportedExpressionIn(String where, Object expr) {
+		return String.format("Unsupported Expression in '%s': %s", where, expr);
+	}
+	
+	public static String isNotAllowedHere(String what) {
+		return String.format("'%s' is not allowed here.", what);
+	}
+	
+	public static String firstArgumentCanBeVariableNameOrNewClassStatementOnly(String what) {
+		return String.format("The first argument of '%s' can be variable name or new-class statement  only", what);
 	}
 
 	private static String errorMessage(String format, Class<? extends Annotation> annotationType) {

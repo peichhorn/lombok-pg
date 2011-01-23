@@ -21,10 +21,9 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.javac.handlers.JavacTreeBuilder.*;
+import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.chainDots;
 import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
-import java.util.Collection;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -53,6 +52,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
+import lombok.With;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
@@ -70,13 +70,9 @@ public class HandleWith extends JavacASTAdapter {
 	
 	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
-			Collection<String> importedStatements = statementNode.getImportStatements();
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
-			String name = methodCall.meth.toString();
-			if (("lombok.With.with".equals(name))
-					|| ("With.with".equals(name) && importedStatements.contains("lombok.With"))
-					|| ("with".equals(name) && importedStatements.contains("lombok.With.with"))) {
-				methodName = name;
+			methodName = methodCall.meth.toString();
+			if (methodCallIsValid(statementNode, methodName, With.class, "with")) {
 				handled = handle(statementNode, methodCall);
 			}
 		}
@@ -84,11 +80,7 @@ public class HandleWith extends JavacASTAdapter {
 	
 	@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
 		if (handled) {
-			if ("with".equals(methodName)) {
-				deleteImportFromCompilationUnit(top, "lombok.With.with", true);
-			} else if ("With.with".equals(methodName)) {
-				deleteImportFromCompilationUnit(top, "lombok.With");
-			}
+			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
 	}
 	

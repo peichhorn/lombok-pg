@@ -21,6 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.isNotEmpty;
+
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
@@ -51,7 +53,7 @@ public class ThisReferenceReplaceVisitor extends ASTVisitor {
 	}
 	
 	private void replaceArguments(Expression[] arguments) {
-		if (arguments != null) for (int i = 0, iend = arguments.length; i < iend; i++) {
+		if (isNotEmpty(arguments)) for (int i = 0, iend = arguments.length; i < iend; i++) {
 			if (arguments[i] instanceof ThisReference) {
 				arguments[i] = replacement.getReplacement();
 			}

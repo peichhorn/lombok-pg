@@ -21,8 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.ErrorMessages.canBeUsedOnClassOnly;
 import static lombok.core.util.Names.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
@@ -59,7 +61,6 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Wildcard;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -76,10 +77,10 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		TypeDeclaration typeDecl = null;
 		if (typeNode.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) typeNode.get();
 		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation | ClassFileConstants.AccEnum)) != 0;
+		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
 		
 		if (typeDecl == null || notAClass) {
-			annotationNode.addError("@Builder is only supported on a class.");
+			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}
 		
@@ -212,7 +213,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
 		String fieldName = new String(field.name);
-		String methodName = toCamelCase(false, builderData.getPrefix(), fieldName);
+		String methodName = camelCase(builderData.getPrefix(), fieldName);
 		builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, typeName, methodName).withParameter(field.type, fieldName)
 			.withAssignStatement(fieldReference(source, thisReference(source), fieldName), nameReference(source, fieldName))
 			.withReturnStatement(thisReference(source)).build());
@@ -251,14 +252,14 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		String fieldName = new String(field.name);
 		
 		{ // add
-			String addMethodName = toCamelCase(true, builderData.getPrefix(), fieldName);
+			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, addMethodName).withParameter(elementType, "arg0")
 				.withStatement(methodCall(source, fieldReference(source, thisReference(source), fieldName), "add", nameReference(source, "arg0")))
 				.withReturnStatement(thisReference(source)).build());
 			interfaceMethods.add(method(typeNode, source, PUBLIC, OPTIONAL_DEF, addMethodName).withParameter(elementType, "arg0").build());
 		}
 		{ // addAll
-			String addAllMethodName = toCamelCase(false, builderData.getPrefix(), fieldName);
+			String addAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, addAllMethodName).withParameter(collectionType, "arg0")
 				.withStatement(methodCall(source, fieldReference(source, thisReference(source), fieldName), "addAll", nameReference(source, "arg0")))
 				.withReturnStatement(thisReference(source)).build());
@@ -308,14 +309,14 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		String fieldName = new String(field.name);
 		
 		{ // put
-			String putMethodName = toCamelCase(true, builderData.getPrefix(), fieldName);
+			String putMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, putMethodName).withParameter(keyType, "arg0").withParameter(valueType, "arg1")
 				.withStatement(methodCall(source, fieldReference(source, thisReference(source), fieldName), "put", nameReference(source, "arg0"), nameReference(source, "arg1")))
 				.withReturnStatement(thisReference(source)).build());
 			interfaceMethods.add(method(typeNode, source, PUBLIC, OPTIONAL_DEF, putMethodName).withParameter(keyType, "arg0").withParameter(valueType, "arg1").build());
 		}
 		{ // putAll
-			String putAllMethodName = toCamelCase(false, builderData.getPrefix(), fieldName);
+			String putAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, putAllMethodName).withParameter(mapType, "arg0")
 				.withStatement(methodCall(source, fieldReference(source, thisReference(source), fieldName), "putAll", nameReference(source, "arg0")))
 				.withReturnStatement(thisReference(source)).build());
@@ -630,7 +631,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				if ((field.initialization == null) && ((field.modifiers & FINAL) != 0)) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
-					requiredFieldDefTypeNames.add(toCamelCase(false, "$", fieldName, "def"));
+					requiredFieldDefTypeNames.add(camelCase("$", fieldName, "def"));
 				}
 				boolean append = isInitializedMapOrCollection(field) && convenientMethods;
 				append |= (field.modifiers & FINAL) == 0;

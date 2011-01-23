@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.Cast.uncheckedCast;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.io.InputStream;
@@ -44,11 +45,9 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -62,27 +61,6 @@ import com.sun.tools.javac.util.Name;
 public class JavacTreeBuilder {
 	private JavacTreeBuilder() {
 		//Prevent instantiation
-	}
-	
-	public static void deleteImportFromCompilationUnit(JavacNode node, String name) {
-		deleteImportFromCompilationUnit(node, name, false);
-	}
-	
-	public static void deleteImportFromCompilationUnit(JavacNode node, String name, boolean deleteStatic) {
-		if (!node.shouldDeleteLombokAnnotations()) return;
-		ListBuffer<JCTree> newDefs = ListBuffer.lb();
-		
-		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();
-		
-		for (JCTree def : unit.defs) {
-			boolean delete = false;
-			if (def instanceof JCImport) {
-				JCImport imp0rt = (JCImport)def;
-				delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.qualid.toString().equals(name));
-			}
-			if (!delete) newDefs.append(def);
-		}
-		unit.defs = newDefs.toList();
 	}
 	
 	/**
@@ -282,7 +260,7 @@ public class JavacTreeBuilder {
 		}
 	}
 	
-	private static abstract class AbstractMethodBuilder<E extends AbstractMethodBuilder<E>> extends AbstractTreeBuilder {
+	private static abstract class AbstractMethodBuilder<SELF_TYPE extends AbstractMethodBuilder<SELF_TYPE>> extends AbstractTreeBuilder {
 		protected final JCModifiers mods;
 		protected ListBuffer<JCAnnotation> annotations = ListBuffer.lb();
 		protected ListBuffer<JCTypeParameter> typarams = ListBuffer.lb();
@@ -311,23 +289,22 @@ public class JavacTreeBuilder {
 			}
 		}
 		
-		@SuppressWarnings("unchecked")
-		protected final E self() {
-			return (E) this;
+		protected final SELF_TYPE self() {
+			return uncheckedCast(this);
 		}
 		
-		public E withMods(long flags) {
+		public SELF_TYPE withMods(long flags) {
 			mods.flags = flags;
 			annotations.clear();
 			return self();
 		}
 		
-		public E withThrownExceptions(List<JCExpression> thrownExceptions) {
+		public SELF_TYPE withThrownExceptions(List<JCExpression> thrownExceptions) {
 			this.thrownExceptions.appendList(thrownExceptions);
 			return self();
 		}
 		
-		public E withStatement(JCStatement statement) {
+		public SELF_TYPE withStatement(JCStatement statement) {
 			this.statements.append(statement);
 			return self();
 		}
@@ -413,10 +390,9 @@ public class JavacTreeBuilder {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	static <T> Class<T> reloadClass(String claz, ClassLoader outClassLoader) throws Exception {
 		try {
-			return (Class<T>) outClassLoader.loadClass(claz);
+			return uncheckedCast(outClassLoader.loadClass(claz));
 		} catch (ClassNotFoundException e) {}
 		String path = claz.replace('.', '/') + ".class";
 		ClassLoader incl = JavacAnnotationHandler.class.getClassLoader();
@@ -426,6 +402,6 @@ public class JavacTreeBuilder {
 		Method m = ClassLoader.class.getDeclaredMethod("defineClass", new Class[] {
 				String.class, byte[].class, int.class, int.class });
 		m.setAccessible(true);
-		return (Class<T>) m.invoke(outClassLoader, claz, bytes, 0, bytes.length);
+		return uncheckedCast(m.invoke(outClassLoader, claz, bytes, 0, bytes.length));
 	}
 }

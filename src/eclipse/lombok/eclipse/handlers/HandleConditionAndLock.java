@@ -21,6 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Names.*;
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -168,7 +170,7 @@ public class HandleConditionAndLock {
 		
 		List<Statement> tryBlock = new ArrayList<Statement>();
 		tryBlock.addAll(beforeMethodBlock);
-		if (method.statements != null) {
+		if (isNotEmpty(method.statements)) {
 			tryBlock.addAll(Arrays.asList(method.statements));
 		}
 		tryBlock.addAll(afterMethodBlock);
@@ -180,22 +182,19 @@ public class HandleConditionAndLock {
 		tryStatement.tryBlock.statements = tryBlock.toArray(new Statement[tryBlock.size()]);
 		tryStatement.finallyBlock = new Block(0);
 		setGeneratedByAndCopyPos(tryStatement.finallyBlock, source);
-		tryStatement.finallyBlock.statements = new Statement[1];
 		if (lockMode) {
-			tryStatement.finallyBlock.statements[0] = methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "unlock");
+			tryStatement.finallyBlock.statements = array(methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "unlock"));
 		} else {
-			tryStatement.finallyBlock.statements[0] = methodCall(source, fieldReference(source, thisReference(source), completeLockName), "unlock");
+			tryStatement.finallyBlock.statements = array(methodCall(source, fieldReference(source, thisReference(source), completeLockName), "unlock"));
 		}
-		method.statements = new Statement[2];
 		if (lockMode) {
-			method.statements[0] = methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "lock");
+			method.statements = array(methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "lock"), tryStatement);
 		} else {
-			method.statements[0] = methodCall(source, fieldReference(source, thisReference(source), completeLockName), "lock");
+			method.statements = array(methodCall(source, fieldReference(source, thisReference(source), completeLockName), "lock"), tryStatement);
 		}
-		method.statements[1] = tryStatement;
 		if (await != null) {
 			List<TypeReference> thrown = new ArrayList<TypeReference>();
-			if (method.thrownExceptions != null) {
+			if (isNotEmpty(method.thrownExceptions)) {
 				thrown.addAll(Arrays.asList(method.thrownExceptions));
 			}
 			thrown.add(typeReference(source, "java.lang.InterruptedException"));
@@ -232,11 +231,7 @@ public class HandleConditionAndLock {
 			if (trim(lockName).isEmpty()) {
 				String awaitCondition = trim(await == null ? "" : await.condition);
 				String signalCondition = trim(signal == null ? "" : signal.condition);
-				if (!awaitCondition.isEmpty()) signalCondition = capitalize(signalCondition);
-				completeLockName = "$";
-				completeLockName += awaitCondition;
-				completeLockName += signalCondition;
-				completeLockName += "Lock";
+				completeLockName = "$" + camelCase(awaitCondition, signalCondition, "lock");
 			}
 		}
 		return completeLockName;
@@ -301,7 +296,7 @@ public class HandleConditionAndLock {
 		setGeneratedByAndCopyPos(newClassExp, source);
 		newClassExp.type = typeReference(source, "java.util.concurrent.locks.ReentrantLock");
 		field(node, source, PRIVATE | FINAL, "java.util.concurrent.locks.Lock", lockName)
-				.withInitialization(newClassExp).inject();
+			.withInitialization(newClassExp).inject();
 	}
 	
 	private static void addReadWriteLockField(ASTNode source, EclipseNode node, String lockName) {
@@ -309,22 +304,12 @@ public class HandleConditionAndLock {
 		setGeneratedByAndCopyPos(newClassExp, source);
 		newClassExp.type = typeReference(source, "java.util.concurrent.locks.ReentrantReadWriteLock");
 		field(node, source, PRIVATE | FINAL, "java.util.concurrent.locks.ReadWriteLock", lockName)
-				.withInitialization(newClassExp).inject();
+			.withInitialization(newClassExp).inject();
 	}
 	
 	private static void addConditionField(ASTNode source, EclipseNode node, String conditionName, String lockName) {
 		field(node, source, PRIVATE | FINAL, "java.util.concurrent.locks.Condition", conditionName)
-				.withInitialization(methodCall(source, lockName, "newCondition")).inject();
-	}
-	
-	private static String trim(String s) {
-		if (s == null) return "";
-		else return s.trim();
-	}
-	
-	private String capitalize(String s) {
-		if (trim(s).length() < 1) return s;
-		else return s.substring(0, 1).toUpperCase() + s.substring(1);
+			.withInitialization(methodCall(source, lockName, "newCondition")).inject();
 	}
 	
 	private static class AwaitData extends ConditionData {

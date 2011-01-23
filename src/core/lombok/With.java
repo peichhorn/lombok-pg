@@ -21,12 +21,42 @@
  */
 package lombok;
 
-/**
- * Useful utility methods to generated code.
- */
 public class With {
-	
-	public static <T> T with(T value, Object firstExpression, Object... otherExpressions) {
+
+	/**
+	 * All the expressions in the {@code with} statement work on a scope, where the implicit {@code this} gets resolved by the specified
+	 * {@code implicitThisExpression}. With the magic symbol {@code _} the {@code implicitThisExpression} can used
+	 * explicitly. More importantly the explicit {@code this} is not affected by the {@code with} statement.
+	 * <p>
+	 * For the time being there are two use-cases:
+	 * <p>
+	 * 1. Initialization
+	 * <pre>
+	 * {@code
+	 * JFrame frame = with(new JFrame(),
+	 *                  setTitle("Application"),
+	 *                  setResizable(false),
+	 *                  setFrameIcon(this.ICON),
+	 *                  setLayout(new BorderLayout()),
+	 *                  add(this.createButton(), BorderLayout.SOUTH),
+	 *                  pack(),
+	 *                  setVisible(true));
+	 * }
+	 * </pre>
+	 * <p>
+	 * 2. Chaining non-fluent API
+	 * <pre>
+	 * {@code
+	 * List<String> list1 = new ArrayList<String>();
+	 * String s = with(list1,
+	 *              add("Hello"),
+	 *              add("World")).toString();
+	 * }
+	 * </pre>
+	 * <p>
+	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure that I like the way it works right now.
+	 */
+	public static <T> T with(T implicitThisExpression, Object firstExpression, Object... otherExpressions) {
 		return null;
 	}
 }

@@ -24,10 +24,14 @@ package lombok.core.util;
 import static java.lang.Character.isLowerCase;
 import static java.lang.Character.isUpperCase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Names {
 	/**
 	 * <pre>
 	 * null        -> null
+	 *             ->
 	 * IOInterface -> IOInterface
 	 * Irony       -> Irony
 	 * IObject     -> Object
@@ -36,54 +40,54 @@ public class Names {
 	 * <pre> 
 	 */
 	public static String interfaceName(final String s) {
-		return (!s.isEmpty() && (s.length() > 2) && (s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
+		return (isNotEmpty(s) && (s.length() > 2) && (s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
+	}
+	
+	public static String removeCurlyBrackets(String s) {
+		String trimmed = trim(s);
+		if (isEmpty(trimmed)) return s;
+		return (trimmed.startsWith("{") && trimmed.endsWith("}")) ? trimmed.substring(1, trimmed.length() - 1) : s;
+	}
+	
+	public static boolean isEmpty(String s) {
+		return trim(s).isEmpty();
+	}
+	
+	public static boolean isNotEmpty(String s) {
+		return !isEmpty(s);
 	}
 	
 	/**
 	 * <pre>
-	 * null -> null
-	 * tree -> Tree
-	 * o    -> O
-	 * Ion  -> Ion
-	 * A    -> A
-	 * <pre>
+	 * null  -> 
+	 *       ->
+	 *   s   -> s
+	 * </pre>
 	 */
-	public static String capitalize(final String s) {
-		return isEmpty(s) ? s : s.substring(0, 1).toUpperCase() + s.substring(1);
-	}
-	
-	public static String removeCurlyBrackets(String s) {
-		int startIndex = s.indexOf("{");
-		if (startIndex < 0) return s;
-		int endIndex = s.lastIndexOf("}");
-		if (endIndex <= 0) return s;
-		s = s.substring(startIndex + 1, endIndex - 1);
-		return s;
-	}
-	
-	public static boolean isEmpty(String s) {
-		return (s == null) || s.isEmpty();
-	}
-	
 	public static String trim(String s) {
-		if (isEmpty(s)) return "";
+		if (s == null) return "";
 		else return s.trim();
 	}
 	
-	public static String toCamelCase(boolean singular, String... strings) {
-		StringBuilder builder = new StringBuilder();
-		boolean mustCapitalize = false;
-		for (String s : strings) {
-			if (s.isEmpty()) continue;
-			if (mustCapitalize) {
-				builder.append(s.substring(0, 1).toUpperCase()).append(s.substring(1));
-			} else {
-				builder.append(s);
-				mustCapitalize = true;
-			}
+	public static String singular(String s) {
+		return s.endsWith("s") ? s.substring(0, s.length() - 1): s;
+	}
+	
+	public static String camelCase(String first, String... rest) {
+		List<String> nonEmptyStrings = new ArrayList<String>();
+		if (isNotEmpty(first)) nonEmptyStrings.add(first);
+		if (Arrays.isNotEmpty(rest)) for (String s : rest) {
+			if (isNotEmpty(s)) nonEmptyStrings.add(s);
 		}
-		if (singular && (builder.charAt(builder.length() - 1) == 's')) {
-			builder.setLength(builder.length() - 1);
+		return camelCase0(nonEmptyStrings.toArray(new String[nonEmptyStrings.size()]));
+	}
+	
+	private static String camelCase0(String[] s) {
+		if (Arrays.isEmpty(s)) return "";
+		StringBuilder builder = new StringBuilder();
+		builder.append(s[0]);
+		for (int i = 1, iend = s.length; i < iend; i++) {
+			builder.append(s[i].substring(0, 1).toUpperCase()).append(s[i].substring(1));
 		}
 		return builder.toString();
 	}

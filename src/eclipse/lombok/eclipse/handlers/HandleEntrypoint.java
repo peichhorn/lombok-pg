@@ -21,6 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.*;
+import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.methodExists;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult.NOT_EXISTS;
@@ -120,7 +122,7 @@ public class HandleEntrypoint {
 		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
-			if (type.superInterfaces != null) for (TypeReference ref : type.superInterfaces) {
+			if (isNotEmpty(type.superInterfaces)) for (TypeReference ref : type.superInterfaces) {
 				if (ref.toString().equals(interfaze.getName()) || (isAnImport && ref.toString().equals(interfaze.getSimpleName()))) {
 					implementsInterface = true;
 					break;
@@ -148,22 +150,17 @@ public class HandleEntrypoint {
 	 * @param node Any node that represents the Type (TypeDeclaration) to look in, or any child node thereof.
 	 */
 	public static boolean entrypointExists(String methodName, EclipseNode node) {
-		while (node != null && !(node.get() instanceof TypeDeclaration)) {
-			node = node.up();
-		}
-
-		if (node != null && node.get() instanceof TypeDeclaration) {
-			TypeDeclaration typeDecl = (TypeDeclaration)node.get();
-			if (typeDecl.methods != null) for (AbstractMethodDeclaration def : typeDecl.methods) {
-				if (def instanceof MethodDeclaration) {
-					char[] mName = def.selector;
-					if (mName == null) continue;
-					boolean nameEquals = methodName.equals(new String(mName));
-					boolean returnTypeVoid = "void".equals(((MethodDeclaration)def).returnType.toString());
-					boolean publicStatic = ((def.modifiers & (PUBLIC | STATIC)) != 0);
-					if (nameEquals && returnTypeVoid && publicStatic) {
-						return true;
-					}
+		EclipseNode typeNode = typeNodeOf(node);
+		TypeDeclaration typeDecl = (TypeDeclaration)typeNode.get();
+		if (isNotEmpty(typeDecl.methods)) for (AbstractMethodDeclaration def : typeDecl.methods) {
+			if (def instanceof MethodDeclaration) {
+				char[] mName = def.selector;
+				if (mName == null) continue;
+				boolean nameEquals = methodName.equals(new String(mName));
+				boolean returnTypeVoid = "void".equals(((MethodDeclaration)def).returnType.toString());
+				boolean publicStatic = ((def.modifiers & (PUBLIC | STATIC)) != 0);
+				if (nameEquals && returnTypeVoid && publicStatic) {
+					return true;
 				}
 			}
 		}
