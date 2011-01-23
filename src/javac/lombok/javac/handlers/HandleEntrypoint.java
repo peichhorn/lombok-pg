@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.method;
 import static com.sun.tools.javac.code.Flags.*;
@@ -160,20 +161,16 @@ public class HandleEntrypoint {
 	 * @param node Any node that represents the Type (JCClassDecl) to look in, or any child node thereof.
 	 */
 	public static boolean entrypointExists(String methodName, JavacNode node) {
-		while (node != null && !(node.get() instanceof JCClassDecl)) {
-			node = node.up();
-		}
-
-		if (node != null && node.get() instanceof JCClassDecl) {
-			for (JCTree def : ((JCClassDecl)node.get()).defs) {
-				if (def instanceof JCMethodDecl) {
-					JCMethodDecl method = (JCMethodDecl)def;
-					boolean nameMatches = method.name.toString().equals(methodName);
-					boolean returnTypeIsVoid = (method.restype != null) && "void".equals(method.restype.toString());
-					boolean isPublicStatic = (method.mods != null) && ((method.mods.flags & (PUBLIC | STATIC)) != 0);
-					if (nameMatches && returnTypeIsVoid && isPublicStatic) {
-						return true;
-					}
+		JavacNode typeNode = typeNodeOf(node);
+		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		for (JCTree def : typeDecl.defs) {
+			if (def instanceof JCMethodDecl) {
+				JCMethodDecl method = (JCMethodDecl)def;
+				boolean nameMatches = method.name.toString().equals(methodName);
+				boolean returnTypeIsVoid = (method.restype != null) && "void".equals(method.restype.toString());
+				boolean isPublicStatic = (method.mods != null) && ((method.mods.flags & (PUBLIC | STATIC)) != 0);
+				if (nameMatches && returnTypeIsVoid && isPublicStatic) {
+					return true;
 				}
 			}
 		}

@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Cast.uncheckedCast;
 import static lombok.eclipse.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.core.AST.Kind;
+import lombok.core.util.Cast;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -553,7 +553,7 @@ public class EclipseNodeBuilder {
 		}
 		
 		protected final SELF_TYPE self() {
-			return uncheckedCast(this);
+			return Cast.<SELF_TYPE>uncheckedCast(this);
 		}
 		
 		public abstract BUILDER_RETURN_TYPE build();

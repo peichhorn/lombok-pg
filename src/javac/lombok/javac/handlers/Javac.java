@@ -61,4 +61,14 @@ public final class Javac {
 		}
 		return typeNode;
 	}
+	
+	
+	public static JCClassDecl classDeclFiltering(JavacNode typeNode, long filterFlags) {
+		JCClassDecl typeDecl = null;
+		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
+		if ((typeDecl != null) && ((typeDecl.mods.flags & filterFlags) != 0)) {
+			typeDecl = null;	
+		}
+		return typeDecl;
+	}
 }
