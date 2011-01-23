@@ -51,10 +51,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.util.Name;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleListenerSupport implements JavacAnnotationHandler<ListenerSupport> {
-	@Override public boolean isResolutionBased() {
-		return true;
-	}
+public class HandleListenerSupport extends JavacResolutionBasedHandler implements JavacAnnotationHandler<ListenerSupport> {
 	
 	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, ListenerSupport.class);

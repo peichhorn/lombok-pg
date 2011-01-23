@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.ErrorMessages.canBeUsedOnClassOnly;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
@@ -58,7 +59,7 @@ import com.sun.tools.javac.util.ListBuffer;
  * Handles the {@code lombok.Builder} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleBuilder implements JavacAnnotationHandler<Builder> {
+public class HandleBuilder extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Builder> {
 	private final static String CONSTRUCTOR = "private ctor(final $Builder builder) {%s}";
 	private final static String CONSTRUCTOR_ASSIGN = "this.%s = builder.%s;";
 	private final static String OPTIONAL_DEF = "$OptionalDef";
@@ -71,10 +72,6 @@ public class HandleBuilder implements JavacAnnotationHandler<Builder> {
 	private final static String BUILDER_TO_STRING_METHOD = "public java.lang.String toString() { return build().toString(); }";
 	private final static String BUILDER_METHOD_CALL_AFTER_BUILD = "public %s %s() { %s build().%s(); }";
 	
-	@Override public boolean isResolutionBased() {
-		return false;
-	}
-	
 	@Override public boolean handle(AnnotationValues<Builder> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, Builder.class);
 		JavacNode typeNode = annotationNode.up();
@@ -85,7 +82,7 @@ public class HandleBuilder implements JavacAnnotationHandler<Builder> {
 		boolean notAClass = (flags & (INTERFACE | ENUM | ANNOTATION)) != 0;
 		
 		if (typeDecl == null || notAClass) {
-			annotationNode.addError("@Builder is legal only on a class.");
+			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}
 		

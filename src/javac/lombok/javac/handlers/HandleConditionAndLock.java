@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.Names.*;
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
@@ -263,25 +264,6 @@ public class HandleConditionAndLock {
 		field(node.up(), "private final java.util.concurrent.locks.Condition %s = %s.newCondition();", conditionName, lockName).inject();
 	}
 	
-	private static String removeCurlyBrackets(String s) {
-		int startIndex = s.indexOf("{");
-		if (startIndex < 0) return s;
-		int endIndex = s.lastIndexOf("}");
-		if (endIndex <= 0) return s;
-		s = s.substring(startIndex + 1, endIndex - 1);
-		return s;
-	}
-	
-	private static String trim(String s) {
-		if (s == null) return "";
-		else return s.trim();
-	}
-	
-	private String capitalize(String s) {
-		if (trim(s).length() < 1) return s;
-		else return s.substring(0, 1).toUpperCase() + s.substring(1);
-	}
-	
 	private static class AwaitData extends ConditionData {
 		public final String conditionMethod;
 		
@@ -314,11 +296,5 @@ public class HandleConditionAndLock {
 			this.condition = condition;
 			this.pos = pos;
 		}
-	}
-	
-	private static abstract class JavacNonResolutionBasedHandler {
-		public final boolean isResolutionBased() {
-			return false;
-		} 
 	}
 }

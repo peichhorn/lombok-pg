@@ -58,24 +58,16 @@ public class HandleSwingInvoke {
 	private final static String ELSE_STATEMENT = "java.awt.EventQueue.%s(%s);";
 	
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleSwingInvokeLater implements JavacAnnotationHandler<SwingInvokeLater> {
+	public static class HandleSwingInvokeLater extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeLater> {
 		@Override public boolean handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			return new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, annotationNode);
-		}
-
-		@Override public boolean isResolutionBased() {
-			return false;
 		}
 	}
 	
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleSwingInvokeAndWait implements JavacAnnotationHandler<SwingInvokeAndWait> {
+	public static class HandleSwingInvokeAndWait extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeAndWait> {
 		@Override public boolean handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			return new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, annotationNode);
-		}
-		
-		@Override public boolean isResolutionBased() {
-			return false;
 		}
 	}
 	

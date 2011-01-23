@@ -21,11 +21,6 @@
  */
 package lombok.javac.handlers;
 
-import static com.sun.tools.javac.code.Flags.ABSTRACT;
-import static com.sun.tools.javac.code.Flags.INTERFACE;
-import static com.sun.tools.javac.code.Flags.IPROXY;
-import static com.sun.tools.javac.code.Kinds.MTH;
-import static com.sun.tools.javac.code.TypeTags.CLASS;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.io.InputStream;
@@ -36,13 +31,9 @@ import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.parser.JavacStringParser;
 import com.sun.tools.javac.parser.Parser;
@@ -94,43 +85,6 @@ public class JavacTreeBuilder {
 		unit.defs = newDefs.toList();
 	}
 	
-	public static MethodSymbol getFirstUndefinedMethod(JavacNode node) {
-		while (node != null && !(node.get() instanceof JCClassDecl)) {
-			node = node.up();
-		}
-		if (node != null) {
-			JCClassDecl tree = (JCClassDecl)node.get();
-			ClassSymbol c = tree.sym;
-			Types types = Types.instance(node.getAst().getContext());
-			MethodSymbol undefined = getFirstUndefinedMethod(c, c, types);
-			return createMethodSymbol(undefined, c, types);
-		}
-		return null;
-	}
-	
-	private static MethodSymbol getFirstUndefinedMethod(ClassSymbol impl, ClassSymbol c, Types types) {
-		MethodSymbol undef = null;
-		// Do not bother to search in classes that are not abstract, since they cannot have abstract members.
-		if (c == impl || (c.flags() & (ABSTRACT | INTERFACE)) != 0) {
-			Scope s = c.members();
-			for (Scope.Entry e = s.elems; undef == null && e != null; e = e.sibling) {
-				if (e.sym.kind == MTH && (e.sym.flags() & (ABSTRACT | IPROXY)) == ABSTRACT) {
-					MethodSymbol absmeth = (MethodSymbol) e.sym;
-					MethodSymbol implmeth = absmeth.implementation(impl, types, true);
-					if (implmeth == null || implmeth == absmeth) undef = absmeth;
-				}
-			}
-			if (undef == null) {
-				Type st = types.supertype(c.type);
-				if (st.tag == CLASS) undef = getFirstUndefinedMethod(impl, (ClassSymbol) st.tsym, types);
-			}
-			for (List<Type> l = types.interfaces(c.type); undef == null && l.nonEmpty(); l = l.tail) {
-				undef = getFirstUndefinedMethod(impl, (ClassSymbol) l.head.tsym, types);
-			}
-		}
-		return undef;
-	}
-	
 	/**
 	 * Adds the given class declaration to the provided type AST Node.
 	 * 
@@ -152,22 +106,6 @@ public class JavacTreeBuilder {
 			c.members_field.enter(methodSymbol, c.members_field, methodSymbol.enclClass().members_field);
 			method.sym = methodSymbol;
 		}
-	}
-	
-	private static MethodSymbol createMethodSymbol(MethodSymbol undefined, ClassSymbol c, Types types) {
-		MethodSymbol methodStubSym = null;
-		if (undefined != null) {
-			MethodType type = (MethodType) undefined.type;
-			Name name = undefined.name;
-			methodStubSym = new MethodSymbol(undefined.flags() & ~Flags.ABSTRACT, name, types.memberType(c.type, undefined), c);
-			ListBuffer<VarSymbol> paramSyms = new ListBuffer<VarSymbol>();
-			int i = 1;
-			if (type.argtypes != null) for (Type argType : type.argtypes) {
-				paramSyms.append(new VarSymbol(Flags.PARAMETER, Name.fromString(name.table, "arg" + i++), argType, methodStubSym));
-			}
-			methodStubSym.params = paramSyms.toList();
-		}
-		return methodStubSym;
 	}
 	
 	public static ConstructorBuilder constructor(JavacNode node, String methodString, Object... args) {

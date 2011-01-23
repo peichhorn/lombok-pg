@@ -19,14 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok;
+package lombok.core.util;
+
+import java.lang.annotation.Annotation;
 
 /**
- * Useful utility methods to generated code.
+ * Error messages
  */
-public class With {
+public final class ErrorMessages {
+	private ErrorMessages() {
+	}
 	
-	public static <T> T with(T value, Object firstExpression, Object... otherExpressions) {
-		return null;
+	public static String canBeUsedOnClassOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on classes only", annotationType);
+	}
+	
+	public static String canBeUsedOnClassAndEnumOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on classes and enums only", annotationType);
+	}
+
+	public static String canBeUsedOnFieldOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on fields only", annotationType);
+	}
+
+	private static String errorMessage(String format, Class<? extends Annotation> annotationType) {
+		return String.format(format, annotationType.getName());
 	}
 }

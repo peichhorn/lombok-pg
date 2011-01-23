@@ -42,10 +42,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.List;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleSingleton implements JavacAnnotationHandler<Singleton> {
-	@Override public boolean isResolutionBased() {
-		return false;
-	}
+public class HandleSingleton extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Singleton> {
 	
 	@Override public boolean handle(AnnotationValues<Singleton> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, Singleton.class);

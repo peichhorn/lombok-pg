@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Names.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
 import static lombok.eclipse.Eclipse.*;
@@ -460,24 +461,6 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		String type = sb.toString();
 		return type.endsWith("Map");
-	}
-	
-	private static String toCamelCase(boolean singular, String... strings) {
-		StringBuilder builder = new StringBuilder();
-		boolean mustCapitalize = false;
-		for (String s : strings) {
-			if (s.isEmpty()) continue;
-			if (mustCapitalize) {
-				builder.append(s.substring(0, 1).toUpperCase()).append(s.substring(1));
-			} else {
-				builder.append(s);
-				mustCapitalize = true;
-			}
-		}
-		if (singular && (builder.charAt(builder.length() - 1) == 's')) {
-			builder.setLength(builder.length() - 1);
-		}
-		return builder.toString();
 	}
 	
 	private static class HandleBuilderDataCollector extends EclipseASTAdapter implements IBuilderData {

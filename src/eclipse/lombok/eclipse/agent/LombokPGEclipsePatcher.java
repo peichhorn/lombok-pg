@@ -32,19 +32,18 @@ public class LombokPGEclipsePatcher extends Agent {
 		registerPatchScripts(instrumentation, injected, injected);
 	}
 	
-	private static void registerPatchScripts(Instrumentation instrumentation, boolean reloadExistingClasses, boolean ecjOnly) {
+	private void registerPatchScripts(Instrumentation instrumentation, boolean reloadExistingClasses, boolean ecjOnly) {
 		ScriptManager sm = new ScriptManager();
 		sm.registerTransformer(instrumentation);
 		if (!ecjOnly) {
 			EquinoxClassLoader.addPrefix("lombok.");
 			EquinoxClassLoader.registerScripts(sm);
 		}
-		patchEcjTransformers(sm, ecjOnly);
-		
+		patchEcjTransformers(sm, ecjOnly);		
 		if (reloadExistingClasses) sm.reloadClasses(instrumentation);
 	}
 	
-	private static void patchEcjTransformers(ScriptManager sm, boolean ecj) {
+	private void patchEcjTransformers(ScriptManager sm, boolean ecj) {
 		PatchListenerSupport.addPatches(sm, ecj);
 		PatchAutoGenMethodStub.addPatches(sm, ecj);
 	}

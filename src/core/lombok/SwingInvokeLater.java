@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Wraps a bit of swing pain.<br>
+ * Wraps a bit of Swing pain.<br>
  * <br>
  * Before:
  * <pre>
