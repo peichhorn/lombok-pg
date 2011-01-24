@@ -28,7 +28,7 @@ import static com.sun.tools.javac.code.Flags.IPROXY;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 import static lombok.core.util.ErrorMessages.canBeUsedOnClassAndEnumOnly;
-import static lombok.javac.handlers.Javac.classDeclFiltering;
+import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
@@ -70,7 +70,7 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 		markAnnotationAsProcessed(annotationNode, AutoGenMethodStub.class);
 		JavacNode typeNode = annotationNode.up();
 		
-		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ANNOTATION);
+		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 			return true;

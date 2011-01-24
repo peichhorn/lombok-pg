@@ -68,12 +68,11 @@ public class PatchAutoGenMethodStub {
 	private static boolean issueWasFixed = false;
 	
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
-		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
-			if (matchesType(ann, AutoGenMethodStub.class, decl)) {
-				MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, ann, getTypeNode(decl));
-				issueWasFixed = true;
-				return method;
-			}
+		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
+		if (ann != null) {
+			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, ann, getTypeNode(decl));
+			issueWasFixed = true;
+			return method;
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}

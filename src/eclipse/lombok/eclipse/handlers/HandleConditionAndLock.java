@@ -135,7 +135,7 @@ public class HandleConditionAndLock {
 		boolean lockMode = lockMethod != null;
 		
 		if (!lockMode && (await == null) && (signal == null)) {
-			annotationNode.addWarning(String.format("Bad configured Handler for $s. Please file a bug report.", annotationTypeName));
+			annotationNode.addWarning(String.format("Bad configured Handler for %s. Please file a bug report.", annotationTypeName));
 			return true; // wrong configured handler, so better stop here
 		}
 		

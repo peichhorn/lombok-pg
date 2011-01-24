@@ -23,7 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.Javac.classDeclFiltering;
+import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
@@ -95,7 +95,7 @@ public class HandleListenerSupport extends JavacResolutionBasedHandler implement
 	
 	private static boolean isNoClassAndNoEnum(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
-		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ANNOTATION);
+		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 			return true;

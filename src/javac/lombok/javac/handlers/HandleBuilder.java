@@ -77,7 +77,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		markAnnotationAsProcessed(annotationNode, Builder.class);
 		JavacNode typeNode = annotationNode.up();
 		
-		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ENUM | ANNOTATION);
+		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ENUM | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;

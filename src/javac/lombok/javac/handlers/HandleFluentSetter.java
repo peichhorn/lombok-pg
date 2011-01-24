@@ -23,7 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
 import static com.sun.tools.javac.code.Flags.*;
-import static lombok.javac.handlers.Javac.classDeclFiltering;
+import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.Collection;
@@ -82,7 +82,7 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 			}
 		}
 		
-		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
+		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
 		if (typeDecl == null) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return false;

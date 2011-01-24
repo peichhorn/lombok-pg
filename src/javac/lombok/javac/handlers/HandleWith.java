@@ -108,8 +108,12 @@ public class HandleWith extends JavacASTAdapter {
 		}
 		final JavacNode parent = methodCallNode.directUp();
 		JCTree statementThatUsesWith = parent.get();
-		Boolean wasNoMethodCall = tryToRemoveWithCall(methodCallNode, withCall, withExpr, statementThatUsesWith);
-		if (wasNoMethodCall == null) {
+		
+		boolean wasNoMethodCall;
+		try {
+			wasNoMethodCall = tryToRemoveWithCall(methodCallNode, withCall, withExpr, statementThatUsesWith);
+		} catch (IllegalArgumentException e) {
+			methodCallNode.addError(isNotAllowedHere("with"));
 			return false;
 		}
 		 
@@ -121,7 +125,7 @@ public class HandleWith extends JavacASTAdapter {
 		return true;
 	}
 
-	private Boolean tryToRemoveWithCall(JavacNode methodCallNode, JCMethodInvocation withCall, JCExpression withExpr, JCTree statementThatUsesWith) {
+	private boolean tryToRemoveWithCall(JavacNode methodCallNode, JCMethodInvocation withCall, JCExpression withExpr, JCTree statementThatUsesWith) throws IllegalArgumentException {
 		if ((statementThatUsesWith instanceof JCAssign) && ((JCAssign)statementThatUsesWith).rhs == withCall) {
 			((JCAssign)statementThatUsesWith).rhs = withExpr;
 		} else if (statementThatUsesWith instanceof JCFieldAccess) {
@@ -142,8 +146,7 @@ public class HandleWith extends JavacASTAdapter {
 			}
 			methodCall.args = newArgs.toList();
 		} else {
-			methodCallNode.addError(isNotAllowedHere("with"));
-			return null;
+			throw new IllegalArgumentException();
 		}
 		return true;
 	}
@@ -166,10 +169,6 @@ public class HandleWith extends JavacASTAdapter {
 		while (!(statementThatUsesWith instanceof JCStatement)) {
 			parent = parent.directUp();
 			statementThatUsesWith = parent.get();
-		}
-		if (!(statementThatUsesWith instanceof JCStatement)) {
-			// this would be odd odd but what the hell
-			return;
 		}
 		JCStatement statement = (JCStatement) statementThatUsesWith;
 		JavacNode grandParent = parent.directUp();

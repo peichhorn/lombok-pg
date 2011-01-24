@@ -27,6 +27,7 @@ import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
 import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 
@@ -74,12 +75,8 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	@Override public boolean handle(AnnotationValues<Builder> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
 		
-		TypeDeclaration typeDecl = null;
-		if (typeNode.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) typeNode.get();
-		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
-		
-		if (typeDecl == null || notAClass) {
+		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
+		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}

@@ -26,6 +26,7 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
+import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.util.Collection;
@@ -87,12 +88,8 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			}
 		}
 		
-		TypeDeclaration typeDecl = null;
-		if (typeNode.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) typeNode.get();
-		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
-		
-		if (typeDecl == null || notAClass) {
+		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
+		if (typeDecl == null) {
 			pos.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return false;
 		}

@@ -54,4 +54,13 @@ public final class Eclipse {
 		}
 		return typeNode;
 	}
+	
+	public static TypeDeclaration typeDeclFiltering(EclipseNode typeNode, long filterFlags) {
+		TypeDeclaration typeDecl = null;
+		if ((typeNode != null) && (typeNode.get() instanceof TypeDeclaration)) typeDecl = (TypeDeclaration)typeNode.get();
+		if ((typeDecl != null) && ((typeDecl.modifiers & filterFlags) != 0)) {
+			typeDecl = null;
+		}
+		return typeDecl;
+	}
 }

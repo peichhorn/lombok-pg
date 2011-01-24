@@ -387,7 +387,8 @@ public class JavacTreeBuilder {
 	static {
 		try {
 			reloadClass("com.sun.tools.javac.parser.JavacStringParser", Parser.class.getClassLoader());
-		} catch (Exception e) {
+		} catch (Exception ignore) {
+			// if this fails, all of my javac transformations will fail, so be it..
 		}
 	}
 

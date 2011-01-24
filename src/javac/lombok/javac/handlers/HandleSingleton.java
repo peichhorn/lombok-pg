@@ -22,7 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.Javac.classDeclFiltering;
+import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static com.sun.tools.javac.code.Flags.*;
 import lombok.Singleton;
@@ -75,7 +75,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 	
 	private boolean isNoConcreteClass(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
-		JCClassDecl typeDecl = classDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
+		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
 			return true;

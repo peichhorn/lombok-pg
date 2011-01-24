@@ -46,11 +46,9 @@ public class PatchListenerSupport {
 	
 	public static boolean onBuildFieldsAndMethods(ClassScope scope) {
 		TypeDeclaration decl = scope.referenceContext;
-		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
-			if (matchesType(ann, ListenerSupport.class, decl)) {
-				new HandleListenerSupport().handle(ann, decl, getTypeNode(decl));
-				break;
-			}
+		Annotation ann = getAnnotation(ListenerSupport.class, decl);
+		if (ann != null) {
+			new HandleListenerSupport().handle(ann, decl, getTypeNode(decl));
 		}
 		return false;
 	}

@@ -1,7 +1,6 @@
 package lombok.eclipse.agent;
 
 import static lombok.core.util.Arrays.isNotEmpty;
-
 import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
@@ -26,6 +25,15 @@ final class Patches {
 	
 	public static boolean hasAnnotations(TypeDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);
+	}
+	
+	public static Annotation getAnnotation(Class<?> expectedType, TypeDeclaration decl) {
+		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
+			if (matchesType(ann, expectedType, decl)) {
+				return ann;
+			}
+		}
+		return null;
 	}
 	
 	public static boolean matchesType(Annotation ann, Class<?> expectedType, TypeDeclaration decl) {

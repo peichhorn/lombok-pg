@@ -23,6 +23,7 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
+import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -45,26 +46,23 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 	@Override public boolean handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
-		TypeDeclaration type = null;
-		if (typeNode.get() instanceof TypeDeclaration) type = (TypeDeclaration) typeNode.get();
-		int modifiers = type == null ? 0 : type.modifiers;
-		boolean notAClass = (modifiers & (AccInterface | AccAnnotation | AccEnum)) != 0;
-		if (type == null || notAClass) {
+		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
+		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
 			return true;
 		}
-		if (type.superclass != null) {
+		if (typeDecl.superclass != null) {
 			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
 			return true;
 		}
-		if (hasMultiArgumentConstructor(type)) {
+		if (hasMultiArgumentConstructor(typeDecl)) {
 			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
 			return true;
 		}
 
 		
-		type.modifiers |= 0x00004000; // Modifier.ENUM
-		replaceConstructorVisibility(type);
+		typeDecl.modifiers |= 0x00004000; // Modifier.ENUM
+		replaceConstructorVisibility(typeDecl);
 		
 		AllocationExpression initialization = new AllocationExpression();
 		setGeneratedByAndCopyPos(initialization, source);

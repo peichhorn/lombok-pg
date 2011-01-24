@@ -4,8 +4,10 @@ import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -51,13 +52,10 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerSupport> {
 	// error handling only
-	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, org.eclipse.jdt.internal.compiler.ast.Annotation ast, EclipseNode annotationNode) {
-		EclipseNode owner = annotationNode.up();
-		TypeDeclaration typeDecl = null;
-		if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
-		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
-		if (typeDecl == null || notAClass) {
+	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, Annotation ast, EclipseNode annotationNode) {
+		EclipseNode typeNode = annotationNode.up();
+		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
+		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 		}
 		return false;

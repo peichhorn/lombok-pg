@@ -23,8 +23,11 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.makeType;
+import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.injectMethod;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.setGeneratedByAndCopyPos;
+import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import lombok.AutoGenMethodStub;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
@@ -47,9 +50,7 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -64,12 +65,9 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGenMethodStub> {
 	// error handling only
 	@Override public boolean handle(AnnotationValues<AutoGenMethodStub> annotation, Annotation source, EclipseNode annotationNode) {
-		EclipseNode owner = annotationNode.up();
-		TypeDeclaration typeDecl = null;
-		if (owner.get() instanceof TypeDeclaration) typeDecl = (TypeDeclaration) owner.get();
-		int modifiers = typeDecl == null ? 0 : typeDecl.modifiers;
-		boolean notAClass = (modifiers & (ClassFileConstants.AccInterface | ClassFileConstants.AccAnnotation)) != 0;
-		if (typeDecl == null || notAClass) {
+		EclipseNode typeNode = annotationNode.up();
+		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
+		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 		}
 		return false;
@@ -81,7 +79,7 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 		MethodDeclaration methodStub = new MethodDeclaration(type.compilationResult);
 		setGeneratedByAndCopyPos(methodStub, source);
 		methodStub.selector = abstractMethod.selector;
-		methodStub.modifiers = (abstractMethod.getAccessFlags() ^ ClassFileConstants.AccAbstract) | ExtraCompilerModifiers.AccImplementing;
+		methodStub.modifiers = (abstractMethod.getAccessFlags() ^ AccAbstract) | AccImplementing;
 		methodStub.bits |= ASTNode.Bit24; // Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 		if (abstractMethod.parameters != null && abstractMethod.parameters.length > 0) {
 			methodStub.arguments = new Argument[abstractMethod.parameters.length];
@@ -90,7 +88,7 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 				methodStub.arguments[i] = new Argument(
 						argName.toCharArray(), 0,
 						makeType(abstractMethod.parameters[i], source, false),
-						ClassFileConstants.AccFinal);
+						AccFinal);
 				setGeneratedByAndCopyPos(methodStub.arguments[i], source);
 			}
 		}
@@ -138,12 +136,12 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 		Argument[] argTypes = methodStub.arguments;
 		int argLength = argTypes == null ? 0 : argTypes.length;
 		if ((argLength > 0) && argTypes[--argLength].isVarArgs())
-			methodBinding.modifiers |= ClassFileConstants.AccVarargs;
+			methodBinding.modifiers |= AccVarargs;
 
 		TypeParameter[] typeParameters = methodStub.typeParameters();
 		if (typeParameters != null) {
 			methodBinding.typeVariables = methodScope.createTypeVariables(typeParameters, methodStub.binding);
-			methodBinding.modifiers |= ExtraCompilerModifiers.AccGenericSignature;
+			methodBinding.modifiers |= AccGenericSignature;
 		}
 		
 		MethodBinding[] allMethods = new MethodBinding[sourceType.methods().length + 1];
