@@ -21,7 +21,7 @@
  */
 package lombok.eclipse.agent;
 
-import static lombok.eclipse.agent.PatchUtils.*;
+import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.exitEarly;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
