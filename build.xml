@@ -1,149 +1,150 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
 <project name="lombok-playground" default="dist" xmlns:ivy="antlib:com.zwitserloot.ivyplusplus">
-	<description>
+  <description>
 This buildfile is part of lombok-pg. It is the main entry point that contains
 the common tasks and can be called on to run the main aspects of all the sub-scripts.
-	</description>
+  </description>
 
-	<property name="build.compiler" value="javac1.6" />
-	
-	<!-- resolve -->
-	<property name="ivy.retrieve.pattern" value="lib/[conf]/[artifact].[ext]" />
-	<available file="lib/ivyplusplus.jar" property="ivyplusplus.available" />
-	
-	<target name="download-ipp" unless="ivyplusplus.available">
-		<mkdir dir="lib" />
-		<get src="http://projectlombok.org/downloads/ivyplusplus.jar" dest="lib/ivyplusplus.jar" usetimestamp="true" />
-	</target>
+  <property name="build.compiler" value="javac1.6" />
+  
+  <!-- resolve -->
+  <property name="ivy.retrieve.pattern" value="lib/[conf]/[artifact].[ext]" />
+  <available file="lib/ivyplusplus.jar" property="ivyplusplus.available" />
+  
+  <target name="download-ipp" unless="ivyplusplus.available">
+    <mkdir dir="lib" />
+    <get src="http://projectlombok.org/downloads/ivyplusplus.jar" dest="lib/ivyplusplus.jar" usetimestamp="true" />
+  </target>
 
-	<target name="ensure-ipp" depends="download-ipp">
-		<taskdef classpath="lib/ivyplusplus.jar" resource="com/zwitserloot/ivyplusplus/antlib.xml" uri="antlib:com.zwitserloot.ivyplusplus" />
-	</target>
+  <target name="ensure-ipp" depends="download-ipp">
+    <taskdef classpath="lib/ivyplusplus.jar" resource="com/zwitserloot/ivyplusplus/antlib.xml" uri="antlib:com.zwitserloot.ivyplusplus" />
+  </target>
 
-	<target name="config-ivy" depends="ensure-ipp">
-		<ivy:configure file="buildScripts/ivysettings.xml" />
-	</target>
+  <target name="config-ivy" depends="ensure-ipp">
+    <ivy:configure file="buildScripts/ivysettings.xml" />
+  </target>
 
-	<target name="deps" depends="ensureBuildDeps, ensureRuntimeDeps, ensureTestDeps, ensureContribDeps" />
+  <target name="deps" depends="ensureBuildDeps, ensureRuntimeDeps, ensureTestDeps, ensureContribDeps" />
 
-	<target name="ensureBuildDeps" depends="config-ivy">
-		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="build" />
-		<ivy:retrieve />
-	</target>
+  <target name="ensureBuildDeps" depends="config-ivy">
+    <ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="build" />
+    <ivy:retrieve />
+  </target>
 
-	<target name="ensureRuntimeDeps" depends="config-ivy">
-		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="runtime" />
-		<ivy:retrieve />
-	</target>
+  <target name="ensureRuntimeDeps" depends="config-ivy">
+    <ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="runtime" />
+    <ivy:retrieve />
+  </target>
 
-	<target name="ensureTestDeps" depends="config-ivy">
-		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="test" />
-		<ivy:retrieve />
-	</target>
+  <target name="ensureTestDeps" depends="config-ivy">
+    <ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="test" />
+    <ivy:retrieve />
+  </target>
 
-	<target name="ensureContribDeps" depends="config-ivy" description="Downloads various non-crucial documentation, sources, etc that are useful when developing lombok.ast.">
-		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="contrib" />
-		<ivy:retrieve />
-	</target>
+  <target name="ensureContribDeps" depends="config-ivy" description="Downloads various non-crucial documentation, sources, etc that are useful when developing lombok.ast.">
+    <ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="contrib" />
+    <ivy:retrieve />
+  </target>
 
-	<!-- IDE integration -->
-	<target name="eclipse" depends="deps" description="Creates eclipse project files and downloads all dependencies. Open this directory as project in eclipse after running this target.">
-		<ivy:eclipsegen source="1.6">
-			<srcdir dir="src/core" />
-			<srcdir dir="src/eclipse" />
-			<srcdir dir="src/javac" />
-			<srcdir dir="test/core" />
-			<srcdir dir="test/eclipse" />
-			<srcdir dir="test/javac" />
-			<conf name="build" sources="contrib" />
-			<conf name="test" sources="contrib" />
-			<settings>
-				<url url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok.eclipse.settings" />
-			</settings>
-			<apt location="lib/build/spi.jar" />
-		</ivy:eclipsegen>
-		
-		<condition property="startOnFirstThread" value="-XstartOnFirstThread" else="">
-			<os family="mac" />
-		</condition>
-		
-		<copy
-				file="buildScripts/eclipse-debug-target.template"
-				tofile="LombokizedEclipse.launch"
-				preservelastmodified="true"
-				overwrite="true">
-			<filterset>
-				<filter token="START_ON_FIRST_THREAD" value="${startOnFirstThread}" />
-			</filterset>
-		</copy>
-	</target>
+  <!-- IDE integration -->
+  <target name="eclipse" depends="deps" description="Creates eclipse project files and downloads all dependencies. Open this directory as project in eclipse after running this target.">
+    <ivy:eclipsegen source="1.6">
+      <srcdir dir="src/core" />
+      <srcdir dir="src/eclipse" />
+      <srcdir dir="src/javac" />
+      <srcdir dir="test/core" />
+      <srcdir dir="test/eclipse" />
+      <srcdir dir="test/javac" />
+      <conf name="build" sources="contrib" />
+      <conf name="test" sources="contrib" />
+      <settings>
+        <url url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok.eclipse.settings" />
+      </settings>
+      <apt location="lib/build/spi.jar" />
+    </ivy:eclipsegen>
+    
+    <condition property="startOnFirstThread" value="-XstartOnFirstThread" else="">
+      <os family="mac" />
+    </condition>
+    
+    <copy
+        file="buildScripts/eclipse-debug-target.template"
+        tofile="LombokizedEclipse.launch"
+        preservelastmodified="true"
+        overwrite="true">
+      <filterset>
+        <filter token="START_ON_FIRST_THREAD" value="${startOnFirstThread}" />
+      </filterset>
+    </copy>
+  </target>
 
-	<!-- clean -->
-	<target name="clean" description="Removes all generated files.">
-		<delete dir="build" quiet="true" />
-	</target>
-	
-	<target name="distclean" depends="clean" description="Deletes everything that this build script has ever generated.">
-		<delete dir="lib" quiet="true" />
-		<delete dir="dist" quiet="true" />
-		<delete file=".project" quiet="true" />
-		<delete file=".classpath" quiet="true" />
-		<delete dir=".settings" quiet="true" />
-	</target>
-	
-	<!-- compile -->
-	<path id="build.path">
-		<fileset dir="lib/build">
-			<include name="*.jar" />
-		</fileset>
-	</path>
-	
-	<target name="unpackLibs" depends="ensureBuildDeps">
-		<unjar dest="build/lombok-pg">
-			<fileset file="lib/build/lombok.jar" />
-		</unjar>
-	</target>
-	
-	<target name="compile" depends="ensureBuildDeps, unpackLibs" description="Compiles the code.">
-		<!--
-		ant includes the destination dir on the classpath (and there are good reason to do this), but that also means
-		the bleeding edge lombok from the previous build is run, which means if there are bugs in it, you can't compile
-		anymore until you 'ant clean'. That's very much not desired, so we kill the processor, which stops lombok from running.
-		We re-create the file at the end of this target.
-		-->
-		<delete file="build/lombok-pg/META-INF/services/javax.annotation.processing.Processor" quiet="true" />
-		<ivy:compile destdir="build/lombok-pg" source="1.6" target="1.6" includeantruntime="false">
-			<src path="src/core" />
-			<src path="src/eclipse" />
-			<src path="src/javac" />
-			<classpath location="build/lombok-pg" />
-			<classpath refid="build.path" />
-		</ivy:compile>
-		<mkdir dir="build/lombok-pg/META-INF" />
-		<mkdir dir="build/lombok-pg/META-INF/services" />
-		<echo file="build/lombok-pg/META-INF/services/javax.annotation.processing.Processor">lombok.core.AnnotationProcessor</echo>
-	</target>
-	
-	<!-- dist -->
-	<target name="dist" description="Builds THE lombok-pg.jar file which contains everything." depends="compile">
-		<mkdir dir="dist" />
-		<jar destfile="dist/lombok-pg.jar">
-			<fileset dir="build/lombok-pg" />
-			<fileset dir="." includes="LICENSE" />
-			<manifest>
-				<attribute name="Premain-Class" value="lombok.core.LombokPGAgent" />
-				<attribute name="Agent-Class" value="lombok.core.LombokPGAgent" />
-				<attribute name="Can-Redefine-Classes" value="true" />
-				<attribute name="Main-Class" value="lombok.core.Main" />
-				<attribute name="Lombok-Version" value="0.10.0-BETA2-PG-HEAD" />
-			</manifest>
-		</jar>
-		<property name="lombok.dist.built" value="true" />
-	</target>
-	
-	<!-- test -->
-	<path id="test.path">
-		<fileset dir="lib/test">
-			<include name="*.jar" />
-		</fileset>
-	</path>
+  <!-- clean -->
+  <target name="clean" description="Removes all generated files.">
+    <delete dir="build" quiet="true" />
+  </target>
+  
+  <target name="distclean" depends="clean" description="Deletes everything that this build script has ever generated.">
+    <delete dir="lib" quiet="true" />
+    <delete dir="dist" quiet="true" />
+    <delete file=".project" quiet="true" />
+    <delete file=".classpath" quiet="true" />
+    <delete dir=".settings" quiet="true" />
+  </target>
+  
+  <!-- compile -->
+  <path id="build.path">
+    <fileset dir="lib/build">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+  
+  <target name="unpackLibs" depends="ensureBuildDeps">
+    <unjar dest="build/lombok-pg">
+      <fileset file="lib/build/lombok.jar" />
+    </unjar>
+  </target>
+  
+  <target name="compile" depends="ensureBuildDeps, unpackLibs" description="Compiles the code.">
+    <!--
+    ant includes the destination dir on the classpath (and there are good reason to do this), but that also means
+    the bleeding edge lombok from the previous build is run, which means if there are bugs in it, you can't compile
+    anymore until you 'ant clean'. That's very much not desired, so we kill the processor, which stops lombok from running.
+    We re-create the file at the end of this target.
+    -->
+    <delete file="build/lombok-pg/META-INF/services/javax.annotation.processing.Processor" quiet="true" />
+    <ivy:compile destdir="build/lombok-pg" source="1.6" target="1.6" includeantruntime="false">
+      <src path="src/core" />
+      <src path="src/eclipse" />
+      <src path="src/javac" />
+      <classpath location="build/lombok-pg" />
+      <classpath refid="build.path" />
+    </ivy:compile>
+    <mkdir dir="build/lombok-pg/META-INF" />
+    <mkdir dir="build/lombok-pg/META-INF/services" />
+    <echo file="build/lombok-pg/META-INF/services/javax.annotation.processing.Processor">lombok.core.AnnotationProcessor</echo>
+  </target>
+  
+  <!-- dist -->
+  <target name="dist" description="Builds THE lombok-pg.jar file which contains everything." depends="compile">
+    <mkdir dir="dist" />
+    <jar destfile="dist/lombok-pg.jar">
+      <fileset dir="build/lombok-pg" />
+      <fileset dir="." includes="LICENSE" />
+      <manifest>
+        <attribute name="Premain-Class" value="lombok.core.LombokPGAgent" />
+        <attribute name="Agent-Class" value="lombok.core.LombokPGAgent" />
+        <attribute name="Can-Redefine-Classes" value="true" />
+        <attribute name="Main-Class" value="lombok.core.Main" />
+        <attribute name="Lombok-Version" value="0.10.0-BETA2-PG-HEAD" />
+      </manifest>
+    </jar>
+    <property name="lombok.dist.built" value="true" />
+  </target>
+  
+  <!-- test -->
+  <path id="test.path">
+    <fileset dir="lib/test">
+      <include name="*.jar" />
+    </fileset>
+  </path>
 </project>

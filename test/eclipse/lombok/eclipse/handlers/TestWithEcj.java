@@ -34,23 +34,23 @@ import org.junit.runner.RunWith;
 @RunWith(DirectoryRunner.class)
 public class TestWithEcj implements TestParams {
 
-  @Override public Compiler getCompiler() {
-    return ECJ;
-  }
+	@Override public Compiler getCompiler() {
+		return ECJ;
+	}
 
-  @Override public boolean printErrors() {
-    return true;
-  }
+	@Override public boolean printErrors() {
+		return true;
+	}
 
-  @Override public File getBeforeDirectory() {
-    return new File("test/transform/resource/before");
-  }
+	@Override public File getBeforeDirectory() {
+		return new File("test/transform/resource/before");
+	}
 
-  @Override public File getAfterDirectory() {
-    return new File("test/transform/resource/after-ecj");
-  }
+	@Override public File getAfterDirectory() {
+		return new File("test/transform/resource/after-ecj");
+	}
 
-  @Override public File getMessagesDirectory() {
-    return new File("test/transform/resource/messages-ecj");
-  }
+	@Override public File getMessagesDirectory() {
+		return new File("test/transform/resource/messages-ecj");
+	}
 }

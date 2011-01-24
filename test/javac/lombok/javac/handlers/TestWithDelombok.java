@@ -34,23 +34,23 @@ import org.junit.runner.RunWith;
 @RunWith(DirectoryRunner.class)
 public class TestWithDelombok implements TestParams {
 
-  @Override public Compiler getCompiler() {
-    return DELOMBOK;
-  }
+	@Override public Compiler getCompiler() {
+		return DELOMBOK;
+	}
 
-  @Override public boolean printErrors() {
-    return true;
-  }
+	@Override public boolean printErrors() {
+		return true;
+	}
 
-  @Override public File getBeforeDirectory() {
-    return new File("test/transform/resource/before");
-  }
+	@Override public File getBeforeDirectory() {
+		return new File("test/transform/resource/before");
+	}
 
-  @Override public File getAfterDirectory() {
-    return new File("test/transform/resource/after-delombok");
-  }
+	@Override public File getAfterDirectory() {
+		return new File("test/transform/resource/after-delombok");
+	}
 
-  @Override public File getMessagesDirectory() {
-    return new File("test/transform/resource/messages-delombok");
-  }
+	@Override public File getMessagesDirectory() {
+		return new File("test/transform/resource/messages-delombok");
+	}
 }
