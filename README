@@ -11,3 +11,6 @@ The current extensions are:
   - @SwingInvokeLater and @SwingInvokeAndWait
   - Interfaces lombok.Application and lombok.JVMAgent (Entrypoint Generation)
   - With.with(object, expr1, expr2, ...)
+
+If you like to try it out, fetch a copy from here:
+http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0-BETA2-HEAD.jar (lombok 0.10.0 BETA2 + lombok-pg)
