@@ -6,6 +6,7 @@
 /.settings
 /.factorypath
 /.apt_generated
-
 /build
 /dist
+/debug
+*.launch
