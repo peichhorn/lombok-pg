@@ -26,13 +26,26 @@ public class Yield {
 	/**
 	 * Usage:
 	 * <pre>
-	 * Iterable&lt;T&gt; doSomething(Collection&lt;T&gt; entries) {
+	 * public Iterable&lt;T&gt; doSomething(Collection&lt;T&gt; entries) {
 	 *   for (T entry : entries) {
 	 *     if (isMeet(cond)) 
 	 *       yield(entry);
 	 *     if (isMeet(otherCond))
 	 *       break;
 	 *     yield(transform(entry));
+	 *   }
+	 * }
+	 * </pre>
+	 * or:
+	 * <pre>
+	 * public Iterator&lt;Integer&gt; genFib() {
+	 *   long a = 0;
+	 *   long b = 0;
+	 *   while (b >= 0) {
+	 *     yield(a);
+	 *     long c = a + b;
+	 *     a = b;
+	 *     b = c;
 	 *   }
 	 * }
 	 * </pre>
