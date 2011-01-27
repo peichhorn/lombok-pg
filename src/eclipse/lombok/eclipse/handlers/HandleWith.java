@@ -25,7 +25,7 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
-import static org.eclipse.jdt.core.dom.Modifier.FINAL;
+import static org.eclipse.jdt.core.dom.Modifier.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +72,11 @@ public class HandleWith extends EclipseASTAdapter {
 			MessageSend methodCall = (MessageSend) statement;
 			methodName = new String(methodCall.selector);
 			if (methodCallIsValid(statementNode, methodName, With.class, "with")) {
+				try {
+					methodNodeOf(statementNode);
+				} catch (IllegalArgumentException e) {
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
+				}
 				handled = handle(statementNode, methodCall);
 			}
 		}

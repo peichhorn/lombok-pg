@@ -73,6 +73,10 @@ public final class ErrorMessages {
 	public static String firstArgumentCanBeVariableNameOrNewClassStatementOnly(String what) {
 		return String.format("The first argument of '%s' can be variable name or new-class statement  only", what);
 	}
+	
+	public static String canBeUsedInBodyOfMethodsOnly(String what) {
+		return String.format("'%s' can be used in the body of methods only", what);
+	}
 
 	private static String errorMessage(String format, Class<? extends Annotation> annotationType) {
 		return String.format(format, annotationType.getName());

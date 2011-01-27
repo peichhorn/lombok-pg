@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -53,6 +54,17 @@ public final class Eclipse {
 			throw new IllegalArgumentException();
 		}
 		return typeNode;
+	}
+	
+	public static EclipseNode methodNodeOf(final EclipseNode node) {
+		EclipseNode methodNode = node;
+		while ((methodNode != null) && !(methodNode.get() instanceof AbstractMethodDeclaration)) {
+			methodNode = methodNode.up();
+		}
+		if (methodNode == null) {
+			throw new IllegalArgumentException();
+		}
+		return methodNode;
 	}
 	
 	public static TypeDeclaration typeDeclFiltering(EclipseNode typeNode, long filterFlags) {

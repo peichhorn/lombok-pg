@@ -8,6 +8,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
 public final class Javac {
@@ -62,6 +63,16 @@ public final class Javac {
 		return typeNode;
 	}
 	
+	public static JavacNode methodNodeOf(final JavacNode node) {
+		JavacNode methodNode = node;
+		while ((methodNode != null) && !(methodNode.get() instanceof JCMethodDecl)) {
+			methodNode = methodNode.up();
+		}
+		if (methodNode == null) {
+			throw new IllegalArgumentException();
+		}
+		return methodNode;
+	}
 	
 	public static JCClassDecl typeDeclFiltering(JavacNode typeNode, long filterFlags) {
 		JCClassDecl typeDecl = null;
