@@ -21,8 +21,13 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.javac.handlers.Javac.deleteMethodCallImports;
-import static lombok.javac.handlers.Javac.methodCallIsValid;
+import static com.sun.tools.javac.code.Flags.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Names.*;
+import static lombok.javac.handlers.Javac.*;
+import static lombok.javac.handlers.JavacTreeBuilder.statements;
+
+import java.util.Iterator;
 
 import lombok.Yield;
 import lombok.javac.JavacASTAdapter;
@@ -32,150 +37,14 @@ import lombok.javac.JavacNode;
 import org.mangosdk.spi.ProviderFor;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 
-/*
-IDEA:
-=====
-
-Iterator<T> methodUsingYield(...) {
-}
-
-Iterable<T> methodUsingYield(...) {
-}
-
-getsTransformedTo:
-
-Iterable<T> methodUsingYield(...) {
-	class Yielder implements Iterator<T>, Iterable<T> {
-	}
-	return new Yielder();
-}
-
-Iterator<T> methodUsingYield(...) {
-	class Yielder implements Iterator<T> {
-	}
-	return new Yielder();
-}
-
-Step 1: transform every loop to for(;;)
--------
-
- while(condIter) => for(;condIter;)
- foreach         => for(Iter iter = iterable.iterator;iter.hashNext;) { currentElem = iter.next(); rest;}
-
-Step3: prepate state-machine of method using yield():
--------
-
-split method after yieldCall, break and continue
-
-Step3: state-machine of method using yield():
--------
-
- ...
- before1
- yield1
- before2
- ...
- for(initIter;condIter;afterIter) {
-   ...
-   body1
-   yield2
-   body2
-   ...
- }
- ...
- after1
- yield3
- after2
- ...
-
-
-private boolean $next() {
-	while(true) {
-		switch ($stateId) {
-		case 0: // start of before scope
-			// before1
-		case 1: 
-			// yield1
-			$stateId = 2;
-			return true;
-		case 2:
-			// before2
-		case 3
-			// initIter
-		case 4: // start of loop scope
-			// if (!condIter) $stateId = 8; continue;
-			// body1
-		case 5: //
-			// yield2
-			$stateId = 6;
-			return true;
-		case 6:
-			// body2
-		case 7:
-			// afterIter
-			$stateId = 4;
-			continue;
-		case 8: // start of after scope
-			// after1
-		case 9:
-			// yield3
-			$stateId = 10;
-			return true;
-		case 10:
-			// after2
-		default:
-		}
-		return false;
-	}
-}
-
-Step4: minimize states:
--------
- in their separate scope all states can be combined as long as there are states or until they end with a yield state
- if contIter is the true literal, use no if(!condIter)
-
-private boolean $next() {
-	while(true) {
-		switch ($stateId) {
-		case 0:
-			// before1
-			// yield1
-			$stateId = 1;
-			return true;
-		case 1:
-			// before2
-			// initIter
-		case 2:
-			// if (!condIter) $stateId = 5; continue;
-			// body1
-			// yield2
-			$stateId = 3;
-			return true;
-		case 3:
-			// body2
-			// afterIter
-			$stateId = 2;
-			continue;
-		case 4:
-			// after1
-			// yield3
-			$stateId = 5;
-			return true;
-		case 5:
-			// after2
-		default:
-		}
-		return false;
-	}
-}
-
-yield() means: $stateNext = Ti; $stateId = (next state in scope); return true;
-continue means: $stateId = (first state in loop scope); continue;
-break means: $stateId = (first state in after scope); continue;
-*/
 @ProviderFor(JavacASTVisitor.class)
 public class HandleYield extends JavacASTAdapter {
 	private boolean handled;
@@ -189,8 +58,17 @@ public class HandleYield extends JavacASTAdapter {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			methodName = methodCall.meth.toString();
-			if (methodCallIsValid(statementNode, methodName, Yield.class, "yield")) {
-				handled = handle(statementNode, methodCall);
+			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
+				try {
+					JavacNode methodNode = methodNodeOf(statementNode);
+					if (isConstructor(methodNode)) {
+						methodNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
+					} else {
+						handled = handle(methodNode);
+					}
+				} catch (IllegalArgumentException e) {
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
+				}
 			}
 		}
 	}
@@ -201,11 +79,105 @@ public class HandleYield extends JavacASTAdapter {
 		}
 	}
 	
-	public boolean handle(JavacNode methodCallNode, JCMethodInvocation withCall) {
-		if (withCall.args.size() < 1) {
+	public boolean handle(JavacNode methodNode) {
+		final boolean returnsIterable = returns(methodNode, Iterable.class);
+		final boolean returnsIterator = returns(methodNode, Iterator.class);
+		if (!(returnsIterable || returnsIterator)) {
+			methodNode.addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable.");
 			return true;
 		}
+		if (isSynchronized(methodNode)) {
+			methodNode.addError("Method that contain yield() should not be synchronized");
+			return true;
+		}
+		if (hasNonFinalParameter(methodNode)) {
+			methodNode.addError("Parameters should be final.");
+			return true;
+		}
+		final String yielderName = yielderName(methodNode);
+		final String elementType = elementType(methodNode);
+		final String variables = "";
+		final String stateMachine = "";
+		
+		TreeMaker maker = methodNode.getTreeMaker();
+		JCMethodDecl method = (JCMethodDecl)methodNode.get();
+		if (returnsIterable) {
+			method.body = maker.Block(0, statements(methodNode, yielderForIterable(yielderName, elementType, variables, stateMachine)));
+		} else if (returnsIterator) {
+			method.body = maker.Block(0, statements(methodNode, yielderForIterator(yielderName, elementType, variables, stateMachine)));
+		}
+		
+		methodNode.rebuild();
 		
 		return true;
 	}
+	
+	private String yielderName(JavacNode methodNode) {
+		String[] parts = methodNode.getName().split("_");
+		String[] newParts = new String[parts.length + 1];
+		newParts[0] = "yielder";
+		System.arraycopy(parts, 0, newParts, 1, parts.length);
+		return camelCase("$", newParts);
+	}
+	
+	private String elementType(JavacNode methodNode) {
+		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
+		JCExpression type = methodDecl.restype;
+		if (type instanceof JCTypeApply) {
+			return ((JCTypeApply)type).arguments.head.type.toString();
+		} else {
+			return Object.class.getName();
+		}
+	}
+	
+	private boolean returns(JavacNode methodNode, Class<?> clazz) {
+		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
+		final String type = getTypeStringOf(methodDecl.restype);
+		return type.equals(clazz.getName());
+	}
+	
+	private boolean isSynchronized(JavacNode methodNode) {
+		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
+		return (methodDecl.mods != null) && ((methodDecl.mods.flags & SYNCHRONIZED) != 0);
+	}
+	
+	private boolean hasNonFinalParameter(JavacNode methodNode) {
+		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
+		for(JCVariableDecl param: methodDecl.params) {
+			if ((param.mods == null) || (param.mods.flags & FINAL) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private String getTypeStringOf(JCExpression type) {
+		if (type instanceof JCTypeApply) {
+			return ((JCTypeApply)type).clazz.type.toString();
+		} else {
+			return type.type.toString();
+		}
+	}
+	
+	private String yielderForIterator(String yielderName, String elementType, String variables, String stateMachine) {
+		return String.format(YIELDER_TEMPLATE, yielderName, elementType, "", variables, elementType, "", stateMachine, yielderName);
+	}
+	
+	private String yielderForIterable(String yielderName, String elementType, String variables, String stateMachine) {
+		String iterableImport = String.format(ITERABLE_IMPORT, elementType);
+		String iteratorMethod = String.format(ITERATOR_METHOD, elementType, yielderName);
+		return String.format(YIELDER_TEMPLATE, yielderName, elementType, iterableImport, variables, elementType, iteratorMethod, stateMachine, yielderName);
+	}
+	 
+	String YIELDER_TEMPLATE = // 
+			"class %s implements java.util.Iterator<%s> %s { %s private int $state; private boolean $hasNext; private boolean $nextDefined; private %s $next; %s " + //
+			"public boolean hasNext() { if (!$nextDefined) { $hasNext = getNext(); $nextDefined = true; } return $hasNext; } " + //
+			"public String next() { if (!hasNext()) { throw new java.util.NoSuchElementException(); } $nextDefined = false; return $next; }" + //
+			"public void remove() { throw new java.lang.UnsupportedOperationException(); }" + //
+			"private boolean getNext() { while(true) { switch ($state) { %s default: } return false; } } } return new %s();";
+	String ITERABLE_IMPORT = ", java.lang.Iterable<%s>";
+	String ITERATOR_METHOD = "public java.util.Iterator<%s> iterator() { return new %s(); }";
+	String CASE = "case %s: ";
+	String STATE_RETURN_TRUE = "$next = %s; $state = %s; return true;";
+	String STATE_CONTINUE = "$state = %s; continue;";
 }

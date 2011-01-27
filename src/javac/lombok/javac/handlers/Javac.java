@@ -15,7 +15,7 @@ public final class Javac {
 	private Javac() {
 	}
 	
-	public static boolean methodCallIsValid(JavacNode node, String methodName, Class<?> clazz, String method) {
+	public static boolean isMethodCallValid(JavacNode node, String methodName, Class<?> clazz, String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
 		wasImported |= methodName.equals(clazz.getSimpleName() + "." + method) && importedStatements.contains(clazz.getName());
@@ -74,11 +74,15 @@ public final class Javac {
 		return methodNode;
 	}
 	
+	public static boolean isConstructor(JavacNode methodNode) {
+		return (methodNode.get() instanceof JCMethodDecl) && "<init>".equals(methodNode.getName());
+	}
+	
 	public static JCClassDecl typeDeclFiltering(JavacNode typeNode, long filterFlags) {
 		JCClassDecl typeDecl = null;
 		if ((typeNode != null) && (typeNode.get() instanceof JCClassDecl)) typeDecl = (JCClassDecl)typeNode.get();
 		if ((typeDecl != null) && ((typeDecl.mods.flags & filterFlags) != 0)) {
-			typeDecl = null;	
+			typeDecl = null;
 		}
 		return typeDecl;
 	}

@@ -72,7 +72,7 @@ public class HandleWith extends JavacASTAdapter {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			methodName = methodCall.meth.toString();
-			if (methodCallIsValid(statementNode, methodName, With.class, "with")) {
+			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
 				try {
 					methodNodeOf(statementNode);
 				} catch (IllegalArgumentException e) {

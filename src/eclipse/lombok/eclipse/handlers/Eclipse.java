@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
@@ -15,7 +16,7 @@ public final class Eclipse {
 	private Eclipse() {
 	}
 	
-	public static boolean methodCallIsValid(EclipseNode node, String methodName, Class<?> clazz, String method) {
+	public static boolean isMethodCallValid(EclipseNode node, String methodName, Class<?> clazz, String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
 		wasImported |= methodName.equals(clazz.getSimpleName() + "." + method) && importedStatements.contains(clazz.getName());
@@ -65,6 +66,10 @@ public final class Eclipse {
 			throw new IllegalArgumentException();
 		}
 		return methodNode;
+	}
+	
+	public static boolean isConstructor(EclipseNode methodNode) {
+		return methodNode.get() instanceof ConstructorDeclaration;
 	}
 	
 	public static TypeDeclaration typeDeclFiltering(EclipseNode typeNode, long filterFlags) {

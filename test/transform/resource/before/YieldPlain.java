@@ -1,9 +1,13 @@
 import static lombok.Yield.yield;
 
 import java.util.Iterator;
-import java.util.Iterable;
+import java.lang.Iterable;
 
 class YieldPlain {
+	public Iterator<String> simple() {
+		yield("A String");
+	}
+
 	public Iterator<Long> fib_while() {
 		long a = 0;
 		long b = 1;
@@ -15,7 +19,7 @@ class YieldPlain {
 			b = c;
 		}
 	}
-	
+
 	public Iterator<Long> fib_while_2() {
 		long a = 0;
 		long b = 1;
@@ -37,8 +41,8 @@ class YieldPlain {
 			b = c;
 		}
 	}
-	
-	public Iterable<String> complex_foreach(Iterable<Object> objects) {
+
+	public Iterable<String> complex_foreach(final Iterable<Object> objects) {
 		for (Object object : objects) {
 			if (object instanceof Class<?>) {
 				Class<?> c = (Class<?>) object;
@@ -50,8 +54,8 @@ class YieldPlain {
 		}
 		yield("Another String");
 	}
-	
-	public Iterator<String> complex(Iterator<Object> objects) {
+
+	public Iterator<String> complex(final Iterator<Object> objects) {
 		yield("Another String");
 		while (objects.hasNext()) {
 			Object object = objects.next();

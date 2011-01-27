@@ -22,11 +22,17 @@
 package lombok.eclipse.handlers;
 
 import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.core.util.Arrays.*;
+import static lombok.javac.handlers.Javac.isConstructor;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Names.camelCase;
+
+import java.util.Iterator;
 
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 import lombok.Yield;
@@ -47,8 +53,17 @@ public class HandleYield extends EclipseASTAdapter {
 		if (statement instanceof MessageSend) {
 			MessageSend methodCall = (MessageSend) statement;
 			methodName = new String(methodCall.selector);
-			if (methodCallIsValid(statementNode, methodName, Yield.class, "yield")) {
-				handled = handle(statementNode, methodCall);
+			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
+				try {
+					EclipseNode methodNode = methodNodeOf(statementNode);
+					if (isConstructor(methodNode)) {
+						methodNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
+					} else {
+						handled = handle(methodNode);
+					}
+				} catch (IllegalArgumentException e) {
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
+				}
 			}
 		}
 	}
@@ -59,11 +74,30 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 	}
 	
-	public boolean handle(EclipseNode methodCallNode, MessageSend withCall) {
-		if (isEmpty(withCall.arguments) || (withCall.arguments.length < 1)) {
+	public boolean handle(EclipseNode methodNode) {
+		final boolean returnsIterable = returns(methodNode, Iterable.class);
+		final boolean returnsIterator = returns(methodNode, Iterator.class);
+		if (!(returnsIterable || returnsIterator)) {
+			methodNode.addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable");
 			return true;
 		}
+		final String yielderName = yielderName(methodNode);
 		
 		return true;
+	}
+	
+	private String yielderName(EclipseNode methodNode) {
+		String[] parts = methodNode.getName().split("_");
+		String[] newParts = new String[parts.length + 1];
+		newParts[0] = "yielder";
+		System.arraycopy(parts, 0, newParts, 1, parts.length);
+		return camelCase("$", newParts);
+	}
+	
+	private boolean returns(EclipseNode methodNode, Class<?> clazz) {
+		MethodDeclaration methodDecl = (MethodDeclaration)methodNode.get();
+		TypeReference returnType = methodDecl.returnType;
+		// TODO
+		return false;
 	}
 }
