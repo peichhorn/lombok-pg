@@ -21,19 +21,16 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.firstArgumentCanBeVariableNameOrNewClassStatementOnly;
-import static lombok.core.util.ErrorMessages.isNotAllowedHere;
-import static lombok.core.util.ErrorMessages.unsupportedExpressionIn;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
-import static lombok.javac.handlers.JavacHandlerUtil.chainDots;
-import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static com.sun.tools.javac.code.Flags.*;
 
 import org.mangosdk.spi.ProviderFor;
 
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewArrayTree;
 import com.sun.source.tree.NewClassTree;
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCase;
@@ -76,6 +73,11 @@ public class HandleWith extends JavacASTAdapter {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			methodName = methodCall.meth.toString();
 			if (methodCallIsValid(statementNode, methodName, With.class, "with")) {
+				try {
+					methodNodeOf(statementNode);
+				} catch (IllegalArgumentException e) {
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
+				}
 				handled = handle(statementNode, methodCall);
 			}
 		}
@@ -100,7 +102,7 @@ public class HandleWith extends JavacASTAdapter {
 			withExprName = withExpr.toString();
 		} else if (withExpr instanceof JCNewClass) {
 			withExprName = "$with" + (withVarCounter++);
-			withCallStatements.append(maker.VarDef(maker.Modifiers(Flags.FINAL), methodCallNode.toName(withExprName), ((JCNewClass)withExpr).clazz, withExpr));
+			withCallStatements.append(maker.VarDef(maker.Modifiers(FINAL), methodCallNode.toName(withExprName), ((JCNewClass)withExpr).clazz, withExpr));
 			withExpr = chainDots(maker, methodCallNode, withExprName);
 		} else {
 			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
