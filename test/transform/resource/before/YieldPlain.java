@@ -4,35 +4,35 @@ import java.util.Iterator;
 import java.util.Iterable;
 
 class YieldPlain {
-	public Iterator<Integer> fib_while() {
-		int a = 0;
-		int b = 1;
+	public Iterator<Long> fib_while() {
+		long a = 0;
+		long b = 1;
 		while (true) {
 			yield(a);
-			int c = a + b;
+			long c = a + b;
 			if (c < 0) break;
 			a = b;
 			b = c;
 		}
 	}
 	
-	public Iterator<Integer> fib_while_2() {
-		int a = 0;
-		int b = 1;
+	public Iterator<Long> fib_while_2() {
+		long a = 0;
+		long b = 1;
 		while (b >= 0) {
 			yield(a);
-			int c = a + b;
+			long c = a + b;
 			a = b;
 			b = c;
 		}
 	}
 
-	public Iterable<Integer> fib_for() {
-		int a = 0;
-		int b = 1;
+	public Iterable<Long> fib_for() {
+		long a = 0;
+		long b = 1;
 		for (;b >= 0;) {
 			yield(a);
-			int c = a + b;
+			long c = a + b;
 			a = b;
 			b = c;
 		}
@@ -46,7 +46,7 @@ class YieldPlain {
 				yield(c.getName());
 				break;
 			}
-			yield(object.toString);
+			yield(object.toString());
 		}
 		yield("Another String");
 	}
@@ -61,7 +61,7 @@ class YieldPlain {
 				yield(c.getName());
 				break;
 			}
-			yield(object.toString);
+			yield(object.toString());
 		}
 		yield("Another String");
 	}

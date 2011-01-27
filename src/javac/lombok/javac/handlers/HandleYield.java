@@ -53,6 +53,11 @@ Iterable<T> methodUsingYield(...) {
 	return new Yielder();
 }
 
+Iterator<T> methodUsingYield(...) {
+	class Yielder implements Iterator<T> {
+	}
+	return new Yielder();
+}
 
 Step 1: transform every loop to for(;;)
 -------
@@ -90,37 +95,36 @@ Step3: state-machine of method using yield():
 private boolean $next() {
 	while(true) {
 		switch ($stateId) {
-		case 0:
-			$stateId = 1; 
-		case 1: // start of before scope
+		case 0: // start of before scope
 			// before1
-		case 2: 
+		case 1: 
 			// yield1
-			$stateId = 3;
+			$stateId = 2;
 			return true;
-		case 3:
+		case 2:
 			// before2
-		case 4
+		case 3
 			// initIter
-		case 5: // start of loop scope
-			// if (!condIter) $stateId = 9; continue;
+		case 4: // start of loop scope
+			// if (!condIter) $stateId = 8; continue;
 			// body1
-		case 6: //
+		case 5: //
 			// yield2
-			$stateId = 7;
+			$stateId = 6;
 			return true;
-		case 7:
+		case 6:
 			// body2
-		case 8:
+		case 7:
 			// afterIter
-			$stateId = 5;
-		case 9: // start of after scope
+			$stateId = 4;
+			continue;
+		case 8: // start of after scope
 			// after1
-		case 10:
+		case 9:
 			// yield3
-			$stateId = 11;
+			$stateId = 10;
 			return true;
-		case 11:
+		case 10:
 			// after2
 		default:
 		}
@@ -137,31 +141,30 @@ private boolean $next() {
 	while(true) {
 		switch ($stateId) {
 		case 0:
-			$stateId = 1; 
-		case 1: 
 			// before1
 			// yield1
-			$stateId = 2;
+			$stateId = 1;
 			return true;
-		case 2:
+		case 1:
 			// before2
 			// initIter
-		case 3:
-			// if (!condIter) $stateId = 9; continue;
+		case 2:
+			// if (!condIter) $stateId = 5; continue;
 			// body1
 			// yield2
-			$stateId = 4;
+			$stateId = 3;
 			return true;
-		case 4:
+		case 3:
 			// body2
 			// afterIter
-			$stateId = 3;
-		case 5:
+			$stateId = 2;
+			continue;
+		case 4:
 			// after1
 			// yield3
-			$stateId = 6;
+			$stateId = 5;
 			return true;
-		case 6:
+		case 5:
 			// after2
 		default:
 		}
@@ -172,8 +175,6 @@ private boolean $next() {
 yield() means: $stateNext = Ti; $stateId = (next state in scope); return true;
 continue means: $stateId = (first state in loop scope); continue;
 break means: $stateId = (first state in after scope); continue;
-
-case 0 is obsolete
 */
 @ProviderFor(JavacASTVisitor.class)
 public class HandleYield extends JavacASTAdapter {
