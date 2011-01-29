@@ -77,7 +77,7 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 		}
 		
 		for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-			method(typeNode, methodSymbol).withDefaultReturnStatement().injectWithMethodSymbol(methodSymbol);
+			method(typeNode, methodSymbol).withDefaultReturnStatement().inject();
 		}
 		
 		typeNode.rebuild();
@@ -108,7 +108,7 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 
 		@Override
 		public MethodSymbol next() {
-			MethodSymbol methodStub = createMethodStubFor(firstUndefinedMethod); 		
+			MethodSymbol methodStub = createMethodStubFor(firstUndefinedMethod);
 			if (hasNext()) {
 				handledMethods.add(firstUndefinedMethod.toString());
 				firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);

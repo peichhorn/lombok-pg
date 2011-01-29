@@ -196,6 +196,7 @@ public class JavacTreeBuilder {
 	public static class MethodBuilder extends AbstractMethodBuilder<MethodBuilder> {
 		protected MethodBuilder(JavacNode node, MethodSymbol m) {
 			super(node, m.flags(), m.name);
+			methodSymbol = m;
 			Type mtype = m.type;
 			returnType = fixLeadingDot(maker, maker.Type(mtype.getReturnType()));
 			typarams.appendList(maker.TypeParams(mtype.getTypeArguments()));
@@ -271,6 +272,7 @@ public class JavacTreeBuilder {
 		protected ListBuffer<JCExpression> thrownExceptions = ListBuffer.lb();
 		protected ListBuffer<JCStatement> statements = ListBuffer.lb();
 		protected boolean forceBlock = false;
+		protected MethodSymbol methodSymbol;
 		
 		protected AbstractMethodBuilder(JavacNode node, long flags, Name methodName) {
 			super(node);
@@ -321,13 +323,11 @@ public class JavacTreeBuilder {
 		}
 		
 		public void inject() {
-			injectMethod(node, build());
-		}
-		
-		public void injectWithMethodSymbol(MethodSymbol methodSymbol) {
 			JCMethodDecl method = build(); 
 			injectMethod(node, method);
-			injectMethodSymbol(node, method, methodSymbol);
+			if (methodSymbol != null) {
+				injectMethodSymbol(node, method, methodSymbol);
+			}
 		}
 		
 		public String toString() {

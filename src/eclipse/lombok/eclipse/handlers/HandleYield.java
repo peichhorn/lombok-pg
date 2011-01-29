@@ -22,7 +22,6 @@
 package lombok.eclipse.handlers;
 
 import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.javac.handlers.Javac.isConstructor;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
 

@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Names {
+	private Names() {
+	}
 	/**
 	 * <pre>
 	 * null        -> null

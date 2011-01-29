@@ -119,7 +119,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 	private boolean isConstructor(JCTree def) {
 		if (def instanceof JCMethodDecl) {
 			JCMethodDecl method = (JCMethodDecl)def;
-			return method.name.contentEquals(method.name.table.init);
+			return method.name.contentEquals("<init>");
 		}
 		return false;
 	}

@@ -30,7 +30,6 @@ import java.util.Collection;
 
 import lombok.AccessLevel;
 import lombok.FluentSetter;
-import lombok.Setter;
 import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.TransformationsUtil;
@@ -41,7 +40,6 @@ import lombok.javac.handlers.JavacHandlerUtil.FieldAccess;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -74,8 +72,7 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		if (checkForTypeLevelSetter) {
 			if (typeNode != null) for (JavacNode child : typeNode.down()) {
 				if (child.getKind() == Kind.ANNOTATION) {
-					if (Javac.annotationTypeMatches(Setter.class, child)) {
-						//The annotation will make it happen, so we can skip it.
+					if (Javac.annotationTypeMatches(FluentSetter.class, child)) {
 						return true;
 					}
 				}
@@ -91,12 +88,9 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		for (JavacNode field : typeNode.down()) {
 			if (field.getKind() != Kind.FIELD) continue;
 			JCVariableDecl fieldDecl = (JCVariableDecl) field.get();
-			//Skip fields that start with $
 			if (fieldDecl.name.toString().startsWith("$")) continue;
-			//Skip static fields.
-			if ((fieldDecl.mods.flags & Flags.STATIC) != 0) continue;
-			//Skip final fields.
-			if ((fieldDecl.mods.flags & Flags.FINAL) != 0) continue;
+			if ((fieldDecl.mods.flags & STATIC) != 0) continue;
+			if ((fieldDecl.mods.flags & FINAL) != 0) continue;
 			
 			generateSetterForField(field, errorNode.get(), level, List.<JCExpression>nil(), List.<JCExpression>nil());
 		}
@@ -106,8 +100,7 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 	public void generateSetterForField(JavacNode fieldNode, DiagnosticPosition pos, AccessLevel level, List<JCExpression> onMethod, List<JCExpression> onParam) {
 		for (JavacNode child : fieldNode.down()) {
 			if (child.getKind() == Kind.ANNOTATION) {
-				if (Javac.annotationTypeMatches(Setter.class, child)) {
-					//The annotation will make it happen, so we can skip it.
+				if (Javac.annotationTypeMatches(FluentSetter.class, child)) {
 					return;
 				}
 			}
@@ -163,10 +156,9 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 			return true;
 		default:
 		case NOT_EXISTS:
-			//continue with creating the setter
 		}
 		
-		long access = toJavacModifier(level) | (fieldDecl.mods.flags & Flags.STATIC);
+		long access = toJavacModifier(level) | (fieldDecl.mods.flags & STATIC);
 
 		injectMethod(fieldNode.up(), createSetter(access, fieldNode, fieldNode.getTreeMaker(), onMethod, onParam));
 		
@@ -197,20 +189,16 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		JCBlock methodBody = treeMaker.Block(0, statements);
 		List<JCAnnotation> annsOnParam = copyAnnotations(onParam);
 		annsOnParam = annsOnParam.appendList(nonNulls).appendList(nullables);
-		JCVariableDecl param = treeMaker.VarDef(treeMaker.Modifiers(Flags.FINAL, annsOnParam), fieldDecl.name, fieldDecl.vartype, null);
-		//WARNING: Do not use field.getSymbolTable().voidType - that field has gone through non-backwards compatible API changes within javac1.6.
-		JCExpression methodType;
+		JCVariableDecl param = treeMaker.VarDef(treeMaker.Modifiers(FINAL, annsOnParam), fieldDecl.name, fieldDecl.vartype, null);
 		JCClassDecl classNode = (JCClassDecl) field.up().get();
+		JCExpression methodType = treeMaker.Ident(classNode.name);
 		
 		if (!classNode.typarams.isEmpty()) {
-			// Paramterized type
 			List<JCExpression> typeArgs = List.nil();
 			for (JCTypeParameter typeparam : classNode.typarams) {
 				typeArgs = typeArgs.append(treeMaker.Ident(typeparam.name));
 			}
-			methodType = treeMaker.TypeApply(treeMaker.Ident(classNode.name), typeArgs);
-		} else {
-			methodType = treeMaker.Ident(classNode.name);
+			methodType = treeMaker.TypeApply(methodType, typeArgs);
 		}
 		
 		List<JCTypeParameter> methodGenericParams = List.nil();

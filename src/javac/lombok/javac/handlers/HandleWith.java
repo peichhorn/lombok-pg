@@ -73,12 +73,12 @@ public class HandleWith extends JavacASTAdapter {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			methodName = methodCall.meth.toString();
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
-				try {
-					methodNodeOf(statementNode);
-				} catch (IllegalArgumentException e) {
+				final JavacMethod method = JavacMethod.methodOf(statementNode);
+				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
+				} else {
+					handled = handle(statementNode, methodCall);
 				}
-				handled = handle(statementNode, methodCall);
 			}
 		}
 	}
