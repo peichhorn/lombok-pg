@@ -72,12 +72,12 @@ public class HandleWith extends EclipseASTAdapter {
 			MessageSend methodCall = (MessageSend) statement;
 			methodName = new String(methodCall.selector);
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
-				try {
-					methodNodeOf(statementNode);
-				} catch (IllegalArgumentException e) {
+				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
+				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
+				} else {
+					handled = handle(statementNode, methodCall);
 				}
-				handled = handle(statementNode, methodCall);
 			}
 		}
 	}

@@ -38,11 +38,13 @@ import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
@@ -50,25 +52,34 @@ import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
 import org.eclipse.jdt.internal.compiler.ast.Literal;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
+import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
+import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
+import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 //TODO add features if required
@@ -103,6 +114,74 @@ public class EclipseNodeBuilder {
 		}
 	}
 	
+	public static Assignment assignment(ASTNode source, Expression left, Expression right) {
+		Assignment assignment = new Assignment(left, right, 0);
+		setGeneratedByAndCopyPos(assignment, source);
+		return assignment;
+	}
+	
+	public static Assignment assignment(ASTNode source, String leftName, Expression right) {
+		Assignment assignment = new Assignment(nameReference(source, leftName), right, 0);
+		setGeneratedByAndCopyPos(assignment, source);
+		return assignment;
+	}
+	
+	public static Assignment assignment(ASTNode source, String leftName, String rightName) {
+		Assignment assignment = new Assignment(nameReference(source, leftName), nameReference(source, rightName), 0);
+		setGeneratedByAndCopyPos(assignment, source);
+		return assignment;
+	}
+	
+	public static ThrowStatement throwNewException(ASTNode source, String typeName) {
+		return throwNewException(source, typeReference(source, typeName));
+	}
+	
+	public static ThrowStatement throwNewException(ASTNode source, TypeReference type) {
+		AllocationExpression initException = new AllocationExpression();
+		setGeneratedByAndCopyPos(initException, source);
+		initException.type = type;
+		ThrowStatement throwStatement = new ThrowStatement(initException, 0, 0);
+		setGeneratedByAndCopyPos(throwStatement, source);
+		return throwStatement;
+	}
+	
+	public static WhileStatement whileStatement(ASTNode source, Expression condition, Statement action) {
+		WhileStatement whileStatement = new WhileStatement(condition, action, 0, 0);
+		setGeneratedByAndCopyPos(whileStatement, source);
+		return whileStatement;
+	}
+
+	public static Block block(ASTNode source, Statement... statements) {
+		Block block = new Block(0);
+		setGeneratedByAndCopyPos(block, source);
+		block.statements = statements;
+		return block;
+	}
+
+	public static IfStatement ifStatement(ASTNode source, Expression condition, Statement then) {
+		IfStatement ifStatement = new IfStatement(condition, then, 0, 0);
+		setGeneratedByAndCopyPos(ifStatement, source);
+		return ifStatement;
+	}
+	
+	public static IfStatement ifNotStatement(ASTNode source, Expression condition, Statement then) {
+		UnaryExpression newCondition = new UnaryExpression(condition, OperatorIds.NOT);
+		setGeneratedByAndCopyPos(newCondition, source);
+		return ifStatement(source, newCondition, then);
+	}
+	
+	public static ReturnStatement returnStatement(ASTNode source, boolean b) {
+		ReturnStatement returnStatement = new ReturnStatement(booleanLiteral(source, b), 0, 0);
+		setGeneratedByAndCopyPos(returnStatement, source);
+		return returnStatement;
+	}
+	
+	public static ReturnStatement returnStatement(ASTNode source, Expression expr) {
+		ReturnStatement returnStatement = new ReturnStatement(expr, 0, 0);
+		setGeneratedByAndCopyPos(returnStatement, source);
+		return returnStatement;
+	}
+	
 	public static Argument argument(ASTNode source, TypeReference type, String argumentName) {
 		Argument arg = new Argument(argumentName.toCharArray(), 0, copyType(type, source), FINAL);
 		setGeneratedByAndCopyPos(arg, source);
@@ -120,6 +199,14 @@ public class EclipseNodeBuilder {
 		return ann;
 	}
 	
+	public static Annotation annotation(ASTNode source, String typeName, String value) {
+		TypeReference typeRef = typeReference(source, typeName);
+		SingleMemberAnnotation ann = new SingleMemberAnnotation(typeRef, 0);
+		ann.memberValue = new StringLiteral(value.toCharArray(), 0, 0, 0);
+		setGeneratedByAndCopyPos(ann, source);
+		return ann;
+	}
+	
 	public static Literal booleanLiteral(ASTNode source, boolean b) {
 		Literal literal;
 		if (b) {
@@ -127,6 +214,12 @@ public class EclipseNodeBuilder {
 		} else {
 			literal = new FalseLiteral(0, 0);
 		}
+		setGeneratedByAndCopyPos(literal, source);
+		return literal;
+	}
+	
+	public static Literal intLiteral(ASTNode source, int value) {
+		Literal literal = new IntLiteral(String.valueOf(value).toCharArray(), 0, 0, value);
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
 	}
@@ -151,33 +244,42 @@ public class EclipseNodeBuilder {
 		return nameReference;
 	}
 	
-	public static TypeReference typeReference(ASTNode source, String typeName, TypeReference[] refs) {
-		TypeReference typeReference = new ParameterizedSingleTypeReference(typeName.toCharArray(), refs, 0, 0);
-		setGeneratedByAndCopyPos(typeReference, source);
-		return typeReference;
-	}
-	
-	public static TypeReference typeReference(ASTNode source, String typeName) {
+	public static TypeReference typeReference(ASTNode source, String typeName, String... paramTypeNames) {
 		TypeReference typeReference;
 		int arrayDimensions = 0;
 		while(typeName.endsWith("[]")) {
 			arrayDimensions++;
 			typeName = typeName.substring(0, typeName.length() - 2);
 		}
+		TypeReference[] paramTypes = new TypeReference[paramTypeNames == null ? 0 : paramTypeNames.length];
+		if (paramTypeNames != null) for (int i = 0; i < paramTypeNames.length; i++) {
+			paramTypes[i] = typeReference(source, paramTypeNames[i]);
+		}
 		if (typeName.equals("void")) {
 			return new SingleTypeReference(TypeBinding.VOID.simpleName, 0);
 		} else if (typeName.contains(".")) {
 			char[][] typeNameTokens = fromQualifiedName(typeName);
-			if (arrayDimensions > 0) {
-				typeReference = new ArrayQualifiedTypeReference(typeNameTokens, arrayDimensions, poss(source, typeNameTokens.length));
+			if (paramTypeNames.length > 0) {
+				TypeReference[][] typeArguments = new TypeReference[typeNameTokens.length][];
+				typeArguments[typeNameTokens.length - 1] = paramTypes;
+				typeReference = new ParameterizedQualifiedTypeReference(typeNameTokens, typeArguments, 0, poss(source, typeNameTokens.length));
 			} else {
-				typeReference = new QualifiedTypeReference(typeNameTokens, poss(source, typeNameTokens.length));
+				if (arrayDimensions > 0) {
+					typeReference = new ArrayQualifiedTypeReference(typeNameTokens, arrayDimensions, poss(source, typeNameTokens.length));
+				} else {
+					typeReference = new QualifiedTypeReference(typeNameTokens, poss(source, typeNameTokens.length));
+				}
 			}
 		} else {
-			if (arrayDimensions > 0) {
-				typeReference = new ArrayTypeReference(typeName.toCharArray(), arrayDimensions, 0);
+			char[] typeNameToken = typeName.toCharArray();
+			if (paramTypeNames.length > 0) {
+				typeReference = new ParameterizedSingleTypeReference(typeNameToken, paramTypes, 0, 0);
 			} else {
-				typeReference = new SingleTypeReference(typeName.toCharArray(), 0);
+				if (arrayDimensions > 0) {
+					typeReference = new ArrayTypeReference(typeNameToken, arrayDimensions, 0);
+				} else {
+					typeReference = new SingleTypeReference(typeNameToken, 0);
+				}
 			}
 		}
 		
@@ -198,6 +300,12 @@ public class EclipseNodeBuilder {
 	
 	public static MessageSend methodCall(ASTNode source, String receiver, String method, Expression... args) {
 		return methodCall(source, nameReference(source, receiver), method, args);
+	}
+	
+	public static MessageSend methodCall(ASTNode source, String method, Expression... args) {
+		ThisReference thisReference = thisReference(source);
+		thisReference.bits |= ASTNode.IsImplicitThis;
+		return methodCall(source, thisReference, method, args);
 	}
 	
 	public static ThisReference thisReference(ASTNode source) {
@@ -260,6 +368,11 @@ public class EclipseNodeBuilder {
 			super(node, source, modifiers, typeName);
 		}
 		
+		public ClassBuilder implementing(TypeReference type) {
+			this.superInterfaces.add(type);
+			return self();
+		}
+		
 		public ClassBuilder implementing(List<String> interfazes) {
 			for (String typeName : interfazes) {
 				this.superInterfaces.add(typeReference(source, typeName));
@@ -279,6 +392,16 @@ public class EclipseNodeBuilder {
 		
 		public ClassBuilder withFields(List<FieldDeclaration> fields) {
 			this.fields.addAll(fields);
+			return self();
+		}
+		
+		public ClassBuilder withField(FieldDeclaration field) {
+			this.fields.add(field);
+			return self();
+		}
+		
+		public ClassBuilder withTypes(List<TypeDeclaration> types) {
+			this.memberTypes.addAll(types);
 			return self();
 		}
 		
@@ -320,6 +443,7 @@ public class EclipseNodeBuilder {
 			FieldDeclaration proto = new FieldDeclaration(name.toCharArray(), 0, 0);
 			setGeneratedByAndCopyPos(proto, source);
 			proto.modifiers = modifiers;
+			proto.annotations = annotations.isEmpty() ? null : annotations.toArray(new Annotation[annotations.size()]);
 			proto.bits |= bits | ECLIPSE_DO_NOT_TOUCH_FLAG;
 			proto.type = type;
 			proto.initialization = initialization;
@@ -340,6 +464,7 @@ public class EclipseNodeBuilder {
 			LocalDeclaration proto = new LocalDeclaration(name.toCharArray(), 0, 0);
 			setGeneratedByAndCopyPos(proto, source);
 			proto.modifiers = modifiers;
+			proto.annotations = annotations.isEmpty() ? null : annotations.toArray(new Annotation[annotations.size()]);
 			proto.bits |= bits | ECLIPSE_DO_NOT_TOUCH_FLAG;
 			proto.type = type;
 			proto.initialization = initialization;
@@ -410,9 +535,7 @@ public class EclipseNodeBuilder {
 		}
 		
 		public MethodBuilder withReturnStatement(Expression expr) {
-			ReturnStatement returnStatement = new ReturnStatement(expr, 0, 0);
-			setGeneratedByAndCopyPos(returnStatement, source);
-			return withStatement(returnStatement);
+			return withStatement(returnStatement(source, expr));
 		}
 		
 		public MethodDeclaration build() {
@@ -485,9 +608,15 @@ public class EclipseNodeBuilder {
 		}
 		
 		public SELF_TYPE withAssignStatement(Expression left, Expression right) {
-			Assignment assignment = new Assignment(left, right, 0);
-			setGeneratedByAndCopyPos(assignment, source);
-			return withStatement(assignment);
+			return withStatement(assignment(source, left, right));
+		}
+		
+		public SELF_TYPE withAssignStatement(String leftName, Expression right) {
+			return withStatement(assignment(source, leftName, right));
+		}
+		
+		public SELF_TYPE withAssignStatement(String leftName, String rightName) {
+			return withStatement(assignment(source, leftName, rightName));
 		}
 		
 		public SELF_TYPE withStatements(List<Statement> statements) {
@@ -542,6 +671,11 @@ public class EclipseNodeBuilder {
 		
 		public SELF_TYPE withAnnotation(String typeName) {
 			this.annotations.add(annotation(source, typeName));
+			return self();
+		}
+		
+		public SELF_TYPE withAnnotation(String typeName, String value) {
+			this.annotations.add(annotation(source, typeName, value));
 			return self();
 		}
 		

@@ -75,6 +75,7 @@ import java.util.HashMap;
     }
     
     private $Builder() {
+      super();
     }
   }
   private final String text;
@@ -148,6 +149,7 @@ import java.util.HashMap;
     }
     
     private $Builder() {
+      super();
     }
   }
   public static final int IGNORE = 2;
@@ -217,6 +219,7 @@ import java.util.HashMap;
     }
     
     private $Builder() {
+      super();
     }
   }
   private final String text;

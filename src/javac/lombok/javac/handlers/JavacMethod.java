@@ -76,6 +76,10 @@ public class JavacMethod {
 		}
 	}
 	
+	public String toString() {
+		return get().toString();
+	}
+	
 	public static JavacMethod methodOf(final JavacNode node) {
 		JavacNode methodNode = node;
 		while ((methodNode != null) && !(methodNode.get() instanceof JCMethodDecl)) {

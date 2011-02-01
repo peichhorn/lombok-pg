@@ -171,10 +171,10 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		
 		TypeReference returnType;
 		if (isNotEmpty(parent.typeParameters)) {
-			TypeReference[] refs = new TypeReference[parent.typeParameters.length];
+			String[] refs = new String[parent.typeParameters.length];
 			int idx = 0;
 			for (TypeParameter param : parent.typeParameters) {
-				refs[idx++] = typeReference(source, new String(param.name));
+				refs[idx++] = new String(param.name);
 			}
 			returnType = typeReference(source, new String(parent.name), refs);
 		} else returnType = typeReference(source, new String(parent.name));

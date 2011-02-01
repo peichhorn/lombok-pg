@@ -57,7 +57,6 @@ import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -398,8 +397,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		if ("void".equals(returnType.toString())) {
 			statement = callMethod;
 		} else {
-			statement = new ReturnStatement(callMethod, 0, 0);
-			setGeneratedByAndCopyPos(statement, source);
+			statement = returnStatement(source, callMethod);
 		}
 		
 		builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, returnType, method).withThrownExceptions(thrown)
@@ -410,7 +408,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private static void createBuilder(IBuilderData builderData, List<String> typeNames, List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
-		builderMethods.add(constructor(typeNode, source, PRIVATE, BUILDER).build());
+		builderMethods.add(constructor(typeNode, source, PRIVATE, BUILDER).withImplicitSuper().build());
 		clazz(typeNode, source, PRIVATE | STATIC, BUILDER).implementing(typeNames)
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods).inject();
 	}
