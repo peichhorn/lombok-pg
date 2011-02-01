@@ -5,6 +5,7 @@ class YieldPlain {
   YieldPlain() {
     super();
   }
+
   public Iterator<String> simple() {
     class $YielderSimple implements java.util.Iterator<String> {
       private int $state;
@@ -296,7 +297,7 @@ class YieldPlain {
       }
 
       private boolean getNext() {
-        while (true) switch          ($state) {
+        while (true)          switch ($state) {
           case 0 : ;
               $objectIter = objects.iterator();
           case 1 : ;
@@ -305,13 +306,13 @@ class YieldPlain {
                     $state = (+ 6);
                     continue ;
                   }
-              object = (Object)$objectIter.next();
+              object = (Object) $objectIter.next();
               if ((! (object instanceof Class<?>)))
                   {
                     $state = (+ 4);
                     continue ;
                   }
-              c = (Class<?>)object;
+              c = (Class<?>) object;
               $next = "A String";
               $state = (+ 2);
               return true;
@@ -341,7 +342,7 @@ class YieldPlain {
     }
     return new $YielderComplexForeach();
   }
-  
+
   public Iterator<String> complex(final Iterator<Object> objects) {
     class $YielderComplex implements java.util.Iterator<String> {
       private Object object;
@@ -395,7 +396,7 @@ class YieldPlain {
                     $state = (+ 4);
                     continue ;
                   }
-              c = (Class<?>)object;
+              c = (Class<?>) object;
               $next = "A String";
               $state = (+ 2);
               return true;
@@ -405,7 +406,7 @@ class YieldPlain {
               return true;
           case 3 : ;
               $state = (+ 6);
-              continue;
+              continue ;
           case 4 : ;
               $next = object.toString();
               $state = (+ 5);

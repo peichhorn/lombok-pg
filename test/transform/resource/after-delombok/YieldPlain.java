@@ -304,7 +304,7 @@ class YieldPlain {
 		}
 		return new $YielderComplexForeach();
 	}
-	
+
 	public Iterator<String> complex(final Iterator<Object> objects) {
 		class $YielderComplex implements java.util.Iterator<java.lang.String> {
 			private Object object;

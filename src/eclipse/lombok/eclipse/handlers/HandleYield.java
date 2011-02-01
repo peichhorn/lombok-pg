@@ -26,7 +26,7 @@ import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static lombok.core.util.ErrorMessages.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.core.util.Names.camelCase;
-import static lombok.core.util.Types.isOneOf;
+import static lombok.core.util.Types.*;
 import static org.eclipse.jdt.internal.compiler.ast.ASTNode.*;
 
 import java.util.ArrayList;
@@ -407,17 +407,18 @@ public class HandleYield extends EclipseASTAdapter {
 			// should be:
 			//   case 2: someThing(); someThingElse();
 			int id = 0;
+			int labelCounter = 0;
 			Statement previous = null;
 			for (int i = 0; i < statements.size(); i++) {
 				Statement statement = statements.get(i);
 				if (statement instanceof Label) {
+					labelCounter++;
 					Label label = (Label) statement;
-					if ((previous != null) && (previous instanceof Label)) {
-						label.id = id;
+					if ((previous != null) && (labelCounter > 2) && isNoneOf(previous, ContinueStatement.class, ReturnStatement.class)) {
+						id--;
 						statements.remove(i--);
-					} else {
-						label.id = id++;
 					}
+					label.id = id++;
 					label.constantExpression = intLiteral(declaration, label.id);
 				}
 				previous = statement;
