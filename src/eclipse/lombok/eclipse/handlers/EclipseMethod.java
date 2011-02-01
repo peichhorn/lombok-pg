@@ -96,6 +96,10 @@ public class EclipseMethod {
 	public boolean isEmpty() {
 		return Arrays.isEmpty(get().statements);
 	}
+	
+	public boolean wasCompletelyParsed() {
+		return node().getAst().isCompleteParse();
+	}
 
 	public void body(Statement... statements) {
 		get().statements = statements;

@@ -21,8 +21,9 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
+import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.core.util.Names.*;
-import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 
@@ -35,7 +36,6 @@ import lombok.ReadLock;
 import lombok.Signal;
 import lombok.WriteLock;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -44,7 +44,6 @@ import org.mangosdk.spi.ProviderFor;
 
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 
 public class HandleConditionAndLock {
 	@ProviderFor(JavacAnnotationHandler.class)
@@ -119,19 +118,23 @@ public class HandleConditionAndLock {
 
 	public boolean handle(String lockName, Class<? extends Annotation> annotationType, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, annotationType);
-		String annotationTypeName = annotationType.getSimpleName();
-		if (isNoConcreteMethod(annotationTypeName, annotationNode)) {
+		JavacMethod method = JavacMethod.methodOf(annotationNode);
+		if (method == null) {
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return false;
 		}
+		if (method.isAbstract()) {
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return false;
+		}
+		String annotationTypeName = annotationType.getSimpleName();
 
 		boolean lockMode = lockMethod != null;
 
 		if (!lockMode && (await == null) && (signal == null)) {
 			return false; // wrong configured handler, so better stop here
 		}
-
-		JavacNode methodNode = annotationNode.up();
-		JCMethodDecl method = (JCMethodDecl)methodNode.get();
+		
 		String completeLockName = createCompleteLockName(lockName);
 
 		if (!tryToAddLockField(lockMode ? lockName : completeLockName, lockMode, annotationTypeName, annotationNode)) {
@@ -150,14 +153,14 @@ public class HandleConditionAndLock {
 			}
 		}
 
-		TreeMaker maker = methodNode.getTreeMaker();
-		method.body = maker.Block(0, statements(methodNode, "this.%s.lock(); try { %s %s %s } finally { this.%s.unlock(); }",
-				completeLockName, beforeMethodBlock, removeCurlyBrackets(method.body.toString()), afterMethodBlock, completeLockName));
+		TreeMaker maker = method.node().getTreeMaker();
+		method.body(statements(method.node(), "this.%s.lock(); try { %s %s %s } finally { this.%s.unlock(); }",
+				completeLockName, beforeMethodBlock, removeCurlyBrackets(method.get().body.toString()), afterMethodBlock, completeLockName));
 		if (await != null) {
-			method.thrown = method.thrown.append(chainDotsString(maker, methodNode, "java.lang.InterruptedException"));
+			method.get().thrown = method.get().thrown.append(chainDotsString(maker, method.node(), "java.lang.InterruptedException"));
 		}
 
-		methodNode.rebuild();
+		method.rebuild();
 
 		return true;
 	}
@@ -233,21 +236,7 @@ public class HandleConditionAndLock {
 		}
 		return true;
 	}
-
-	private static boolean isNoConcreteMethod(String annotationTypeName, JavacNode annotationNode) {
-		JavacNode methodNode = annotationNode.up();
-		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof JCMethodDecl)) {
-			annotationNode.addError(String.format("@%s is legal only on methods.", annotationTypeName));
-			return true;
-		}
-		JCMethodDecl method = (JCMethodDecl)methodNode.get();
-		if (((method.mods.flags & ABSTRACT) != 0) || ((method.body == null))) {
-			annotationNode.addError(String.format("@%s is legal only on concrete methods.", annotationTypeName));
-			return true;
-		}
-		return false;
-	}
-
+	
 	private static void addLockField(JavacNode node, String lockName) {
 		field(node.up(), "private final java.util.concurrent.locks.Lock %s = new java.util.concurrent.locks.ReentrantLock();", lockName).inject();
 	}

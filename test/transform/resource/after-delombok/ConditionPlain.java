@@ -1,6 +1,7 @@
 class ConditionPlain {
 	private volatile boolean paused;
 	
+	@java.lang.SuppressWarnings("all")
 	void unpause() {
 		this.$canResumeLock.lock();
 		try {
@@ -11,6 +12,7 @@ class ConditionPlain {
 		}
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	void pause() throws java.lang.InterruptedException {
 		this.$canResumeLock.lock();
 		try {

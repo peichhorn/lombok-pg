@@ -3,6 +3,7 @@ import java.util.HashMap;
 class LockPlain {
 	private Map<String, String> dictionary = new HashMap<String, String>();
 	
+	@java.lang.SuppressWarnings("all")
 	public void put(String key, String value) {
 		this.dictionaryLock.writeLock().lock();
 		try {
@@ -12,6 +13,7 @@ class LockPlain {
 		}
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public String get(String key) {
 		this.dictionaryLock.readLock().lock();
 		try {
