@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,16 +40,16 @@ public @interface FluentSetter {
 	 * If the {@code @Setter} is put on a type, {@code onMethod} may not be specified.
 	 */
 	AnyAnnotation[] onMethod() default {};
-	
+
 	/**
 	 * If you want the parameter of your setter to have additional annotations, you can specify them here.
 	 * If the {@code @Setter} is put on a type, {@code onParam} may not be specified.
 	 */
 	AnyAnnotation[] onParam() default {};
-	
+
 	/**
 	 * Placeholder annotation to enable the placement of annotations on the setter method or its parameter.
-	 * @deprecated Don't use this annotation, since we might remove it. 
+	 * @deprecated Don't use this annotation, since we might remove it.
 	 */
 	@Deprecated
 	@Retention(RetentionPolicy.SOURCE)

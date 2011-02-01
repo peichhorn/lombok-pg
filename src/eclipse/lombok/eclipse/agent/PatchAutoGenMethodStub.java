@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,28 +45,28 @@ public class PatchAutoGenMethodStub {
 				.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
 				.build());
-		
+
 		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
 				.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
 				.build());
-		
+
 		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 				.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
 				.build());
-		
+
 		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 				.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
 				.build());
 	}
-	
+
 	private static boolean issueWasFixed = false;
-	
+
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
 		if (ann != null) {
@@ -76,7 +76,7 @@ public class PatchAutoGenMethodStub {
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}
-	
+
 	public static void abstractMethodMustBeImplemented(ProblemReporter problemReporter, SourceTypeBinding type, MethodBinding abstractMethod) {
 		if (issueWasFixed) {
 			issueWasFixed = false;

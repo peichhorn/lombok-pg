@@ -5,7 +5,7 @@ public class Cast {
 	public static <T> T[] uncheckedCast(Object[] o) {
 		return (T[]) o;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T> T uncheckedCast(Object o) {
 		return (T) o;

@@ -19,14 +19,14 @@ final class Patches {
 	public static final String TYPEDECLARATION = "org.eclipse.jdt.internal.compiler.ast.TypeDeclaration";
 	public static final String METHODDECLARATION = "org.eclipse.jdt.internal.compiler.ast.MethodDeclaration";
 	public static final String PROBLEMREPORTER = "org.eclipse.jdt.internal.compiler.problem.ProblemReporter";
-	
+
 	private Patches() {
 	}
-	
+
 	public static boolean hasAnnotations(TypeDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);
 	}
-	
+
 	public static Annotation getAnnotation(Class<?> expectedType, TypeDeclaration decl) {
 		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
 			if (matchesType(ann, expectedType, decl)) {
@@ -35,7 +35,7 @@ final class Patches {
 		}
 		return null;
 	}
-	
+
 	public static boolean matchesType(Annotation ann, Class<?> expectedType, TypeDeclaration decl) {
 		if (ann.type == null) return false;
 		TypeBinding tb = ann.resolvedType;
@@ -45,7 +45,7 @@ final class Patches {
 		if (tb == null) return false;
 		return new String(tb.readableName()).equals(expectedType.getName());
 	}
-	
+
 	public static EclipseNode getTypeNode(TypeDeclaration decl) {
 		CompilationUnitDeclaration cud = decl.scope.compilationUnitScope().referenceContext;
 		EclipseAST astNode = TransformEclipseAST.getAST(cud, true);

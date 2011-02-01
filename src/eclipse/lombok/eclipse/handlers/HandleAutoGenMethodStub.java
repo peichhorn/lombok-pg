@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,7 +50,6 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -72,7 +71,7 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 		}
 		return false;
 	}
-	
+
 	// real meat
 	public MethodDeclaration handle(MethodBinding abstractMethod, Annotation source, EclipseNode typeNode) {
 		TypeDeclaration type = (TypeDeclaration)typeNode.get();
@@ -125,7 +124,7 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 			}
 		}
 		injectMethod(typeNode, methodStub);
-		
+
 		SourceTypeBinding sourceType = type.scope.referenceContext.binding;
 		MethodScope methodScope = new MethodScope(type.scope, methodStub, false);
 		SourceTypeBinding declaringClass = methodScope.referenceType().binding;
@@ -143,33 +142,33 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 			methodBinding.typeVariables = methodScope.createTypeVariables(typeParameters, methodStub.binding);
 			methodBinding.modifiers |= AccGenericSignature;
 		}
-		
+
 		MethodBinding[] allMethods = new MethodBinding[sourceType.methods().length + 1];
 		System.arraycopy(sourceType.methods(), 0, allMethods, 0, sourceType.methods().length);
 		allMethods[sourceType.methods().length] = methodBinding;
 		sourceType.setMethods(allMethods);
-		 
+
 		return methodStub;
 	}
-	
+
 	private static Literal getDefaultValue(TypeBinding binding, ASTNode source) {
 		Literal literal = new NullLiteral(0, 0);
 		if (binding.isBaseType()) {
-			if (binding == BaseTypeBinding.INT) {
+			if (binding == TypeBinding.INT) {
 				literal = new IntLiteral("0".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.BYTE) {
+			} else if (binding == TypeBinding.BYTE) {
 				literal = new IntLiteral("0".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.SHORT) {
+			} else if (binding == TypeBinding.SHORT) {
 				literal = new IntLiteral("0".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.CHAR) {
+			} else if (binding == TypeBinding.CHAR) {
 				literal = new CharLiteral("".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.LONG) {
+			} else if (binding == TypeBinding.LONG) {
 				literal = new LongLiteral("0L".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.FLOAT) {
+			} else if (binding == TypeBinding.FLOAT) {
 				literal = new FloatLiteral("0.0f".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.DOUBLE) {
+			} else if (binding == TypeBinding.DOUBLE) {
 				literal = new DoubleLiteral("0.0d".toCharArray(), 0, 0);
-			} else if (binding == BaseTypeBinding.BOOLEAN) {
+			} else if (binding == TypeBinding.BOOLEAN) {
 				literal = new FalseLiteral(0, 0);
 			}
 		}

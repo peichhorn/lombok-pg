@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,20 +57,20 @@ public class HandleEntrypoint {
 			createEntrypoint(typeNode, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
 			return true;
 		}
-		
+
 		private static class ArgumentProvider implements IArgumentProvider {
 			@Override public String getArgs(String name) {
 				return "args";
 			}
 		}
-		
+
 		private static class ParameterProvider implements IParameterProvider {
 			@Override public String getParams(String name) {
 				return "final java.lang.String[] args";
 			}
 		}
 	}
-	
+
 	/**
 	 * Handles the {@code lombok.JvmAgent} interface for javac.
 	 */
@@ -101,15 +101,15 @@ public class HandleEntrypoint {
 			}
 		}
 	}
-	
+
 	public static abstract class AbstractHandleEntrypoint extends JavacASTAdapter {
 		private boolean handled = false;
 		private final Class<?> interfaze;
-	
+
 		public AbstractHandleEntrypoint(Class<?> interfaze) {
 			this.interfaze = interfaze;
 		}
-		
+
 		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
@@ -123,21 +123,21 @@ public class HandleEntrypoint {
 				handled = handle(typeNode);
 			}
 		}
-		
+
 		@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
 			if (handled) {
 				deleteImportFromCompilationUnit(top, interfaze.getName());
 			}
 		}
-	
+
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
-		 * 
+		 *
 		 * @param typeNode
 		 */
 		abstract protected boolean handle(JavacNode typeNode);
 	}
-	
+
 	/**
 	 * Removes the interface from javac's AST (it remains in lombok's AST),
 	 * then removes any import statement that imports this exact interface (not star imports).
@@ -156,7 +156,7 @@ public class HandleEntrypoint {
 
 	/**
 	 * Checks if there is an entry point with the provided name.
-	 * 
+	 *
 	 * @param methodName the entry point name to check for.
 	 * @param node Any node that represents the Type (JCClassDecl) to look in, or any child node thereof.
 	 */
@@ -177,7 +177,7 @@ public class HandleEntrypoint {
 
 		return false;
 	}
-	
+
 	/**
 	 * Creates an entrypoint like this:
 	 * <pre>
@@ -196,20 +196,20 @@ public class HandleEntrypoint {
 			node.addWarning(String.format("The method '%s' is missing, not generating entrypoint 'public static void %s'.", methodName, name));
 			return;
 		}
-		
+
 		if (entrypointExists(name, node)) {
 			return;
 		}
-		
+
 		String params = (paramProvider != null) ? paramProvider.getParams(name) : "";
 		String args = (argsProvider != null) ? argsProvider.getArgs(name) : "";
 		method(node, "public static void %s(%s) throws java.lang.Throwable { new %s().%s(%s); }", name, params, node.getName(), methodName, args).inject();
 	}
-	
+
 	public static interface IArgumentProvider {
 		public String getArgs(String name);
 	}
-	
+
 	public static interface IParameterProvider {
 		public String getParams(String name);
 	}

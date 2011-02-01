@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -67,14 +67,14 @@ public class HandleEntrypoint {
 				return Arrays.asList(nameReference(source, "args"));
 			}
 		}
-		
+
 		private static class ParameterProvider implements IParameterProvider {
 			@Override public List<Argument> getParams(ASTNode source, String name) {
 				return Arrays.asList(argument(source, "java.lang.String[]", "args"));
 			}
 		}
 	}
-	
+
 	/**
 	 * Handles the {@code lombok.JvmAgent} interface for eclipse.
 	 */
@@ -110,7 +110,7 @@ public class HandleEntrypoint {
 			}
 		}
 	}
-	
+
 	private static  abstract class EclipseEntrypointHandler extends EclipseASTAdapter {
 		private final Class<?> interfaze;
 
@@ -134,17 +134,17 @@ public class HandleEntrypoint {
 
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
-		 * 
+		 *
 		 * @param typeNode
 		 * @param type
 		 */
 		protected abstract void handle(EclipseNode typeNode, TypeDeclaration type);
 	}
-	
-	
+
+
 	/**
 	 * Checks if there is an entry point with the provided name.
-	 * 
+	 *
 	 * @param methodName the entry point name to check for.
 	 * @param node Any node that represents the Type (TypeDeclaration) to look in, or any child node thereof.
 	 */
@@ -166,7 +166,7 @@ public class HandleEntrypoint {
 
 		return false;
 	}
-	
+
 	/**
 	 * Creates an entrypoint like this:
 	 * <pre>
@@ -186,26 +186,26 @@ public class HandleEntrypoint {
 			node.addWarning(String.format("The method '%s' is missing, not generating entrypoint 'public static void %s'.", methodName, name));
 			return;
 		}
-		
+
 		if (entrypointExists(name, node)) {
 			return;
 		}
-		
+
 		AllocationExpression newClassExp = new AllocationExpression();
 		setGeneratedByAndCopyPos(newClassExp, source);
 		newClassExp.type = typeReference(source, node.getName());
-		
+
 		List<? extends Expression> arguments = (argsProvider != null) ? argsProvider.getArgs(source, name) : new ArrayList<Expression>();
 		List<Argument> parameters = (paramProvider != null) ? paramProvider.getParams(source, name) : new ArrayList<Argument>();
-		
+
 		method(node, source, PUBLIC | STATIC, "void", name).withThrownException("java.lang.Throwable").withParameters(parameters) //
 				.withStatement(methodCall(source, newClassExp, methodName, arguments.toArray(new Expression[arguments.size()]))).inject();
 	}
-	
+
 	public static interface IArgumentProvider {
 		public List<? extends Expression> getArgs(ASTNode source, String name);
 	}
-	
+
 	public static interface IParameterProvider {
 		public List<Argument> getParams(ASTNode source, String name);
 	}

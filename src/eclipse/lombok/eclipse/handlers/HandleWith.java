@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -62,12 +62,12 @@ import lombok.eclipse.EclipseNode;
 public class HandleWith extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
-	
+
 	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
-	
+
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
 			MessageSend methodCall = (MessageSend) statement;
@@ -83,18 +83,18 @@ public class HandleWith extends EclipseASTAdapter {
 			}
 		}
 	}
-	
+
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
 	}
-	
+
 	public boolean handle(EclipseNode methodCallNode, MessageSend withCall) {
 		if (isEmpty(withCall.arguments) || (withCall.arguments.length < 2)) {
 			return true;
 		}
-		
+
 		ASTNode source = withCall;
 		List<Statement> withCallStatements = new ArrayList<Statement>();
 		Expression withExpr = withCall.arguments[0];
@@ -137,7 +137,7 @@ public class HandleWith extends EclipseASTAdapter {
 			methodCallNode.addError(isNotAllowedHere("with"));
 			return false;
 		}
-		
+
 		Statement arg;
 		for (int i = 1, iend = withCall.arguments.length; i < iend; i++) {
 			arg = withCall.arguments[i];
@@ -151,12 +151,12 @@ public class HandleWith extends EclipseASTAdapter {
 				return false;
 			}
 		}
-		
+
 		while ((!(parent.directUp().get() instanceof AbstractMethodDeclaration)) && (!(parent.directUp().get() instanceof Block))) {
 			parent = parent.directUp();
 			statementThatUsesWith = parent.get();
 		}
-		
+
 		grandParent = parent.directUp();
 		ASTNode block = grandParent.get();
 		if (block instanceof Block) {
@@ -167,12 +167,12 @@ public class HandleWith extends EclipseASTAdapter {
 			// this would be odd but what the hell
 			return false;
 		}
-		
+
 		grandParent.rebuild();
-		
+
 		return true;
 	}
-	
+
 	private static Statement[] injectStatements(Statement[] statements, Statement statement, boolean wasNoMethodCall, List<Statement> withCallStatements) {
 		final List<Statement> newStatements = new ArrayList<Statement>();
 		for (Statement stat : statements) {
@@ -183,38 +183,42 @@ public class HandleWith extends EclipseASTAdapter {
 		}
 		return newStatements.toArray(new Statement[newStatements.size()]);
 	}
-	
+
 	public static class WithReferenceReplaceVisitor extends ASTVisitor {
 		private final ASTNode source;
 		private final String withExprName;
-		
+
 		public WithReferenceReplaceVisitor(final ASTNode source, final String withExprName) {
 			super();
 			this.source = source;
 			this.withExprName = withExprName;
 		}
-		
+
+		@Override
 		public boolean visit(MessageSend messageSend, BlockScope scope) {
 			messageSend.arguments = tryToReplace(messageSend.arguments);
 			messageSend.receiver = tryToReplace(messageSend.receiver);
 			return true;
 		}
-		
+
+		@Override
 		public boolean visit(AllocationExpression allocationExpression, BlockScope scope) {
 			allocationExpression.arguments = tryToReplace(allocationExpression.arguments);
 			return true;
 		}
-		
+
+		@Override
 		public boolean visit(ArrayAllocationExpression arrayAllocationExpression, BlockScope scope) {
 			arrayAllocationExpression.dimensions = tryToReplace(arrayAllocationExpression.dimensions);
 			return true;
 		}
-		
+
+		@Override
 		public boolean visit(ArrayInitializer arrayInitializer, BlockScope scope) {
 			arrayInitializer.expressions = tryToReplace(arrayInitializer.expressions);
 			return true;
 		}
-		
+
 		private Expression[] tryToReplace(Expression[] expressions) {
 			Expression[] newExpressions = expressions;
 			if (isNotEmpty(newExpressions)) {
@@ -225,7 +229,7 @@ public class HandleWith extends EclipseASTAdapter {
 			}
 			return newExpressions;
 		}
-		
+
 		private Expression tryToReplace(Expression expr) {
 			if (expr == null) return null;
 			if (expr instanceof ThisReference) {

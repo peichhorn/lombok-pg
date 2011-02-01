@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -65,24 +65,24 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 	private final static String CONSTRUCTOR_ASSIGN = "this.%s = builder.%s;";
 	private final static String OPTIONAL_DEF = "$OptionalDef";
 	private final static String BUILDER = "$Builder";
-	private final static String CREATE_METHOD = "%s static %s create() { return new $Builder(); }";	
+	private final static String CREATE_METHOD = "%s static %s create() { return new $Builder(); }";
 	private final static String BUILDER_METHOD_CALL_ARG1 = "public %s %s(final %s arg0) { this.%s.%s(arg0); return this; }";
 	private final static String BUILDER_METHOD_ASSIGN_ARG1 = "public %s %s(final %s arg0) { this.%s=arg0; return this; }";
 	private final static String BUILDER_METHOD_CALL_ARG2 = "public %s %s(final %s arg0, final %s arg1) { this.%s.%s(arg0, arg1); return this; }";
 	private final static String BUILDER_BUILD_METHOD = "public %s build() { return new %s(this); }";
 	private final static String BUILDER_TO_STRING_METHOD = "public java.lang.String toString() { return build().toString(); }";
 	private final static String BUILDER_METHOD_CALL_AFTER_BUILD = "public %s %s() { %s build().%s(); }";
-	
+
 	@Override public boolean handle(AnnotationValues<Builder> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, Builder.class);
 		JavacNode typeNode = annotationNode.up();
-		
+
 		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ENUM | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}
-		
+
 		switch (methodExists("create", typeNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
@@ -93,16 +93,16 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		case NOT_EXISTS:
 			//continue with creating the entrypoint
 		}
-		
+
 		handleBuilder(new HandleBuilderDataCollector(typeNode, annotation.getInstance()).collect());
 		return true;
 	}
-	
+
 	private static void handleBuilder(IBuilderData builderData) {
 		List<String> requiredFieldDefTypeNames = builderData.getRequiredFieldDefTypeNames();
 		List<String> typeNames = new ListBuffer<String>().appendList(requiredFieldDefTypeNames).append(OPTIONAL_DEF).toList();
 		String fieldDefTypeName = builderData.getRequiredFields().isEmpty() ? OPTIONAL_DEF : requiredFieldDefTypeNames.head;
-		
+
 		JavacNode typeNode = builderData.getTypeNode();
 		StringBuilder assignments = new StringBuilder();
 		for (JCVariableDecl field  : builderData.getAllFields()) {
@@ -110,7 +110,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 		constructor(typeNode, CONSTRUCTOR, assignments).inject();
 		method(typeNode, CREATE_METHOD, Flags.toString(builderData.getCreateModifier()), fieldDefTypeName).inject();
-		
+
 		ListBuffer<JCTree> builderMethods = ListBuffer.lb();
 		createRequiredFieldInterfaces(builderData, builderMethods);
 		createOptionalFieldInterface(builderData, builderMethods);
@@ -118,7 +118,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		clazz(typeNode, STATIC | PRIVATE, BUILDER).implementing(typeNames)
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods.toList()).inject();
 	}
-	
+
 	private static List<JCTree> createBuilderFields(IBuilderData builderData) {
 		TreeMaker maker = builderData.getTypeNode().getTreeMaker();
 		ListBuffer<JCTree> fields = new ListBuffer<JCTree>();
@@ -128,7 +128,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 		return fields.toList();
 	}
-	
+
 	private static void createRequiredFieldInterfaces(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
 		List<JCVariableDecl> fields = builderData.getRequiredFields();
 		if (!fields.isEmpty()) {
@@ -146,18 +146,18 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 					}
 					createFieldExtension = false;
 				}
-				
+
 				interfaze(typeNode, PUBLIC | STATIC, names.head).withMethods(interfaceMethods.toList()).inject();
 				names = names.tail;
 				fields = fields.tail;
 			}
 			ListBuffer<JCTree> interfaceMethods = ListBuffer.lb();
 			createFluentSetter(builderData, OPTIONAL_DEF, fields.head, interfaceMethods, builderMethods);
-			
+
 			interfaze(typeNode, PUBLIC | STATIC, names.head).withMethods(interfaceMethods.toList()).inject();
 		}
 	}
-	
+
 	private static void createOptionalFieldInterface(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
 		ListBuffer<JCTree> interfaceMethods = ListBuffer.lb();
 		for (JCVariableDecl field : builderData.getOptionalFields()) {
@@ -173,20 +173,20 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 			}
 		}
-		
+
 		JavacNode typeNode = builderData.getTypeNode();
 		String typeName = typeNode.getName();
 		addMethodTo(method(typeNode, BUILDER_BUILD_METHOD, typeName, typeName), interfaceMethods, builderMethods);
-		
+
 		for (String callMethod : builderData.getCallMethods()) {
 			createMethodCall(builderData, callMethod, interfaceMethods, builderMethods);
 		}
-		
+
 		for (JCMethodDecl extension : builderData.getOptionalFieldExtensions()) {
-			addMethodTo(method(typeNode, extension.toString()).withMods(PUBLIC).withReturnType(OPTIONAL_DEF).withReturnStatement("this"), 
+			addMethodTo(method(typeNode, extension.toString()).withMods(PUBLIC).withReturnType(OPTIONAL_DEF).withReturnStatement("this"),
 				interfaceMethods, builderMethods);
 		}
-		
+
 		interfaze(typeNode, PUBLIC | STATIC, OPTIONAL_DEF).withMethods(interfaceMethods.toList()).inject();
 	}
 
@@ -196,7 +196,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		String methodName = toCamelCase(false, builderData.getPrefix(), fieldName);
 		addMethodTo(method(builderData.getTypeNode(), BUILDER_METHOD_ASSIGN_ARG1, nextTypeName, methodName, field.vartype, fieldName), interfaceMethods, builderMethods);
 	}
-	
+
 	private static void createCollectionMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		TreeMaker maker = typeNode.getTreeMaker();
@@ -210,13 +210,13 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				collectionType = maker.TypeApply(collectionType, args.toList());
 			}
 		}
-		
+
 		String addMethodName = toCamelCase(true, builderData.getPrefix(), field.name.toString());
 		String addAllMethodName = toCamelCase(false, builderData.getPrefix(), field.name.toString());
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG1, OPTIONAL_DEF, addMethodName, elementType, field.name, "add"), interfaceMethods, builderMethods);
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG1, OPTIONAL_DEF, addAllMethodName, collectionType, field.name, "addAll"), interfaceMethods, builderMethods);
 	}
-	
+
 	private static void createMapMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		TreeMaker maker = typeNode.getTreeMaker();
@@ -232,13 +232,13 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				mapType = maker.TypeApply(mapType, args.toList());
 			}
 		}
-		
+
 		String putMethodName = toCamelCase(true, builderData.getPrefix(), field.name.toString());
 		String putAllMethodName = toCamelCase(false, builderData.getPrefix(), field.name.toString());
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG2, OPTIONAL_DEF, putMethodName, keyType, valueType, field.name, "put"), interfaceMethods, builderMethods);
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG1, OPTIONAL_DEF, putAllMethodName, mapType, field.name, "putAll"), interfaceMethods, builderMethods);
 	}
-	
+
 	private static void createMethodCall(IBuilderData builderData, String method, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
@@ -259,12 +259,12 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			typeNode.addWarning("@Builder was unable to find method '" + method + "()' within this class.");
 		}
 	}
-	
+
 	private static void addMethodTo(MethodBuilder builder, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		builderMethods.append(builder.build());
 		interfaceMethods.append(builder.withMods(InterfaceMethodFlags).withoutBody().build());
 	}
-	
+
 	private static Object addWildCard(TreeMaker maker, JCExpression type, ListBuffer<JCExpression> args) {
 		if (type instanceof JCWildcard) {
 			args.append(type);
@@ -274,21 +274,21 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			return type;
 		}
 	}
-	
+
 	private static boolean isInitializedMapOrCollection(JCVariableDecl field) {
 		return (field.init != null) && (isMap(field) || isCollection(field));
 	}
-	
+
 	private static boolean isCollection(JCVariableDecl field) {
 		String type = getTypeStringOf(field);
 		return type.startsWith("java.util") && (type.endsWith("Collection") || type.endsWith("List") || type.endsWith("Set"));
 	}
-	
+
 	private static boolean isMap(JCVariableDecl field) {
 		String type = getTypeStringOf(field);
 		return type.startsWith("java.util") && type.endsWith("Map");
 	}
-	
+
 	private static String getTypeStringOf(JCVariableDecl field) {
 		if (field.vartype instanceof JCTypeApply) {
 			return ((JCTypeApply)field.vartype).clazz.type.toString();
@@ -296,7 +296,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			return field.vartype.type.toString();
 		}
 	}
-	
+
 	private static String toCamelCase(boolean singular, String... strings) {
 		StringBuilder builder = new StringBuilder();
 		boolean mustCapitalize = false;
@@ -314,7 +314,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 		return builder.toString();
 	}
-	
+
 	private static class HandleBuilderDataCollector extends JavacASTAdapter implements IBuilderData {
 		private final JavacNode typeNode;
 		private final Set<String> exclude;
@@ -333,7 +333,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		private boolean containsRequiredFields;
 		private int typeDepth;
 		private int phase;
-		
+
 		public HandleBuilderDataCollector(JavacNode typeNode, Builder builder) {
 			super();
 			this.typeNode = typeNode;
@@ -343,57 +343,68 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			callMethods = List.from(builder.callMethods());
 			level = builder.value();
 		}
-		
+
 		public IBuilderData collect() {
 			phase = 1; typeNode.traverse(this);
 			phase = 2; typeNode.traverse(this);
 			return this;
 		}
-		
+
+		@Override
 		public JavacNode getTypeNode() {
 			return typeNode;
 		}
-		
+
+		@Override
 		public List<JCVariableDecl> getRequiredFields() {
 			return requiredFields.toList();
 		}
-		
+
+		@Override
 		public List<JCVariableDecl> getOptionalFields() {
 			return optionalFields.toList();
 		}
-		
+
+		@Override
 		public List<JCVariableDecl> getAllFields() {
 			return ListBuffer.<JCVariableDecl>lb().appendList(requiredFields).appendList(optionalFields).toList();
 		}
-		
+
+		@Override
 		public List<String> getRequiredFieldDefTypeNames() {
 			return requiredFieldDefTypeNames.toList();
 		}
-		
+
+		@Override
 		public List<JCMethodDecl> getRequiredFieldExtensions() {
 			return requiredFieldExtensions.toList();
 		}
-		
+
+		@Override
 		public List<JCMethodDecl> getOptionalFieldExtensions() {
 			return optionalFieldExtensions.toList();
 		}
-		
+
+		@Override
 		public long getCreateModifier() {
 			return toJavacModifier(level);
 		}
-		
+
+		@Override
 		public String getPrefix() {
 			return prefix;
 		}
-		
+
+		@Override
 		public boolean generateConvenientMethods() {
 			return convenientMethods;
 		}
-		
+
+		@Override
 		public List<String> getCallMethods() {
 			return callMethods;
 		}
-		
+
 		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
 			typeDepth++;
 		}
@@ -414,7 +425,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				}
 			}
 		}
-		
+
 		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
 				if (statement instanceof JCAssign) {
@@ -429,7 +440,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				}
 			}
 		}
-		
+
 		@Override public void endVisitMethod(JavacNode methodNode, JCMethodDecl method) {
 			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
 				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
@@ -443,7 +454,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				} else methodNode.addWarning("@BuilderExtension:  The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
 			}
 		}
-		
+
 		@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
 			if ((phase == 2) && (typeDepth == 1)) {
 				ListBuffer<JCTree> defs = ListBuffer.lb();
@@ -458,7 +469,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			}
 			typeDepth--;
 		}
-		
+
 		@Override public void visitField(JavacNode fieldNode, JCVariableDecl field) {
 			if ((phase == 1) && (typeDepth == 1)) {
 				if ((field.mods.flags & STATIC) != 0) return;
@@ -475,28 +486,28 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			}
 		}
 	}
-	
+
 	private static interface IBuilderData {
 		public JavacNode getTypeNode();
-		
+
 		public List<JCVariableDecl> getRequiredFields();
-		
+
 		public List<JCVariableDecl> getOptionalFields();
-		
+
 		public List<JCVariableDecl> getAllFields();
-		
+
 		public List<String> getRequiredFieldDefTypeNames();
-		
+
 		public List<JCMethodDecl> getRequiredFieldExtensions();
-		
+
 		public List<JCMethodDecl> getOptionalFieldExtensions();
-		
+
 		public long getCreateModifier();
-		
+
 		public String getPrefix();
-		
+
 		public boolean generateConvenientMethods();
-		
+
 		public List<String> getCallMethods();
 	}
 }

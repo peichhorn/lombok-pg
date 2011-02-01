@@ -1,3 +1,24 @@
+/*
+ * Copyright © 2011 Philipp Eichhorn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package lombok.javac.handlers;
 
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
@@ -20,7 +41,7 @@ import com.sun.tools.javac.util.List;
 public class JavacMethod {
 	private final JavacNode methodNode;
 	private final TreeMaker maker;
-	
+
 	private JavacMethod(final JavacNode methodNode) {
 		if (!(methodNode.get() instanceof JCMethodDecl)) {
 			throw new IllegalArgumentException();
@@ -28,28 +49,28 @@ public class JavacMethod {
 		this.methodNode = methodNode;
 		maker = methodNode.getTreeMaker();
 	}
-	
+
 	public boolean returns(Class<?> clazz) {
 		final String type = typeStringOf(get().restype);
 		return type.equals(clazz.getName());
 	}
-	
+
 	public boolean isSynchronized() {
 		return (get().mods != null) && ((get().mods.flags & SYNCHRONIZED) != 0);
 	}
-	
+
 	public boolean isConstructor() {
 		return "<init>".equals(methodNode.getName());
 	}
-	
+
 	public JCMethodDecl get() {
 		return (JCMethodDecl)methodNode.get();
 	}
-	
+
 	public JavacNode node() {
 		return methodNode;
 	}
-	
+
 	public boolean hasNonFinalParameter() {
 		for(JCVariableDecl param: get().params) {
 			if ((param.mods == null) || (param.mods.flags & FINAL) == 0) {
@@ -58,7 +79,7 @@ public class JavacMethod {
 		}
 		return false;
 	}
-	
+
 	public boolean isAbstract() {
 		return (get().mods.flags & ABSTRACT) != 0;
 	}
@@ -70,18 +91,18 @@ public class JavacMethod {
 	public String name() {
 		return node().getName();
 	}
-	
+
 	public void body(JCStatement... statements) {
 		if (statements != null) {
 			body(List.from(statements));
 		}
 	}
-	
+
 	public void body(List<JCStatement> statements) {
 		get().body = maker.Block(0, statements);
 		addSuppressWarningsAll(get().mods, node(), get().pos);
 	}
-	
+
 	private void addSuppressWarningsAll(JCModifiers mods, JavacNode node, int pos) {
 		TreeMaker maker = node.getTreeMaker();
 		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings");
@@ -92,11 +113,11 @@ public class JavacMethod {
 		annotation.pos = pos;
 		mods.annotations = mods.annotations.append(annotation);
 	}
-	
+
 	public void rebuild() {
 		node().rebuild();
 	}
-	
+
 	private String typeStringOf(JCExpression type) {
 		if (type instanceof JCTypeApply) {
 			return ((JCTypeApply)type).clazz.type.toString();
@@ -104,11 +125,12 @@ public class JavacMethod {
 			return type.type.toString();
 		}
 	}
-	
+
+	@Override
 	public String toString() {
 		return get().toString();
 	}
-	
+
 	public static JavacMethod methodOf(final JavacNode node) {
 		JavacNode methodNode = node;
 		while ((methodNode != null) && !(methodNode.get() instanceof JCMethodDecl)) {

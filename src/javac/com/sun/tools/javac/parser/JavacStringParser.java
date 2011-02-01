@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,35 +38,35 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Position;
 
 public class JavacStringParser extends EndPosParser {
-	
+
 	public static JCVariableDecl fieldFromString(Context context, String field) {
-		char[] input = field.toCharArray(); 
+		char[] input = field.toCharArray();
 		Lexer lexer = Scanner.Factory.instance(context).newScanner(input, input.length);
 		JavacStringParser parser = new JavacStringParser(Parser.Factory.instance(context), lexer);
 		return parser.parseField();
 	}
-	
+
 	public static JCMethodDecl methodFromString(Context context, String method) {
-		char[] input = method.toCharArray(); 
+		char[] input = method.toCharArray();
 		Lexer lexer = Scanner.Factory.instance(context).newScanner(input, input.length);
 		JavacStringParser parser = new JavacStringParser(Parser.Factory.instance(context), lexer);
 		return parser.parseMethod();
 	}
-	
+
 	public static List<JCStatement> statementsFromString(Context context, String statements) {
-		char[] input = statements.toCharArray(); 
+		char[] input = statements.toCharArray();
 		Lexer lexer = Scanner.Factory.instance(context).newScanner(input, input.length);
 		JavacStringParser parser = new JavacStringParser(Parser.Factory.instance(context), lexer);
 		return parser.parseStatements();
 	}
-	
+
 	private Lexer S;
-	
+
 	protected JavacStringParser(Factory fac, Lexer S) {
 		super(fac, S, false);
 		this.S = S;
 	}
-	
+
 	JCVariableDecl parseField() {
 		if (S.token() != SEMI) {
 			String dc = S.docComment();
@@ -82,13 +82,13 @@ public class JavacStringParser extends EndPosParser {
 		}
 		throw new IllegalArgumentException("No can't do");
 	}
-	
+
 	JCMethodDecl parseMethod() {
 		if (S.token() != SEMI) {
 			String dc = S.docComment();
 			int pos = S.pos();
 			JCModifiers mods = modifiersOpt();
-			if (!(S.token() == CLASS || S.token() == INTERFACE || allowEnums && S.token() == ENUM) 
+			if (!(S.token() == CLASS || S.token() == INTERFACE || allowEnums && S.token() == ENUM)
 				|| !(S.token() == LBRACE && (mods.flags & Flags.StandardFlags & ~Flags.STATIC) == 0 && mods.annotations.isEmpty())) {
 				pos = S.pos();
 				List<JCTypeParameter> typarams = typeParametersOpt();
@@ -105,7 +105,7 @@ public class JavacStringParser extends EndPosParser {
 				} else {
 					type = type();
 				}
-				
+
 				if (S.token() == LPAREN  && getTag(type) == JCTree.IDENT) {
 					return (JCMethodDecl)methodDeclaratorRest(pos, mods, null, name.table.init, typarams, false, true, dc);
 				} else {
@@ -122,7 +122,7 @@ public class JavacStringParser extends EndPosParser {
 	List<JCStatement> parseStatements() {
 		return blockStatements();
 	}
-	
+
 	static int getTag(JCTree t) {
 		try {
 			return JCTree.class.getField("tag").getInt(t); // SunJDK

@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -75,7 +75,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		}
 		return false;
 	}
-	
+
 	public boolean generateSetterForType(EclipseNode typeNode, EclipseNode pos, AccessLevel level, boolean checkForTypeLevelSetter) {
 		if (checkForTypeLevelSetter) {
 			if (typeNode != null) for (EclipseNode child : typeNode.down()) {
@@ -87,18 +87,18 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 				}
 			}
 		}
-		
+
 		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
 		if (typeDecl == null) {
 			pos.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return false;
 		}
-		
+
 		for (EclipseNode field : typeNode.down()) {
 			if (field.getKind() != Kind.FIELD) continue;
 			FieldDeclaration fieldDecl = (FieldDeclaration) field.get();
 			if (!EclipseHandlerUtil.filterField(fieldDecl)) continue;
-			
+
 			//Skip final fields.
 			if ((fieldDecl.modifiers & AccFinal) != 0) continue;
 
@@ -106,7 +106,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		}
 		return true;
 	}
-	
+
 	public void generateSetterForField(EclipseNode fieldNode, ASTNode pos, AccessLevel level, Annotation[] onMethod , Annotation[] onParam) {
 		for (EclipseNode child : fieldNode.down()) {
 			if (child.getKind() == Kind.ANNOTATION) {
@@ -116,7 +116,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 				}
 			}
 		}
-		
+
 		createSetterForField(level, fieldNode, fieldNode, pos, false, onMethod, onParam);
 	}
 
@@ -126,20 +126,20 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		}
 		return true;
 	}
-	
+
 	private boolean createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
 			Annotation[] onMethod , Annotation[] onParam) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return true;
 		}
-		
+
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 
 		String fieldName = new String(field.name);
-		
+
 		int modifier = toEclipseModifier(level) | (field.modifiers & AccStatic);
-		
+
 		switch (methodExists(fieldName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
@@ -158,17 +158,17 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		if (isNotEmpty(copiedAnnotations)) {
 			method.annotations = copiedAnnotations;
 		}
-		
+
 		injectMethod(fieldNode.up(), method);
-		
+
 		return true;
 	}
-	
+
 	private MethodDeclaration generateSetter(TypeDeclaration parent, EclipseNode fieldNode, String name, int modifier, ASTNode source, Annotation[] onParam) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 		Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
-		
+
 		TypeReference returnType;
 		if (isNotEmpty(parent.typeParameters)) {
 			TypeReference[] refs = new TypeReference[parent.typeParameters.length];
@@ -178,15 +178,15 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			}
 			returnType = typeReference(source, new String(parent.name), refs);
 		} else returnType = typeReference(source, new String(parent.name));
-		
+
 		Argument param = argument(source, field.type, new String(field.name));
 		Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables, onParam);
 		if (isNotEmpty(copiedAnnotations)) param.annotations = copiedAnnotations;
-		
+
 		MethodBuilder builder = method(fieldNode, source, modifier, returnType, name).withParameter(param);
 		if (isNotEmpty(nonNulls)) {
 			Statement nullCheck = generateNullCheck(field, source);
-			if (nullCheck != null) builder.withStatement(nullCheck); 
+			if (nullCheck != null) builder.withStatement(nullCheck);
 		}
 		builder.withAssignStatement(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source), nameReference(source, new String(field.name)))
 			.withReturnStatement(thisReference(source));

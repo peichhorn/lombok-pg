@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,52 +45,52 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 public class HandleSwingInvoke {
 	private final static String METHOD_BODY = "final java.lang.Runnable %s = new java.lang.Runnable(){ " + //
 		"@java.lang.Override public void run() %s }; if (java.awt.EventQueue.isDispatchThread()) { %s.run(); } else { %s }";
-	private final static String TRY_CATCH_BLOCK = // 
+	private final static String TRY_CATCH_BLOCK = //
 		"try { %s } catch (final java.lang.InterruptedException $ex1) { " + //
 		"} catch (final java.lang.reflect.InvocationTargetException $ex2) { " + //
 		"if ($ex2.getCause() != null) throw new java.lang.RuntimeException($ex2.getCause()); }";
 	private final static String ELSE_STATEMENT = "java.awt.EventQueue.%s(%s);";
-	
+
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleSwingInvokeLater extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeLater> {
 		@Override public boolean handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			return new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, annotationNode);
 		}
 	}
-	
+
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleSwingInvokeAndWait extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeAndWait> {
 		@Override public boolean handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			return new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, annotationNode);
 		}
 	}
-	
+
 	public boolean generateSwingInvoke(String methodName, Class<? extends Annotation> annotationType, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, annotationType);
 		JavacMethod method = JavacMethod.methodOf(annotationNode);
-		
+
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return true;
 		}
-		
+
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return true;
 		}
-		
+
 		TreeMaker maker = method.node().getTreeMaker();
-		
+
 		method.get().accept(new ThisReferenceReplaceVisitor(chainDotsString(maker, method.node(), typeNodeOf(method.node()).getName() + ".this")), null);
-		
+
 		String fieldName = "$" + method.name() + "Runnable";
-		
+
 		String elseStatement = String.format(ELSE_STATEMENT, methodName, fieldName);
 		if ("invokeAndWait".equals(methodName)) elseStatement = String.format(TRY_CATCH_BLOCK, elseStatement);
 		method.body(statements(method.node(), METHOD_BODY, fieldName, method.get().body, fieldName, elseStatement));
-		
+
 		method.rebuild();
-		
+
 		return true;
 	}
 }

@@ -1,16 +1,16 @@
 /*
  * Copyright © 2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -81,7 +81,7 @@ import com.sun.tools.javac.util.Name;
 
 @ProviderFor(JavacASTVisitor.class)
 public class HandleYield extends JavacASTAdapter {
-	private final static String YIELDER_TEMPLATE = // 
+	private final static String YIELDER_TEMPLATE = //
 		"class %s implements java.util.Iterator<%s> %s { %s private int $state; private boolean $hasNext; private boolean $nextDefined; private %s $next; %s " + //
 		"public boolean hasNext() { if (!$nextDefined) { $hasNext = getNext(); $nextDefined = true; } return $hasNext; } " + //
 		"public %s next() { if (!hasNext()) { throw new java.util.NoSuchElementException(); } $nextDefined = false; return $next; }" + //
@@ -89,13 +89,13 @@ public class HandleYield extends JavacASTAdapter {
 		"private boolean getNext() { while(true) %s } %s} return new %s();";
 	private final static String ITERABLE_IMPORT = ", java.lang.Iterable<%s>";
 	private final static String ITERATOR_METHOD = "public java.util.Iterator<%s> iterator() { return new %s(); }";
-	
+
 	private final Set<String> methodNames = new HashSet<String>();
-	
+
 	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
 		methodNames.clear();
 	}
-	
+
 	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
@@ -110,13 +110,13 @@ public class HandleYield extends JavacASTAdapter {
 			}
 		}
 	}
-	
+
 	@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
 	}
-	
+
 	public boolean handle(final JavacMethod method) {
 		final boolean returnsIterable = method.returns(Iterable.class);
 		final boolean returnsIterator = method.returns(Iterator.class);
@@ -128,30 +128,30 @@ public class HandleYield extends JavacASTAdapter {
 			method.node().addError("Parameters should be final.");
 			return true;
 		}
-		
+
 		YieldDataCollector collector = new YieldDataCollector();
 		collector.collect(method.node(), "$state", "$next");
-		
+
 		if (!collector.hasYields()) {
 			return true;
 		}
-		
+
 		final String yielderName = yielderName(method.node());
 		final String elementType = elementType(method.node());
 		final String variables = collector.getVariables();
 		final String stateSwitch = collector.getStateSwitch();
 		final String classes = collector.getClasses();
-		
+
 		if (returnsIterable) {
 			method.body(statements(method.node(), yielderForIterable(yielderName, elementType, variables, stateSwitch, classes)));
 		} else if (returnsIterator) {
 			method.body(statements(method.node(), yielderForIterator(yielderName, elementType, variables, stateSwitch, classes)));
 		}
 		method.rebuild();
-		
+
 		return true;
 	}
-	
+
 	private String yielderName(JavacNode methodNode) {
 		String[] parts = methodNode.getName().split("_");
 		String[] newParts = new String[parts.length + 1];
@@ -159,7 +159,7 @@ public class HandleYield extends JavacASTAdapter {
 		System.arraycopy(parts, 0, newParts, 1, parts.length);
 		return camelCase("$", newParts);
 	}
-	
+
 	private String elementType(JavacNode methodNode) {
 		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
 		JCExpression type = methodDecl.restype;
@@ -169,17 +169,17 @@ public class HandleYield extends JavacASTAdapter {
 			return Object.class.getName();
 		}
 	}
-	
+
 	private String yielderForIterator(String yielderName, String elementType, String variables, String stateSwitch, String classes) {
 		return String.format(YIELDER_TEMPLATE, yielderName, elementType, "", variables, elementType, "", elementType, stateSwitch, classes, yielderName);
 	}
-	
+
 	private String yielderForIterable(String yielderName, String elementType, String variables, String stateSwitch, String classes) {
 		String iterableImport = String.format(ITERABLE_IMPORT, elementType);
 		String iteratorMethod = String.format(ITERATOR_METHOD, elementType, yielderName);
 		return String.format(YIELDER_TEMPLATE, yielderName, elementType, iterableImport, variables, elementType, iteratorMethod, elementType, stateSwitch, classes, yielderName);
 	}
-	
+
 	private static class YieldDataCollector {
 		private JavacNode methodNode;
 		private JCMethodDecl methodTree;
@@ -252,7 +252,7 @@ public class HandleYield extends JavacASTAdapter {
 			} catch (IllegalStateException ignore) {
 				// this means there are unhandled yields left
 			}
-			
+
 			YieldScanner scanner = new YieldScanner();
 			scanner.scan(methodTree.body);
 
@@ -306,7 +306,7 @@ public class HandleYield extends JavacASTAdapter {
 
 			usedLabels.add(iteratorLabel);
 			usedLabels.add(getBreakLabel(root));
-			
+
 			addStatement(iteratorLabel);
 			root.refactor();
 			endCase();
@@ -387,7 +387,7 @@ public class HandleYield extends JavacASTAdapter {
 		private JCExpression ident(String name) {
 			return chainDotsString(maker, methodNode, name);
 		}
-		
+
 		private JCExpression ident(Name name) {
 			return maker.Ident(name);
 		}
@@ -455,7 +455,7 @@ public class HandleYield extends JavacASTAdapter {
 			JCCase previous = null;
 			for (int i = 1; i < cases.size(); i++) {
 				JCCase label = cases.get(i);
-				JCLiteral literal = (JCLiteral) label.pat; 
+				JCLiteral literal = (JCLiteral) label.pat;
 				literal.value = (Integer)literal.value - diff;
 				if (!usedLabels.contains(label)) {
 					if (label.stats.isEmpty()) {
@@ -473,7 +473,7 @@ public class HandleYield extends JavacASTAdapter {
 				}
 			}
 		}
-		
+
 		private void synchronizeLiteralsAndLabels() {
 			for (Map.Entry<JCLiteral, JCCase> entry : labelLiterals.entrySet()) {
 				JCCase label = entry.getValue();
@@ -495,7 +495,7 @@ public class HandleYield extends JavacASTAdapter {
 				}
 			}
 		}
-		
+
 		private class YieldScanner extends TreeScanner {
 			private Scope current;
 
@@ -851,14 +851,14 @@ public class HandleYield extends JavacASTAdapter {
 			}
 		}
 	}
-	
+
 	public static abstract class Scope {
 		public JCTree node;
 		public Scope parent;
 		public Scope target;
 		public JCCase iterationLabel;
 		public JCCase breakLabel;
-		
+
 		public Scope(Scope parent, JCTree node) {
 			this.parent = parent;
 			this.node = node;

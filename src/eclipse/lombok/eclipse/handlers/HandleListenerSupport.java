@@ -54,11 +54,11 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		}
 		return false;
 	}
-	
+
 	// real meat
 	public void handle(Annotation ann, TypeDeclaration decl, EclipseNode typeNode) {
 		List<ClassLiteralAccess> listenerInterfaces = getListenerInterface(ann, "value");
-		
+
 		if (listenerInterfaces.isEmpty()) {
 			typeNode.addError("@ListenerSupport has no effect with if no interface classes was specified.", ann.sourceStart, ann.sourceEnd);
 			return;
@@ -76,7 +76,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		}
 		return;
 	}
-	
+
 	private Expression getAnnotationArgumentValue(Annotation ann, String arumentName) {
 		for (MemberValuePair pair : ann.memberValuePairs()) {
 			if ((pair.name == null) || arumentName.equals(new String(pair.name))) {
@@ -85,7 +85,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		}
 		return new NullLiteral(0, 0);
 	}
-	
+
 	private List<ClassLiteralAccess> getListenerInterface(Annotation ann, String arumentName) {
 		Expression value = getAnnotationArgumentValue(ann, arumentName);
 		List<ClassLiteralAccess> listenerInterfaces = new ArrayList<ClassLiteralAccess>();
@@ -96,24 +96,24 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		} else tryToAdd(listenerInterfaces, value);
 		return listenerInterfaces;
 	}
-	
+
 	private void tryToAdd(List<ClassLiteralAccess> list, Expression cla) {
 		if (cla instanceof ClassLiteralAccess) {
 			list.add((ClassLiteralAccess) cla);
 		}
 	}
-	
+
 	private void addListenerField(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE = new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
 		AllocationExpression initialization = new AllocationExpression();
 		setGeneratedByAndCopyPos(initialization, source);
-		
+
 		initialization.type = typeReference(source, "java.util.concurrent.CopyOnWriteArrayList", makeType(binding, source, false));
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		field(typeNode, source, PRIVATE | FINAL, typeReference(source, "java.util.List", makeType(binding, source, false)), "$registered" + interfaceName)
 			.withInitialization(initialization).inject();
 	}
-	
+
 	private void addListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
 		//   if (!$registeredLISTENER_TYPE.contains(l))
@@ -124,7 +124,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 				.withStatement(ifNotStatement(source, methodCall(source, "$registered" + interfaceName, "contains", nameReference(source, "l")), //
 						methodCall(source, "$registered" + interfaceName, "add", nameReference(source, "l")))).inject();
 	}
-	
+
 	private void removeListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
 		//   $registeredLISTENER_TYPE.remove(l);
@@ -133,8 +133,8 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		method(typeNode, source, PUBLIC, typeReference(source, "void"), "remove" + interfaceName).withParameter(makeType(binding, source, false), "l")
 				.withStatement(methodCall(source, "$registered" + interfaceName, "remove", nameReference(source, "l"))).inject();
 	}
-	
-	
+
+
 	private void fireListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// protected void fireMETHOD_NAME(METHOD_PARAMETER) {
 		//   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
@@ -156,7 +156,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 				.withStatement(forEach).inject();
 		}
 	}
-	
+
 	private void createParamsAndArgs(ASTNode source, MethodBinding methodBinding , List<Argument> params, List<Expression> args) {
 		if (isEmpty(methodBinding.parameters)) return;
 		int argCounter = 0;
@@ -167,13 +167,13 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			args.add(nameReference(source, arg));
 		}
 	}
-	
+
 	private List<MethodBinding> getInterfaceMethods(TypeBinding binding) {
 		List<MethodBinding> methods = new ArrayList<MethodBinding>();
 		getInterfaceMethods(binding, methods, new HashSet<String>());
 		return methods;
 	}
-	
+
 	private void getInterfaceMethods(TypeBinding binding, List<MethodBinding> methods, final Set<String> banList) {
 		if (binding == null) return;
 		ensureAllClassScopeMethodWereBuild(binding);
@@ -190,7 +190,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			}
 		}
 	}
-	
+
 	private void ensureAllClassScopeMethodWereBuild(TypeBinding binding) {
 		if (binding instanceof SourceTypeBinding) {
 			ClassScope cs = ((SourceTypeBinding)binding).scope;
@@ -203,10 +203,10 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			}
 		}
 	}
-	
+
 	private static final class Reflection {
 		public static final Method classScopeBuildMethodsMethod;
-		
+
 		static {
 			Method m = null;
 			try {
@@ -216,7 +216,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 				// That's problematic, but as long as no local classes are used we don't actually need it.
 				// Better fail on local classes than crash altogether.
 			}
-			
+
 			classScopeBuildMethodsMethod = m;
 		}
 	}

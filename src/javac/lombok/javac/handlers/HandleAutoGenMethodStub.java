@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -63,39 +63,39 @@ import com.sun.tools.javac.util.Name;
  */
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler implements JavacAnnotationHandler<AutoGenMethodStub> {
-	
+
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 	// should be the last annotation to avoid major issues, once again.. curve ball
 	@Override public boolean handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, AutoGenMethodStub.class);
 		JavacNode typeNode = annotationNode.up();
-		
+
 		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 			return true;
 		}
-		
+
 		for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
 			method(typeNode, methodSymbol).withDefaultReturnStatement().inject();
 		}
-		
+
 		typeNode.rebuild();
 		return true;
 	}
-	
+
 	private static class UndefiniedMethods implements Iterator<MethodSymbol>, Iterable<MethodSymbol> {
 		private final Set<String> handledMethods = new HashSet<String>();
-		private final ClassSymbol classSymbol; 
+		private final ClassSymbol classSymbol;
 		private final Types types;
 		private MethodSymbol firstUndefinedMethod;
-		
+
 		private UndefiniedMethods(JavacNode typeNode) {
 			classSymbol = ((JCClassDecl)typeNode.get()).sym;
 			types = Types.instance(typeNode.getAst().getContext());
 			firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);
 		}
-		
+
 		@Override
 		public Iterator<MethodSymbol> iterator() {
 			return this;
@@ -120,11 +120,11 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
-		
+
 		public static UndefiniedMethods of(JavacNode node) {
 			return new UndefiniedMethods(typeNodeOf(node));
 		}
-		
+
 		private MethodSymbol createMethodStubFor(MethodSymbol methodSym) {
 			MethodType type = (MethodType) methodSym.type;
 			Name name = methodSym.name;
@@ -137,7 +137,7 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 			methodStubSym.params = paramSyms.toList();
 			return methodStubSym;
 		}
-		
+
 		private MethodSymbol getFirstUndefinedMethod(ClassSymbol c) {
 			MethodSymbol undef = null;
 			// Do not bother to search in classes that are not abstract, since they cannot have abstract members.

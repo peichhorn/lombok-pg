@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -46,7 +46,7 @@ import java.lang.annotation.Target;
  *   private final int b;
  *   private String optionalC;
  *   private java.util.List<java.lang.Long> optionalD;
- *   
+ *
  *   private Foo(final $Builder builder) {
  *     super();
  *     this.a = builder.a;
@@ -54,54 +54,54 @@ import java.lang.annotation.Target;
  *     this.optionalVal1 = builder.optionalVal1;
  *     this.optionalVal2 = builder.optionalVal2;
  *   }
- *   
+ *
  *   public static interface $ADef {
  *     public $BDef a(final String a);
  *   }
- *   
+ *
  *   public static interface $BDef {
  *     public $OptionalDef b(final int b);
  *   }
- *   
+ *
  *   public static interface $OptionalDef {
  *     public $OptionalDef optionalC(final String optionalC);
- *     
+ *
  *     public $OptionalDef optionalD(final java.util.List<java.lang.Long> optionalD);
- *     
+ *
  *     public Foo build();
  *   }
- *   
+ *
  *   private static class $Builder implements $ADef, $BDef, $OptionalDef {
  *     private String a;
  *     private int b;
  *     private String optionalC = "default";
  *     private java.util.List<java.lang.Long> optionalD;
- *     
+ *
  *     public $BDef a(final String a) {
  *       this.a = a;
  *       return this;
  *     }
- *     
+ *
  *     public $OptionalDef b(final int b) {
  *       this.b = b;
  *       return this;
  *     }
- *     
+ *
  *     public $OptionalDef optionalC(final String optionalC) {
  *       this.optionalC = optionalC;
  *       return this;
  *     }
- *     
+ *
  *     public $OptionalDef optionalD(final java.util.List<java.lang.Long> optionalD) {
  *       this.optionalD = optionalD;
  *       return this;
  *     }
- *     
+ *
  *     public Foo build() {
  *       return new Foo(this);
  *     }
  *   }
- *   
+ *
  *   public static $ADef create() {
  *     return new $Builder();
  *   }
@@ -118,7 +118,7 @@ public @interface Builder {
 	 * If you want the {@code create()} method to be non-public, you can specify an alternate access level here.
 	 */
 	lombok.AccessLevel value() default lombok.AccessLevel.PUBLIC;
-	
+
 	/**
 	 * If specified all builder methods will be prefixed with this string.
 	 * <p>
@@ -126,17 +126,17 @@ public @interface Builder {
 	 * generate builder methods like {@code .withValue(value)}.
 	 */
 	String prefix() default "";
-	
+
 	/**
 	 * Any fields listed here will not appear in the builder.
 	 */
 	String[] exclude() default {};
-	
-	/** 
-	 * If you don't want collection-specific methods (add, addAll, put, putAll) you can disable them here. 
+
+	/**
+	 * If you don't want collection-specific methods (add, addAll, put, putAll) you can disable them here.
 	 */
 	boolean convenientMethods() default true;
-	
+
 	/**
 	 * For each method listed here a method will appear in the builder.
 	 * <p>

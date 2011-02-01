@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -90,12 +90,12 @@ public class EclipseNodeBuilder {
 	private EclipseNodeBuilder() {
 		//Prevent instantiation
 	}
-	
+
 	public static void setGeneratedByAndCopyPos(ASTNode target, ASTNode source) {
 		setGeneratedBy(target, source);
 		copyPosTo(target, source);
 	}
-	
+
 	public static void copyPosTo(ASTNode target, ASTNode source) {
 		target.sourceStart = source.sourceStart;
 		target.sourceEnd = source.sourceEnd;
@@ -116,29 +116,29 @@ public class EclipseNodeBuilder {
 			((Annotation)target).declarationSourceEnd = source.sourceEnd;
 		}
 	}
-	
+
 	public static Assignment assignment(ASTNode source, Expression left, Expression right) {
 		Assignment assignment = new Assignment(left, right, 0);
 		setGeneratedByAndCopyPos(assignment, source);
 		return assignment;
 	}
-	
+
 	public static Assignment assignment(ASTNode source, String leftName, Expression right) {
 		Assignment assignment = new Assignment(nameReference(source, leftName), right, 0);
 		setGeneratedByAndCopyPos(assignment, source);
 		return assignment;
 	}
-	
+
 	public static Assignment assignment(ASTNode source, String leftName, String rightName) {
 		Assignment assignment = new Assignment(nameReference(source, leftName), nameReference(source, rightName), 0);
 		setGeneratedByAndCopyPos(assignment, source);
 		return assignment;
 	}
-	
+
 	public static ThrowStatement throwNewException(ASTNode source, String typeName, Expression... args) {
 		return throwNewException(source, typeReference(source, typeName), args);
 	}
-	
+
 	public static ThrowStatement throwNewException(ASTNode source, TypeReference type, Expression... args) {
 		AllocationExpression initException = new AllocationExpression();
 		setGeneratedByAndCopyPos(initException, source);
@@ -148,7 +148,7 @@ public class EclipseNodeBuilder {
 		setGeneratedByAndCopyPos(throwStatement, source);
 		return throwStatement;
 	}
-	
+
 	public static WhileStatement whileStatement(ASTNode source, Expression condition, Statement action) {
 		WhileStatement whileStatement = new WhileStatement(condition, action, 0, 0);
 		setGeneratedByAndCopyPos(whileStatement, source);
@@ -167,19 +167,19 @@ public class EclipseNodeBuilder {
 		setGeneratedByAndCopyPos(ifStatement, source);
 		return ifStatement;
 	}
-	
+
 	public static IfStatement ifStatement(ASTNode source, Expression condition, Statement then, Statement el$e) {
 		IfStatement ifStatement = new IfStatement(condition, then, el$e, 0, 0);
 		setGeneratedByAndCopyPos(ifStatement, source);
 		return ifStatement;
 	}
-	
+
 	public static IfStatement ifNotStatement(ASTNode source, Expression condition, Statement then) {
 		UnaryExpression newCondition = new UnaryExpression(condition, OperatorIds.NOT);
 		setGeneratedByAndCopyPos(newCondition, source);
 		return ifStatement(source, newCondition, then);
 	}
-	
+
 	public static ReturnStatement returnStatement(ASTNode source, boolean b) {
 		ReturnStatement returnStatement = new ReturnStatement(booleanLiteral(source, b), 0, 0);
 		setGeneratedByAndCopyPos(returnStatement, source);
@@ -315,11 +315,11 @@ public class EclipseNodeBuilder {
 				}
 			}
 		}
-		
+
 		setGeneratedByAndCopyPos(typeReference, source);
 		return typeReference;
 	}
-	
+
 	public static MessageSend methodCall(ASTNode source, Expression receiver, String method, Expression... args) {
 		MessageSend methodCall = new MessageSend();
 		setGeneratedByAndCopyPos(methodCall, source);
@@ -330,65 +330,65 @@ public class EclipseNodeBuilder {
 		methodCall.selector = method.toCharArray();
 		return methodCall;
 	}
-	
+
 	public static MessageSend methodCall(ASTNode source, String receiver, String method, Expression... args) {
 		return methodCall(source, nameReference(source, receiver), method, args);
 	}
-	
+
 	public static MessageSend methodCall(ASTNode source, String method, Expression... args) {
 		ThisReference thisReference = thisReference(source);
 		thisReference.bits |= ASTNode.IsImplicitThis;
 		return methodCall(source, thisReference, method, args);
 	}
-	
+
 	public static ThisReference thisReference(ASTNode source) {
 		ThisReference ref = new ThisReference(0, 0);
 		setGeneratedByAndCopyPos(ref, source);
 		return ref;
 	}
-	
+
 	public static QualifiedThisReference thisReference(ASTNode source, TypeReference typeReference) {
 		QualifiedThisReference qualThisRef = new QualifiedThisReference(typeReference, 0, 0);
 		setGeneratedByAndCopyPos(qualThisRef, source);
 		return qualThisRef;
 	}
-	
+
 	public static ConstructorBuilder constructor(EclipseNode node, ASTNode source, int modifiers, String typeName) {
 		return new ConstructorBuilder(node, source, modifiers, typeName);
 	}
-	
+
 	public static MethodBuilder method(EclipseNode node, ASTNode source, int modifiers, String returnTypeName, String methodName) {
 		return new MethodBuilder(node, source, modifiers, typeReference(source, returnTypeName), methodName);
 	}
-	
+
 	public static MethodBuilder method(EclipseNode node, ASTNode source, int modifiers, TypeReference returnType, String methodName) {
 		return new MethodBuilder(node, source, modifiers, returnType, methodName);
 	}
-	
+
 	public static ClassBuilder clazz(EclipseNode node, ASTNode source, int modifiers, String typeName) {
 		return new ClassBuilder(node, source, modifiers, typeName);
 	}
-	
+
 	public static ClassBuilder interfaze(EclipseNode node, ASTNode source, int modifiers, String typeName) {
 		return new ClassBuilder(node, source, modifiers | AccInterface, typeName);
 	}
-	
+
 	public static FieldBuilder field(EclipseNode node, ASTNode source, int modifiers, String typeName, String fieldName) {
 		return new FieldBuilder(node, source, modifiers, typeReference(source, typeName), fieldName);
 	}
-	
+
 	public static FieldBuilder field(EclipseNode node, ASTNode source, int modifiers, TypeReference type, String fieldName) {
 		return new FieldBuilder(node, source, modifiers, type, fieldName);
 	}
-	
+
 	public static LocalBuilder local(EclipseNode node, ASTNode source, int modifiers, String typeName, String fieldName) {
 		return new LocalBuilder(node, source, modifiers, typeReference(source, typeName), fieldName);
 	}
-	
+
 	public static LocalBuilder local(EclipseNode node, ASTNode source, int modifiers, TypeReference type, String fieldName) {
 		return new LocalBuilder(node, source, modifiers, type, fieldName);
 	}
-	
+
 	public static class ClassBuilder extends AbstractNodeBuilder<ClassBuilder, TypeDeclaration> {
 		protected List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
 		protected List<FieldDeclaration> fields = new ArrayList<FieldDeclaration>();
@@ -396,48 +396,49 @@ public class EclipseNodeBuilder {
 		protected List<TypeDeclaration> memberTypes = new ArrayList<TypeDeclaration>();
 		protected TypeReference superclass;
 		protected List<TypeReference> superInterfaces = new ArrayList<TypeReference>();
-		
+
 		public ClassBuilder(EclipseNode node, ASTNode source, int modifiers, String typeName) {
 			super(node, source, modifiers, typeName);
 		}
-		
+
 		public ClassBuilder implementing(TypeReference type) {
 			this.superInterfaces.add(type);
 			return self();
 		}
-		
+
 		public ClassBuilder implementing(List<String> interfazes) {
 			for (String typeName : interfazes) {
 				this.superInterfaces.add(typeReference(source, typeName));
 			}
 			return self();
 		}
-		
+
 		public ClassBuilder withMethods(List<AbstractMethodDeclaration> methods) {
 			this.methods.addAll(methods);
 			return self();
 		}
-		
+
 		public ClassBuilder withMethod(AbstractMethodDeclaration method) {
 			this.methods.add(method);
 			return self();
 		}
-		
+
 		public ClassBuilder withFields(List<FieldDeclaration> fields) {
 			this.fields.addAll(fields);
 			return self();
 		}
-		
+
 		public ClassBuilder withField(FieldDeclaration field) {
 			this.fields.add(field);
 			return self();
 		}
-		
+
 		public ClassBuilder withTypes(List<TypeDeclaration> types) {
 			this.memberTypes.addAll(types);
 			return self();
 		}
-		
+
+		@Override
 		public TypeDeclaration build() {
 			TypeDeclaration proto = new TypeDeclaration(((CompilationUnitDeclaration) node.top().get()).compilationResult);
 			setGeneratedByAndCopyPos(proto, source);
@@ -461,17 +462,18 @@ public class EclipseNodeBuilder {
 			proto.superclass = superclass;
 			return proto; // TODO defensive copy ftw
 		}
-		
+
+		@Override
 		public void inject() {
 			injectType(node, build());
 		}
 	}
-	
+
 	public static class FieldBuilder extends AbstractFieldBuilder<FieldBuilder, FieldDeclaration> {
 		protected FieldBuilder(EclipseNode node, ASTNode source, int modifiers, TypeReference type, String fieldName) {
 			super(node, source, modifiers, type, fieldName);
 		}
-		
+
 		@Override public FieldDeclaration build() {
 			FieldDeclaration proto = new FieldDeclaration(name.toCharArray(), 0, 0);
 			setGeneratedByAndCopyPos(proto, source);
@@ -487,12 +489,12 @@ public class EclipseNodeBuilder {
 			injectField(node, build());
 		}
 	}
-	
+
 	public static class LocalBuilder extends AbstractFieldBuilder<LocalBuilder, LocalDeclaration> {
 		protected LocalBuilder(EclipseNode node, ASTNode source, int modifiers, TypeReference type, String fieldName) {
 			super(node, source, modifiers, type, fieldName);
 		}
-		
+
 		@Override public LocalDeclaration build() {
 			LocalDeclaration proto = new LocalDeclaration(name.toCharArray(), 0, 0);
 			setGeneratedByAndCopyPos(proto, source);
@@ -508,34 +510,34 @@ public class EclipseNodeBuilder {
 			throw new UnsupportedOperationException();
 		}
 	}
-	
+
 	private static abstract class AbstractFieldBuilder<SELF_TYPE extends AbstractFieldBuilder<SELF_TYPE, BUILDER_RETURN_TYPE>, BUILDER_RETURN_TYPE extends AbstractVariableDeclaration> extends AbstractNodeBuilder<SELF_TYPE, BUILDER_RETURN_TYPE> {
 		protected TypeReference type;
 		protected Expression initialization;
-		
+
 		protected AbstractFieldBuilder(EclipseNode node, ASTNode source, int modifiers, TypeReference type, String fieldName) {
 			super(node, source, modifiers, fieldName);
 			this.type = copyType(type, source);
 		}
-		
+
 		public SELF_TYPE withInitialization(Expression initialization) {
 			this.initialization = initialization;
 			return self();
 		}
 	}
-	
+
 	public static class ConstructorBuilder extends AbstractMethodBuilder<ConstructorBuilder, ConstructorDeclaration> {
 		protected ExplicitConstructorCall constructorCall;
-		
+
 		public ConstructorBuilder(EclipseNode node, ASTNode source, int modifiers, String typeName) {
 			super(node, source, modifiers, typeName);
 		}
-		
+
 		public ConstructorBuilder withImplicitSuper() {
 			this.constructorCall = new ExplicitConstructorCall(ExplicitConstructorCall.ImplicitSuper);
 			return self();
 		}
-		
+
 		@Override public ConstructorDeclaration build() {
 			ConstructorDeclaration proto = new ConstructorDeclaration(((CompilationUnitDeclaration) node.top().get()).compilationResult);
 			setGeneratedByAndCopyPos(proto, source);
@@ -553,24 +555,25 @@ public class EclipseNodeBuilder {
 			return proto; // TODO defensive copy ftw
 		}
 	}
-	
+
 	public static class MethodBuilder extends AbstractMethodBuilder<MethodBuilder, MethodDeclaration> {
 		protected TypeReference returnType;
-		
+
 		protected MethodBuilder(EclipseNode node, ASTNode source, int modifiers, TypeReference returnType, String methodName) {
 			super(node, source, modifiers, methodName);
 			this.returnType = copyType(returnType, source);
 		}
-		
+
 		public MethodBuilder withReturnType(String returnTypeName) {
 			this.returnType = typeReference(source, returnTypeName);
 			return self();
 		}
-		
+
 		public MethodBuilder withReturnStatement(Expression expr) {
 			return withStatement(returnStatement(source, expr));
 		}
-		
+
+		@Override
 		public MethodDeclaration build() {
 			MethodDeclaration proto = new MethodDeclaration(((CompilationUnitDeclaration) node.top().get()).compilationResult);
 			setGeneratedByAndCopyPos(proto, source);
@@ -590,82 +593,83 @@ public class EclipseNodeBuilder {
 			return proto; // TODO defensive copy ftw
 		}
 	}
-	
+
 	private static abstract class AbstractMethodBuilder<SELF_TYPE extends AbstractMethodBuilder<SELF_TYPE, BUILDER_RETURN_TYPE>, BUILDER_RETURN_TYPE extends AbstractMethodDeclaration> extends AbstractNodeBuilder<SELF_TYPE, BUILDER_RETURN_TYPE> {
 		protected List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
 		protected List<Argument> parameters = new ArrayList<Argument>();
 		protected List<TypeReference> thrownExceptions = new ArrayList<TypeReference>();
 		protected List<Statement> statements = new ArrayList<Statement>();
-		
+
 		protected AbstractMethodBuilder(EclipseNode node, ASTNode source, int modifiers, String methodName) {
 			super(node, source, modifiers, methodName);
 		}
-		
+
 		public SELF_TYPE withThrownException(String thrownException) {
 			this.thrownExceptions.add(typeReference(source, thrownException));
 			return self();
 		}
-		
+
 		public SELF_TYPE withThrownExceptions(List<TypeReference> thrownExceptions) {
 			for (TypeReference thrownException : thrownExceptions) {
 				this.thrownExceptions.add(copyType(thrownException, source));
 			}
 			return self();
 		}
-		
+
 		public SELF_TYPE withParameter(String typeName, String argumentName) {
 			this.parameters.add(argument(source, typeName, argumentName));
 			return self();
 		}
-		
+
 		public SELF_TYPE withParameter(TypeReference type, String argumentName) {
 			this.parameters.add(argument(source, type, argumentName));
 			return self();
 		}
-		
+
 		public SELF_TYPE withParameter(Argument parameter) {
 			this.parameters.add(parameter);
 			return self();
 		}
-		
+
 		public SELF_TYPE withParameters(List<Argument> parameters) {
 			for (Argument parameter : parameters) {
 				withParameter(parameter.type, new String(parameter.name));
 			}
 			return self();
 		}
-		
+
 		public SELF_TYPE withStatement(Statement statement) {
 			this.statements.add(statement);
 			return self();
 		}
-		
+
 		public SELF_TYPE withAssignStatement(Expression left, Expression right) {
 			return withStatement(assignment(source, left, right));
 		}
-		
+
 		public SELF_TYPE withAssignStatement(String leftName, Expression right) {
 			return withStatement(assignment(source, leftName, right));
 		}
-		
+
 		public SELF_TYPE withAssignStatement(String leftName, String rightName) {
 			return withStatement(assignment(source, leftName, rightName));
 		}
-		
+
 		public SELF_TYPE withStatements(List<Statement> statements) {
 			this.statements.addAll(statements);
 			return self();
 		}
-		
+
+		@Override
 		public void inject() {
 			injectMethod(node, build());
 		}
 	}
-	
+
 	public static void injectType(EclipseNode typeNode, TypeDeclaration type) {
 		type.annotations = createSuppressWarningsAll(type, type.annotations);
 		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
-		
+
 		if (parent.memberTypes == null) {
 			parent.memberTypes = new TypeDeclaration[]{ type };
 		} else {
@@ -676,7 +680,7 @@ public class EclipseNodeBuilder {
 		}
 		typeNode.add(type, Kind.TYPE).recursiveSetHandled();
 	}
-	
+
 	private static abstract class AbstractNodeBuilder<SELF_TYPE, BUILDER_RETURN_TYPE> {
 		protected final EclipseNode node;
 		protected final ASTNode source;
@@ -684,49 +688,50 @@ public class EclipseNodeBuilder {
 		protected int modifiers;
 		protected int bits;
 		protected List<Annotation> annotations = new ArrayList<Annotation>();
-		
+
 		protected AbstractNodeBuilder(EclipseNode node, ASTNode source, int modifiers, String name) {
 			this.node = node;
 			this.source = source;
 			this.name = name;
 			this.modifiers = modifiers;
 		}
-		
+
 		public SELF_TYPE withModifiers(int modifiers) {
 			this.modifiers = modifiers;
 			return self();
 		}
-		
+
 		public SELF_TYPE withBits(int bits) {
 			this.bits |= bits;
 			return self();
 		}
-		
+
 		public SELF_TYPE withAnnotation(String typeName) {
 			this.annotations.add(annotation(source, typeName));
 			return self();
 		}
-		
+
 		public SELF_TYPE withAnnotation(String typeName, String value) {
 			this.annotations.add(annotation(source, typeName, value));
 			return self();
 		}
-		
+
 		public SELF_TYPE withAnnotations(List<Annotation> annotations) {
 			for (Annotation annotation : annotations) {
 				this.annotations.add(annotation(source, annotation.type.toString()));
 			}
 			return self();
 		}
-		
+
 		protected final SELF_TYPE self() {
 			return Cast.<SELF_TYPE>uncheckedCast(this);
 		}
-		
+
 		public abstract BUILDER_RETURN_TYPE build();
-		
+
 		public abstract void inject();
-		
+
+		@Override
 		public String toString() {
 			return build().toString();
 		}

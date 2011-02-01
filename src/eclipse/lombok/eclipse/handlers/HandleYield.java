@@ -1,16 +1,16 @@
 /*
  * Copyright © 2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -85,11 +85,11 @@ import lombok.eclipse.EclipseNode;
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleYield extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
-	
+
 	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		methodNames.clear();
 	}
-	
+
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
 			MessageSend methodCall = (MessageSend) statement;
@@ -105,13 +105,13 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 		}
 	}
-	
+
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
 	}
-	
+
 	public boolean handle(final EclipseMethod method) {
 		final boolean returnsIterable = method.returns(Iterable.class);
 		final boolean returnsIterator = method.returns(Iterator.class);
@@ -123,46 +123,46 @@ public class HandleYield extends EclipseASTAdapter {
 			method.node().addError("Parameters should be final.");
 			return true;
 		}
-		
+
 
 		YieldDataCollector collector = new YieldDataCollector();
 		collector.collect(method.node(), "$state", "$next");
-		
+
 		if (!collector.hasYields()) {
 			return true;
 		}
-		
+
 		ASTNode source = method.get();
-		
+
 		final String yielderName = yielderName(method.node());
 		final String elementType = elementType(method.node());
-		
+
 		List<TypeDeclaration> classes = collector.getClasses();
 		SwitchStatement switchStatement = collector.getStateSwitch();
 		List<FieldDeclaration> variables = collector.getVariables();
-		
+
 		MethodDeclaration hasNext = method(method.node(), source, PUBLIC, "boolean", "hasNext") //
 			.withStatement(ifNotStatement(source, nameReference(source, "$nextDefined"), block(source, //
 				assignment(source, "$hasNext", methodCall(source, "getNext")), //
 				assignment(source, "$nextDefined", booleanLiteral(source, true))))) //
 			.withReturnStatement(nameReference(source, "$hasNext")) //
 			.build();
-		
+
 		MethodDeclaration next = method(method.node(), source, PUBLIC, elementType, "next") //
 			.withStatement(ifNotStatement(source, methodCall(source, "hasNext"), block(source, //
 				throwNewException(source, "java.util.NoSuchElementException")))) //
 			.withAssignStatement("$nextDefined", booleanLiteral(source, false)) //
 			.withReturnStatement(nameReference(source, "$next")) //
 			.build();
-		
+
 		MethodDeclaration remove = method(method.node(), source, PUBLIC, "void", "remove") //
 			.withStatement(throwNewException(source, "java.lang.UnsupportedOperationException")) //
 			.build();
-		
+
 		MethodDeclaration getNext = method(method.node(), source, PRIVATE, "boolean", "getNext") //
 			.withStatement(whileStatement(source, booleanLiteral(source, true), switchStatement)) //
 			.build();
-		
+
 		ClassBuilder builder = clazz(method.node(), source, 0, yielderName).withBits(IsLocalType) //
 			.implementing(typeReference(source, "java.util.Iterator", elementType)) //
 			.withFields(variables) //
@@ -175,11 +175,11 @@ public class HandleYield extends EclipseASTAdapter {
 			AllocationExpression initYielder = new AllocationExpression();
 			setGeneratedByAndCopyPos(initYielder, source);
 			initYielder.type = typeReference(source, yielderName);
-			
+
 			MethodDeclaration iterator = method(method.node(), source, PUBLIC, typeReference(source, "java.util.Iterator", elementType), "iterator") //
 				.withReturnStatement(initYielder) //
 				.build();
-			
+
 			builder.implementing(typeReference(source, "java.lang.Iterable", elementType)) //
 				.withMethod(iterator);
 		}
@@ -188,17 +188,17 @@ public class HandleYield extends EclipseASTAdapter {
 			.withMethod(remove) //
 			.withMethod(getNext) //
 			.withTypes(classes).build();
-		
+
 		AllocationExpression initYielder = new AllocationExpression();
 		setGeneratedByAndCopyPos(initYielder, source);
 		initYielder.type = typeReference(source, yielderName);
-		
+
 		method.body(yielder, returnStatement(source, initYielder));
 		method.rebuild();
-		
+
 		return true;
 	}
-	
+
 	private String yielderName(EclipseNode methodNode) {
 		String[] parts = methodNode.getName().split("_");
 		String[] newParts = new String[parts.length + 1];
@@ -206,7 +206,7 @@ public class HandleYield extends EclipseASTAdapter {
 		System.arraycopy(parts, 0, newParts, 1, parts.length);
 		return camelCase("$", newParts);
 	}
-	
+
 	private String elementType(EclipseNode methodNode) {
 		MethodDeclaration methodDecl = (MethodDeclaration)methodNode.get();
 		TypeReference type = methodDecl.returnType;
@@ -218,7 +218,7 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 		return Object.class.getName();
 	}
-	
+
 	private static class YieldDataCollector {
 		private EclipseNode methodNode;
 		private MethodDeclaration declaration;
@@ -235,15 +235,15 @@ public class HandleYield extends EclipseASTAdapter {
 		private Set<Label> usedLabels = new HashSet<Label>();
 		private String stateName;
 		private String nextName;
-		
+
 		public List<FieldDeclaration> getVariables() {
 			return stateVariables;
 		}
-		
+
 		public List<TypeDeclaration> getClasses() {
 			return classes;
 		}
-		
+
 		public SwitchStatement getStateSwitch() {
 			List<Statement> switchStatements = new ArrayList<Statement>(statements);
 			switchStatements.add(new CaseStatement(null, 0, 0));
@@ -253,11 +253,11 @@ public class HandleYield extends EclipseASTAdapter {
 			switchStatement.statements = switchStatements.toArray(new Statement[switchStatements.size()]);
 			return switchStatement;
 		}
-		
+
 		public boolean hasYields() {
 			return !yields.isEmpty();
 		}
-		
+
 		public void collect(final EclipseNode methodNode, final String state, final String next) {
 			this.methodNode = methodNode;
 			this.declaration = (MethodDeclaration)methodNode.get();
@@ -278,7 +278,7 @@ public class HandleYield extends EclipseASTAdapter {
 			} catch (IllegalStateException ignore) {
 				// this means there are unhandled yields left
 			}
-			
+
 			ValidationScanner scanner = new ValidationScanner();
 			declaration.traverse(scanner, (ClassScope)null);
 
@@ -317,7 +317,7 @@ public class HandleYield extends EclipseASTAdapter {
 					stateVariables.add(field(methodNode, declaration, PRIVATE, variable.type, new String(variable.name)).build());
 				}
 			}
-			
+
 			return true;
 		}
 
@@ -333,7 +333,7 @@ public class HandleYield extends EclipseASTAdapter {
 			optimizeBreaks();
 			synchronizeLiteralsAndLabels();
 		}
-		
+
 		private Expression getYieldExpression(MessageSend invoke) {
 			if ("yield".equals(new String(invoke.selector)) && (invoke.arguments != null) && (invoke.arguments.length == 1)) {
 				return invoke.arguments[0];
@@ -417,7 +417,7 @@ public class HandleYield extends EclipseASTAdapter {
 				previous = statement;
 			}
 		}
-		
+
 		private void synchronizeLiteralsAndLabels() {
 			for (Map.Entry<Expression, Label> entry : labelLiterals.entrySet()) {
 				UnaryExpression expression = (UnaryExpression) entry.getKey();
@@ -425,7 +425,7 @@ public class HandleYield extends EclipseASTAdapter {
 				expression.expression = intLiteral(declaration, label.id);
 			}
 		}
-		
+
 		private class YieldQuickScanner extends ASTVisitor {
 			@Override
 			public boolean visit(final MessageSend messageSend, final BlockScope scope) {
@@ -440,7 +440,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 		private class ValidationScanner extends ASTVisitor {
 			private Scope current;
-			
+
 			@Override
 			public boolean visit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
 				current = new Scope(current, methodDeclaration) {
@@ -898,27 +898,27 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 		}
 	}
-	
+
 	private static class Label extends CaseStatement {
 		public int id = -1;
-		
+
 		public Label() {
 			super(null, 0, 0);
 		}
 	}
-	
+
 	private static abstract class Scope {
 		public ASTNode node;
 		public Scope parent;
 		public Scope target;
 		public Label iterationLabel;
 		public Label breakLabel;
-		
+
 		public Scope(Scope parent, ASTNode node) {
 			this.parent = parent;
 			this.node = node;
 		}
-		
+
 		public abstract void refactor();
 	}
 }

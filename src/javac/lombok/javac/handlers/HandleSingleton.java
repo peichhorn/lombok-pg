@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,35 +44,35 @@ import com.sun.tools.javac.util.List;
 
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleSingleton extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Singleton> {
-	
+
 	@Override public boolean handle(AnnotationValues<Singleton> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, Singleton.class);
-		
+
 		if (isNoConcreteClass(annotationNode)) {
 			return false;
 		}
-		
+
 		if (hasMultiArgumentConstructor(annotationNode)) {
 			return false;
 		}
-		
+
 		JavacNode typeNode = annotationNode.up();
 		JCClassDecl type = (JCClassDecl)typeNode.get();
 		type.mods.flags |= ENUM;
 		makeConstructorNonPublicAndNonProtected(type);
-		
+
 		TreeMaker maker = typeNode.getTreeMaker();
 		JCExpression typeRef = maker.Ident(type.name);
 		List<JCExpression> nilExp = List.nil();
 		JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
 		JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
 		injectField(typeNode, maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init));
-		
+
 		typeNode.rebuild();
-		
+
 		return true;
 	}
-	
+
 	private boolean isNoConcreteClass(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
 		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
@@ -83,10 +83,10 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		if (typeDecl.extending != null) {
 			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
 			return true;
-		} 
+		}
 		return false;
 	}
-	
+
 	private boolean hasMultiArgumentConstructor(JavacNode annotationNode) {
 		JavacNode typeNode = annotationNode.up();
 		JCClassDecl type = (JCClassDecl)typeNode.get();
@@ -96,7 +96,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		}
 		return false;
 	}
-	
+
 	private void makeConstructorNonPublicAndNonProtected(JCClassDecl type) {
 		for (JCTree def : type.defs) {
 			if (isConstructor(def)) {
@@ -104,7 +104,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 			}
 		}
 	}
-	
+
 	private boolean hasMultiArgumentConstructor(JCClassDecl type) {
 		for (JCTree def : type.defs) {
 			if (isConstructor(def)) {
@@ -115,7 +115,7 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		}
 		return false;
 	}
-	
+
 	private boolean isConstructor(JCTree def) {
 		if (def instanceof JCMethodDecl) {
 			JCMethodDecl method = (JCMethodDecl)def;

@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -60,28 +60,28 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 			return true;
 		}
 
-		
+
 		typeDecl.modifiers |= 0x00004000; // Modifier.ENUM
 		replaceConstructorVisibility(typeDecl);
-		
+
 		AllocationExpression initialization = new AllocationExpression();
 		setGeneratedByAndCopyPos(initialization, source);
 		initialization.enumConstant = field(typeNode, source, 0, (TypeReference)null, "INSTANCE")
 			.withInitialization(initialization).build();
-		
+
 		injectField(typeNode, initialization.enumConstant);
-		
+
 		typeNode.rebuild();
-		
+
 		return true;
 	}
-	
+
 	private void replaceConstructorVisibility(TypeDeclaration type) {
 		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
 			if (def instanceof ConstructorDeclaration) def.modifiers &= ~(PUBLIC | PROTECTED);
 		}
 	}
-	
+
 	private boolean hasMultiArgumentConstructor(TypeDeclaration type) {
 		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
 			if ((def instanceof ConstructorDeclaration) && isNotEmpty(def.arguments)) return true;

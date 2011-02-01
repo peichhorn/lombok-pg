@@ -1,16 +1,16 @@
 /*
  * Copyright © 2010-2011 Philipp Eichhorn
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -70,16 +70,16 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private final static String OPTIONAL_DEF = "$OptionalDef";
 	private final static String BUILDER = "$Builder";
-	
+
 	@Override public boolean handle(AnnotationValues<Builder> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
-		
+
 		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
 			return true;
 		}
-		
+
 		switch (methodExists("create", typeNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
@@ -90,17 +90,17 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		case NOT_EXISTS:
 			//continue with creating the entrypoint
 		}
-		
+
 		handleBuilder(new HandleBuilderDataCollector(typeNode, source, annotation.getInstance()).collect());
 		return true;
 	}
-		
+
 	private static void handleBuilder(IBuilderData builderData) {
 		List<String> requiredFieldDefTypeNames = builderData.getRequiredFieldDefTypeNames();
 		List<String> typeNames = new ArrayList<String>(requiredFieldDefTypeNames);
 		typeNames.add(OPTIONAL_DEF);
 		String fieldDefTypeName = builderData.getRequiredFields().isEmpty() ? OPTIONAL_DEF : requiredFieldDefTypeNames.get(0);
-		
+
 		createConstructor(builderData);
 		createCreateMethod(builderData, fieldDefTypeName);
 		List<AbstractMethodDeclaration> builderMethods = new ArrayList<AbstractMethodDeclaration>();
@@ -108,7 +108,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		createOptionalFieldInterface(builderData, builderMethods);
 		createBuilder(builderData, typeNames, builderMethods);
 	}
-	
+
 	private static void createConstructor(IBuilderData builderData) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -119,7 +119,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		builder.inject();
 	}
-	
+
 	private static void createCreateMethod(IBuilderData builderData, String fieldDefTypeName) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -128,7 +128,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		newClassExp.type = typeReference(source, BUILDER);
 		method(typeNode, source, STATIC | builderData.getCreateModifier(), fieldDefTypeName, "create").withReturnStatement(newClassExp).inject();
 	}
-	
+
 	private static void createRequiredFieldInterfaces(IBuilderData builderData, List<AbstractMethodDeclaration> builderMethods) {
 		List<FieldDeclaration> fields = builderData.getRequiredFields();
 		if (!fields.isEmpty()) {
@@ -147,14 +147,14 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 					}
 					createFieldExtension = false;
 				}
-				
+
 				interfaze(typeNode, source, PUBLIC | STATIC, name).withMethods(interfaceMethods).inject();
 				field = fields.get(i);
 				name = names.get(i);
 			}
 			List<AbstractMethodDeclaration> interfaceMethods = new ArrayList<AbstractMethodDeclaration>();
 			createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
-			
+
 			interfaze(typeNode, source, PUBLIC | STATIC, name).withMethods(interfaceMethods).inject();
 		}
 	}
@@ -178,18 +178,18 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			}
 		}
 		createBuildMethod(builderData, new String(typeDecl.name), interfaceMethods, builderMethods);
-		
+
 		for (String callMethod : builderData.getCallMethods()) {
 			createMethodCall(builderData, callMethod, interfaceMethods, builderMethods);
 		}
-		
+
 		for (MethodDeclaration extension : builderData.getOptionalFieldExtensions()) {
 			createExtension(builderData, extension, interfaceMethods, builderMethods);
 		}
-		
+
 		interfaze(typeNode, source, PUBLIC | STATIC, OPTIONAL_DEF).withMethods(interfaceMethods).inject();
 	}
-	
+
 	private static void createExtension(IBuilderData builderData, MethodDeclaration extension, List<AbstractMethodDeclaration> interfaceMethods, List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -203,7 +203,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		interfaceMethods.add(method(typeNode, source, PUBLIC, OPTIONAL_DEF, methodName)
 			.withParameters(arguments).build());
 	}
-	
+
 	private static void createFluentSetter(IBuilderData builderData, String typeName, FieldDeclaration field, List<AbstractMethodDeclaration> interfaceMethods,
 			List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
@@ -215,11 +215,11 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			.withReturnStatement(thisReference(source)).build());
 		interfaceMethods.add(method(typeNode, source, PUBLIC, typeName, methodName).withParameter(field.type, fieldName).build());
 	}
-	
+
 	private static void createCollectionSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDeclaration> interfaceMethods, List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
-		
+
 		TypeReference elementType = typeReference(source, "java.lang.Object");
 		TypeReference collectionType = typeReference(source, "java.util.Collection");
 		if (field.type instanceof ParameterizedQualifiedTypeReference) {
@@ -244,9 +244,9 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				collectionType = addWildCards(source, typeRef, collectionType.getTypeName());
 			}
 		}
-		
+
 		String fieldName = new String(field.name);
-		
+
 		{ // add
 			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, addMethodName).withParameter(elementType, "arg0")
@@ -262,12 +262,12 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			interfaceMethods.add(method(typeNode, source, PUBLIC, OPTIONAL_DEF, addAllMethodName).withParameter(collectionType, "arg0").build());
 		}
 	}
-	
+
 	private static void createMapSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDeclaration> interfaceMethods,
 			List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
-		
+
 		TypeReference keyType = typeReference(source, "java.lang.Object");
 		TypeReference valueType = typeReference(source, "java.lang.Object");
 		TypeReference mapType = typeReference(source, "java.util.Map");
@@ -301,9 +301,9 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				mapType = addWildCards(source, typeRef, mapType.getTypeName());
 			}
 		}
-		
+
 		String fieldName = new String(field.name);
-		
+
 		{ // put
 			String putMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, OPTIONAL_DEF, putMethodName).withParameter(keyType, "arg0").withParameter(valueType, "arg1")
@@ -319,7 +319,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			interfaceMethods.add(method(typeNode, source, PUBLIC, OPTIONAL_DEF, putAllMethodName).withParameter(mapType, "arg0").build());
 		}
 	}
-	
+
 	private static TypeReference addWildCards(ASTNode source, ParameterizedSingleTypeReference typeRef, char[][] tokens) {
 		TypeReference[][] args = new TypeReference[3][];
 		if (typeRef.typeArguments != null) {
@@ -341,7 +341,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		setGeneratedByAndCopyPos(newTypeRef, source);
 		return newTypeRef;
 	}
-	
+
 	private static TypeReference addWildCards(ASTNode source, ParameterizedQualifiedTypeReference type, char[][] tokens) {
 		ParameterizedQualifiedTypeReference typeRef = (ParameterizedQualifiedTypeReference) copyType(type, source);
 		typeRef.tokens = tokens;
@@ -356,8 +356,8 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		return typeRef;
 	}
-	
-	private static void createBuildMethod(IBuilderData builderData, String typeName, 
+
+	private static void createBuildMethod(IBuilderData builderData, String typeName,
 			List<AbstractMethodDeclaration> interfaceMethods, List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -368,13 +368,13 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, typeName, "build").withReturnStatement(newClassExp).build());
 		interfaceMethods.add(method(typeNode, source, PUBLIC, typeName, "build").build());
 	}
-	
-	private static void createMethodCall(IBuilderData builderData, String method, List<AbstractMethodDeclaration> interfaceMethods, 
+
+	private static void createMethodCall(IBuilderData builderData, String method, List<AbstractMethodDeclaration> interfaceMethods,
 			List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
 		TypeDeclaration typeDecl = (TypeDeclaration)typeNode.get();
-		
+
 		TypeReference returnType = null;
 		List<TypeReference> thrown = new ArrayList<TypeReference>();
 		if ("toString".equals(method)) {
@@ -391,7 +391,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				return;
 			}
 		}
-		
+
 		MessageSend callMethod = methodCall(source, methodCall(source, thisReference(source), "build"), method);
 		Statement statement;
 		if ("void".equals(returnType.toString())) {
@@ -399,12 +399,12 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		} else {
 			statement = returnStatement(source, callMethod);
 		}
-		
+
 		builderMethods.add(method(typeNode, source, PUBLIC | AccImplementing, returnType, method).withThrownExceptions(thrown)
 				.withStatement(statement).build());
 		interfaceMethods.add(method(typeNode, source, PUBLIC, returnType, method).withThrownExceptions(thrown).build());
 	}
-	
+
 	private static void createBuilder(IBuilderData builderData, List<String> typeNames, List<AbstractMethodDeclaration> builderMethods) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -412,7 +412,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		clazz(typeNode, source, PRIVATE | STATIC, BUILDER).implementing(typeNames)
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods).inject();
 	}
-	
+
 	private static List<FieldDeclaration> createBuilderFields(IBuilderData builderData) {
 		EclipseNode typeNode = builderData.getTypeNode();
 		ASTNode source = builderData.getSource();
@@ -428,11 +428,11 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		return fields;
 	}
-	
+
 	private static boolean isInitializedMapOrCollection(FieldDeclaration field) {
 		return (isMap(field) || isCollection(field)) && (field.initialization != null);
 	}
-	
+
 	// TODO use LombokNode.getImportStatements()
 	private static boolean isCollection(FieldDeclaration field) {
 		StringBuilder sb = new StringBuilder();
@@ -445,7 +445,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		String type = sb.toString();
 		return type.endsWith("Collection") || type.endsWith("List") || type.endsWith("Set");
 	}
-	
+
 	// TODO use LombokNode.getImportStatements()
 	private static boolean isMap(FieldDeclaration field) {
 		StringBuilder sb = new StringBuilder();
@@ -458,7 +458,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		String type = sb.toString();
 		return type.endsWith("Map");
 	}
-	
+
 	private static class HandleBuilderDataCollector extends EclipseASTAdapter implements IBuilderData {
 		private final EclipseNode typeNode;
 		private final ASTNode source;
@@ -478,7 +478,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		private boolean containsRequiredFields;
 		private int typeDepth;
 		private int phase;
-		
+
 		public HandleBuilderDataCollector(EclipseNode typeNode, ASTNode source, Builder builder) {
 			super();
 			this.typeNode = typeNode;
@@ -489,63 +489,75 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			callMethods = Arrays.asList(builder.callMethods());
 			level = builder.value();
 		}
-		
+
 		public IBuilderData collect() {
 			phase = 1; typeNode.traverse(this);
 			phase = 2; typeNode.traverse(this);
 			return this;
 		}
-		
+
+		@Override
 		public EclipseNode getTypeNode() {
 			return typeNode;
 		}
-		
+
+		@Override
 		public ASTNode getSource() {
 			return source;
 		}
-		
+
+		@Override
 		public List<FieldDeclaration> getRequiredFields() {
 			return requiredFields;
 		}
-		
+
+		@Override
 		public List<FieldDeclaration> getOptionalFields() {
 			return optionalFields;
 		}
-		
+
+		@Override
 		public List<FieldDeclaration> getAllFields() {
 			List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>(requiredFields);
 			allFields.addAll(optionalFields);
 			return allFields;
 		}
-		
+
+		@Override
 		public List<String> getRequiredFieldDefTypeNames() {
 			return requiredFieldDefTypeNames;
 		}
-		
+
+		@Override
 		public List<MethodDeclaration> getRequiredFieldExtensions() {
 			return requiredFieldExtensions;
 		}
-		
+
+		@Override
 		public List<MethodDeclaration> getOptionalFieldExtensions() {
 			return optionalFieldExtensions;
 		}
-		
+
+		@Override
 		public int getCreateModifier() {
 			return toEclipseModifier(level);
 		}
-		
+
+		@Override
 		public String getPrefix() {
 			return prefix;
 		}
-		
+
+		@Override
 		public boolean generateConvenientMethods() {
 			return convenientMethods;
 		}
-		
+
+		@Override
 		public List<String> getCallMethods() {
 			return callMethods;
 		}
-		
+
 		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
 			typeDepth++;
 		}
@@ -566,7 +578,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				}
 			}
 		}
-		
+
 		@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
 				if (statement instanceof Assignment) {
@@ -581,7 +593,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				}
 			}
 		}
-		
+
 		@Override public void endVisitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
 			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod) && (method instanceof MethodDeclaration)) {
 				MethodDeclaration meth = (MethodDeclaration) method;
@@ -600,7 +612,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				}
 			}
 		}
-		
+
 		@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
 			if ((phase == 2) && (typeDepth == 1)) {
 				List<AbstractMethodDeclaration> methods = new ArrayList<AbstractMethodDeclaration>();
@@ -617,7 +629,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			}
 			typeDepth--;
 		}
-		
+
 		@Override public void visitField(EclipseNode fieldNode, FieldDeclaration field) {
 			if ((phase == 1) && (typeDepth == 1)) {
 				if ((field.modifiers & STATIC) != 0) return;
@@ -634,30 +646,30 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			}
 		}
 	}
-	
+
 	private static interface IBuilderData {
 		public EclipseNode getTypeNode();
-		
+
 		public ASTNode getSource();
-		
+
 		public List<FieldDeclaration> getRequiredFields();
-		
+
 		public List<FieldDeclaration> getOptionalFields();
-		
+
 		public List<FieldDeclaration> getAllFields();
-		
+
 		public List<String> getRequiredFieldDefTypeNames();
-		
+
 		public List<MethodDeclaration> getRequiredFieldExtensions();
-		
+
 		public List<MethodDeclaration> getOptionalFieldExtensions();
-		
+
 		public int getCreateModifier();
-		
+
 		public String getPrefix();
-		
+
 		public boolean generateConvenientMethods();
-		
+
 		public List<String> getCallMethods();
 	}
 }
