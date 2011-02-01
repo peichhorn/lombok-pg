@@ -1,13 +1,17 @@
 package lombok.eclipse.handlers;
 
+import java.util.Arrays;
+
+import static lombok.eclipse.handlers.EclipseNodeBuilder.annotation;
+
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-
 import lombok.eclipse.EclipseNode;
 
 public class EclipseMethod {
@@ -61,6 +65,15 @@ public class EclipseMethod {
 	
 	public void body(Statement... statements) {
 		get().statements = statements;
+		get().annotations = createSuppressWarningsAll(get(), get().annotations);
+	}
+	
+	public Annotation[] createSuppressWarningsAll(ASTNode source, Annotation[] originalAnnotationArray) {
+		Annotation ann = annotation(source, "java.lang.SuppressWarnings", "all");
+		if (originalAnnotationArray == null) return new Annotation[] { ann };
+		Annotation[] newAnnotationArray = Arrays.copyOf(originalAnnotationArray, originalAnnotationArray.length + 1);
+		newAnnotationArray[originalAnnotationArray.length] = ann;
+		return newAnnotationArray;
 	}
 	
 	public void rebuild() {

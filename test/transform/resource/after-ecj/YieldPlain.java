@@ -6,7 +6,7 @@ class YieldPlain {
     super();
   }
 
-  public Iterator<String> simple() {
+  public @java.lang.SuppressWarnings("all") Iterator<String> simple() {
     class $YielderSimple implements java.util.Iterator<String> {
       private int $state;
       private boolean $hasNext;
@@ -54,7 +54,7 @@ class YieldPlain {
     return new $YielderSimple();
   }
 
-  public Iterator<Long> fib_while() {
+  public @java.lang.SuppressWarnings("all") Iterator<Long> fib_while() {
     class $YielderFibWhile implements java.util.Iterator<Long> {
       private long a;
       private long b;
@@ -122,7 +122,7 @@ class YieldPlain {
     return new $YielderFibWhile();
   }
 
-  public Iterator<Long> fib_while_2() {
+  public @java.lang.SuppressWarnings("all") Iterator<Long> fib_while_2() {
     class $YielderFibWhile2 implements java.util.Iterator<Long> {
       private long a;
       private long b;
@@ -187,7 +187,7 @@ class YieldPlain {
     return new $YielderFibWhile2();
   }
 
-  public Iterable<Long> fib_for() {
+  public @java.lang.SuppressWarnings("all") Iterable<Long> fib_for() {
     class $YielderFibFor implements java.util.Iterator<Long>, java.lang.Iterable<Long> {
       private long a;
       private long b;
@@ -256,11 +256,11 @@ class YieldPlain {
     return new $YielderFibFor();
   }
 
-  public Iterable<String> complex_foreach(final Iterable<Object> objects) {
+  public @java.lang.SuppressWarnings("all") Iterable<String> complex_foreach(final Iterable<Object> objects) {
     class $YielderComplexForeach implements java.util.Iterator<String>, java.lang.Iterable<String> {
       private Object object;
       private Class<?> c;
-      private @java.lang.SuppressWarnings("rawtypes") java.util.Iterator $objectIter;
+      private java.util.Iterator $objectIter;
       private int $state;
       private boolean $hasNext;
       private boolean $nextDefined;
@@ -343,7 +343,7 @@ class YieldPlain {
     return new $YielderComplexForeach();
   }
 
-  public Iterator<String> complex(final Iterator<Object> objects) {
+  public @java.lang.SuppressWarnings("all") Iterator<String> complex(final Iterator<Object> objects) {
     class $YielderComplex implements java.util.Iterator<String> {
       private Object object;
       private Class<?> c;

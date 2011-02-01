@@ -2,6 +2,7 @@ import java.util.Iterator;
 import java.lang.Iterable;
 
 class YieldPlain {
+	@java.lang.SuppressWarnings("all")
 	public Iterator<String> simple() {
 		class $YielderSimple implements java.util.Iterator<java.lang.String> {
 			private int $state;
@@ -44,6 +45,7 @@ class YieldPlain {
 		return new $YielderSimple();
 	}
 
+	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while() {
 		class $YielderFibWhile implements java.util.Iterator<java.lang.Long> {
 			private long a;
@@ -105,6 +107,7 @@ class YieldPlain {
 		return new $YielderFibWhile();
 	}
 
+	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while_2() {
 		class $YielderFibWhile2 implements java.util.Iterator<java.lang.Long> {
 			private long a;
@@ -163,6 +166,7 @@ class YieldPlain {
 		return new $YielderFibWhile2();
 	}
 
+	@java.lang.SuppressWarnings("all")
 	public Iterable<Long> fib_for() {
 		class $YielderFibFor implements java.util.Iterator<java.lang.Long>, java.lang.Iterable<java.lang.Long> {
 			private long a;
@@ -225,11 +229,11 @@ class YieldPlain {
 		return new $YielderFibFor();
 	}
 
+	@java.lang.SuppressWarnings("all")
 	public Iterable<String> complex_foreach(final Iterable<Object> objects) {
 		class $YielderComplexForeach implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
 			private Object object;
 			private Class<?> c;
-			@java.lang.SuppressWarnings("rawtypes")
 			private java.util.Iterator $objectIter;
 			private int $state;
 			private boolean $hasNext;
@@ -305,6 +309,7 @@ class YieldPlain {
 		return new $YielderComplexForeach();
 	}
 
+	@java.lang.SuppressWarnings("all")
 	public Iterator<String> complex(final Iterator<Object> objects) {
 		class $YielderComplex implements java.util.Iterator<java.lang.String> {
 			private Object object;

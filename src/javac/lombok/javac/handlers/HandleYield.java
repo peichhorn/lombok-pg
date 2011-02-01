@@ -147,7 +147,6 @@ public class HandleYield extends JavacASTAdapter {
 		} else if (returnsIterator) {
 			method.body(statements(method.node(), yielderForIterator(yielderName, elementType, variables, stateSwitch, classes)));
 		}
-		
 		method.rebuild();
 		
 		return true;
@@ -225,7 +224,7 @@ public class HandleYield extends JavacASTAdapter {
 				switchCases.append(statement);
 			}
 			switchCases.append(maker.Case(null, list((JCStatement)maker.Return(literal(false)))));
-			return maker.Switch(ident(stateName), switchCases.toList()).toString();
+			return maker.Switch(ident(stateName), switchCases.toList()).toString().replace("%", "%%");
 		}
 
 		public boolean hasYields() {
@@ -572,7 +571,6 @@ public class HandleYield extends JavacASTAdapter {
 					public void refactor() {
 						Name iteratorVarName = name("$" + tree.var.name + "Iter");
 						JCVariableDecl field = varDef(PRIVATE, iteratorVarName, type("java.util.Iterator"));
-						field.mods.annotations = list(maker.Annotation(type("java.lang.SuppressWarnings"), list((JCExpression)maker.Literal("rawtypes"))));
 						stateVariables.append(field);
 						addStatement(assign(iteratorVarName, invoke(tree.expr, name("iterator"))));
 						addStatement(getIterationLabel(this));

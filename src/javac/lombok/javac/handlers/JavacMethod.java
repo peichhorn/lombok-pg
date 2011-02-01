@@ -2,11 +2,15 @@ package lombok.javac.handlers;
 
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.SYNCHRONIZED;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -62,6 +66,18 @@ public class JavacMethod {
 	
 	public void body(List<JCStatement> statements) {
 		get().body = maker.Block(0, statements);
+		addSuppressWarningsAll(get().mods, node(), get().pos);
+	}
+	
+	private void addSuppressWarningsAll(JCModifiers mods, JavacNode node, int pos) {
+		TreeMaker maker = node.getTreeMaker();
+		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings");
+		JCLiteral allLiteral = maker.Literal("all");
+		suppressWarningsType.pos = pos;
+		allLiteral.pos = pos;
+		JCAnnotation annotation = maker.Annotation(suppressWarningsType, List.<JCExpression>of(allLiteral));
+		annotation.pos = pos;
+		mods.annotations = mods.annotations.append(annotation);
 	}
 	
 	public void rebuild() {
