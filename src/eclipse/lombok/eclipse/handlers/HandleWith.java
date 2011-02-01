@@ -28,7 +28,9 @@ import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -58,32 +60,32 @@ import lombok.eclipse.EclipseNode;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleWith extends EclipseASTAdapter {
-	private boolean handled;
-	private String methodName;
+	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 	
 	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
-		handled = false;
+		methodNames.clear();
 		withVarCounter = 0;
 	}
 	
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
 			MessageSend methodCall = (MessageSend) statement;
-			methodName = new String(methodCall.selector);
+			String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
+			methodName += new String(methodCall.selector);
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
 				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
-				} else {
-					handled = handle(statementNode, methodCall);
+				} else if (handle(statementNode, methodCall)) {
+					methodNames.add(methodName);
 				}
 			}
 		}
 	}
 	
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
-		if (handled) {
+		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
 	}

@@ -26,6 +26,9 @@ import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static com.sun.tools.javac.code.Flags.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.mangosdk.spi.ProviderFor;
 
 import com.sun.source.tree.MethodInvocationTree;
@@ -59,32 +62,31 @@ import lombok.javac.JavacNode;
 
 @ProviderFor(JavacASTVisitor.class)
 public class HandleWith extends JavacASTAdapter {
-	private boolean handled;
-	private String methodName;
+	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 	
 	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
-		handled = false;
+		methodNames.clear();
 		withVarCounter = 0;
 	}
 	
 	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
-			methodName = methodCall.meth.toString();
+			String methodName = methodCall.meth.toString();
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
 				final JavacMethod method = JavacMethod.methodOf(statementNode);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
-				} else {
-					handled = handle(statementNode, methodCall);
+				} else if (handle(statementNode, methodCall)) {
+					methodNames.add(methodName);
 				}
 			}
 		}
 	}
 	
 	@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
-		if (handled) {
+		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
 	}

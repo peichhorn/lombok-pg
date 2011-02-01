@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Yield;
 import lombok.javac.JavacASTAdapter;
@@ -89,30 +90,29 @@ public class HandleYield extends JavacASTAdapter {
 	private final static String ITERABLE_IMPORT = ", java.lang.Iterable<%s>";
 	private final static String ITERATOR_METHOD = "public java.util.Iterator<%s> iterator() { return new %s(); }";
 	
-	private boolean handled;
-	private String methodName;
+	private final Set<String> methodNames = new HashSet<String>();
 	
 	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
-		handled = false;
+		methodNames.clear();
 	}
 	
 	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
-			methodName = methodCall.meth.toString();
+			String methodName = methodCall.meth.toString();
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
 				final JavacMethod method = JavacMethod.methodOf(statementNode);
 				if ((method == null) || method.isConstructor()) {
 					method.node().addError(canBeUsedInBodyOfMethodsOnly("yield"));
-				} else {
-					handled = handle(method);
+				} else if (handle(method)) {
+					methodNames.add(methodName);
 				}
 			}
 		}
 	}
 	
 	@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
-		if (handled) {
+		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
 	}

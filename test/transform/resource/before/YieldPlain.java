@@ -3,9 +3,11 @@ import static lombok.Yield.yield;
 import java.util.Iterator;
 import java.lang.Iterable;
 
+import lombok.Yield;
+
 class YieldPlain {
 	public Iterator<String> simple() {
-		yield("A String");
+		Yield.yield("A String");
 	}
 
 	public Iterator<Long> fib_while() {

@@ -1,8 +1,9 @@
 import static lombok.With.with;
 
 import java.awt.Dimension;
-
 import javax.swing.JScrollPane;
+import lombok.With;
+
 class WithPlain {
 	public void test1() {
 		int i = 42;
@@ -14,7 +15,7 @@ class WithPlain {
 		s = lombok.With.with(list1,
 			add("Hello"),
 			add("World")).toString();
-		list2 = lombok.With.with(list1,
+		list2 = With.with(list1,
 				add("Hello"),
 				add("World"));
 		boolean b = true;

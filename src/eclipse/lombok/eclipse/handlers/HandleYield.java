@@ -84,30 +84,30 @@ import lombok.eclipse.EclipseNode;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleYield extends EclipseASTAdapter {
-	private boolean handled;
-	private String methodName;
+	private final Set<String> methodNames = new HashSet<String>();
 	
 	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
-		handled = false;
+		methodNames.clear();
 	}
 	
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
 			MessageSend methodCall = (MessageSend) statement;
-			methodName = new String(methodCall.selector);
+			String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
+			methodName += new String(methodCall.selector);
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
 				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
 				if ((method == null) || method.isConstructor()) {
 					method.node().addError(canBeUsedInBodyOfMethodsOnly("yield"));
-				} else {
-					handled = handle(method);
+				} else if (handle(method)) {
+					methodNames.add(methodName);
 				}
 			}
 		}
 	}
 	
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
-		if (handled) {
+		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
 	}
