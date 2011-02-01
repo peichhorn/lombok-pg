@@ -23,6 +23,7 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.Names.*;
 import static lombok.core.util.Arrays.*;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -38,7 +39,6 @@ import lombok.ReadLock;
 import lombok.Signal;
 import lombok.WriteLock;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
@@ -46,13 +46,9 @@ import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Block;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TryStatement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleConditionAndLock {
@@ -127,10 +123,17 @@ public class HandleConditionAndLock {
 	}
 	
 	public boolean handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
-		String annotationTypeName = annotationType.getSimpleName();
-		if (isNoConcreteMethod(annotationTypeName, annotationNode)) {
+		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+		if (method == null) {
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return false;
 		}
+		if (method.isAbstract()) {
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return false;
+		}
+		
+		String annotationTypeName = annotationType.getSimpleName();
 		
 		boolean lockMode = lockMethod != null;
 		
@@ -139,8 +142,6 @@ public class HandleConditionAndLock {
 			return true; // wrong configured handler, so better stop here
 		}
 		
-		EclipseNode methodNode = annotationNode.up();
-		MethodDeclaration method = (MethodDeclaration)methodNode.get();
 		String completeLockName = createCompleteLockName(lockName);
 		
 		if (!tryToAddLockField(source, annotationNode, completeLockName, lockMode, annotationTypeName)) {
@@ -170,38 +171,34 @@ public class HandleConditionAndLock {
 		
 		List<Statement> tryBlock = new ArrayList<Statement>();
 		tryBlock.addAll(beforeMethodBlock);
-		if (isNotEmpty(method.statements)) {
-			tryBlock.addAll(Arrays.asList(method.statements));
+		if (!method.isEmpty()) {
+			tryBlock.addAll(Arrays.asList(method.get().statements));
 		}
 		tryBlock.addAll(afterMethodBlock);
 		
 		TryStatement tryStatement = new TryStatement();
 		setGeneratedByAndCopyPos(tryStatement, source);
-		tryStatement.tryBlock = new Block(0);
-		setGeneratedByAndCopyPos(tryStatement.tryBlock, source);
-		tryStatement.tryBlock.statements = tryBlock.toArray(new Statement[tryBlock.size()]);
-		tryStatement.finallyBlock = new Block(0);
-		setGeneratedByAndCopyPos(tryStatement.finallyBlock, source);
+		tryStatement.tryBlock = block(source, tryBlock.toArray(new Statement[tryBlock.size()]));
 		if (lockMode) {
-			tryStatement.finallyBlock.statements = array(methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "unlock"));
+			tryStatement.finallyBlock = block(source, methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "unlock"));
 		} else {
-			tryStatement.finallyBlock.statements = array(methodCall(source, fieldReference(source, thisReference(source), completeLockName), "unlock"));
+			tryStatement.finallyBlock = block(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), "unlock"));
 		}
 		if (lockMode) {
-			method.statements = array(methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "lock"), tryStatement);
+			method.body(methodCall(source, methodCall(source, fieldReference(source, thisReference(source), completeLockName), lockMethod), "lock"), tryStatement);
 		} else {
-			method.statements = array(methodCall(source, fieldReference(source, thisReference(source), completeLockName), "lock"), tryStatement);
+			method.body(methodCall(source, fieldReference(source, thisReference(source), completeLockName), "lock"), tryStatement);
 		}
 		if (await != null) {
 			List<TypeReference> thrown = new ArrayList<TypeReference>();
-			if (isNotEmpty(method.thrownExceptions)) {
-				thrown.addAll(Arrays.asList(method.thrownExceptions));
+			if (isNotEmpty(method.get().thrownExceptions)) {
+				thrown.addAll(Arrays.asList(method.get().thrownExceptions));
 			}
 			thrown.add(typeReference(source, "java.lang.InterruptedException"));
-			method.thrownExceptions = thrown.toArray(new TypeReference[thrown.size()]);
+			method.get().thrownExceptions = thrown.toArray(new TypeReference[thrown.size()]);
 		}
 		
-		methodNode.rebuild();
+		method.rebuild();
 		
 		return true;
 	}
@@ -277,20 +274,6 @@ public class HandleConditionAndLock {
 		return true;
 	}
 	
-	private static boolean isNoConcreteMethod(String annotationTypeName, EclipseNode annotationNode) {
-		EclipseNode methodNode = annotationNode.up();
-		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof MethodDeclaration)) {
-			annotationNode.addError(String.format("@%s is legal only on methods.", annotationTypeName));
-			return true;
-		}
-		MethodDeclaration method = (MethodDeclaration)methodNode.get();
-		if (method.isAbstract()) {
-			annotationNode.addError(String.format("@%s is legal only on concrete methods.", annotationTypeName));
-			return true;
-		}
-		return false;
-	}
-	
 	private static void addLockField(ASTNode source, EclipseNode node, String lockName) {
 		AllocationExpression newClassExp = new AllocationExpression();
 		setGeneratedByAndCopyPos(newClassExp, source);
@@ -321,11 +304,8 @@ public class HandleConditionAndLock {
 		}
 		
 		public Statement toStatement(ASTNode source) {
-			Expression expression = methodCall(source, thisReference(source), conditionMethod);
-			Statement action = methodCall(source, fieldReference(source, thisReference(source), condition), "await");
-			WhileStatement whileStatement = new WhileStatement(expression, action, 0, 0);
-			setGeneratedByAndCopyPos(whileStatement, source); 
-			return whileStatement;
+			return whileStatement(source, methodCall(source, thisReference(source), conditionMethod), //
+					methodCall(source, fieldReference(source, thisReference(source), condition), "await"));
 		}
 	}
 	

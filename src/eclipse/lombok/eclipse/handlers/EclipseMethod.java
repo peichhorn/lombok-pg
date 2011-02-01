@@ -1,7 +1,6 @@
 package lombok.eclipse.handlers;
 
-import java.util.Arrays;
-
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseNodeBuilder.annotation;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -12,18 +11,20 @@ import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+
+import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
 
 public class EclipseMethod {
 	private final EclipseNode methodNode;
-	
+
 	private EclipseMethod(final EclipseNode methodNode) {
 		if (!(methodNode.get() instanceof AbstractMethodDeclaration)) {
 			throw new IllegalArgumentException();
 		}
 		this.methodNode = methodNode;
 	}
-	
+
 	public boolean returns(Class<?> clazz) {
 		if (isConstructor()) return false;
 		MethodDeclaration methodDecl = (MethodDeclaration)get();
@@ -37,23 +38,27 @@ public class EclipseMethod {
 		String type = sb.toString();
 		return type.endsWith(clazz.getSimpleName());
 	}
-	
+
 	public boolean isSynchronized() {
 		return !isConstructor() && (get().bits & ASTNode.IsSynchronized) != 0;
 	}
-	
+
 	public boolean isConstructor() {
 		return get() instanceof ConstructorDeclaration;
 	}
-	
+
 	public AbstractMethodDeclaration get() {
 		return (AbstractMethodDeclaration)methodNode.get();
 	}
-	
+
 	public EclipseNode node() {
 		return methodNode;
 	}
-	
+
+	public String name() {
+		return new String(get().selector);
+	}
+
 	public boolean hasNonFinalParameter() {
 		if (get().arguments != null) for (Argument arg : get().arguments) {
 			if ((arg.modifiers & ClassFileConstants.AccFinal) == 0) {
@@ -62,20 +67,28 @@ public class EclipseMethod {
 		}
 		return false;
 	}
-	
+
+	public boolean isAbstract() {
+		return get().isAbstract();
+	}
+
+	public boolean isEmpty() {
+		return Arrays.isEmpty(get().statements);
+	}
+
 	public void body(Statement... statements) {
 		get().statements = statements;
 		get().annotations = createSuppressWarningsAll(get(), get().annotations);
 	}
-	
-	public Annotation[] createSuppressWarningsAll(ASTNode source, Annotation[] originalAnnotationArray) {
+
+	private Annotation[] createSuppressWarningsAll(ASTNode source, Annotation[] originalAnnotationArray) {
 		Annotation ann = annotation(source, "java.lang.SuppressWarnings", "all");
-		if (originalAnnotationArray == null) return new Annotation[] { ann };
-		Annotation[] newAnnotationArray = Arrays.copyOf(originalAnnotationArray, originalAnnotationArray.length + 1);
+		if (originalAnnotationArray == null) return array(ann);
+		Annotation[] newAnnotationArray = resize(originalAnnotationArray, 1);
 		newAnnotationArray[originalAnnotationArray.length] = ann;
 		return newAnnotationArray;
 	}
-	
+
 	public void rebuild() {
 		node().rebuild();
 	}

@@ -34,6 +34,10 @@ public final class Arrays {
 	public static <T> T[] copy(T[] array) {
 		return copyOf(array, array.length);
 	}
+	
+	public static <T> T[] resize(T[] array, int difference) {
+		return copyOf(array, array.length + difference);
+	}
 
 	public static boolean isEmpty(Object[] array) {
 		return array == null || array.length == 0;

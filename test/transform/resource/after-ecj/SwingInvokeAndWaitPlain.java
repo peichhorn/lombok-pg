@@ -4,7 +4,7 @@ class SwingInvokeAndWaitPlain {
   SwingInvokeAndWaitPlain() {
     super();
   }
-  @lombok.SwingInvokeAndWait void test1() throws Exception {
+  @lombok.SwingInvokeAndWait @java.lang.SuppressWarnings("all") void test1() throws Exception {
     final java.lang.Runnable $test1Runnable = new java.lang.Runnable() {
       public @java.lang.Override void run() {
         frame.setTitle("test1");

@@ -13,7 +13,7 @@ class ConditionPlain {
     super();
   }
   
-  @lombok.Signal("canResume") void unpause() {
+  @lombok.Signal("canResume") @java.lang.SuppressWarnings("all") void unpause() {
     this.$canResumeLock.lock();
     try 
       {
@@ -26,7 +26,7 @@ class ConditionPlain {
       }
   }
   
-  @lombok.Await(value = "canResume",conditionMethod = "isPaused") void pause() throws java.lang.InterruptedException {
+  @lombok.Await(value = "canResume",conditionMethod = "isPaused") @java.lang.SuppressWarnings("all") void pause() throws java.lang.InterruptedException {
     this.$canResumeLock.lock();
     try 
       {

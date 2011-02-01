@@ -1,5 +1,6 @@
 package lombok.javac.handlers;
 
+import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.SYNCHRONIZED;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
@@ -56,6 +57,18 @@ public class JavacMethod {
 			}
 		}
 		return false;
+	}
+	
+	public boolean isAbstract() {
+		return (get().mods.flags & ABSTRACT) != 0;
+	}
+
+	public boolean isEmpty() {
+		return get().body == null;
+	}
+
+	public String name() {
+		return node().getName();
 	}
 	
 	public void body(JCStatement... statements) {

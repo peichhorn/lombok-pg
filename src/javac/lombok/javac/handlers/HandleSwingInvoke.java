@@ -25,14 +25,12 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
-import static com.sun.tools.javac.code.Flags.*;
 
 import java.lang.annotation.Annotation;
 
 import lombok.SwingInvokeAndWait;
 import lombok.SwingInvokeLater;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 
@@ -40,7 +38,6 @@ import org.mangosdk.spi.ProviderFor;
 
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 
 /**
  * Handles the {@code lombok.SwingInvokeLater} and {@code lombok.SwingInvokeAndWait} annotation for javac.
@@ -70,30 +67,29 @@ public class HandleSwingInvoke {
 	
 	public boolean generateSwingInvoke(String methodName, Class<? extends Annotation> annotationType, JavacNode annotationNode) {
 		markAnnotationAsProcessed(annotationNode, annotationType);
-		JavacNode methodNode = annotationNode.up();
+		JavacMethod method = JavacMethod.methodOf(annotationNode);
 		
-		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof JCMethodDecl)) {
+		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return true;
 		}
 		
-		JCMethodDecl method = (JCMethodDecl)methodNode.get();
-		if (((method.mods.flags & ABSTRACT) != 0) || ((method.body == null))) {
+		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return true;
 		}
 		
-		TreeMaker maker = methodNode.getTreeMaker();
+		TreeMaker maker = method.node().getTreeMaker();
 		
-		methodNode.get().accept(new ThisReferenceReplaceVisitor(chainDotsString(maker, methodNode, typeNodeOf(methodNode).getName() + ".this")), null);
+		method.get().accept(new ThisReferenceReplaceVisitor(chainDotsString(maker, method.node(), typeNodeOf(method.node()).getName() + ".this")), null);
 		
-		String fieldName = "$" + methodNode.getName() + "Runnable";
+		String fieldName = "$" + method.name() + "Runnable";
 		
 		String elseStatement = String.format(ELSE_STATEMENT, methodName, fieldName);
 		if ("invokeAndWait".equals(methodName)) elseStatement = String.format(TRY_CATCH_BLOCK, elseStatement);
-		method.body = maker.Block(0, statements(methodNode, METHOD_BODY, fieldName, method.body, fieldName, elseStatement));
+		method.body(statements(method.node(), METHOD_BODY, fieldName, method.get().body, fieldName, elseStatement));
 		
-		methodNode.rebuild();
+		method.rebuild();
 		
 		return true;
 	}

@@ -43,7 +43,6 @@ import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -197,12 +196,10 @@ public class HandleEntrypoint {
 		newClassExp.type = typeReference(source, node.getName());
 		
 		List<? extends Expression> arguments = (argsProvider != null) ? argsProvider.getArgs(source, name) : new ArrayList<Expression>();
-		MessageSend callMethod = methodCall(source, newClassExp, methodName, arguments.toArray(new Expression[arguments.size()]));
-		List<Argument> parameters = new ArrayList<Argument>();
-		if (paramProvider != null) {
-			parameters.addAll(paramProvider.getParams(source, name));
-		}
-		method(node, source, PUBLIC | STATIC, "void", name).withThrownException("java.lang.Throwable").withParameters(parameters).withStatement(callMethod).inject();
+		List<Argument> parameters = (paramProvider != null) ? paramProvider.getParams(source, name) : new ArrayList<Argument>();
+		
+		method(node, source, PUBLIC | STATIC, "void", name).withThrownException("java.lang.Throwable").withParameters(parameters) //
+				.withStatement(methodCall(source, newClassExp, methodName, arguments.toArray(new Expression[arguments.size()]))).inject();
 	}
 	
 	public static interface IArgumentProvider {

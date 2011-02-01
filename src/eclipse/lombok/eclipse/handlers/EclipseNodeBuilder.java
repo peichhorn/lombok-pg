@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.*;
@@ -47,6 +48,7 @@ import org.eclipse.jdt.internal.compiler.ast.Assignment;
 import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.EqualExpression;
 import org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
@@ -60,6 +62,7 @@ import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
@@ -132,14 +135,15 @@ public class EclipseNodeBuilder {
 		return assignment;
 	}
 	
-	public static ThrowStatement throwNewException(ASTNode source, String typeName) {
-		return throwNewException(source, typeReference(source, typeName));
+	public static ThrowStatement throwNewException(ASTNode source, String typeName, Expression... args) {
+		return throwNewException(source, typeReference(source, typeName), args);
 	}
 	
-	public static ThrowStatement throwNewException(ASTNode source, TypeReference type) {
+	public static ThrowStatement throwNewException(ASTNode source, TypeReference type, Expression... args) {
 		AllocationExpression initException = new AllocationExpression();
 		setGeneratedByAndCopyPos(initException, source);
 		initException.type = type;
+		initException.arguments = args;
 		ThrowStatement throwStatement = new ThrowStatement(initException, 0, 0);
 		setGeneratedByAndCopyPos(throwStatement, source);
 		return throwStatement;
@@ -164,6 +168,12 @@ public class EclipseNodeBuilder {
 		return ifStatement;
 	}
 	
+	public static IfStatement ifStatement(ASTNode source, Expression condition, Statement then, Statement el$e) {
+		IfStatement ifStatement = new IfStatement(condition, then, el$e, 0, 0);
+		setGeneratedByAndCopyPos(ifStatement, source);
+		return ifStatement;
+	}
+	
 	public static IfStatement ifNotStatement(ASTNode source, Expression condition, Statement then) {
 		UnaryExpression newCondition = new UnaryExpression(condition, OperatorIds.NOT);
 		setGeneratedByAndCopyPos(newCondition, source);
@@ -175,30 +185,42 @@ public class EclipseNodeBuilder {
 		setGeneratedByAndCopyPos(returnStatement, source);
 		return returnStatement;
 	}
-	
+
 	public static ReturnStatement returnStatement(ASTNode source, Expression expr) {
 		ReturnStatement returnStatement = new ReturnStatement(expr, 0, 0);
 		setGeneratedByAndCopyPos(returnStatement, source);
 		return returnStatement;
 	}
-	
+
 	public static Argument argument(ASTNode source, TypeReference type, String argumentName) {
 		Argument arg = new Argument(argumentName.toCharArray(), 0, copyType(type, source), FINAL);
 		setGeneratedByAndCopyPos(arg, source);
 		return arg;
 	}
-	
+
 	public static Argument argument(ASTNode source, String typeName, String argumentName) {
 		return argument(source, typeReference(source, typeName), argumentName);
 	}
-	
+
+	public static EqualExpression equal(ASTNode source, Expression left, Expression right) {
+		EqualExpression equalExpression = new EqualExpression(left, right, OperatorIds.EQUAL_EQUAL);
+		setGeneratedByAndCopyPos(equalExpression, source);
+		return equalExpression;
+	}
+
+	public static EqualExpression notEqual(ASTNode source, Expression left, Expression right) {
+		EqualExpression equalExpression = new EqualExpression(left, right, OperatorIds.NOT_EQUAL);
+		setGeneratedByAndCopyPos(equalExpression, source);
+		return equalExpression;
+	}
+
 	public static Annotation annotation(ASTNode source, String typeName) {
 		TypeReference typeRef = typeReference(source, typeName);
 		MarkerAnnotation ann = new MarkerAnnotation(typeRef, 0);
 		setGeneratedByAndCopyPos(ann, source);
 		return ann;
 	}
-	
+
 	public static Annotation annotation(ASTNode source, String typeName, String value) {
 		TypeReference typeRef = typeReference(source, typeName);
 		SingleMemberAnnotation ann = new SingleMemberAnnotation(typeRef, 0);
@@ -206,7 +228,7 @@ public class EclipseNodeBuilder {
 		setGeneratedByAndCopyPos(ann, source);
 		return ann;
 	}
-	
+
 	public static Literal booleanLiteral(ASTNode source, boolean b) {
 		Literal literal;
 		if (b) {
@@ -217,20 +239,26 @@ public class EclipseNodeBuilder {
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
 	}
-	
+
 	public static Literal intLiteral(ASTNode source, int value) {
 		Literal literal = new IntLiteral(String.valueOf(value).toCharArray(), 0, 0, value);
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
 	}
-	
+
+	public static Literal nullLiteral(ASTNode source) {
+		Literal literal = new NullLiteral(0, 0);
+		setGeneratedByAndCopyPos(literal, source);
+		return literal;
+	}
+
 	public static FieldReference fieldReference(ASTNode source, Expression receiver, String fieldName) {
 		FieldReference fieldRef = new FieldReference(fieldName.toCharArray(), 0);
 		fieldRef.receiver = receiver;
 		setGeneratedByAndCopyPos(fieldRef, source);
 		return fieldRef;
 	}
-	
+
 	public static NameReference nameReference(ASTNode source, String name) {
 		NameReference nameReference;
 		if (name.contains(".")) {
@@ -243,23 +271,28 @@ public class EclipseNodeBuilder {
 
 		return nameReference;
 	}
-	
-	public static TypeReference typeReference(ASTNode source, String typeName, String... paramTypeNames) {
+
+	public static TypeReference typeReference(ASTNode source, String typeName, String firstParamTypeName, String... paramTypeNames) {
+		TypeReference[] paramTypes = new TypeReference[paramTypeNames == null ? 1 : paramTypeNames.length + 1];
+		paramTypes[0] = typeReference(source, firstParamTypeName);
+		if (paramTypeNames != null) for (int i = 0; i < paramTypeNames.length; i++) {
+			paramTypes[i + 1] = typeReference(source, paramTypeNames[i]);
+		}
+		return typeReference(source, typeName, paramTypes);
+	}
+
+	public static TypeReference typeReference(ASTNode source, String typeName, TypeReference... paramTypes) {
 		TypeReference typeReference;
 		int arrayDimensions = 0;
 		while(typeName.endsWith("[]")) {
 			arrayDimensions++;
 			typeName = typeName.substring(0, typeName.length() - 2);
 		}
-		TypeReference[] paramTypes = new TypeReference[paramTypeNames == null ? 0 : paramTypeNames.length];
-		if (paramTypeNames != null) for (int i = 0; i < paramTypeNames.length; i++) {
-			paramTypes[i] = typeReference(source, paramTypeNames[i]);
-		}
 		if (typeName.equals("void")) {
 			return new SingleTypeReference(TypeBinding.VOID.simpleName, 0);
 		} else if (typeName.contains(".")) {
 			char[][] typeNameTokens = fromQualifiedName(typeName);
-			if (paramTypeNames.length > 0) {
+			if (isNotEmpty(paramTypes)) {
 				TypeReference[][] typeArguments = new TypeReference[typeNameTokens.length][];
 				typeArguments[typeNameTokens.length - 1] = paramTypes;
 				typeReference = new ParameterizedQualifiedTypeReference(typeNameTokens, typeArguments, 0, poss(source, typeNameTokens.length));
@@ -272,7 +305,7 @@ public class EclipseNodeBuilder {
 			}
 		} else {
 			char[] typeNameToken = typeName.toCharArray();
-			if (paramTypeNames.length > 0) {
+			if (isNotEmpty(paramTypes)) {
 				typeReference = new ParameterizedSingleTypeReference(typeNameToken, paramTypes, 0, 0);
 			} else {
 				if (arrayDimensions > 0) {

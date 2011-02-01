@@ -82,7 +82,7 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 		}
 	}
 	
-	private boolean hasMultiArgumentConstructor(TypeDeclaration type) {		
+	private boolean hasMultiArgumentConstructor(TypeDeclaration type) {
 		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
 			if ((def instanceof ConstructorDeclaration) && isNotEmpty(def.arguments)) return true;
 		}

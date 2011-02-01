@@ -399,13 +399,6 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private void optimizeBreaks() {
-			// TODO optimize the shit out of this
-			// missing:
-			//   case 2: someThing(); state = 3; continue;
-			//   case 3: someThingElse();
-			//
-			// should be:
-			//   case 2: someThing(); someThingElse();
 			int id = 0;
 			int labelCounter = 0;
 			Statement previous = null;

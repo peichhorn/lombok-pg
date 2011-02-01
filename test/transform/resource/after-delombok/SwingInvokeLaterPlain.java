@@ -2,6 +2,7 @@ import javax.swing.*;
 class SwingInvokeLaterPlain {
 	private final JFrame frame = new JFrame();
 
+	@java.lang.SuppressWarnings("all")
 	void test1() throws Exception {
 		final java.lang.Runnable $test1Runnable = new java.lang.Runnable(){
 			@java.lang.Override

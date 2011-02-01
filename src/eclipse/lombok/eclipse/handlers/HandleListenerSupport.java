@@ -29,16 +29,10 @@ import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
-import org.eclipse.jdt.internal.compiler.ast.IfStatement;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
-import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
-import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -113,19 +107,11 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		// private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE = new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
 		AllocationExpression initialization = new AllocationExpression();
 		setGeneratedByAndCopyPos(initialization, source);
-		initialization.type = createTypeReference(source, "java.util.concurrent.CopyOnWriteArrayList", binding);
+		
+		initialization.type = typeReference(source, "java.util.concurrent.CopyOnWriteArrayList", makeType(binding, source, false));
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		field(typeNode, source, PRIVATE | FINAL, createTypeReference(source, "java.util.List", binding), "$registered" + interfaceName)
+		field(typeNode, source, PRIVATE | FINAL, typeReference(source, "java.util.List", makeType(binding, source, false)), "$registered" + interfaceName)
 			.withInitialization(initialization).inject();
-	}
-	
-	private TypeReference createTypeReference(ASTNode source, String typeName, TypeBinding binding) {
-		char[][] listNameTokens = fromQualifiedName(typeName);
-		TypeReference[][] args = new TypeReference[listNameTokens.length][];
-		args[listNameTokens.length - 1] = array(makeType(binding, source, false));
-		ParameterizedQualifiedTypeReference typeReference = new ParameterizedQualifiedTypeReference(listNameTokens, args, 0, poss(source, listNameTokens.length));
-		setGeneratedByAndCopyPos(typeReference, source);
-		return typeReference;
 	}
 	
 	private void addListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
@@ -134,12 +120,9 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		//     $registeredLISTENER_TYPE.add(l);
 		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		MessageSend containsL = methodCall(source, "$registered" + interfaceName, "contains", nameReference(source, "l"));
-		Expression notContainsL = new UnaryExpression(containsL, OperatorIds.NOT);
-		setGeneratedByAndCopyPos(notContainsL, source);
-		IfStatement ifStatement = new IfStatement(notContainsL, methodCall(source, "$registered" + interfaceName, "add", nameReference(source, "l")), 0, 0);
-		setGeneratedByAndCopyPos(ifStatement, source);
-		method(typeNode, source, PUBLIC, typeReference(source, "void"), "add" + interfaceName).withParameter(makeType(binding, source, false), "l").withStatement(ifStatement).inject();
+		method(typeNode, source, PUBLIC, typeReference(source, "void"), "add" + interfaceName).withParameter(makeType(binding, source, false), "l") //
+				.withStatement(ifNotStatement(source, methodCall(source, "$registered" + interfaceName, "contains", nameReference(source, "l")), //
+						methodCall(source, "$registered" + interfaceName, "add", nameReference(source, "l")))).inject();
 	}
 	
 	private void removeListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {

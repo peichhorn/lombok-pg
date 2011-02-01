@@ -451,13 +451,6 @@ public class HandleYield extends JavacASTAdapter {
 		}
 
 		private void optimizeBreaks() {
-			// TODO optimize the shit out of this
-			// missing:
-			//   case 2: someThing(); state = 3; continue;
-			//   case 3: someThingElse();
-			//
-			// should be:
-			//   case 2: someThing(); someThingElse();
 			int diff = 0;
 			JCCase previous = null;
 			for (int i = 1; i < cases.size(); i++) {

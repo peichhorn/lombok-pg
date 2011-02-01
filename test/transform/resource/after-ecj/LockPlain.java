@@ -8,7 +8,7 @@ class LockPlain {
     super();
   }
   
-  public @lombok.WriteLock("dictionaryLock") void put(String key, String value) {
+  public @lombok.WriteLock("dictionaryLock") @java.lang.SuppressWarnings("all") void put(String key, String value) {
     this.dictionaryLock.writeLock().lock();
     try 
       {
@@ -20,7 +20,7 @@ class LockPlain {
       }
   }
   
-  public @lombok.ReadLock("dictionaryLock") String get(String key) {
+  public @lombok.ReadLock("dictionaryLock") @java.lang.SuppressWarnings("all") String get(String key) {
     this.dictionaryLock.readLock().lock();
     try 
       {

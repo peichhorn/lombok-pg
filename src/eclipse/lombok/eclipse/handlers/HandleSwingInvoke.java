@@ -33,27 +33,19 @@ import java.util.Arrays;
 import lombok.SwingInvokeAndWait;
 import lombok.SwingInvokeLater;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor.IReplacementProvider;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Block;
-import org.eclipse.jdt.internal.compiler.ast.EqualExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.IfStatement;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
-import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
 import org.eclipse.jdt.internal.compiler.ast.TryStatement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
@@ -78,97 +70,63 @@ public class HandleSwingInvoke {
 	}
 	
 	public boolean generateSwingInvoke(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, ASTNode source, EclipseNode annotationNode) {
-		EclipseNode methodNode = annotationNode.up();
+		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 		
-		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof MethodDeclaration)) {
+		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return true;
 		}
 		
-		MethodDeclaration method = (MethodDeclaration)methodNode.get();
-		
-		if (method.isAbstract()) {
+		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return true;
 		}
 		
-		if (isEmpty(method.statements)) return false;
+		replaceWithQualifiedThisReference(method.node(), source);
 		
-		replaceWithQualifiedThisReference(methodNode, source);
+		String field = "$" + camelCase(method.name(), "runnable");
 		
-		String field = "$" + camelCase(new String(method.selector), "runnable");
+		MethodDeclaration runMethod = method(method.node(), source, PUBLIC, "void", "run").withAnnotation("java.lang.Override")
+			.withStatements(Arrays.asList(method.get().statements)).build();
 		
-		MethodDeclaration runMethod = method(methodNode, source, PUBLIC, "void", "run").withAnnotation("java.lang.Override")
-			.withStatements(Arrays.asList(method.statements)).build();
-		
-		TypeDeclaration anonymousType = clazz(methodNode, source, 0, "").withBits(ASTNode.IsAnonymousType | ASTNode.IsLocalType).withMethod(runMethod).build();
+		TypeDeclaration anonymousType = clazz(method.node(), source, 0, "").withBits(ASTNode.IsAnonymousType | ASTNode.IsLocalType).withMethod(runMethod).build();
 		
 		QualifiedAllocationExpression initialization = new QualifiedAllocationExpression(anonymousType);
 		setGeneratedByAndCopyPos(initialization, source);
 		initialization.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		initialization.type = typeReference(source, "java.lang.Runnable");
 		
-		Block thenStatement = new Block(0);
-		setGeneratedByAndCopyPos(thenStatement, source);
-		thenStatement.statements = array(methodCall(source, field, "run"));
+		MessageSend elseStatementRun = methodCall(source, "java.awt.EventQueue", methodName, nameReference(source, field));
 		
-		MessageSend elseStatementRun = methodCall(source, "java.awt.EventQueue", methodName);
-		elseStatementRun.arguments = array(nameReference(source, field));
-		
-		Block elseStatement = new Block(0);
-		setGeneratedByAndCopyPos(elseStatement, source);
+		Block elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
-			elseStatement.statements = array(generateTryCatchBlock(elseStatementRun, source));
+			elseStatement = block(source, generateTryCatchBlock(source, elseStatementRun));
 		} else {
-			elseStatement.statements = array(elseStatementRun);
+			elseStatement = block(source, elseStatementRun);
 		}
 		
-		Expression condition = methodCall(source, "java.awt.EventQueue", "isDispatchThread");
-		
-		method.statements = array(local(methodNode, source, FINAL, "java.lang.Runnable", field).withInitialization(initialization).build(),
-				new IfStatement(condition, thenStatement, elseStatement, 0, 0));
-		setGeneratedByAndCopyPos(method.statements[1], source);
+		method.body( //
+				local(method.node(), source, FINAL, "java.lang.Runnable", field).withInitialization(initialization).build(), //
+				ifStatement(source, methodCall(source, "java.awt.EventQueue", "isDispatchThread"), //
+						block(source, methodCall(source, field, "run")), 
+						elseStatement));
 
-		methodNode.rebuild();
+		method.rebuild();
 
 		return true;
 	}
 
-	private TryStatement generateTryCatchBlock(MessageSend elseStatementRun, ASTNode source) {
-		Argument catchArg1 = argument(source, "java.lang.InterruptedException", "$ex1");
-		Argument catchArg2 = argument(source, "java.lang.reflect.InvocationTargetException", "$ex2");
-		
-		Block block1 = new Block(0);
-		setGeneratedByAndCopyPos(block1, source);
-		
-		AllocationExpression newClassExp = new AllocationExpression();
-		setGeneratedByAndCopyPos(newClassExp, source);
-		newClassExp.type = typeReference(source, "java.lang.RuntimeException");
-		newClassExp.arguments = array(methodCall(source, "$ex2", "getCause"));
-		
-		Statement rethrowStatement = new ThrowStatement(newClassExp, 0, 0);
-		setGeneratedByAndCopyPos(rethrowStatement, source);
-		
-		NullLiteral nullLiteral = new NullLiteral(0, 0);
-		setGeneratedByAndCopyPos(nullLiteral, source);
-		
-		EqualExpression notNullCondition = new EqualExpression(methodCall(source, "$ex2", "getCause"), nullLiteral, OperatorIds.NOT_EQUAL);
-		setGeneratedByAndCopyPos(notNullCondition, source);
-		
-		IfStatement ifStatement = new IfStatement(notNullCondition, rethrowStatement, 0, 0);
-		setGeneratedByAndCopyPos(ifStatement, source);
-		
-		Block block2 = new Block(0);
-		setGeneratedByAndCopyPos(block2, source);
-		block2.statements = array(ifStatement);
+	private TryStatement generateTryCatchBlock(ASTNode source, MessageSend elseStatementRun) {
+		IfStatement ifStatement = ifStatement(source, notEqual(source, methodCall(source, "$ex2", "getCause"), nullLiteral(source)), //
+				throwNewException(source, "java.lang.RuntimeException", methodCall(source, "$ex2", "getCause")));
 		
 		TryStatement tryStatement = new TryStatement();
 		setGeneratedByAndCopyPos(tryStatement, source);
-		tryStatement.tryBlock = new Block(0);
-		setGeneratedByAndCopyPos(tryStatement.tryBlock, source);
-		tryStatement.tryBlock.statements = array(elseStatementRun);
-		tryStatement.catchArguments = array(catchArg1, catchArg2);
-		tryStatement.catchBlocks = array(block1, block2);
+		tryStatement.tryBlock = block(source, elseStatementRun);
+		tryStatement.catchArguments = array(
+				argument(source, "java.lang.InterruptedException", "$ex1"), 
+				argument(source, "java.lang.reflect.InvocationTargetException", "$ex2"));
+		tryStatement.catchBlocks = array(block(source), block(source, ifStatement));
 		return tryStatement;
 	}
 
