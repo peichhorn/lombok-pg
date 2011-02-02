@@ -1,0 +1,19 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+
+class WithExample {	
+	public JFrame createApplicationFrame() {
+		JFrame $with1 = new JFrame();
+		$with1.setTitle("Application");
+		$with1.setResizable(false);
+		$with1.setFrameIcon(ICON);
+		$with1.setLayout(new BorderLayout());
+		$with1.add(new JButton(new CancelAction()), BorderLayout.SOUTH);
+		$with1.pack();
+		$with1.setVisible(true);
+		return $with1;
+	}
+}

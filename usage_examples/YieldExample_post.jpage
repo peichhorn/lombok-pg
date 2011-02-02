@@ -1,0 +1,129 @@
+public class YieldExample {
+	public void test() {
+		for (Long fib : filterMod(5, fibunacci())) {
+			System.out.println(fib);
+		}
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public Iterable<Long> fibunacci() {
+		class $YielderFibunacci implements Iterator<Long>, Iterable<Long> {
+			private long a;
+			private long b;
+			private long c;
+			private int $state;
+			private boolean $hasNext;
+			private boolean $nextDefined;
+			private Long $next;
+
+			public Iterator<Long> iterator() {
+				return new $YielderFibunacci();
+			}
+			
+			public boolean hasNext() {
+				if (!$nextDefined) {
+					$hasNext = getNext();
+					$nextDefined = true;
+				}
+				return $hasNext;
+			}
+			
+			public Long next() {
+				if (!hasNext()) throw new NoSuchElementException();
+				$nextDefined = false;
+				return $next;
+			}
+			
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+			
+			private boolean getNext() {
+				while (true) switch ($state) {
+				case 0:
+					a = 0;
+					b = 1;
+				case 1:
+					if (!(b <= 0)) {
+						$state = 3;
+						continue;
+					}
+					$next = a;
+					$state = 2;
+					return true;
+				case 2:
+					c = a + b;
+					a = b;
+					b = c;
+					$state = 1;
+					continue;
+				case 3: 
+				default: 
+					return false;
+				}
+			}
+		}
+		return new $YielderFibunacci();
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public Iterable<Long> filterMod(final long mod, final Iterable<Long> values) {
+		class $YielderFilterMod implements Iterator<Long>, Iterable<Long> {
+			private Long value;
+			private Iterator $valueIter;
+			private int $state;
+			private boolean $hasNext;
+			private boolean $nextDefined;
+			private Long $next;
+			
+			public Iterator<Long> iterator() {
+				return new $YielderFilterMod();
+			}
+			
+			public boolean hasNext() {
+				if (!$nextDefined) {
+					$hasNext = getNext();
+					$nextDefined = true;
+				}
+				return $hasNext;
+			}
+			
+			public Long next() {
+				if (!hasNext()) throw new NoSuchElementException();
+				$nextDefined = false;
+				return $next;
+			}
+			
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+			
+			private boolean getNext() {
+				while (true) switch ($state) {
+				case 0:
+					$valueIter = values.iterator();
+				case 1:
+					if (!$valueIter.hasNext()) {
+						$state = 3;
+						continue;
+					}
+					value = (Long)$valueIter.next();
+					if (!((value.longValue() % mod) == 0)) {
+						$state = 2;
+						continue;
+					}
+					$next = value;
+					$state = 2;
+					return true;
+				case 2:
+					$state = 1;
+					continue;
+				case 3: 
+				default: 
+					return false;
+				}
+			}
+		}
+		return new $YielderFilterMod();
+	}
+}

@@ -1,0 +1,4 @@
+public class FluentSetterExample<T> {
+	@FluentSetter
+	private String s;
+}

@@ -1,0 +1,11 @@
+public enum SingletonExample {
+	INSTANCE;
+	
+	private String s;
+	
+	public void foo() {
+	}
+	
+	public bar bar() {
+	}
+}

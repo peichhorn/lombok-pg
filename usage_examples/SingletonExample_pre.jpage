@@ -1,0 +1,10 @@
+@lombok Singleton
+public class SingletonExample {
+	private String s;
+	
+	public void foo() {
+	}
+	
+	public bar bar() {
+	}
+}
