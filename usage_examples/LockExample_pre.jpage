@@ -1,0 +1,19 @@
+import java.util.Map;
+import java.util.HashMap;
+
+import lombok.ReadLock;
+import lombok.WriteLock;
+
+class LockExample {
+	private Map<String, String> dictionary = new HashMap<String, String>();
+	
+	@WriteLock("dictionaryLock")
+	public void put(String key, String value) {
+		dictionary.put(key, value);
+	}
+	
+	@ReadLock("dictionaryLock")
+	public String get(String key) {
+		return dictionary.get(key);
+	}
+}

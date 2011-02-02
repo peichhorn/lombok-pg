@@ -1,0 +1,23 @@
+import java.util.List;
+
+import lombok.Builder;
+
+@Builder(prefix="with")
+class BuilderExample {
+	private final String text;
+	private final int id;
+	private String optionalVal1 = "default";
+	private List<Long> optionalVal2;
+	private long optionalVal3;
+	
+	@lombok.BuilderExtension
+	private void withIdAndText(String id, String text) {
+		this.id = Integer.valueOf(id);
+		this.text = text;
+	}
+	
+	@lombok.BuilderExtension
+	private void withOptionalVal1(Class<?> clazz) {
+		this.optionalVal1 = clazz.getSimpleName();
+	}
+}

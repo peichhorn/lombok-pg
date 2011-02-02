@@ -1,6 +1,8 @@
 import java.awt.event.KeyListener
 import java.awt.event.MouseWheelListener
 
-@lombok.ListenerSupport({KeyListener.class, MouseWheelListener.class})
+import lombok.ListenerSupport;
+
+@ListenerSupport({KeyListener.class, MouseWheelListener.class})
 class ListenerSupportExample {
 }

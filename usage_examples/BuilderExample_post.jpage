@@ -1,0 +1,84 @@
+import java.util.List;
+
+class BuilderExample {
+	private final String text;
+	private final int id;
+	private String optionalVal1;
+	private List<Long> optionalVal2;
+	private long optionalVal3;
+	
+	@java.lang.SuppressWarnings("all")
+	private BuilderExample(final $Builder builder) {
+		this.text = builder.text;
+		this.id = builder.id;
+		this.optionalVal1 = builder.optionalVal1;
+		this.optionalVal2 = builder.optionalVal2;
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static $TextDef create() {
+		return new $Builder();
+	}
+	
+	public static interface $TextDef {
+		$IdDef withText(final String arg0);
+		
+		$OptionalDef withIdAndText(String id, String text);
+	}
+	
+	public static interface $IdDef {
+		$OptionalDef withId(final int arg0);
+	}
+	
+	public static interface $OptionalDef {
+		$OptionalDef withOptionalVal1(final String arg0);
+		
+		$OptionalDef withOptionalVal2(final List<Long> arg0);
+		
+		BuilderPlain1 build();
+		
+		$OptionalDef withOptionalVal1(Class<?> clazz);
+	}
+	
+	private static class $Builder implements $TextDef, $IdDef, $OptionalDef {
+		private String text;
+		private int id;
+		private String optionalVal1 = "default";
+		private List<Long> optionalVal2;
+		
+		public $IdDef withText(final String arg0) {
+			this.text = arg0;
+			return this;
+		}
+		
+		public $OptionalDef withIdAndText(String id, String text) {
+			this.id = Integer.valueOf(id);
+			this.text = text;
+			return this;
+		}
+		
+		public $OptionalDef withId(final int arg0) {
+			this.id = arg0;
+			return this;
+		}
+		
+		public $OptionalDef withOptionalVal1(final String arg0) {
+			this.optionalVal1 = arg0;
+			return this;
+		}
+		
+		public $OptionalDef withOptionalVal2(final List<Long> arg0) {
+			this.optionalVal2 = arg0;
+			return this;
+		}
+		
+		public BuilderExample build() {
+			return new BuilderExample(this);
+		}
+		
+		public $OptionalDef withOptionalVal1(Class<?> clazz) {
+			this.optionalVal1 = clazz.getSimpleName();
+			return this;
+		}
+	}
+}

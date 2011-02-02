@@ -1,0 +1,18 @@
+import lombok.AccessLevel;
+import lombok.Await;
+import lombok.Getter;
+import lombok.Signal;
+
+class ConditionExample {
+	@Getter(AccessLevel.PRIVATE)
+	private volatile boolean paused;
+	
+	@Signal("canResume")
+	void unpause() {
+		paused = false;
+	}
+	
+	@Await(value = "canResume", conditionMethod="isPaused")
+	void pause() {
+	}
+}

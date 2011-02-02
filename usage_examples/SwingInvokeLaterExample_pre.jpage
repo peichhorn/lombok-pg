@@ -1,0 +1,13 @@
+import javax.swing.JFrame;
+
+import lombok.SwingInvokeLater;
+
+class SwingInvokeLaterExample {
+
+	@SwingInvokeLater
+	void createUI() {
+		JFrame frame = new JFrame()
+		frame.setTitle("Application");
+		frame.setVisible(true);
+	}
+}
