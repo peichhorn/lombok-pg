@@ -23,12 +23,14 @@ package lombok.core.util;
 
 import java.lang.annotation.Annotation;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Error messages
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ErrorMessages {
-	private ErrorMessages() {
-	}
 
 	public static String canBeUsedOnConcreteClassOnly(Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on concrete classes only", annotationType);

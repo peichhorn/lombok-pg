@@ -22,19 +22,25 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.*;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.annotation;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Annotation;
+import static lombok.eclipse.handlers.ast.ASTBuilder.String;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.ExpressionBuilder;
+import lombok.eclipse.handlers.ast.StatementBuilder;
 
 public class EclipseMethod {
 	private final EclipseNode methodNode;
@@ -103,15 +109,29 @@ public class EclipseMethod {
 
 	public void body(Statement... statements) {
 		get().statements = statements;
-		get().annotations = createSuppressWarningsAll(get(), get().annotations);
+		Annotation[] originalAnnotationArray = get().annotations;
+		Annotation ann = Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), get());
+		if (originalAnnotationArray == null) {
+			get().annotations = array(ann);
+			return;
+		}
+		get().annotations  = resize(originalAnnotationArray, originalAnnotationArray.length + 1);
+		get().annotations [originalAnnotationArray.length] = ann;
 	}
-
-	private Annotation[] createSuppressWarningsAll(ASTNode source, Annotation[] originalAnnotationArray) {
-		Annotation ann = annotation(source, "java.lang.SuppressWarnings", "all");
-		if (originalAnnotationArray == null) return array(ann);
-		Annotation[] newAnnotationArray = resize(originalAnnotationArray, 1);
-		newAnnotationArray[originalAnnotationArray.length] = ann;
-		return newAnnotationArray;
+	
+	public void body(final StatementBuilder<? extends Block> body) {
+		body(body.build(node(), get()).statements);
+	}
+	
+	public void withException(final ExpressionBuilder<? extends TypeReference> exception) {
+		TypeReference[] originalThrownExceptionsArray = get().thrownExceptions;
+		TypeReference thrown = exception.build(node(), get());
+		if (originalThrownExceptionsArray == null) {
+			get().thrownExceptions = array(thrown);
+			return;
+		}
+		get().thrownExceptions = resize(originalThrownExceptionsArray, originalThrownExceptionsArray.length + 1);
+		get().thrownExceptions[originalThrownExceptionsArray.length] = thrown;
 	}
 
 	public void rebuild() {

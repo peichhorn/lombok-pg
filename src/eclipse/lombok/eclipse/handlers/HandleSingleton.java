@@ -23,9 +23,8 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
+import static lombok.eclipse.handlers.Eclipse.*;
+import static lombok.eclipse.handlers.ast.ASTBuilder.EnumConstant;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
@@ -35,11 +34,9 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
@@ -64,12 +61,7 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 		typeDecl.modifiers |= 0x00004000; // Modifier.ENUM
 		replaceConstructorVisibility(typeDecl);
 
-		AllocationExpression initialization = new AllocationExpression();
-		setGeneratedByAndCopyPos(initialization, source);
-		initialization.enumConstant = field(typeNode, source, 0, (TypeReference)null, "INSTANCE")
-			.withInitialization(initialization).build();
-
-		injectField(typeNode, initialization.enumConstant);
+		EnumConstant("INSTANCE").injectInto(typeNode, source);
 
 		typeNode.rebuild();
 

@@ -27,9 +27,11 @@ import static java.lang.Character.isUpperCase;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Names {
-	private Names() {
-	}
 	/**
 	 * <pre>
 	 * null        -> null

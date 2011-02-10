@@ -21,18 +21,69 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.eclipse.Eclipse.setGeneratedBy;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createSuppressWarningsAll;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseNode;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {
-	private Eclipse() {
+	
+	public static void setGeneratedByAndCopyPos(ASTNode target, ASTNode source) {
+		setGeneratedBy(target, source);
+		copyPosTo(target, source);
+	}
+	
+	public static void injectType(EclipseNode typeNode, TypeDeclaration type) {
+		type.annotations = createSuppressWarningsAll(type, type.annotations);
+		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
+
+		if (parent.memberTypes == null) {
+			parent.memberTypes = new TypeDeclaration[]{ type };
+		} else {
+			TypeDeclaration[] newArray = new TypeDeclaration[parent.memberTypes.length + 1];
+			System.arraycopy(parent.memberTypes, 0, newArray, 0, parent.memberTypes.length);
+			newArray[parent.memberTypes.length] = type;
+			parent.memberTypes = newArray;
+		}
+		typeNode.add(type, Kind.TYPE).recursiveSetHandled();
+	}
+
+	public static void copyPosTo(ASTNode target, ASTNode source) {
+		target.sourceStart = source.sourceStart;
+		target.sourceEnd = source.sourceEnd;
+		if (target instanceof AbstractMethodDeclaration) {
+			((AbstractMethodDeclaration)target).bodyStart = source.sourceStart;
+			((AbstractMethodDeclaration)target).bodyEnd = source.sourceEnd;
+		} else if (target instanceof TypeDeclaration) {
+			((TypeDeclaration)target).bodyStart = source.sourceStart;
+			((TypeDeclaration)target).bodyEnd = source.sourceEnd;
+		} else if (target instanceof AbstractVariableDeclaration) {
+			target.sourceStart = target.sourceEnd = 0;
+			((AbstractVariableDeclaration)target).declarationSourceEnd  = -1;
+		}
+		if (target instanceof Expression) {
+			((Expression)target).statementEnd = source.sourceEnd;
+		}
+		if (target instanceof Annotation) {
+			((Annotation)target).declarationSourceEnd = source.sourceEnd;
+		}
 	}
 
 	public static boolean isMethodCallValid(EclipseNode node, String methodName, Class<?> clazz, String method) {

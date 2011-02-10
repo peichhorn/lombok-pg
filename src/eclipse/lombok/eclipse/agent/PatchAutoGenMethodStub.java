@@ -31,12 +31,15 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
+import lombok.AccessLevel;
 import lombok.AutoGenMethodStub;
+import lombok.NoArgsConstructor;
 import lombok.eclipse.handlers.HandleAutoGenMethodStub;
 import lombok.patcher.*;
 
 // TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 // should be the last annotation to avoid major issues, once again.. curve ball
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PatchAutoGenMethodStub {
 
 	static void addPatches(ScriptManager sm, boolean ecj) {

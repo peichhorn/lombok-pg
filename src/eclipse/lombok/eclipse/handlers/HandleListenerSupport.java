@@ -3,10 +3,9 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.eclipse.Eclipse.*;
-import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.lang.reflect.Method;
@@ -20,16 +19,15 @@ import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.agent.PatchListenerSupport;
+import lombok.eclipse.handlers.ast.ExpressionBuilder;
+import lombok.eclipse.handlers.ast.StatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
-import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -70,9 +68,9 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 				continue;
 			}
 			addListenerField(typeNode, ann, binding);
-			addListenerMethod(typeNode, ann, binding);
-			removeListenerMethod(typeNode, ann, binding);
-			fireListenerMethod(typeNode, ann, binding);
+			addAddListenerMethod(typeNode, ann, binding);
+			addRemoveListenerMethod(typeNode, ann, binding);
+			addFireListenerMethod(typeNode, ann, binding);
 		}
 		return;
 	}
@@ -105,66 +103,58 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 
 	private void addListenerField(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE = new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
-		AllocationExpression initialization = new AllocationExpression();
-		setGeneratedByAndCopyPos(initialization, source);
-
-		initialization.type = typeReference(source, "java.util.concurrent.CopyOnWriteArrayList", makeType(binding, source, false));
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		field(typeNode, source, PRIVATE | FINAL, typeReference(source, "java.util.List", makeType(binding, source, false)), "$registered" + interfaceName)
-			.withInitialization(initialization).inject();
+		FieldDef(Type("java.util.List").withTypeArgument(Type(makeType(binding, source, false))), "$registered" + interfaceName).makePrivateFinal() //
+			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(makeType(binding, source, false))))).injectInto(typeNode, source);
 	}
 
-	private void addListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
+	private void addAddListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
 		//   if (!$registeredLISTENER_TYPE.contains(l))
 		//     $registeredLISTENER_TYPE.add(l);
 		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		method(typeNode, source, PUBLIC, typeReference(source, "void"), "add" + interfaceName).withParameter(makeType(binding, source, false), "l") //
-				.withStatement(ifNotStatement(source, methodCall(source, "$registered" + interfaceName, "contains", nameReference(source, "l")), //
-						methodCall(source, "$registered" + interfaceName, "add", nameReference(source, "l")))).inject();
+		MethodDef(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
+			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
+					.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))).injectInto(typeNode, source);
 	}
 
-	private void removeListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
+	private void addRemoveListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
 		//   $registeredLISTENER_TYPE.remove(l);
 		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		method(typeNode, source, PUBLIC, typeReference(source, "void"), "remove" + interfaceName).withParameter(makeType(binding, source, false), "l")
-				.withStatement(methodCall(source, "$registered" + interfaceName, "remove", nameReference(source, "l"))).inject();
+		MethodDef(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
+			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))).injectInto(typeNode, source);
 	}
 
 
-	private void fireListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
+	private void addFireListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// protected void fireMETHOD_NAME(METHOD_PARAMETER) {
 		//   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
-		//     $registeredLISTENER_TYPE.METHOD_NAME(METHOD_ARGUMENTS);
+		//     l.METHOD_NAME(METHOD_ARGUMENTS);
 		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		List<MethodBinding> methods = getInterfaceMethods(binding);
 		for (MethodBinding methodBinding : methods) {
 			String methodName = new String(methodBinding.selector);
-			LocalDeclaration local = local(typeNode, source, 0, makeType(binding, source, false), "l").build();
-			ForeachStatement forEach = new ForeachStatement(local, 0);
-			setGeneratedByAndCopyPos(forEach, source);
-			forEach.collection = nameReference(source, "$registered" + interfaceName);
-			List<Expression> args = new ArrayList<Expression>();
-			List<Argument> params = new ArrayList<Argument>();
+			List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
+			List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
 			createParamsAndArgs(source, methodBinding, params, args);
-			forEach.action = methodCall(source, "l", methodName, args.toArray(new Expression[args.size()]));
-			method(typeNode, source, PROTECTED, typeReference(source, "void"), camelCase("fire", methodName)).withParameters(params)
-				.withStatement(forEach).inject();
+			MethodDef(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
+				.withStatement(ForEach(LocalDef(Type(makeType(binding, source, false)), "l")).In(Name("$registered" + interfaceName)) //
+					.Do(Call(Name("l"), methodName).withArguments(args))).injectInto(typeNode, source);
 		}
 	}
 
-	private void createParamsAndArgs(ASTNode source, MethodBinding methodBinding , List<Argument> params, List<Expression> args) {
+	private void createParamsAndArgs(ASTNode source, MethodBinding methodBinding , List<StatementBuilder<? extends Argument>> params, List<ExpressionBuilder<? extends Expression>> args) {
 		if (isEmpty(methodBinding.parameters)) return;
 		int argCounter = 0;
 		String arg;
 		for (TypeBinding parameter : methodBinding.parameters) {
 			arg = " arg" + argCounter++;
-			params.add(argument(source, makeType(parameter, source, false), arg));
-			args.add(nameReference(source, arg));
+			params.add(Arg(Type(makeType(parameter, source, false)), arg));
+			args.add(Name(arg));
 		}
 	}
 

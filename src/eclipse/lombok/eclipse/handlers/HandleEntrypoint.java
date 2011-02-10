@@ -26,21 +26,23 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.methodExists;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult.NOT_EXISTS;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import lombok.Application;
 import lombok.JvmAgent;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.ExpressionBuilder;
+import lombok.eclipse.handlers.ast.StatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
@@ -63,14 +65,18 @@ public class HandleEntrypoint {
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<? extends Expression> getArgs(ASTNode source, String name) {
-				return Arrays.asList(nameReference(source, "args"));
+			@Override public List<ExpressionBuilder<? extends Expression>> getArgs(String name) {
+				List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
+				args.add(Name("args"));
+				return args;
 			}
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<Argument> getParams(ASTNode source, String name) {
-				return Arrays.asList(argument(source, "java.lang.String[]", "args"));
+			@Override public List<StatementBuilder<? extends Argument>> getParams(String name) {
+				List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
+				params.add(Arg(Type("java.lang.String[]"), "args"));
+				return params;
 			}
 		}
 	}
@@ -92,31 +98,29 @@ public class HandleEntrypoint {
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<? extends Expression> getArgs(ASTNode source, String name) {
-				List<Expression> argsRef = new ArrayList<Expression>();
-				argsRef.add(booleanLiteral(source, "agentmain".equals(name)));
-				argsRef.add(nameReference(source, "params"));
-				argsRef.add(nameReference(source, "instrumentation"));
-				return argsRef;
+			@Override public List<ExpressionBuilder<? extends Expression>> getArgs(String name) {
+				List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
+				args.add(("agentmain".equals(name) ? True() : False()));
+				args.add(Name("params"));
+				args.add(Name("instrumentation"));
+				return args;
 			}
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<Argument> getParams(ASTNode source, String name) {
-				List<Argument> params = new ArrayList<Argument>();
-				params.add(argument(source, "java.lang.String", "params"));
-				params.add(argument(source, "java.lang.instrument.Instrumentation", "instrumentation"));
+			@Override public List<StatementBuilder<? extends Argument>> getParams(String name) {
+				List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
+				params.add(Arg(Type("java.lang.String"), "params"));
+				params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
 				return params;
 			}
 		}
 	}
 
+	@RequiredArgsConstructor
 	private static  abstract class EclipseEntrypointHandler extends EclipseASTAdapter {
+		@NonNull
 		private final Class<?> interfaze;
-
-		public EclipseEntrypointHandler(Class<?> interfaze) {
-			this.interfaze = interfaze;
-		}
 
 		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
 			boolean implementsInterface = false;
@@ -181,7 +185,7 @@ public class HandleEntrypoint {
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public static void createEntrypoint(EclipseNode node, ASTNode source, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
+	public static void createEntrypoint(EclipseNode node, ASTNode source, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
 		if (methodExists(methodName, node, false) == NOT_EXISTS) {
 			node.addWarning(String.format("The method '%s' is missing, not generating entrypoint 'public static void %s'.", methodName, name));
 			return;
@@ -190,23 +194,17 @@ public class HandleEntrypoint {
 		if (entrypointExists(name, node)) {
 			return;
 		}
-
-		AllocationExpression newClassExp = new AllocationExpression();
-		setGeneratedByAndCopyPos(newClassExp, source);
-		newClassExp.type = typeReference(source, node.getName());
-
-		List<? extends Expression> arguments = (argsProvider != null) ? argsProvider.getArgs(source, name) : new ArrayList<Expression>();
-		List<Argument> parameters = (paramProvider != null) ? paramProvider.getParams(source, name) : new ArrayList<Argument>();
-
-		method(node, source, PUBLIC | STATIC, "void", name).withThrownException("java.lang.Throwable").withParameters(parameters) //
-				.withStatement(methodCall(source, newClassExp, methodName, arguments.toArray(new Expression[arguments.size()]))).inject();
+		
+		MethodDef(Type("void"), name).withModifiers(PUBLIC | STATIC).withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
+				.withStatement(Call(New(Type(node.getName())), methodName).withArguments(argsProvider.getArgs(name))) //
+				.injectInto(node, source);
 	}
 
 	public static interface IArgumentProvider {
-		public List<? extends Expression> getArgs(ASTNode source, String name);
+		public List<ExpressionBuilder<? extends Expression>> getArgs(String name);
 	}
 
 	public static interface IParameterProvider {
-		public List<Argument> getParams(ASTNode source, String name);
+		public List<StatementBuilder<? extends Argument>> getParams(String name);
 	}
 }

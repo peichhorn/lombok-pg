@@ -22,10 +22,11 @@
 package lombok.core.util;
 
 import static java.util.Arrays.copyOf;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Arrays {
-	private Arrays() {
-	}
 
 	public static <T> T[] array(T...elements) {
 		return elements;
@@ -35,8 +36,8 @@ public final class Arrays {
 		return copyOf(array, array.length);
 	}
 
-	public static <T> T[] resize(T[] array, int difference) {
-		return copyOf(array, array.length + difference);
+	public static <T> T[] resize(T[] array, int newSize) {
+		return copyOf(array, newSize);
 	}
 
 	public static boolean isEmpty(Object[] array) {

@@ -1,6 +1,8 @@
 package lombok.eclipse.agent;
 
 import static lombok.core.util.Arrays.isNotEmpty;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
@@ -10,6 +12,7 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Patches {
 	public static final String CLASSSCOPE = "org.eclipse.jdt.internal.compiler.lookup.ClassScope";
 	public static final String METHODVERIFIER = "org.eclipse.jdt.internal.compiler.lookup.MethodVerifier";
@@ -19,9 +22,6 @@ final class Patches {
 	public static final String TYPEDECLARATION = "org.eclipse.jdt.internal.compiler.ast.TypeDeclaration";
 	public static final String METHODDECLARATION = "org.eclipse.jdt.internal.compiler.ast.MethodDeclaration";
 	public static final String PROBLEMREPORTER = "org.eclipse.jdt.internal.compiler.problem.ProblemReporter";
-
-	private Patches() {
-	}
 
 	public static boolean hasAnnotations(TypeDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);

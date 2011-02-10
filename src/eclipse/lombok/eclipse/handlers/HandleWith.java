@@ -21,11 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,6 +56,7 @@ import lombok.With;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.ExpressionWrapper;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleWith extends EclipseASTAdapter {
@@ -103,8 +103,8 @@ public class HandleWith extends EclipseASTAdapter {
 			withExprName = withExpr.toString();
 		} else if (withExpr instanceof AllocationExpression) {
 			withExprName = "$with" + (withVarCounter++);
-			withCallStatements.add(local(methodCallNode, source, FINAL, ((AllocationExpression)withExpr).type, withExprName).withInitialization(withExpr).build());
-			withExpr = nameReference(source, withExprName);
+			withCallStatements.add(LocalDef(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(new ExpressionWrapper<Expression>(withExpr)).build(methodCallNode, source));
+			withExpr = Name(withExprName).build(methodCallNode, source);
 		} else {
 			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
 			return false;
@@ -234,7 +234,7 @@ public class HandleWith extends EclipseASTAdapter {
 			if (expr == null) return null;
 			if (expr instanceof ThisReference) {
 				if ((expr.bits & ASTNode.IsImplicitThis) != 0) {
-					return nameReference(source, withExprName);
+					return Name(withExprName).build(null, source);
 				} else {
 					expr.bits |= ASTNode.IsImplicitThis;
 				}
@@ -246,7 +246,7 @@ public class HandleWith extends EclipseASTAdapter {
 			} else if (expr instanceof FieldReference) {
 				Expression receiver = ((FieldReference)expr).receiver;
 				if (receiver instanceof ThisReference) {
-					return nameReference(source, new String(((FieldReference)expr).token));
+					return Name(new String(((FieldReference)expr).token)).build(null, source);
 				}
 			}
 			return expr;

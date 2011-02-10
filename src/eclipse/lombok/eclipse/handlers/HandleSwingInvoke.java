@@ -22,14 +22,10 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Names.camelCase;
 import static lombok.eclipse.handlers.Eclipse.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
-import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
-
-import java.util.Arrays;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import lombok.RequiredArgsConstructor;
 import lombok.SwingInvokeAndWait;
 import lombok.SwingInvokeLater;
 import lombok.core.AnnotationValues;
@@ -37,16 +33,15 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor.IReplacementProvider;
+import lombok.eclipse.handlers.ast.MessageSendBuilder;
+import lombok.eclipse.handlers.ast.StatementBuilder;
+import lombok.eclipse.handlers.ast.TryStatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.IfStatement;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.TryStatement;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
@@ -88,48 +83,36 @@ public class HandleSwingInvoke {
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
-		MethodDeclaration runMethod = method(method.node(), source, PUBLIC, "void", "run").withAnnotation("java.lang.Override")
-			.withStatements(Arrays.asList(method.get().statements)).build();
+		MessageSendBuilder elseStatementRun = Call(Name("java.awt.EventQueue"), methodName).withArgument(Name(field));
 
-		TypeDeclaration anonymousType = clazz(method.node(), source, 0, "").withBits(ASTNode.IsAnonymousType | ASTNode.IsLocalType).withMethod(runMethod).build();
-
-		QualifiedAllocationExpression initialization = new QualifiedAllocationExpression(anonymousType);
-		setGeneratedByAndCopyPos(initialization, source);
-		initialization.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-		initialization.type = typeReference(source, "java.lang.Runnable");
-
-		MessageSend elseStatementRun = methodCall(source, "java.awt.EventQueue", methodName, nameReference(source, field));
-
-		Block elseStatement;
+		StatementBuilder<? extends Statement> elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
-			elseStatement = block(source, generateTryCatchBlock(source, elseStatementRun));
+			elseStatement =  Block().withStatement(generateTryCatchBlock(elseStatementRun));
 		} else {
-			elseStatement = block(source, elseStatementRun);
+			elseStatement = Block().withStatement(elseStatementRun);
 		}
-
-		method.body( //
-				local(method.node(), source, FINAL, "java.lang.Runnable", field).withInitialization(initialization).build(), //
-				ifStatement(source, methodCall(source, "java.awt.EventQueue", "isDispatchThread"), //
-						block(source, methodCall(source, field, "run")),
-						elseStatement));
+				
+		method.body(Block() //
+				.withStatement(LocalDef(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable"), //
+						ClassDef("").makeAnonymous().makeLocal() //
+							.withMethod(MethodDef(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //
+								.withStatements(method.get().statements))))) //
+				.withStatement(If(Call(Name("java.awt.EventQueue"), "isDispatchThread")) //
+						.Then(Block().withStatement(Call(Name(field), "run"))) //
+						.Else(elseStatement)));
 
 		method.rebuild();
 
 		return true;
 	}
 
-	private TryStatement generateTryCatchBlock(ASTNode source, MessageSend elseStatementRun) {
-		IfStatement ifStatement = ifStatement(source, notEqual(source, methodCall(source, "$ex2", "getCause"), nullLiteral(source)), //
-				throwNewException(source, "java.lang.RuntimeException", methodCall(source, "$ex2", "getCause")));
-
-		TryStatement tryStatement = new TryStatement();
-		setGeneratedByAndCopyPos(tryStatement, source);
-		tryStatement.tryBlock = block(source, elseStatementRun);
-		tryStatement.catchArguments = array(
-				argument(source, "java.lang.InterruptedException", "$ex1"),
-				argument(source, "java.lang.reflect.InvocationTargetException", "$ex2"));
-		tryStatement.catchBlocks = array(block(source), block(source, ifStatement));
-		return tryStatement;
+	private TryStatementBuilder generateTryCatchBlock(MessageSendBuilder elseStatementRun) {
+		return Try(Block() //
+				.withStatement(elseStatementRun)) //
+			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block())
+			.Catch(Arg(Type("java.lang.reflect.InvocationTargetException"), "$ex2"), Block() //
+				.withStatement(If(NotEqual(Call(Name("$ex2"), "getCause"), Null()))
+						.Then(Throw(New(Type("java.lang.RuntimeException")).withArgument(Call(Name("$ex2"), "getCause"))))));
 	}
 
 	private static void replaceWithQualifiedThisReference(final EclipseNode node, final ASTNode source) {
@@ -144,18 +127,13 @@ public class HandleSwingInvoke {
 		}
 	}
 
+	@RequiredArgsConstructor
 	private static class HandleSwingInvokeReplacementProvider implements IReplacementProvider {
 		private final String typeName;
 		private final ASTNode source;
 
-		public HandleSwingInvokeReplacementProvider(String typeName, ASTNode source) {
-			super();
-			this.typeName = typeName;
-			this.source = source;
-		}
-
 		@Override public Expression getReplacement() {
-			return thisReference(source, typeReference(source, typeName));
+			return This(Type(typeName)).build(null, source);
 		}
 	}
 }

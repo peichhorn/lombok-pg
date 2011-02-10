@@ -16,7 +16,7 @@ import java.util.HashMap;
   public static @java.lang.SuppressWarnings("all") interface $TextDef {
     public $IdDef text(final String text);
     
-    public $OptionalDef idAndText(final String id, final String text);
+    public $OptionalDef idAndText(String id, String text);
   }
   
   public static @java.lang.SuppressWarnings("all") interface $IdDef {
@@ -30,7 +30,7 @@ import java.util.HashMap;
     
     public BuilderPlain1 build();
     
-    public $OptionalDef optionalVal1(final Class<?> clazz);
+    public $OptionalDef optionalVal1(Class<?> clazz);
   }
   
   private static @java.lang.SuppressWarnings("all") class $Builder implements $TextDef, $IdDef, $OptionalDef {
@@ -44,7 +44,7 @@ import java.util.HashMap;
       return this;
     }
     
-    public @lombok.BuilderExtension $OptionalDef idAndText(final String id, final String text) {
+    public @lombok.BuilderExtension $OptionalDef idAndText(String id, String text) {
       this.id = java.lang.Integer.valueOf(id);
       this.text = text;
       return this;
@@ -69,7 +69,7 @@ import java.util.HashMap;
       return new BuilderPlain1(this);
     }
     
-    public @lombok.BuilderExtension $OptionalDef optionalVal1(final Class<?> clazz) {
+    public @lombok.BuilderExtension $OptionalDef optionalVal1(Class<?> clazz) {
       this.optionalVal1 = clazz.getSimpleName();
       return this;
     }

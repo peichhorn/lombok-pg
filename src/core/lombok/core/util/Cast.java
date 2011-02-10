@@ -1,6 +1,10 @@
 package lombok.core.util;
 
-public class Cast {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class Cast {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] uncheckedCast(Object[] o) {
 		return (T[]) o;

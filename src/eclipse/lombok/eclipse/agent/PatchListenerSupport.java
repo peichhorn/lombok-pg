@@ -28,14 +28,17 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
+import lombok.AccessLevel;
 import lombok.ListenerSupport;
+import lombok.NoArgsConstructor;
 import lombok.eclipse.handlers.HandleListenerSupport;
 import lombok.patcher.Hook;
 import lombok.patcher.MethodTarget;
 import lombok.patcher.ScriptManager;
 import lombok.patcher.StackRequest;
 
-public class PatchListenerSupport {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class PatchListenerSupport {
 	static void addPatches(ScriptManager sm, boolean ecj) {
 		sm.addScript(exitEarly()
 				.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))

@@ -24,12 +24,14 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
-import static lombok.eclipse.handlers.EclipseNodeBuilder.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.FluentSetter;
@@ -40,10 +42,13 @@ import lombok.core.handlers.TransformationsUtil;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.FieldAccess;
+import lombok.eclipse.handlers.ast.ExpressionBuilder;
+import lombok.eclipse.handlers.ast.ExpressionWrapper;
+import lombok.eclipse.handlers.ast.MethodDeclarationBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
@@ -169,27 +174,18 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
 
-		TypeReference returnType;
-		if (isNotEmpty(parent.typeParameters)) {
-			TypeReference[] refs = new TypeReference[parent.typeParameters.length];
-			int idx = 0;
-			for (TypeParameter param : parent.typeParameters) {
-				refs[idx++] = typeReference(source, new String(param.name));
-			}
-			returnType = typeReference(source, new String(parent.name), refs);
-		} else returnType = typeReference(source, new String(parent.name));
-
-		Argument param = argument(source, field.type, new String(field.name));
-		Annotation[] copiedAnnotations = copyAnnotations(source, nonNulls, nullables, onParam);
-		if (isNotEmpty(copiedAnnotations)) param.annotations = copiedAnnotations;
-
-		MethodBuilder builder = method(fieldNode, source, modifier, returnType, name).withParameter(param);
+		List<ExpressionBuilder<? extends TypeReference>> refs = new ArrayList<ExpressionBuilder<? extends TypeReference>>();
+		if (isNotEmpty(parent.typeParameters)) for (TypeParameter param : parent.typeParameters) {
+			refs.add(Type(new String(param.name)));
+		}
+		
+		MethodDeclarationBuilder builder = MethodDef(Type(new String(parent.name)).withTypeArguments(refs), name).withModifiers(modifier) //
+			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(copyAnnotations(source, nonNulls, nullables, onParam)));
 		if (isNotEmpty(nonNulls)) {
 			Statement nullCheck = generateNullCheck(field, source);
-			if (nullCheck != null) builder.withStatement(nullCheck);
+			if (nullCheck != null) builder.withStatements(nullCheck);
 		}
-		builder.withAssignStatement(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source), nameReference(source, new String(field.name)))
-			.withReturnStatement(thisReference(source));
-		return builder.build();
+		return builder.withStatement(Assign(new ExpressionWrapper<Expression>(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source)), Name(new String(field.name)))) //
+			.withStatement(Return(This())).build(fieldNode, source);
 	}
 }
