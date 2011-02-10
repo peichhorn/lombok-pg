@@ -194,7 +194,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		builderMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).withModifiers(PUBLIC | AccImplementing).withArguments(extension.arguments).withAnnotations(extension.annotations) //
 			.withStatements(extension.statements) //
 			.withStatement(Return(This())));
-		interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).withModifiers(PUBLIC).withNoBody().withArguments(extension.arguments));
+		interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).makePublic().withNoBody().withArguments(extension.arguments));
 	}
 
 	private void createFluentSetter(IBuilderData builderData, String typeName, FieldDeclaration field, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
@@ -204,7 +204,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		builderMethods.add(MethodDef(Type(typeName), methodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 			.withStatement(Assign(Field(This(), fieldName), Name(fieldName))) //
 			.withStatement(Return(This())));
-		interfaceMethods.add(MethodDef(Type(typeName), methodName).withModifiers(PUBLIC).withNoBody().withArgument(arg0));
+		interfaceMethods.add(MethodDef(Type(typeName), methodName).makePublic().withNoBody().withArgument(arg0));
 	}
 
 	private void createCollectionSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
@@ -244,7 +244,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), addMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "add").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), addMethodName).withModifiers(PUBLIC).withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), addMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 		{ // addAll
 			String addAllMethodName = camelCase(builderData.getPrefix(), fieldName);
@@ -252,7 +252,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), addAllMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "addAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), addAllMethodName).withModifiers(PUBLIC).withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), addAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 	}
 
@@ -303,7 +303,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), putMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0).withArgument(arg1) //
 				.withStatement(Call(Field(This(), fieldName), "put").withArgument(Name("arg0")).withArgument(Name("arg1"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), putMethodName).withModifiers(PUBLIC).withNoBody().withArgument(arg0).withArgument(arg1));
+			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), putMethodName).makePublic().withNoBody().withArgument(arg0).withArgument(arg1));
 		}
 		{ // putAll
 			String putAllMethodName = camelCase(builderData.getPrefix(), fieldName);
@@ -311,7 +311,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), putAllMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "putAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), putAllMethodName).withModifiers(PUBLIC).withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), putAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 	}
 
@@ -355,7 +355,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private void createBuildMethod(IBuilderData builderData, String typeName, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
 		builderMethods.add(MethodDef(Type(typeName), "build").withModifiers(PUBLIC | AccImplementing) //
 			.withStatement(Return(New(Type(typeName)).withArgument(This()))));
-		interfaceMethods.add(MethodDef(Type(typeName), "build").withModifiers(PUBLIC).withNoBody());
+		interfaceMethods.add(MethodDef(Type(typeName), "build").makePublic().withNoBody());
 	}
 
 	private void createMethodCall(IBuilderData builderData, String method, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
@@ -387,7 +387,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			builderMethods.add(MethodDef(returnType, method).withModifiers(PUBLIC | AccImplementing).withThrownExceptions(thrown) //
 				.withStatement(Return(call)));
 		}
-		interfaceMethods.add(MethodDef(returnType, method).withModifiers(PUBLIC).withNoBody().withThrownExceptions(thrown));
+		interfaceMethods.add(MethodDef(returnType, method).makePublic().withNoBody().withThrownExceptions(thrown));
 	}
 
 	private void createBuilder(IBuilderData builderData, List<ExpressionBuilder<? extends TypeReference>> interfaceTypes, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {

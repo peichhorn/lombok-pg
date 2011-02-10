@@ -109,9 +109,9 @@ public class HandleSwingInvoke {
 	private TryStatementBuilder generateTryCatchBlock(MessageSendBuilder elseStatementRun) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
-			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block())
+			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //
 			.Catch(Arg(Type("java.lang.reflect.InvocationTargetException"), "$ex2"), Block() //
-				.withStatement(If(NotEqual(Call(Name("$ex2"), "getCause"), Null()))
+				.withStatement(If(NotEqual(Call(Name("$ex2"), "getCause"), Null())) //
 						.Then(Throw(New(Type("java.lang.RuntimeException")).withArgument(Call(Name("$ex2"), "getCause"))))));
 	}
 

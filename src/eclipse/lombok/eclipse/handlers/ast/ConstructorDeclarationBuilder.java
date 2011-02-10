@@ -2,7 +2,6 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
-import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccSemicolonBody;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -36,8 +35,6 @@ public class ConstructorDeclarationBuilder extends AbstractMethodDeclarationBuil
 		proto.arguments = buildArguments(node, source);
 		if (!statements.isEmpty()) {
 			proto.statements = buildStatements(node, source);
-		} else {
-			proto.modifiers |= AccSemicolonBody;
 		}
 		return proto;
 	}

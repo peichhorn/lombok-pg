@@ -75,7 +75,7 @@ public class HandleEntrypoint {
 		private static class ParameterProvider implements IParameterProvider {
 			@Override public List<StatementBuilder<? extends Argument>> getParams(String name) {
 				List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
-				params.add(Arg(Type("java.lang.String[]"), "args"));
+				params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
 				return params;
 			}
 		}

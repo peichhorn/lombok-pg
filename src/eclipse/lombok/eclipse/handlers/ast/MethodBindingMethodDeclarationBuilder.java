@@ -91,7 +91,7 @@ public class MethodBindingMethodDeclarationBuilder extends AbstractMethodDeclara
 		proto.bits |=  bits | ECLIPSE_DO_NOT_TOUCH_FLAG;
 		proto.arguments = buildArguments(node, source);
 		
-		if (noBody || (modifiers & AccAbstract) != 0) {
+		if (noBody || ((modifiers & AccAbstract) != 0)) {
 			proto.modifiers |= AccSemicolonBody;
 		} else {
 			proto.statements = buildStatements(node, source);
