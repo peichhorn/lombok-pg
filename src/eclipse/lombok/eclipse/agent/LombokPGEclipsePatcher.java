@@ -47,5 +47,6 @@ public class LombokPGEclipsePatcher extends Agent {
 	private void patchEcjTransformers(ScriptManager sm, boolean ecj) {
 		PatchListenerSupport.addPatches(sm, ecj);
 		PatchAutoGenMethodStub.addPatches(sm, ecj);
+		PatchVisibleForTesting.addPatches(sm, ecj);
 	}
 }

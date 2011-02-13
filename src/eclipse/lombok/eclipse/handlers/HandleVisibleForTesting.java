@@ -1,5 +1,5 @@
 /*
- * Copyright Â© 2011 Philipp Eichhorn
+ * Copyright © 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,30 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers.ast;
+package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
+import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.FieldReference;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.core.AnnotationValues;
+import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.EclipseMethod;
+import lombok.VisibleForTesting;
 
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-public final class FieldReferenceBuilder implements ExpressionBuilder<FieldReference> {
-	private ExpressionBuilder<? extends Expression> receiver = new ThisReferenceBuilder(true);
-	private final String name;
-	
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.mangosdk.spi.ProviderFor;
+
+@ProviderFor(EclipseAnnotationHandler.class)
+public class HandleVisibleForTesting implements EclipseAnnotationHandler<VisibleForTesting > {
+
 	@Override
-	public FieldReference build(final EclipseNode node, final ASTNode source) {
-		FieldReference fieldRef = new FieldReference(name.toCharArray(), 0);
-		fieldRef.receiver = receiver.build(node, source);
-		setGeneratedByAndCopyPos(fieldRef, source);
-		return fieldRef;
+	public boolean handle(AnnotationValues<VisibleForTesting> annotation, Annotation ast, EclipseNode annotationNode) {
+		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+		if (method == null) {
+			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
+			return false;
+		}
+		if (method.isAbstract()) {
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
+			return false;
+		}
+		
+		return true;
 	}
 }

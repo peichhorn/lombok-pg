@@ -23,6 +23,9 @@ package lombok.javac.handlers;
 
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.FINAL;
+import static com.sun.tools.javac.code.Flags.PRIVATE;
+import static com.sun.tools.javac.code.Flags.PROTECTED;
+import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.SYNCHRONIZED;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import lombok.javac.JavacNode;
@@ -137,5 +140,24 @@ public class JavacMethod {
 			methodNode = methodNode.up();
 		}
 		return methodNode == null ? null : new JavacMethod(methodNode);
+	}
+
+	public void makePrivate() {
+		makePackagePrivate();
+		get().mods.flags |= PRIVATE;
+	}
+	
+	public void makePackagePrivate() {
+		get().mods.flags &= ~(PRIVATE |PROTECTED | PUBLIC);
+	}
+	
+	public void makeProtected() {
+		makePackagePrivate();
+		get().mods.flags |= PROTECTED;
+	}
+	
+	public void makePublic() {
+		makePackagePrivate();
+		get().mods.flags |= PUBLIC;
 	}
 }

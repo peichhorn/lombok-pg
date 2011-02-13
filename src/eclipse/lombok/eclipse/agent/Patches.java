@@ -22,7 +22,13 @@ final class Patches {
 	public static final String TYPEDECLARATION = "org.eclipse.jdt.internal.compiler.ast.TypeDeclaration";
 	public static final String METHODDECLARATION = "org.eclipse.jdt.internal.compiler.ast.MethodDeclaration";
 	public static final String PROBLEMREPORTER = "org.eclipse.jdt.internal.compiler.problem.ProblemReporter";
-
+	public static final String SCOPE = "org.eclipse.jdt.internal.compiler.lookup.Scope";
+	public static final String REFERENCEBINDING = "org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding";
+	public static final String CHARS = "char[]";
+	public static final String TYPEBINDING = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding";
+	public static final String TYPEBINDINGS = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding[]";
+	public static final String INVOCATIONSITE = "org.eclipse.jdt.internal.compiler.lookup.InvocationSite";
+	
 	public static boolean hasAnnotations(TypeDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);
 	}

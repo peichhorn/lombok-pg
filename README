@@ -9,6 +9,7 @@ The current extensions are:
   - @WriteLock, @ReadLock, @Await, @Signal, @AwaitBeforeAndSignalAfter
   - @Singleton
   - @SwingInvokeLater and @SwingInvokeAndWait
+  - @VisibleForTesting
   - Interfaces lombok.Application and lombok.JVMAgent (Entrypoint Generation)
   - With.with(object, expr1, expr2, ...)
   - Yield.yield(object)
