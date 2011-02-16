@@ -92,7 +92,7 @@ public class HandleSwingInvoke {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
 				
-		method.body(Block() //
+		method.body(source, Block() //
 				.withStatement(LocalDef(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable"), //
 						ClassDef("").makeAnonymous().makeLocal() //
 							.withMethod(MethodDef(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //

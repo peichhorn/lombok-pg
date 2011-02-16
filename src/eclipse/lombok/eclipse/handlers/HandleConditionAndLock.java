@@ -176,7 +176,7 @@ public class HandleConditionAndLock {
 			unLockCall = Call(Field(This(), completeLockName), "unlock");
 		}
 		
-		method.body(Block() //
+		method.body(source, Block() //
 			.withStatement(lockCall)
 			.withStatement(Try(Block() //
 				.withStatements(beforeMethodBlock) //
@@ -186,6 +186,7 @@ public class HandleConditionAndLock {
 				.withStatement(unLockCall) //
 			) //
 		));
+
 		if (await != null) {
 			method.withException(Type("java.lang.InterruptedException"));
 		}

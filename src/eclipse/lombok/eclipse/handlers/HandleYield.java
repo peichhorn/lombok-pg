@@ -168,7 +168,7 @@ public class HandleYield extends EclipseASTAdapter {
 			.withTypes(classes) //
 			.build(method.node(), source);
 
-		method.body(yielder, Return(New(Type(yielderName))).build(method.node(), source));
+		method.body(source, yielder, Return(New(Type(yielderName))).build(method.node(), source));
 		method.rebuild();
 
 		return true;

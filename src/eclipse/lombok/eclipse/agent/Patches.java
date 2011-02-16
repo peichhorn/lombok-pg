@@ -54,7 +54,7 @@ final class Patches {
 
 	public static EclipseNode getTypeNode(TypeDeclaration decl) {
 		CompilationUnitDeclaration cud = decl.scope.compilationUnitScope().referenceContext;
-		EclipseAST astNode = TransformEclipseAST.getAST(cud, true);
+		EclipseAST astNode = TransformEclipseAST.getAST(cud, false);
 		return astNode.get(decl);
 	}
 }

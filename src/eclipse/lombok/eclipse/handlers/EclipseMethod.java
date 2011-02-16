@@ -23,6 +23,7 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import static lombok.eclipse.handlers.ast.ASTBuilder.Annotation;
 import static lombok.eclipse.handlers.ast.ASTBuilder.String;
 import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
@@ -108,21 +109,22 @@ public class EclipseMethod {
 		return node().getAst().isCompleteParse();
 	}
 
-	public void body(Statement... statements) {
+	public void body(ASTNode source, Statement... statements) {
+		setGeneratedByAndCopyPos(get(), source);
+		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		get().statements = statements;
 		Annotation[] originalAnnotationArray = get().annotations;
-		Annotation ann = Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), get());
+		Annotation ann = Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), source);
 		if (originalAnnotationArray == null) {
 			get().annotations = array(ann);
 			return;
 		}
-		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-		get().annotations  = resize(originalAnnotationArray, originalAnnotationArray.length + 1);
+		get().annotations = resize(originalAnnotationArray, originalAnnotationArray.length + 1);
 		get().annotations [originalAnnotationArray.length] = ann;
 	}
 	
-	public void body(final StatementBuilder<? extends Block> body) {
-		body(body.build(node(), get()).statements);
+	public void body(ASTNode source, final StatementBuilder<? extends Block> body) {
+		body(source, body.build(node(), source).statements);
 	}
 	
 	public void withException(final ExpressionBuilder<? extends TypeReference> exception) {

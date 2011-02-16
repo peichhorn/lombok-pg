@@ -45,30 +45,20 @@ public class PatchAutoGenMethodStub {
 	static void addPatches(ScriptManager sm, boolean ecj) {
 		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
+				.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 				.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
 				.build());
 
 		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
-				.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
-				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
-				.build());
-
-		sm.addScript(replaceMethodCall()
-				.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
-				.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
-				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
-				.build());
-
-		sm.addScript(replaceMethodCall()
 				.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 				.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
 				.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
 				.build());
 	}
 
-	private static boolean issueWasFixed = false;
+	private static boolean issueWasFixed;
 
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);

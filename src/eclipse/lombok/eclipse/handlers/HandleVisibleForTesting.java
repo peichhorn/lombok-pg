@@ -34,7 +34,7 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
-public class HandleVisibleForTesting implements EclipseAnnotationHandler<VisibleForTesting > {
+public class HandleVisibleForTesting implements EclipseAnnotationHandler<VisibleForTesting> {
 
 	@Override
 	public boolean handle(AnnotationValues<VisibleForTesting> annotation, Annotation ast, EclipseNode annotationNode) {

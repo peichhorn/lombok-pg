@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers.ast;
 
 import static lombok.eclipse.Eclipse.copyType;
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
@@ -35,6 +36,8 @@ class TypeReferenceWrapper implements ExpressionBuilder<TypeReference> {
 	
 	@Override
 	public TypeReference build(EclipseNode node, ASTNode source) {
-		return copyType(expression, source);
+		TypeReference typeReference = copyType(expression, source);
+		setGeneratedByAndCopyPos(typeReference, source);
+		return typeReference;
 	}
 }
