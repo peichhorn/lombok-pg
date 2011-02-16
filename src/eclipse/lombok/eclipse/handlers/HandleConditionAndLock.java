@@ -150,7 +150,7 @@ public class HandleConditionAndLock {
 			tryToAddConditionField(source, annotationNode, signal, completeLockName, annotationTypeName);
 		}
 
-		if (!annotationNode.isCompleteParse()) {
+		if (!method.wasCompletelyParsed()) {
 			return false; // we need the method body
 		}
 

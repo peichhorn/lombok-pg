@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.*;
+import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.ast.ASTBuilder.Annotation;
 import static lombok.eclipse.handlers.ast.ASTBuilder.String;
 import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
@@ -115,6 +116,7 @@ public class EclipseMethod {
 			get().annotations = array(ann);
 			return;
 		}
+		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		get().annotations  = resize(originalAnnotationArray, originalAnnotationArray.length + 1);
 		get().annotations [originalAnnotationArray.length] = ann;
 	}
