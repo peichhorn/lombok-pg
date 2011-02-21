@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
@@ -34,7 +33,6 @@ public class StatementWrapper<NODE_TYPE extends Statement> implements StatementB
 	
 	@Override
 	public NODE_TYPE build(EclipseNode node, ASTNode source) {
-		setGeneratedByAndCopyPos(statement, source);
 		return statement;
 	}
 }
