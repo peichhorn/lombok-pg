@@ -5,7 +5,7 @@ class BuilderPlain0 {
 	private final String text;
 	private final int id;
 	
-	public void create() {
+	public void builderPlain0() {
 	}
 }
 class BuilderPlain1 {
@@ -29,7 +29,7 @@ class BuilderPlain1 {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static $TextDef create() {
+	public static $TextDef builderPlain1() {
 		return new $Builder();
 	}
 	
@@ -109,7 +109,7 @@ class BuilderPlain2 {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static $OptionalDef create() {
+	public static $OptionalDef builderPlain2() {
 		return new $Builder();
 	}
 	
@@ -180,7 +180,7 @@ class BuilderPlain3 {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	static $TextDef create() {
+	static $TextDef builderPlain3() {
 		return new $Builder();
 	}
 	

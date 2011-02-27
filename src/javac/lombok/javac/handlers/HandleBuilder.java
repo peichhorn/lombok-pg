@@ -23,6 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.javac.handlers.Javac.*;
 import static lombok.core.util.ErrorMessages.canBeUsedOnClassOnly;
+import static lombok.core.util.Names.decapitalize;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
@@ -65,7 +66,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 	private final static String CONSTRUCTOR_ASSIGN = "this.%s = builder.%s;";
 	private final static String OPTIONAL_DEF = "$OptionalDef";
 	private final static String BUILDER = "$Builder";
-	private final static String CREATE_METHOD = "%s static %s create() { return new $Builder(); }";
+	private final static String CREATE_METHOD = "%s static %s %s() { return new $Builder(); }";
 	private final static String BUILDER_METHOD_CALL_ARG1 = "public %s %s(final %s arg0) { this.%s.%s(arg0); return this; }";
 	private final static String BUILDER_METHOD_ASSIGN_ARG1 = "public %s %s(final %s arg0) { this.%s=arg0; return this; }";
 	private final static String BUILDER_METHOD_CALL_ARG2 = "public %s %s(final %s arg0, final %s arg1) { this.%s.%s(arg0, arg1); return this; }";
@@ -83,11 +84,11 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			return true;
 		}
 
-		switch (methodExists("create", typeNode, false)) {
+		switch (methodExists(decapitalize(typeNode.getName()), typeNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
 		case EXISTS_BY_USER:
-			annotationNode.addWarning(String.format("Not generating 'public static %s create()' A method with that name already exists", BUILDER));
+			annotationNode.addWarning(String.format("Not generating 'public static %s %s()' A method with that name already exists", BUILDER, decapitalize(typeNode.getName())));
 			return true;
 		default:
 		case NOT_EXISTS:
@@ -109,7 +110,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			assignments.append(String.format(CONSTRUCTOR_ASSIGN, field.name, field.name));
 		}
 		constructor(typeNode, CONSTRUCTOR, assignments).inject();
-		method(typeNode, CREATE_METHOD, Flags.toString(builderData.getCreateModifier()), fieldDefTypeName).inject();
+		method(typeNode, CREATE_METHOD, Flags.toString(builderData.getCreateModifier()), fieldDefTypeName, decapitalize(typeNode.getName())).inject();
 
 		ListBuffer<JCTree> builderMethods = ListBuffer.lb();
 		createRequiredFieldInterfaces(builderData, builderMethods);

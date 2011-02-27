@@ -6,7 +6,7 @@ class BuilderPlain0 {
 	private final String text;
 	private final int id;
 	
-	public void create() {
+	public void builderPlain0() {
 	}
 }
 @lombok.Builder(exclude={"optionalVal3"}, convenientMethods=false)

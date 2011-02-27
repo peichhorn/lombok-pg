@@ -47,6 +47,11 @@ public class Names {
 		return (isNotEmpty(s) && (s.length() > 2) && (s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
 	}
 
+	public static String decapitalize(final String s) {
+		if (s == null) return "";
+		return s.substring(0, 1).toLowerCase() + s.substring(1);
+	}
+
 	public static String removeCurlyBrackets(String s) {
 		String trimmed = trim(s);
 		if (isEmpty(trimmed)) return s;

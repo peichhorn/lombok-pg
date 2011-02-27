@@ -9,7 +9,7 @@ import java.util.HashMap;
     super();
   }
   
-  public void create() {
+  public void builderPlain0() {
   }
 }
 @lombok.Builder(exclude = {"optionalVal3"},convenientMethods = false) class BuilderPlain1 {
@@ -92,7 +92,7 @@ import java.util.HashMap;
     this.optionalVal2 = builder.optionalVal2;
   }
   
-  public static @java.lang.SuppressWarnings("all") $TextDef create() {
+  public static @java.lang.SuppressWarnings("all") $TextDef builderPlain1() {
     return new $Builder();
   }
   
@@ -165,7 +165,7 @@ import java.util.HashMap;
     this.optionalVal3 = builder.optionalVal3;
   }
   
-  public static @java.lang.SuppressWarnings("all") $OptionalDef create() {
+  public static @java.lang.SuppressWarnings("all") $OptionalDef builderPlain2() {
     return new $Builder();
   }
 }
@@ -231,7 +231,7 @@ import java.util.HashMap;
     this.id = builder.id;
   }
   
-  static @java.lang.SuppressWarnings("all") $TextDef create() {
+  static @java.lang.SuppressWarnings("all") $TextDef builderPlain3() {
     return new $Builder();
   }
   

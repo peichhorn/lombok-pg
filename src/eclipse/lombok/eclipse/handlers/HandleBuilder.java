@@ -83,11 +83,11 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			return true;
 		}
 
-		switch (methodExists("create", typeNode, false)) {
+		switch (methodExists(decapitalize(typeNode.getName()), typeNode, false)) {
 		case EXISTS_BY_LOMBOK:
 			return true;
 		case EXISTS_BY_USER:
-			annotationNode.addWarning(String.format("Not generating 'public static %s create()' A method with that name already exists", BUILDER));
+			annotationNode.addWarning(String.format("Not generating 'public static %s %s()' A method with that name already exists", BUILDER, decapitalize(typeNode.getName())));
 			return true;
 		default:
 		case NOT_EXISTS:
@@ -124,7 +124,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	}
 
 	private void createCreateMethod(final IBuilderData builderData, final ExpressionBuilder<? extends TypeReference> fieldDefType) {
-		MethodDef(fieldDefType, "create").withModifiers(STATIC | builderData.getCreateModifier()).withStatement(Return(New(Type(BUILDER)))) //
+		MethodDef(fieldDefType, decapitalize(builderData.getTypeNode().getName())).withModifiers(STATIC | builderData.getCreateModifier()).withStatement(Return(New(Type(BUILDER)))) //
 			.injectInto(builderData.getTypeNode(), builderData.getSource());
 	}
 
