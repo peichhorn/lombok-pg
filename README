@@ -11,6 +11,7 @@ The current extensions are:
   - @SwingInvokeLater and @SwingInvokeAndWait
   - @VisibleForTesting
   - Interfaces lombok.Application and lombok.JVMAgent (Entrypoint Generation)
+  - Tuple.tuple(var1, var2, ...) = Tuple.tuple(expr1, expr2, ...) - tuple assignment
   - With.with(object, expr1, expr2, ...)
   - Yield.yield(object)
 

@@ -1,0 +1,293 @@
+/*
+ * Copyright © 2011 Philipp Eichhorn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package lombok.eclipse.handlers;
+
+import static lombok.core.util.Arrays.sameSize;
+import static lombok.core.util.ErrorMessages.canBeUsedInBodyOfMethodsOnly;
+import static lombok.eclipse.handlers.Eclipse.deleteMethodCallImports;
+import static lombok.eclipse.handlers.Eclipse.isMethodCallValid;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Assign;
+import static lombok.eclipse.handlers.ast.ASTBuilder.LocalDef;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Name;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+import lombok.Tuple;
+import lombok.eclipse.EclipseASTAdapter;
+import lombok.eclipse.EclipseASTVisitor;
+import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.ExpressionWrapper;
+
+import org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
+import org.eclipse.jdt.internal.compiler.ast.Assignment;
+import org.eclipse.jdt.internal.compiler.ast.Block;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.ThisReference;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
+import org.mangosdk.spi.ProviderFor;
+
+@ProviderFor(EclipseASTVisitor.class)
+public class HandleTuple extends EclipseASTAdapter {
+	private final Set<String> methodNames = new HashSet<String>();
+	private int withVarCounter;
+
+	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+		methodNames.clear();
+		withVarCounter = 0;
+	}
+
+	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
+		if (statement instanceof Assignment) {
+			final Assignment assignment = (Assignment) statement;
+			final MessageSend leftTupleCall = getTupelCall(statementNode, assignment.lhs);
+			final MessageSend rightTupleCall = getTupelCall(statementNode, assignment.expression);
+			if ((leftTupleCall != null) && (rightTupleCall != null)) {
+				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
+				if (method == null) {
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("tuple"));
+				} else if (handle(statementNode, leftTupleCall, rightTupleCall)) {
+					methodNames.add(getMethodName(leftTupleCall));
+					methodNames.add(getMethodName(rightTupleCall));
+				}
+			}
+		}
+	}
+	
+	private MessageSend getTupelCall(EclipseNode node, Expression expression) {
+		if (expression instanceof MessageSend) {
+			final MessageSend tupleCall = (MessageSend) expression ;
+			final String methodName = getMethodName(tupleCall);
+			if (isMethodCallValid(node, methodName, Tuple.class, "tuple")) {
+				return tupleCall;
+			}
+		}
+		return null;
+	}
+	
+	private String getMethodName(MessageSend methodCall) {
+		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
+		methodName += new String(methodCall.selector);
+		return methodName;
+	}
+
+	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+		for (String methodName : methodNames) {
+			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
+		}
+	}
+	
+	public boolean handle(EclipseNode tupleAssignNode, MessageSend leftTupleCall, MessageSend rightTupleCall) {
+		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments)) {
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments for the tuple assignment to work.");
+			return false;
+		}
+		if (!containsOnlyNames(leftTupleCall.arguments)) {
+			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
+			return false;
+		}
+		ASTNode source = leftTupleCall;
+		List<Statement> tempVarAssignments = new ArrayList<Statement>();
+		List<Statement> assignments = new ArrayList<Statement>();
+		
+		List<String> varnames = collectVarnames(leftTupleCall.arguments);
+		Iterator<String> varnameIter = varnames.listIterator();
+		
+		final Set<String> blacklistedNames = new HashSet<String>();
+		if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
+			String varname = varnameIter.next();
+			final boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg);
+			blacklistedNames.add(varname);
+			if (!canUseSimpleAssignment) {
+				final TypeReference vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get());
+				if (vartype != null) {
+					String tempVarname = "$tuple" + withVarCounter++;
+					tempVarAssignments.add(LocalDef(Type(vartype), tempVarname).makeFinal().withInitialization(new ExpressionWrapper<Expression>(arg)).build(tupleAssignNode, source));
+					assignments.add(Assign(Name(varname), Name(tempVarname)).build(tupleAssignNode, source));
+				} else {
+					tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
+					return false;
+				}
+			} else {
+				assignments.add(Assign(Name(varname), new ExpressionWrapper<Expression>(arg)).build(tupleAssignNode, source));
+			}
+		}
+		tempVarAssignments.addAll(assignments);
+		tryToInjectStatements(tupleAssignNode, tupleAssignNode.get(), tempVarAssignments);
+		
+		return true;
+	}
+	
+	private void tryToInjectStatements(EclipseNode parent, ASTNode statementThatUsesTupel, List<Statement> statementsToInject) {
+		while ((!(parent.directUp().get() instanceof AbstractMethodDeclaration)) && (!(parent.directUp().get() instanceof Block))) {
+			parent = parent.directUp();
+			statementThatUsesTupel = parent.get();
+		}
+		Statement statement = (Statement) statementThatUsesTupel;
+		EclipseNode grandParent = parent.directUp();
+		ASTNode block = grandParent.get();
+		if (block instanceof Block) {
+			((Block)block).statements = injectStatements(((Block)block).statements, statement, statementsToInject);
+		} else if (block instanceof AbstractMethodDeclaration) {
+			((AbstractMethodDeclaration)block).statements = injectStatements(((AbstractMethodDeclaration)block).statements, statement, statementsToInject);
+		} else {
+			// this would be odd but what the hell
+			return;
+		}
+		grandParent.rebuild();
+	}
+
+	private static Statement[] injectStatements(Statement[] statements, Statement statement, List<Statement> withCallStatements) {
+		final List<Statement> newStatements = new ArrayList<Statement>();
+		for (Statement stat : statements) {
+			if (stat == statement) {
+				newStatements.addAll(withCallStatements);
+			} else newStatements.add(stat);
+		}
+		return newStatements.toArray(new Statement[newStatements.size()]);
+	}
+	
+	private List<String> collectVarnames(Expression[] expressions) {
+		List<String> varnames = new ArrayList<String>();
+		if (expressions != null) for (Expression expression : expressions) {
+				varnames.add(new String(((SingleNameReference)expression).token));
+		}
+		return varnames;
+	}
+	
+	private boolean containsOnlyNames(Expression[] expressions) {
+		if (expressions != null) for (Expression expression : expressions) {
+			if (!(expression instanceof SingleNameReference)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Look for the type of a variable in the scope of the given expression.
+	 * <p>
+	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will 
+	 * return the type of a variable in the scope of the given expression.
+	 */
+	@RequiredArgsConstructor
+	private static class VarTypeFinder extends ASTVisitor {
+		private final String varname;
+		private final ASTNode expr;
+		private boolean lockVarname;
+		private TypeReference vartype;
+
+		public TypeReference scan(ASTNode astNode) {
+			if (astNode instanceof CompilationUnitDeclaration) {
+				((CompilationUnitDeclaration)astNode).traverse(this, (CompilationUnitScope)null);
+			} else if (astNode instanceof MethodDeclaration) {
+				((MethodDeclaration)astNode).traverse(this, (ClassScope)null);
+			} else {
+				astNode.traverse(this, null);
+			}
+			return vartype;
+		}
+		
+		public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
+			return visit(localDeclaration);
+		}
+		
+		public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
+			return visit(fieldDeclaration);
+		}
+		
+		public boolean visit(Argument argument, BlockScope scope) {
+			return visit(argument);
+		}
+		
+		public boolean visit(Argument argument, ClassScope scope) {
+			return visit(argument);
+		}
+		
+		public boolean visit(Assignment assignment, BlockScope scope) {
+			if ((expr != null) && (expr.equals(assignment))) {
+				lockVarname = true;
+			}
+			return true;
+		}
+		
+		public boolean visit(AbstractVariableDeclaration variableDeclaration) {
+			if (!lockVarname && varname.equals(new String(variableDeclaration.name))) {
+				vartype = variableDeclaration.type;
+			}
+			return true;
+		}
+	}
+	
+	/**
+	 * Look for variable names that would break a simple assignment after transforming the tuple.<br>
+	 * So look for the use of already changed values (caused the tuple assignment) in the given expression.
+	 * <p>
+	 * If {@link SimpleAssignmentAnalyser#scan(com.sun.source.tree.Tree, Void) AssignmentAnalyser.scan(Tree, Void)}
+	 * return {@code null} or {@code true} everything is fine, otherwise a temporary assignment is needed.
+	 */
+	@RequiredArgsConstructor
+	private static class SimpleAssignmentAnalyser extends ASTVisitor {
+		private final Set<String> blacklistedVarnames;
+		private boolean canUseSimpleAssignment;
+		
+		public boolean scan(ASTNode astNode) {
+			canUseSimpleAssignment = true;
+			if (astNode instanceof CompilationUnitDeclaration) {
+				((CompilationUnitDeclaration)astNode).traverse(this, (CompilationUnitScope)null);
+			} else if (astNode instanceof MethodDeclaration) {
+				((MethodDeclaration)astNode).traverse(this, (ClassScope)null);
+			} else {
+				astNode.traverse(this, null);
+			}
+			return canUseSimpleAssignment;
+		}
+		
+		public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
+			if (blacklistedVarnames.contains(new String(singleNameReference.token))) {
+				canUseSimpleAssignment = false;
+				return false;
+			}
+			return true;
+		}
+	}
+}

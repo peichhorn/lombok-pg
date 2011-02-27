@@ -70,9 +70,8 @@ public class HandleWith extends EclipseASTAdapter {
 
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
-			MessageSend methodCall = (MessageSend) statement;
-			String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
-			methodName += new String(methodCall.selector);
+			final MessageSend methodCall = (MessageSend) statement;
+			final String methodName = getMethodName(methodCall);
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
 				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
 				if (method == null) {
@@ -82,6 +81,12 @@ public class HandleWith extends EclipseASTAdapter {
 				}
 			}
 		}
+	}
+	
+	private String getMethodName(MessageSend methodCall) {
+		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
+		methodName += new String(methodCall.selector);
+		return methodName;
 	}
 
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
