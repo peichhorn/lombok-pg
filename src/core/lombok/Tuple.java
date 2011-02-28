@@ -22,7 +22,7 @@
 package lombok;
 
 public class Tuple {
-	public static Void[] tuple(Object... objects) {
+	public static Tuple tuple(Object... objects) {
 		return null;
 	}
 }

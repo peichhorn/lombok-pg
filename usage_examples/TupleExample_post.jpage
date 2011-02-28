@@ -1,0 +1,15 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+
+class TupleExample {
+	public void swap() {
+		int a = 1;
+		int b = 2;
+		int $tuple0 = a;
+		a = b;
+		b = a;
+	}
+}

@@ -16,7 +16,7 @@ class BuilderExample {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static $TextDef create() {
+	public static $TextDef builderExample() {
 		return new $Builder();
 	}
 	

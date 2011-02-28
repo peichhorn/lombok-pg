@@ -1,0 +1,7 @@
+class TupleExample {
+	public void swap() {
+		int a = 1;
+		int b = 2;
+		tuple(a, b) = tuple(b, a);
+	}
+}
