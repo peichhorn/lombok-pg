@@ -1,5 +1,0 @@
-public class ApplicationExample implements lombok.Application {
-	public void runApp(final String[] args) {
-		// something
-	}
-}

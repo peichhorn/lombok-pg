@@ -15,6 +15,26 @@ class SwingInvokeLaterExample {
 		if (java.awt.EventQueue.isDispatchThread()) {
 			$createUIRunnable.run();
 		} else {
+			java.awt.EventQueue.invokeLater($createUIRunnable);
+		}
+	}
+}
+
+class SwingInvokeAndWaitExample {
+
+	@java.lang.SuppressWarnings("all")
+	void createUI() {
+		final java.lang.Runnable $createUIRunnable = new java.lang.Runnable(){
+			@java.lang.Override
+			public void run() {
+				JFrame frame = new JFrame()
+				frame.setTitle("Application");
+				frame.setVisible(true);
+			}
+		};
+		if (java.awt.EventQueue.isDispatchThread()) {
+			$createUIRunnable.run();
+		} else {
 			try {
 				java.awt.EventQueue.invokeAndWait($createUIRunnable);
 			} catch (final java.lang.InterruptedException $ex1) {

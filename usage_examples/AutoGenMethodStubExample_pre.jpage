@@ -1,7 +1,9 @@
+import lombok.AutoGenMethodStub;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-@lombok.AutoGenMethodStub
+@AutoGenMethodStub
 class AutoGenMethodStubExample implements MouseListener {
 	public void mouseExited(MouseEvent e) {
 		// defined

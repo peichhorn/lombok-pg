@@ -21,8 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.ast.ASTBuilder.MethodDef;
-import static lombok.eclipse.handlers.ast.ASTBuilder.ReturnDefault;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccImplementing;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.handlers.Eclipse.*;
@@ -33,7 +32,9 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
@@ -55,11 +56,19 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 	}
 
 	// real meat
-	public MethodDeclaration handle(final MethodBinding abstractMethod, final Annotation source, final EclipseNode typeNode) {
-		if (abstractMethod.returnType == TypeBinding.VOID) {
-			return MethodDef(abstractMethod).withModifiers(AccImplementing).injectInto(typeNode, source);
+	public MethodDeclaration handle(final MethodBinding abstractMethod, final Annotation annotation, final EclipseNode typeNode) {
+		boolean throwException = false;
+		for (final MemberValuePair pair : annotation.memberValuePairs()) {
+			if ("throwException".equals(new String(pair.name))) {
+				throwException = pair.value instanceof TrueLiteral;
+			}
+		}
+		if (throwException) {
+			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method was not implemented yet.")))).injectInto(typeNode, annotation);
+		} else if (abstractMethod.returnType == TypeBinding.VOID) {
+			return MethodDef(abstractMethod).withModifiers(AccImplementing).injectInto(typeNode, annotation);
 		} else {
-			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(ReturnDefault()).injectInto(typeNode, source);
+			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(ReturnDefault()).injectInto(typeNode, annotation);
 		}
 	}
 }

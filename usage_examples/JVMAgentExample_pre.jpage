@@ -1,5 +1,0 @@
-public class JVMAgentExample implements lombok.JVMAgent{
-	public void runAgent(boolean injected, String params, Instrumentation instrumentation) {
-		// something
-	}
-}

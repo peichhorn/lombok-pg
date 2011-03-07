@@ -1,0 +1,114 @@
+<project name="lombok-playground-website" basedir=".." default="website">
+	<description>
+This buildfile is part of lombok-pg. It is responsible for building the website and all website-related aspects,
+such as converting the changelog into HTML, and creating javadoc.
+	</description>
+	
+	<path id="build.path">
+		<fileset dir="lib/build">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<property name="SNIPPET_TAB_STOP" value="2" />
+	
+	<target name="-website-clean">
+		<delete dir="build/website" quiet="true" />
+	</target>
+	
+	<target name="website" description="Prepares the website for distribution" depends="-website-main" />
+	
+	<target name="-website-main" depends="-website-clean">
+		<taskdef classpath="lib/build/java2html.jar" name="java2html" classname="de.java2html.anttasks.Java2HtmlTask" />
+		<mkdir dir="build/website" />
+		<copy todir="build/website">
+			<fileset dir="website">
+				<exclude name="**/*.jpage" />
+			</fileset>
+			<fileset dir=".">
+				<include name="LICENSE" />
+			</fileset>
+		</copy>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="AutoGenMethodStub" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Builder" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="FluentSetter" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="ListenerSupport" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Singleton" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="SwingInvoke" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Lock" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Condition" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Entrypoint" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Tuple" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="With" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Yield" />
+		</antcall>
+	</target>
+	
+	<target name="-website-dist">
+		<mkdir dir="dist" />
+		<tar destfile="dist/website.tar.bz2" compression="bzip2">
+			<tarfileset dir="build/website" />
+			<tarfileset dir="doc/api" prefix="api" />
+		</tar>
+	</target>
+	
+	<target name="-integrateSnippet">
+		<mkdir dir="build/website" />
+		<property name="prefile" location="usage_examples/${transformationName}Example_pre.jpage" />
+		<property name="postfile" location="usage_examples/${transformationName}Example_post.jpage" />
+		<property name="htmlfile" location="website/features/${transformationName}.html" />
+		<mkdir dir="build/temp" />
+		<property name="preout" location="build/temp/${transformationName}Example_pre.jpage.html" />
+		<property name="postout" location="build/temp/${transformationName}Example_post.jpage.html" />
+		<java2html srcdir="usage_examples" includes="${transformationName}Example_*.jpage" destdir="build/temp" tabs="${SNIPPET_TAB_STOP}"
+			showLineNumbers="true" overwrite="true" />
+		<loadfile property="pre" encoding="UTF-8" srcFile="${preout}">
+			<filterchain>
+				<linecontainsregexp>
+					<regexp pattern="(code>)|(font>)" />
+				</linecontainsregexp>
+				<striplinebreaks />
+			</filterchain>
+		</loadfile>
+		<loadfile property="post" encoding="UTF-8" srcFile="${postout}">
+			<filterchain>
+				<linecontainsregexp>
+					<regexp pattern="(code>)|(font>)" />
+				</linecontainsregexp>
+				<striplinebreaks />
+			</filterchain>
+		</loadfile>
+		<delete dir="build/temp" quiet="true" />
+		<copy file="${htmlfile}" todir="build/website/features" overwrite="true">
+			<filterchain>
+				<replacetokens>
+					<token key="HTML_PRE" value="${pre}" />
+					<token key="HTML_POST" value="${post}" />
+				</replacetokens>
+			</filterchain>
+		</copy>
+	</target>
+</project>

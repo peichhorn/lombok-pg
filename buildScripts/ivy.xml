@@ -9,17 +9,18 @@
     <conf name="contrib" />
   </configurations>
   <dependencies>
-    <dependency org="junit.org" name="junit" rev="4.8.2" conf="test; contrib->sources" />
-    <dependency org="easytesting.org" name="fest-assert" rev="1.3" conf="test; contrib->sources" />
-    <dependency org="easytesting.org" name="fest-util" rev="1.1.4" conf="test; contrib->sources" />
+    <dependency org="junit" name="junit" rev="4.8.2" conf="test->default; contrib->sources" />
+    <dependency org="org.easytesting" name="fest-assert" rev="1.4" conf="test->default; contrib->sources" />
+    <dependency org="org.easytesting" name="fest-util" rev="1.1.6" conf="test->default; contrib->sources" />
     <dependency org="projectlombok.org" name="lombok-test-core" rev="0.10.0-BETA2-HEAD" conf="test; contrib->sources" />
 
     <dependency org="projectlombok.org" name="lombok" rev="0.10.0-BETA2-HEAD" conf="build; contrib->sources" />
     <dependency org="projectlombok.org" name="spi" rev="0.2.4" conf="build" />
     <dependency org="projectlombok.org" name="javac" rev="1.6.0.18" conf="build->runtime; contrib->sources" />
     <dependency org="eclipse.org" name="ecj" rev="3.6.0" conf="build->runtime; contrib->sources" />
+    <dependency org="de.java2html" name="java2html" rev="5.0" conf="build->default" />
 
-    <dependency org="eclipse.org" name="core.runtime" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
-    <dependency org="eclipse.org" name="jdt.core" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
+    <dependency org="org.eclipse.core" name="org.eclipse.core.runtime" rev="3.6.0.v20100505" conf="eclipseBuild->default; contrib->sources" transitive="false" />
+    <dependency org="eclipse.org" name="jdt.core" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" transitive="false" />
   </dependencies>
 </ivy-module>

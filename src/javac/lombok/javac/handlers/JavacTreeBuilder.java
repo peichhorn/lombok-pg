@@ -312,6 +312,11 @@ public class JavacTreeBuilder {
 			this.statements.append(statement);
 			return self();
 		}
+		
+		public SELF_TYPE withStatements(List<JCStatement> statements) {
+			this.statements.appendList(statements);
+			return self();
+		}
 
 		public JCMethodDecl build() {
 			JCBlock body = null;

@@ -1,3 +1,14 @@
+public class ApplicationExample {
+	public void runApp(final String[] args) {
+		// something
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static void main(final String[] args) throws Throwable {
+		new ApplicationExample().runApp(args);
+	}
+}
+
 public class JVMAgentExample {
 	public void runAgent(boolean injected, String params, Instrumentation instrumentation) {
 		// something

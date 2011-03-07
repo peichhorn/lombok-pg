@@ -141,6 +141,10 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
     <property name="lombok.dist.built" value="true" />
   </target>
   
+  <target name="website" description="Prepares the website for distribution.">
+    <ant antfile="buildScripts/website.ant.xml" target="website" inheritAll="false" />
+  </target>
+  
   <!-- test -->
   <path id="test.path">
     <fileset dir="lib/test">

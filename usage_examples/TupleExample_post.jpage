@@ -1,9 +1,3 @@
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-
 class TupleExample {
 	public void swap() {
 		int a = 1;
