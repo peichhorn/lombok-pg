@@ -68,6 +68,8 @@ public class DefaultReturnStatementBuilder implements StatementBuilder<ReturnSta
 					builder = Return(Number(Double.valueOf(0)));
 				} else if ("boolean".equals(name)) {
 					builder = Return(False());
+				} else if ("void".equals(name)) {
+					builder = Return();
 				}
 			}
 		}

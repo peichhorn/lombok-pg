@@ -16,6 +16,6 @@
     <artifact conf="build"
       url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.10.0-BETA2-HEAD.jar" />
     <artifact type="zip" conf="sources"
-      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.10.0-BETA2-HEAD-src.jar" />
+      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.10.0-BETA2-HEAD-sources.jar" />
   </publications>
 </ivy-module>

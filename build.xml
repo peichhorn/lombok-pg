@@ -24,7 +24,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
     <ivy:configure file="buildScripts/ivysettings.xml" />
   </target>
 
-  <target name="deps" depends="ensureBuildDeps, ensureRuntimeDeps, ensureTestDeps, ensureContribDeps" />
+  <target name="deps" depends="ensureBuildDeps, ensureRuntimeDeps, ensureTestDeps, ensureContribDeps" description="Downloads all dependencies." />
 
   <target name="ensureBuildDeps" depends="config-ivy">
     <ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="build" />
