@@ -607,13 +607,16 @@ public class HandleYield extends EclipseASTAdapter {
 							.withStatement(Continue()) //
 						).build(methodNode, declaration));
 						if (ifStatement.elseStatement != null) {
-							refactorStatement(ifStatement.elseStatement);
+							refactorStatement(ifStatement.thenStatement);
 							addStatement(setStateId(labelLiteral(getBreakLabel(this))).build(methodNode, declaration));
 							addStatement(new ContinueStatement(null, 0, 0));
 							addStatement(label);
+							refactorStatement(ifStatement.elseStatement);
+							addStatement(getBreakLabel(this));
+						} else {
+							refactorStatement(ifStatement.thenStatement);
+							addStatement(getBreakLabel(this));
 						}
-						refactorStatement(ifStatement.thenStatement);
-						addStatement(getBreakLabel(this));
 					}
 				};
 

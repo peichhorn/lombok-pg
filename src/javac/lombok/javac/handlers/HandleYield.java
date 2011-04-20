@@ -624,13 +624,16 @@ public class HandleYield extends JavacASTAdapter {
 						JCCase label = tree.elsepart == null ? getBreakLabel(this) : label();
 						addStatement(ifThen(maker.Unary(JCTree.NOT, copy(tree.cond)), block(setState(literal(label)), maker.Continue(null))));
 						if (tree.elsepart != null) {
-							refactorStatement(tree.elsepart);
+							refactorStatement(tree.thenpart);
 							addStatement(setState(literal(getBreakLabel(this))));
 							addStatement(maker.Continue(null));
 							addStatement(label);
+							refactorStatement(tree.elsepart);
+							addStatement(getBreakLabel(this));
+						} else {
+							refactorStatement(tree.thenpart);
+							addStatement(getBreakLabel(this));
 						}
-						refactorStatement(tree.thenpart);
-						addStatement(getBreakLabel(this));
 					}
 				};
 

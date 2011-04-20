@@ -87,14 +87,14 @@ class YieldPlain {
 						$state = 3;
 						continue;
 					}
-					$next = "bar";
+					$next = "foo";
 					$state = 2;
 					return true;
 				case 2: 
 					$state = 4;
 					continue;
 				case 3: 
-					$next = "foo";
+					$next = "bar";
 					$state = 4;
 					return true;
 				case 4: 
