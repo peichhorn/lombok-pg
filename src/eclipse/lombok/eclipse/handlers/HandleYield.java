@@ -305,7 +305,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 			addStatement(iteratorLabel);
 			root.refactor();
-			optimizeBreaks();
+			optimizeStates();
 			synchronizeLiteralsAndLabels();
 		}
 
@@ -373,7 +373,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 		}
 
-		private void optimizeBreaks() {
+		private void optimizeStates() {
 			int id = 0;
 			int labelCounter = 0;
 			Statement previous = null;
@@ -602,12 +602,10 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						Label label = ifStatement.elseStatement == null ? getBreakLabel(this) : label();
-						if (!(ifStatement.condition instanceof TrueLiteral)) {
-							addStatement(If(Not(new ExpressionWrapper<Expression>(ifStatement.condition))).Then(Block() //
-								.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
-								.withStatement(Continue()) //
-							).build(methodNode, declaration));
-						}
+						addStatement(If(Not(new ExpressionWrapper<Expression>(ifStatement.condition))).Then(Block() //
+							.withStatement(setStateId(labelLiteral(label))) //
+							.withStatement(Continue()) //
+						).build(methodNode, declaration));
 						if (ifStatement.elseStatement != null) {
 							refactorStatement(ifStatement.elseStatement);
 							addStatement(setStateId(labelLiteral(getBreakLabel(this))).build(methodNode, declaration));

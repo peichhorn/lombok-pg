@@ -53,7 +53,70 @@ class YieldPlain {
     }
     return new $YielderSimple();
   }
-
+  public @java.lang.SuppressWarnings("all") Iterable<String> testIfThenElse() {
+    class $YielderTestIfThenElse implements java.util.Iterator<String>, java.lang.Iterable<String> {
+      private boolean b;
+      private int $state;
+      private boolean $hasNext;
+      private boolean $nextDefined;
+      private String $next;
+      private $YielderTestIfThenElse() {
+        super();
+      }
+      public java.util.Iterator<String> iterator() {
+        return new $YielderTestIfThenElse();
+      }
+      public boolean hasNext() {
+        if ((! $nextDefined))
+            {
+              $hasNext = getNext();
+              $nextDefined = true;
+            }
+        return $hasNext;
+      }
+      public String next() {
+        if ((! hasNext()))
+            {
+              throw new java.util.NoSuchElementException();
+            }
+        $nextDefined = false;
+        return $next;
+      }
+      public void remove() {
+        throw new java.lang.UnsupportedOperationException();
+      }
+      private boolean getNext() {
+        while (true)          switch ($state) {
+          case 0 : ;
+              b = true;
+          case 1 : ;
+              if ((! b))
+                  {
+                    $state = (+ 3);
+                    continue ;
+                  }
+              $next = "bar";
+              $state = (+ 2);
+              return true;
+          case 2 : ;
+              $state = (+ 4);
+              continue ;
+          case 3 : ;
+              $next = "foo";
+              $state = (+ 4);
+              return true;
+          case 4 : ;
+              b = (! b);
+              $state = (+ 1);
+              continue ;
+          case 5 : ;
+          default : ;
+              return false;
+          }
+      }
+    }
+    return new $YielderTestIfThenElse();
+  }
   public @java.lang.SuppressWarnings("all") Iterator<Long> fib_while() {
     class $YielderFibWhile implements java.util.Iterator<Long> {
       private long a;

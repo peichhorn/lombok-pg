@@ -311,7 +311,7 @@ public class HandleYield extends JavacASTAdapter {
 			root.refactor();
 			endCase();
 
-			optimizeBreaks();
+			optimizeStates();
 			synchronizeLiteralsAndLabels();
 		}
 
@@ -450,7 +450,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 		}
 
-		private void optimizeBreaks() {
+		private void optimizeStates() {
 			int diff = 0;
 			JCCase previous = null;
 			for (int i = 1; i < cases.size(); i++) {
@@ -622,9 +622,7 @@ public class HandleYield extends JavacASTAdapter {
 					@Override
 					public void refactor() {
 						JCCase label = tree.elsepart == null ? getBreakLabel(this) : label();
-						if (!isTrueLiteral(tree.cond)) {
-							addStatement(ifThen(maker.Unary(JCTree.NOT, copy(tree.cond)), block(setState(literal(label)), maker.Continue(null))));
-						}
+						addStatement(ifThen(maker.Unary(JCTree.NOT, copy(tree.cond)), block(setState(literal(label)), maker.Continue(null))));
 						if (tree.elsepart != null) {
 							refactorStatement(tree.elsepart);
 							addStatement(setState(literal(getBreakLabel(this))));

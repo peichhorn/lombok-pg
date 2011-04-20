@@ -10,6 +10,18 @@ class YieldPlain {
 		Yield.yield("A String");
 	}
 
+	public Iterable<String> testIfThenElse() {
+		boolean b = true;
+		while (true) {
+			if (b) {
+				yield("foo");
+			} else {
+				yield("bar");
+			}
+			b = !b;
+		}
+	}
+
 	public Iterator<Long> fib_while() {
 		long a = 0;
 		long b = 1;
