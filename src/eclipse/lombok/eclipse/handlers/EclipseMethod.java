@@ -21,6 +21,11 @@
  */
 package lombok.eclipse.handlers;
 
+import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
+import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
+import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static org.eclipse.jdt.internal.compiler.ast.ASTNode.IsSynchronized;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccFinal;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
@@ -37,7 +42,6 @@ import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
@@ -53,23 +57,33 @@ public class EclipseMethod {
 		}
 		this.methodNode = methodNode;
 	}
-
+	
 	public boolean returns(Class<?> clazz) {
-		if (isConstructor()) return false;
-		MethodDeclaration methodDecl = (MethodDeclaration)get();
+		return returns(clazz.getSimpleName());
+	}
+
+	public boolean returns(final String typeName) {
+		TypeReference returnType = returnType();
+		if (returnType == null) return false;
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
-		for (char[] elem : methodDecl.returnType.getTypeName()) {
+		for (char[] elem : returnType.getTypeName()) {
 			if (first) first = false;
 			else sb.append('.');
 			sb.append(elem);
 		}
 		String type = sb.toString();
-		return type.endsWith(clazz.getSimpleName());
+		return type.endsWith(typeName);
+	}
+	
+	public TypeReference returnType() {
+		if (isConstructor()) return null;
+		MethodDeclaration methodDecl = (MethodDeclaration)get();
+		return methodDecl.returnType;
 	}
 
 	public boolean isSynchronized() {
-		return !isConstructor() && (get().bits & ASTNode.IsSynchronized) != 0;
+		return !isConstructor() && (get().bits & IsSynchronized) != 0;
 	}
 
 	public boolean isConstructor() {
@@ -84,13 +98,9 @@ public class EclipseMethod {
 		return methodNode;
 	}
 
-	public String name() {
-		return new String(get().selector);
-	}
-
 	public boolean hasNonFinalParameter() {
 		if (get().arguments != null) for (Argument arg : get().arguments) {
-			if ((arg.modifiers & ClassFileConstants.AccFinal) == 0) {
+			if ((arg.modifiers & AccFinal) == 0) {
 				return true;
 			}
 		}
@@ -104,9 +114,32 @@ public class EclipseMethod {
 	public boolean isEmpty() {
 		return Arrays.isEmpty(get().statements);
 	}
-	
+
+	public String name() {
+		return new String(get().selector);
+	}
+
 	public boolean wasCompletelyParsed() {
 		return node().getAst().isCompleteParse();
+	}
+	
+	public void makePrivate() {
+		makePackagePrivate();
+		get().modifiers |= PRIVATE;
+	}
+	
+	public void makePackagePrivate() {
+		get().modifiers &= ~(PRIVATE |PROTECTED | PUBLIC);
+	}
+	
+	public void makeProtected() {
+		makePackagePrivate();
+		get().modifiers |= PROTECTED;
+	}
+	
+	public void makePublic() {
+		makePackagePrivate();
+		get().modifiers |= PUBLIC;
 	}
 
 	public void body(ASTNode source, Statement... statements) {

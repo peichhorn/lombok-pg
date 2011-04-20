@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,32 +27,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
 
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class AnnotationBuilder implements ExpressionBuilder<Annotation> {
-	private final ExpressionBuilder<? extends TypeReference> type;
-	private ExpressionBuilder<? extends Expression> value;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class IfBuilder implements StatementBuilder<IfStatement> {
+	private StatementBuilder<? extends Statement> thenStatement = new EmptyStatementBuilder();
+	private final ExpressionBuilder<? extends Expression> condition;
+	private StatementBuilder<? extends Statement> elseStatement;
 	
-	public AnnotationBuilder withValue(final ExpressionBuilder<? extends Expression> value) {
-		this.value = value;
+	public IfBuilder Then(final StatementBuilder<? extends Statement> thenStatement) {
+		this.thenStatement = thenStatement;
+		return this;
+	}
+	
+	public IfBuilder Else(final StatementBuilder<? extends Statement> elseStatement) {
+		this.elseStatement = elseStatement;
 		return this;
 	}
 	
 	@Override
-	public Annotation build(final EclipseNode node, final ASTNode source) {
-		final Annotation ann;
-		if (value == null) {
-			ann = new MarkerAnnotation(type.build(node, source), 0);
-		} else {
-			ann = new SingleMemberAnnotation(type.build(node, source), 0);
-			((SingleMemberAnnotation)ann).memberValue = value.build(node, source);
+	public IfStatement build(final EclipseNode node, final ASTNode source) {
+		final IfStatement ifStatement = new IfStatement(condition.build(node, source), thenStatement.build(node, source), 0, 0);
+		if (elseStatement != null) {
+			ifStatement.elseStatement = elseStatement.build(node, source);
 		}
-		setGeneratedByAndCopyPos(ann, source);
-		return ann;
-	} 
+		setGeneratedByAndCopyPos(ifStatement, source);
+		return ifStatement;
+	}
 }

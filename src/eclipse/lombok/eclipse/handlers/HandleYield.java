@@ -81,7 +81,7 @@ import lombok.eclipse.handlers.ast.ASTNodeBuilder;
 import lombok.eclipse.handlers.ast.ASTNodeWrapper;
 import lombok.eclipse.handlers.ast.ExpressionWrapper;
 import lombok.eclipse.handlers.ast.StatementBuilder;
-import lombok.eclipse.handlers.ast.TypeDeclarationBuilder;
+import lombok.eclipse.handlers.ast.ClassDefBuilder;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleYield extends EclipseASTAdapter {
@@ -142,7 +142,7 @@ public class HandleYield extends EclipseASTAdapter {
 		SwitchStatement switchStatement = collector.getStateSwitch();
 		List<StatementBuilder<? extends FieldDeclaration>> variables = collector.getVariables();
 		
-		TypeDeclarationBuilder builder = ClassDef(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
+		ClassDefBuilder builder = ClassDef(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
 			.withFields(variables) //
 			.withField(FieldDef(Type("int"), "$state").makePrivate()) //
 			.withField(FieldDef(Type("boolean"), "$hasNext").makePrivate()) //

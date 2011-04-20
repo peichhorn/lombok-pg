@@ -32,7 +32,7 @@ public class ASTNodeWrapper<NODE_TYPE extends ASTNode> implements ASTNodeBuilder
 	private final NODE_TYPE astNode;
 	
 	@Override
-	public NODE_TYPE build(EclipseNode node, ASTNode source) {
+	public NODE_TYPE build(final EclipseNode node, final ASTNode source) {
 		setGeneratedByAndCopyPos(astNode, source);
 		return astNode;
 	}

@@ -44,7 +44,7 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.FieldAccess;
 import lombok.eclipse.handlers.ast.ExpressionBuilder;
 import lombok.eclipse.handlers.ast.ExpressionWrapper;
-import lombok.eclipse.handlers.ast.MethodDeclarationBuilder;
+import lombok.eclipse.handlers.ast.MethodDefBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -179,7 +179,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			refs.add(Type(new String(param.name)));
 		}
 		
-		MethodDeclarationBuilder builder = MethodDef(Type(new String(parent.name)).withTypeArguments(refs), name).withModifiers(modifier) //
+		MethodDefBuilder builder = MethodDef(Type(new String(parent.name)).withTypeArguments(refs), name).withModifiers(modifier) //
 			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(copyAnnotations(source, nonNulls, nullables, onParam)));
 		if (isNotEmpty(nonNulls)) {
 			Statement nullCheck = generateNullCheck(field, source);

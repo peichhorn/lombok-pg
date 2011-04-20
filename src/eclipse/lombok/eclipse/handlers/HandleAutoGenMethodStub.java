@@ -37,7 +37,6 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -65,8 +64,6 @@ public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGen
 		}
 		if (throwException) {
 			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method was not implemented yet.")))).injectInto(typeNode, annotation);
-		} else if (abstractMethod.returnType == TypeBinding.VOID) {
-			return MethodDef(abstractMethod).withModifiers(AccImplementing).injectInto(typeNode, annotation);
 		} else {
 			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(ReturnDefault()).injectInto(typeNode, annotation);
 		}

@@ -24,11 +24,14 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.isNotEmpty;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 /**
  * Replaces all implicit and explicit occurrences of 'this' with a specified expression.
@@ -40,6 +43,14 @@ public class ThisReferenceReplaceVisitor extends ASTVisitor {
 	public ThisReferenceReplaceVisitor(final IReplacementProvider replacement) {
 		super();
 		this.replacement = replacement;
+	}
+
+	public void visit(ASTNode astNode) {
+		if (astNode instanceof MethodDeclaration) {
+			((MethodDeclaration)astNode).traverse(this, (ClassScope)null);
+		} else {
+			astNode.traverse(this, null);
+		}
 	}
 
 	@Override

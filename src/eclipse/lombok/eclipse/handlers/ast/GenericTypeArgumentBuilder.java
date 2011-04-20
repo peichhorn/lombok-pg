@@ -49,7 +49,7 @@ abstract class GenericTypeArgumentBuilder<SELF_TYPE extends GenericTypeArgumentB
 		return self();
 	}
 	
-	public SELF_TYPE withTypeArguments(List<ExpressionBuilder<? extends TypeReference>> typeArgs) {
+	public SELF_TYPE withTypeArguments(final List<ExpressionBuilder<? extends TypeReference>> typeArgs) {
 		this.typeArgs.addAll(typeArgs);
 		return self();
 	}

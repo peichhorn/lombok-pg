@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,23 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.core.util.Arrays.resize;
-
-import java.util.List;
-
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
 
-public final class Arrays {
-	public static <ELEMENT_TYPE extends ASTNode> ELEMENT_TYPE[] buildArray(final List<? extends ASTNodeBuilder<? extends ELEMENT_TYPE>> list, final ELEMENT_TYPE[] array, final EclipseNode node, final ASTNode source) {
-		if ((list != null) && !list.isEmpty()) {
-			final int size = list.size();
-			final ELEMENT_TYPE[] newArray = resize(array, size);
-			for (int i = 0; i < size; i++) {
-				newArray[i] = list.get(i).build(node, source);
-			}
-			return newArray;
-		}
-		return null;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ContinueBuilder implements StatementBuilder<ContinueStatement> {
+	public String label;
+	
+	@Override
+	public ContinueStatement build(final EclipseNode node, final ASTNode source) {
+		final ContinueStatement continueStatement = new ContinueStatement(label == null ? null : label.toCharArray(), 0, 0);
+		setGeneratedByAndCopyPos(continueStatement, source);
+		return continueStatement;
 	}
 }

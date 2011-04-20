@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,34 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.core.util.Arrays.resize;
-
-import java.util.List;
-
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 
-public final class Arrays {
-	public static <ELEMENT_TYPE extends ASTNode> ELEMENT_TYPE[] buildArray(final List<? extends ASTNodeBuilder<? extends ELEMENT_TYPE>> list, final ELEMENT_TYPE[] array, final EclipseNode node, final ASTNode source) {
-		if ((list != null) && !list.isEmpty()) {
-			final int size = list.size();
-			final ELEMENT_TYPE[] newArray = resize(array, size);
-			for (int i = 0; i < size; i++) {
-				newArray[i] = list.get(i).build(node, source);
-			}
-			return newArray;
-		}
-		return null;
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class WhileBuilder implements StatementBuilder<WhileStatement> {
+	private final ExpressionBuilder<? extends Expression> condition;
+	private StatementBuilder<? extends Statement> action = new EmptyStatementBuilder();
+	
+	public WhileBuilder Do(final StatementBuilder<? extends Statement> action) {
+		this.action = action;
+		return this;
+	}
+	
+	public WhileBuilder Do(final Statement action) {
+		return Do(new StatementWrapper<Statement>(action));
+	}
+	
+	@Override
+	public WhileStatement build(final EclipseNode node, final ASTNode source) {
+		final WhileStatement whileStatement = new WhileStatement(condition.build(node, source), action.build(node, source), 0, 0);
+		setGeneratedByAndCopyPos(whileStatement, source);
+		return whileStatement;
 	}
 }

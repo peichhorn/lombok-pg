@@ -45,11 +45,11 @@ import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.ASTNodeBuilder;
-import lombok.eclipse.handlers.ast.ArgumentBuilder;
-import lombok.eclipse.handlers.ast.ConstructorDeclarationBuilder;
+import lombok.eclipse.handlers.ast.ArgBuilder;
+import lombok.eclipse.handlers.ast.ConstructorDefBuilder;
 import lombok.eclipse.handlers.ast.ExpressionBuilder;
-import lombok.eclipse.handlers.ast.FieldDeclarationBuilder;
-import lombok.eclipse.handlers.ast.MessageSendBuilder;
+import lombok.eclipse.handlers.ast.FieldDefBuilder;
+import lombok.eclipse.handlers.ast.CallBuilder;
 import lombok.eclipse.handlers.ast.StatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -115,7 +115,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private void createConstructor(final IBuilderData builderData) {
 		final EclipseNode typeNode = builderData.getTypeNode();
 		final ASTNode source = builderData.getSource();
-		final ConstructorDeclarationBuilder builder = ConstructorDef(typeNode.getName()).makePrivate().withArgument(Arg(Type(BUILDER), "builder").makeFinal()).withImplicitSuper();
+		final ConstructorDefBuilder builder = ConstructorDef(typeNode.getName()).makePrivate().withArgument(Arg(Type(BUILDER), "builder").makeFinal()).withImplicitSuper();
 		for (final FieldDeclaration field : builderData.getAllFields()) {
 			final String fieldName = new String(field.name);
 			builder.withStatement(Assign(Field(This(), fieldName), Field(Name("builder"), fieldName)));
@@ -200,7 +200,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private void createFluentSetter(IBuilderData builderData, String typeName, FieldDeclaration field, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
 		String fieldName = new String(field.name);
 		String methodName = camelCase(builderData.getPrefix(), fieldName);
-		final ArgumentBuilder arg0 = Arg(Type(field.type), fieldName).makeFinal();
+		final ArgBuilder arg0 = Arg(Type(field.type), fieldName).makeFinal();
 		builderMethods.add(MethodDef(Type(typeName), methodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 			.withStatement(Assign(Field(This(), fieldName), Name(fieldName))) //
 			.withStatement(Return(This())));
@@ -240,7 +240,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 
 		{ // add
 			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
-			final ArgumentBuilder arg0 = Arg(Type(elementType), "arg0").makeFinal();
+			final ArgBuilder arg0 = Arg(Type(elementType), "arg0").makeFinal();
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), addMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "add").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
@@ -248,7 +248,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		{ // addAll
 			String addAllMethodName = camelCase(builderData.getPrefix(), fieldName);
-			final ArgumentBuilder arg0 = Arg(Type(collectionType), "arg0").makeFinal();
+			final ArgBuilder arg0 = Arg(Type(collectionType), "arg0").makeFinal();
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), addAllMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "addAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
@@ -298,8 +298,8 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 
 		{ // put
 			final String putMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
-			final ArgumentBuilder arg0 = Arg(Type(keyType), "arg0").makeFinal();
-			final ArgumentBuilder arg1 = Arg(Type(valueType), "arg1").makeFinal();
+			final ArgBuilder arg0 = Arg(Type(keyType), "arg0").makeFinal();
+			final ArgBuilder arg1 = Arg(Type(valueType), "arg1").makeFinal();
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), putMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0).withArgument(arg1) //
 				.withStatement(Call(Field(This(), fieldName), "put").withArgument(Name("arg0")).withArgument(Name("arg1"))) //
 				.withStatement(Return(This())));
@@ -307,7 +307,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 		{ // putAll
 			String putAllMethodName = camelCase(builderData.getPrefix(), fieldName);
-			final ArgumentBuilder arg0 = Arg(Type(mapType), "arg0").makeFinal();
+			final ArgBuilder arg0 = Arg(Type(mapType), "arg0").makeFinal();
 			builderMethods.add(MethodDef(Type(OPTIONAL_DEF), putAllMethodName).withModifiers(PUBLIC | AccImplementing).withArgument(arg0) //
 				.withStatement(Call(Field(This(), fieldName), "putAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
@@ -379,7 +379,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			}
 		}
 
-		MessageSendBuilder call = Call(Call(This(), "build"), method);
+		CallBuilder call = Call(Call(This(), "build"), method);
 		if ("void".equals(returnType.build(typeNode, builderData.getSource()).toString())) {
 			builderMethods.add(MethodDef(returnType, method).withModifiers(PUBLIC | AccImplementing).withThrownExceptions(thrown) //
 				.withStatement(call));
@@ -401,7 +401,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	private List<StatementBuilder<? extends FieldDeclaration>> createBuilderFields(IBuilderData builderData) {
 		List<StatementBuilder<? extends FieldDeclaration>> fields = new ArrayList<StatementBuilder<? extends FieldDeclaration>>();
 		for (FieldDeclaration field : builderData.getAllFields()) {
-			FieldDeclarationBuilder builder = FieldDef(Type(field.type), new String(field.name)).makePrivate();
+			FieldDefBuilder builder = FieldDef(Type(field.type), new String(field.name)).makePrivate();
 			if (field.initialization != null) {
 				builder.withInitialization(field.initialization);
 				field.initialization = null;

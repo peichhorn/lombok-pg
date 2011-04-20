@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,28 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.core.util.Arrays.resize;
-
-import java.util.List;
-
-import lombok.eclipse.EclipseNode;
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.EQUAL_EQUAL;
+import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.NOT_EQUAL;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.EqualExpression;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
 
-public final class Arrays {
-	public static <ELEMENT_TYPE extends ASTNode> ELEMENT_TYPE[] buildArray(final List<? extends ASTNodeBuilder<? extends ELEMENT_TYPE>> list, final ELEMENT_TYPE[] array, final EclipseNode node, final ASTNode source) {
-		if ((list != null) && !list.isEmpty()) {
-			final int size = list.size();
-			final ELEMENT_TYPE[] newArray = resize(array, size);
-			for (int i = 0; i < size; i++) {
-				newArray[i] = list.get(i).build(node, source);
-			}
-			return newArray;
-		}
-		return null;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.eclipse.EclipseNode;
+
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public class EqualBuilder implements ExpressionBuilder<EqualExpression> {
+	private final ExpressionBuilder<? extends Expression> left;
+	private final ExpressionBuilder<? extends Expression> right;
+	private final boolean notEqual;
+
+	@Override
+	public EqualExpression build(final EclipseNode node, final ASTNode source) {
+		final EqualExpression equalExpression = new EqualExpression(left.build(node, source), right.build(node, source), notEqual ? NOT_EQUAL : EQUAL_EQUAL);
+		setGeneratedByAndCopyPos(equalExpression, source);
+		return equalExpression;
 	}
 }

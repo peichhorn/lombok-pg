@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,33 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.core.util.Arrays.resize;
-
-import java.util.List;
-
-import lombok.eclipse.EclipseNode;
+import static lombok.eclipse.Eclipse.fromQualifiedName;
+import static lombok.eclipse.Eclipse.poss;
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 
-public final class Arrays {
-	public static <ELEMENT_TYPE extends ASTNode> ELEMENT_TYPE[] buildArray(final List<? extends ASTNodeBuilder<? extends ELEMENT_TYPE>> list, final ELEMENT_TYPE[] array, final EclipseNode node, final ASTNode source) {
-		if ((list != null) && !list.isEmpty()) {
-			final int size = list.size();
-			final ELEMENT_TYPE[] newArray = resize(array, size);
-			for (int i = 0; i < size; i++) {
-				newArray[i] = list.get(i).build(node, source);
-			}
-			return newArray;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.eclipse.EclipseNode;
+
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class NameBuilder implements ExpressionBuilder<NameReference> {
+	private final String name;
+	
+	@Override
+	public NameReference build(final EclipseNode node, final ASTNode source) {
+		final NameReference nameReference;
+		if (name.contains(".")) {
+			char[][] nameTokens = fromQualifiedName(name);
+			nameReference = new QualifiedNameReference(nameTokens, poss(source, nameTokens.length), 0, 0);
+		} else {
+			nameReference = new SingleNameReference(name.toCharArray(), 0);
 		}
-		return null;
+		setGeneratedByAndCopyPos(nameReference, source);
+		return nameReference;
 	}
 }

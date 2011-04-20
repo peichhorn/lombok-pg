@@ -25,7 +25,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -34,187 +33,191 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ASTBuilder {
+	public static BinaryBuilder Add(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
+		return new BinaryBuilder("+", left, right);
+	}
+	
 	public static AnnotationBuilder Annotation(final ExpressionBuilder<? extends TypeReference> type) {
 		return new AnnotationBuilder(type);
 	}
 	
-	public static ArgumentBuilder Arg(final ExpressionBuilder<? extends TypeReference> type, final String name) {
-		return new ArgumentBuilder(type, name).makeFinal();
+	public static ArgBuilder Arg(final ExpressionBuilder<? extends TypeReference> type, final String name) {
+		return new ArgBuilder(type, name).makeFinal();
 	}
 	
-	public static AssignmentBuilder Assign(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
-		return new AssignmentBuilder(left, right);
+	public static AssignBuilder Assign(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
+		return new AssignBuilder(left, right);
 	}
 	
 	public static BlockBuilder Block() {
 		return new BlockBuilder();
 	}
 	
-	public static MessageSendBuilder Call(final String name) {
-		return new MessageSendBuilder(name);
+	public static CallBuilder Call(final String name) {
+		return new CallBuilder(name);
 	}
 	
-	public static MessageSendBuilder Call(final ExpressionBuilder<? extends Expression> receiver, final String name) {
-		return new MessageSendBuilder(receiver, name);
+	public static CallBuilder Call(final ExpressionBuilder<? extends Expression> receiver, final String name) {
+		return new CallBuilder(receiver, name);
 	}
 	
-	public static CastExpressionBuilder Cast(final ExpressionBuilder<? extends TypeReference> type, final ExpressionBuilder<? extends Expression> expression) {
-		return new CastExpressionBuilder(type, expression);
+	public static CastBuilder Cast(final ExpressionBuilder<? extends TypeReference> type, final ExpressionBuilder<? extends Expression> expression) {
+		return new CastBuilder(type, expression);
 	}
 	
-	public static TypeDeclarationBuilder ClassDef(final String name) {
-		return new TypeDeclarationBuilder(name);
+	public static ClassDefBuilder ClassDef(final String name) {
+		return new ClassDefBuilder(name);
 	}
 	
-	public static ConstructorDeclarationBuilder ConstructorDef(final String name) {
-		return new ConstructorDeclarationBuilder(name);
+	public static ConstructorDefBuilder ConstructorDef(final String name) {
+		return new ConstructorDefBuilder(name);
 	}
 	
-	public static ContinueStatementBuilder Continue() {
-		return new ContinueStatementBuilder();
+	public static ContinueBuilder Continue() {
+		return new ContinueBuilder();
 	}
 	
-	public static ContinueStatementBuilder Continue(final String label) {
-		return new ContinueStatementBuilder(label);
+	public static ContinueBuilder Continue(final String label) {
+		return new ContinueBuilder(label);
 	}
 	
-	public static DoStatementBuilder Do(final StatementBuilder<? extends Statement> action) {
-		return new DoStatementBuilder(action);
+	public static DoBuilder Do(final StatementBuilder<? extends Statement> action) {
+		return new DoBuilder(action);
 	}
 	
 	public static EnumConstantBuilder EnumConstant(final String name) {
 		return new EnumConstantBuilder(name);
 	}
 	
-	public static EqualExpressionBuilder Equal(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
-		return new EqualExpressionBuilder(left, right, OperatorIds.EQUAL_EQUAL);
+	public static EqualBuilder Equal(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
+		return new EqualBuilder(left, right, false);
 	}
 	
-	public static EqualExpressionBuilder NotEqual(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
-		return new EqualExpressionBuilder(left, right, OperatorIds.NOT_EQUAL);
+	public static EqualBuilder NotEqual(final ExpressionBuilder<? extends Expression> left, final ExpressionBuilder<? extends Expression> right) {
+		return new EqualBuilder(left, right, true);
 	}
 	
-	public static MagicLiteralBuilder False() {
-		return new MagicLiteralBuilder(false);
+	public static NullTrueFalseBuilder False() {
+		return new NullTrueFalseBuilder(false);
 	}
 	
-	public static FieldReferenceBuilder Field(final ExpressionBuilder<? extends Expression> receiver, final String name) {
-		return new FieldReferenceBuilder(receiver, name);
+	public static FieldBuilder Field(final ExpressionBuilder<? extends Expression> receiver, final String name) {
+		return new FieldBuilder(receiver, name);
 	}
 	
-	public static FieldReferenceBuilder Field(final String name) {
-		return new FieldReferenceBuilder(name);
+	public static FieldBuilder Field(final String name) {
+		return new FieldBuilder(name);
 	}
 	
-	public static FieldDeclarationBuilder FieldDef(final ExpressionBuilder<? extends TypeReference> type, final String name) {
-		return new FieldDeclarationBuilder(type, name);
+	public static FieldDefBuilder FieldDef(final ExpressionBuilder<? extends TypeReference> type, final String name) {
+		return new FieldDefBuilder(type, name);
 	}
 	
-	public static ForeachStatementBuilder ForEach(final StatementBuilder<? extends LocalDeclaration> elementVariable) {
-		return new ForeachStatementBuilder(elementVariable);
+	public static ForeachBuilder Foreach(final StatementBuilder<? extends LocalDeclaration> elementVariable) {
+		return new ForeachBuilder(elementVariable);
 	}
 	
-	public static IfStatementBuilder If(final ExpressionBuilder<? extends Expression> condition) {
-		return new IfStatementBuilder(condition);
+	public static IfBuilder If(final ExpressionBuilder<? extends Expression> condition) {
+		return new IfBuilder(condition);
 	}
 	
-	public static LocalDeclarationBuilder LocalDef(final ExpressionBuilder<? extends TypeReference> type, final String name) {
-		return new LocalDeclarationBuilder(type, name);
+	public static LocalDefBuilder LocalDef(final ExpressionBuilder<? extends TypeReference> type, final String name) {
+		return new LocalDefBuilder(type, name);
 	}
 	
-	public static NameReferenceBuilder Name(final String name) {
-		return new NameReferenceBuilder(name);
+	public static NameBuilder Name(final String name) {
+		return new NameBuilder(name);
 	}
 	
-	public static AllocationExpressionBuilder New(final ExpressionBuilder<? extends TypeReference> type) {
-		return new AllocationExpressionBuilder(type);
+	public static NewBuilder New(final ExpressionBuilder<? extends TypeReference> type) {
+		return new NewBuilder(type);
 	}
 	
-	public static QualifiedAllocationExpressionBuilder New(final ExpressionBuilder<? extends TypeReference> type, final ASTNodeBuilder<? extends TypeDeclaration> anonymousType) {
-		return new QualifiedAllocationExpressionBuilder(type, anonymousType);
+	public static FullNewBuilder New(final ExpressionBuilder<? extends TypeReference> type, final ASTNodeBuilder<? extends TypeDeclaration> anonymousType) {
+		return new FullNewBuilder(type, anonymousType);
 	}
 	
-	public static UnaryExpressionBuilder Not(final ExpressionBuilder<? extends Expression> condition) {
-		return new UnaryExpressionBuilder(OperatorIds.NOT, condition);
+	public static UnaryBuilder Not(final ExpressionBuilder<? extends Expression> condition) {
+		return new UnaryBuilder("!", condition);
 	}
 	
-	public static MagicLiteralBuilder Null() {
-		return new MagicLiteralBuilder(null);
+	public static NullTrueFalseBuilder Null() {
+		return new NullTrueFalseBuilder(null);
 	}
 	
-	public static MethodDeclarationBuilder MethodDef(final ExpressionBuilder<? extends TypeReference> returnType, final String name) {
-		return new MethodDeclarationBuilder(returnType, name);
+	public static MethodDefBuilder MethodDef(final ExpressionBuilder<? extends TypeReference> returnType, final String name) {
+		return new MethodDefBuilder(returnType, name);
 	}
 	
-	public static MethodBindingMethodDeclarationBuilder MethodDef(final MethodBinding abstractMethod) {
-		return new MethodBindingMethodDeclarationBuilder(abstractMethod);
+	public static ResolutionBasedMethodDefBuilder MethodDef(final MethodBinding abstractMethod) {
+		return new ResolutionBasedMethodDefBuilder(abstractMethod);
 	}
 	
-	public static NumberLiteralBuilder Number(final Number number) {
-		return new NumberLiteralBuilder(number);
+	public static NumberBuilder Number(final Number number) {
+		return new NumberBuilder(number);
 	}
 	
-	public static CharLiteralBuilder Char(final String character) {
-		return new CharLiteralBuilder(character);
+	public static CharBuilder Char(final String character) {
+		return new CharBuilder(character);
 	}
 	
-	public static ReturnStatementBuilder Return() {
-		return new ReturnStatementBuilder();
+	public static ReturnBuilder Return() {
+		return new ReturnBuilder();
 	}
 	
-	public static ReturnStatementBuilder Return(final ExpressionBuilder<? extends Expression> expression) {
-		return new ReturnStatementBuilder(expression);
+	public static ReturnBuilder Return(final ExpressionBuilder<? extends Expression> expression) {
+		return new ReturnBuilder(expression);
 	}
 	
-	public static DefaultReturnStatementBuilder ReturnDefault() {
-		return new DefaultReturnStatementBuilder();
+	public static DefaultReturnBuilder ReturnDefault() {
+		return new DefaultReturnBuilder();
 	}
 	
-	public static StringLiteralBuilder String(final String value) {
-		return new StringLiteralBuilder(value);
+	public static StringBuilder String(final String value) {
+		return new StringBuilder(value);
 	}
 	
-	public static ThisReferenceBuilder This() {
-		return new ThisReferenceBuilder();
+	public static ThisBuilder This() {
+		return new ThisBuilder();
 	}
 	
-	public static ThisReferenceBuilder This(final ExpressionBuilder<? extends TypeReference> type) {
-		return new ThisReferenceBuilder(type);
+	public static ThisBuilder This(final ExpressionBuilder<? extends TypeReference> type) {
+		return new ThisBuilder(type);
 	}
 	
-	public static ThrowStatementBuilder Throw(final ExpressionBuilder<? extends Expression> init) {
-		return new ThrowStatementBuilder(init);
+	public static ThrowBuilder Throw(final ExpressionBuilder<? extends Expression> init) {
+		return new ThrowBuilder(init);
 	}
 	
-	public static MagicLiteralBuilder True() {
-		return new MagicLiteralBuilder(true);
+	public static NullTrueFalseBuilder True() {
+		return new NullTrueFalseBuilder(true);
 	}
 	
-	public static TryStatementBuilder Try(final StatementBuilder<? extends org.eclipse.jdt.internal.compiler.ast.Block> tryBlock) {
-		return new TryStatementBuilder(tryBlock);
+	public static TryBuilder Try(final StatementBuilder<? extends org.eclipse.jdt.internal.compiler.ast.Block> tryBlock) {
+		return new TryBuilder(tryBlock);
 	}
 	
-	public static TypeReferenceBuilder Type(final Class<?> clazz) {
-		return new TypeReferenceBuilder(clazz.getName());
+	public static TypeBuilder Type(final Class<?> clazz) {
+		return new TypeBuilder(clazz.getName());
 	}
 	
-	public static TypeReferenceBuilder Type(final String typeName) {
-		return new TypeReferenceBuilder(typeName);
+	public static TypeBuilder Type(final String typeName) {
+		return new TypeBuilder(typeName);
 	}
 	
-	public static TypeBindingTypeReferenceBuilder Type(final TypeBinding typeBinding) {
-		return new TypeBindingTypeReferenceBuilder(typeBinding);
+	public static ResolutionBasedTypeBuilder Type(final TypeBinding typeBinding) {
+		return new ResolutionBasedTypeBuilder(typeBinding);
 	}
 	
-	public static TypeReferenceWrapper Type(final TypeReference typeReference) {
-		return new TypeReferenceWrapper(typeReference);
+	public static ExpressionWrapper<TypeReference> Type(final TypeReference typeReference) {
+		return new ExpressionWrapper<TypeReference>(typeReference);
 	}
 	
-	public static TypeParameterBuilder TypeParam(final String name) {
-		return new TypeParameterBuilder(name);
+	public static TypeParamBuilder TypeParam(final String name) {
+		return new TypeParamBuilder(name);
 	}
 	
-	public static WhileStatementBuilder While(final ExpressionBuilder<? extends Expression> condition) {
-		return new WhileStatementBuilder(condition);
+	public static WhileBuilder While(final ExpressionBuilder<? extends Expression> condition) {
+		return new WhileBuilder(condition);
 	}
 }

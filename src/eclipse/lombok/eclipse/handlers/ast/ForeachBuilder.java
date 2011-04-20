@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,43 +22,37 @@
 package lombok.eclipse.handlers.ast;
 
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
-import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.injectField;
-import static lombok.eclipse.handlers.ast.Arrays.buildArray;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
+import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
 
 @RequiredArgsConstructor
-public class EnumConstantBuilder implements StatementBuilder<FieldDeclaration> {
-	private final List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
-	protected final String name;
+public class ForeachBuilder implements StatementBuilder<ForeachStatement> {
+	private final StatementBuilder<? extends LocalDeclaration> elementVariable;
+	private ExpressionBuilder<? extends Expression> collection;
+	private StatementBuilder<? extends Statement> action;
 
-	public EnumConstantBuilder withArgument(final ExpressionBuilder<? extends Expression> arg) {
-		args.add(arg);
+	public ForeachBuilder In(final ExpressionBuilder<? extends Expression> collection) {
+		this.collection = collection;
 		return this;
 	}
 
-	public void injectInto(final EclipseNode node, final ASTNode source) {
-		injectField(typeNodeOf(node), build(node, source));
+	public ForeachBuilder Do(final StatementBuilder<? extends Statement> action) {
+		this.action = action;
+		return this;
 	}
 
 	@Override
-	public FieldDeclaration build(final EclipseNode node, final ASTNode source) {
-		final AllocationExpression initialization = new AllocationExpression();
-		setGeneratedByAndCopyPos(initialization, source);
-		initialization.arguments = buildArray(args, new Expression[0], node, source);
-		initialization.enumConstant = new FieldDeclaration(name.toCharArray(), 0, 0);
-		setGeneratedByAndCopyPos(initialization.enumConstant, source);
-		initialization.enumConstant.initialization = initialization;
-		return initialization.enumConstant;
+	public ForeachStatement build(EclipseNode node, ASTNode source) {
+		final ForeachStatement forEach = new ForeachStatement(elementVariable.build(node, source), 0);
+		setGeneratedByAndCopyPos(forEach, source);
+		forEach.collection = collection.build(node, source);
+		forEach.action = action.build(node, source);
+		return forEach;
 	}
 }

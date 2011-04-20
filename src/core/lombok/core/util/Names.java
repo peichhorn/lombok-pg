@@ -51,6 +51,11 @@ public class Names {
 		if (s == null) return "";
 		return s.substring(0, 1).toLowerCase() + s.substring(1);
 	}
+	
+	public static String capitalize(final String s) {
+		if (s == null) return "";
+		return s.substring(0, 1).toUpperCase() + s.substring(1);
+	}
 
 	public static String removeCurlyBrackets(String s) {
 		String trimmed = trim(s);
@@ -79,7 +84,7 @@ public class Names {
 	}
 
 	public static String singular(String s) {
-		return s.endsWith("s") ? s.substring(0, s.length() - 1): s;
+		return s.endsWith("s") ? s.substring(0, s.length() - 1) : s;
 	}
 
 	public static String camelCase(String first, String... rest) {
@@ -96,7 +101,7 @@ public class Names {
 		StringBuilder builder = new StringBuilder();
 		builder.append(s[0]);
 		for (int i = 1, iend = s.length; i < iend; i++) {
-			builder.append(s[i].substring(0, 1).toUpperCase()).append(s[i].substring(1));
+			builder.append(capitalize(s[i]));
 		}
 		return builder.toString();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,44 +21,40 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
-import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.injectField;
+import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.ast.Arrays.buildArray;
+import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
-@RequiredArgsConstructor
-public class EnumConstantBuilder implements StatementBuilder<FieldDeclaration> {
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class NewBuilder extends GenericTypeArgumentBuilder<NewBuilder, AllocationExpression> {
 	private final List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
-	protected final String name;
-
-	public EnumConstantBuilder withArgument(final ExpressionBuilder<? extends Expression> arg) {
+	private final ExpressionBuilder<? extends TypeReference> type;
+	
+	public NewBuilder withArgument(final ExpressionBuilder<? extends Expression> arg) {
 		args.add(arg);
-		return this;
+		return self();
 	}
-
-	public void injectInto(final EclipseNode node, final ASTNode source) {
-		injectField(typeNodeOf(node), build(node, source));
-	}
-
+	
 	@Override
-	public FieldDeclaration build(final EclipseNode node, final ASTNode source) {
-		final AllocationExpression initialization = new AllocationExpression();
-		setGeneratedByAndCopyPos(initialization, source);
-		initialization.arguments = buildArray(args, new Expression[0], node, source);
-		initialization.enumConstant = new FieldDeclaration(name.toCharArray(), 0, 0);
-		setGeneratedByAndCopyPos(initialization.enumConstant, source);
-		initialization.enumConstant.initialization = initialization;
-		return initialization.enumConstant;
+	public final AllocationExpression build(final EclipseNode node, final ASTNode source) {
+		final AllocationExpression initExpression = new AllocationExpression();
+		setGeneratedByAndCopyPos(initExpression, source);
+		initExpression.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
+		initExpression.type = type.build(node, source);
+		initExpression.typeArguments = buildTypeArguments(node, source);
+		initExpression.arguments = buildArray(args, new Expression[0], node, source);
+		return initExpression;
 	}
 }

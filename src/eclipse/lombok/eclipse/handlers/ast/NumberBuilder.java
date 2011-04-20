@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011 Philipp Eichhorn
+ * Copyright Â© 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,32 +27,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
+import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
+import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
+import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
+import org.eclipse.jdt.internal.compiler.ast.NumberLiteral;
 
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public final class AnnotationBuilder implements ExpressionBuilder<Annotation> {
-	private final ExpressionBuilder<? extends TypeReference> type;
-	private ExpressionBuilder<? extends Expression> value;
-	
-	public AnnotationBuilder withValue(final ExpressionBuilder<? extends Expression> value) {
-		this.value = value;
-		return this;
-	}
-	
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class NumberBuilder implements ExpressionBuilder<NumberLiteral>{
+	private final Number number;
+
 	@Override
-	public Annotation build(final EclipseNode node, final ASTNode source) {
-		final Annotation ann;
-		if (value == null) {
-			ann = new MarkerAnnotation(type.build(node, source), 0);
+	public NumberLiteral build(final EclipseNode node, final ASTNode source) {
+		final NumberLiteral literal;
+		if (number instanceof Integer) {
+			literal = new IntLiteral(Integer.toString(number.intValue()).toCharArray(), 0, 0);
+		} else if (number instanceof Long) {
+			literal = new LongLiteral((Long.toString(number.longValue()) + "L").toCharArray(), 0, 0);
+		} else if (number instanceof Float) {
+			literal = new FloatLiteral((Float.toString(number.floatValue()) + "f").toCharArray(), 0, 0);
 		} else {
-			ann = new SingleMemberAnnotation(type.build(node, source), 0);
-			((SingleMemberAnnotation)ann).memberValue = value.build(node, source);
-		}
-		setGeneratedByAndCopyPos(ann, source);
-		return ann;
-	} 
+			literal = new DoubleLiteral((Double.toString(number.doubleValue()) + "d").toCharArray(), 0, 0);
+		} 
+		setGeneratedByAndCopyPos(literal, source);
+		return literal;
+	}
 }

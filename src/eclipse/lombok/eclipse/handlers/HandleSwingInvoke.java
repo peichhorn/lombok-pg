@@ -33,17 +33,15 @@ import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor.IReplacementProvider;
-import lombok.eclipse.handlers.ast.MessageSendBuilder;
+import lombok.eclipse.handlers.ast.CallBuilder;
 import lombok.eclipse.handlers.ast.StatementBuilder;
-import lombok.eclipse.handlers.ast.TryStatementBuilder;
+import lombok.eclipse.handlers.ast.TryBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -65,7 +63,7 @@ public class HandleSwingInvoke {
 	}
 
 	public boolean generateSwingInvoke(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, ASTNode source, EclipseNode annotationNode) {
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
@@ -83,7 +81,7 @@ public class HandleSwingInvoke {
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
-		MessageSendBuilder elseStatementRun = Call(Name("java.awt.EventQueue"), methodName).withArgument(Name(field));
+		CallBuilder elseStatementRun = Call(Name("java.awt.EventQueue"), methodName).withArgument(Name(field));
 
 		StatementBuilder<? extends Statement> elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
@@ -106,7 +104,7 @@ public class HandleSwingInvoke {
 		return true;
 	}
 
-	private TryStatementBuilder generateTryCatchBlock(MessageSendBuilder elseStatementRun) {
+	private TryBuilder generateTryCatchBlock(CallBuilder elseStatementRun) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
 			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //
@@ -116,15 +114,10 @@ public class HandleSwingInvoke {
 	}
 
 	private static void replaceWithQualifiedThisReference(final EclipseNode node, final ASTNode source) {
-		EclipseNode parent = typeNodeOf(node);
+		final EclipseNode parent = typeNodeOf(node);
 		final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
 		final IReplacementProvider replacement = new HandleSwingInvokeReplacementProvider(new String(typeDec.name), source);
-		ASTNode astNode = node.get();
-		if (astNode instanceof MethodDeclaration) {
-			((MethodDeclaration)astNode).traverse(new ThisReferenceReplaceVisitor(replacement), (ClassScope)null);
-		} else {
-			astNode.traverse(new ThisReferenceReplaceVisitor(replacement), null);
-		}
+		new ThisReferenceReplaceVisitor(replacement).visit(node.get());
 	}
 
 	@RequiredArgsConstructor

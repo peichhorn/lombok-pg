@@ -40,7 +40,7 @@ import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
-import lombok.eclipse.handlers.ast.MessageSendBuilder;
+import lombok.eclipse.handlers.ast.CallBuilder;
 import lombok.eclipse.handlers.ast.StatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -120,7 +120,7 @@ public class HandleConditionAndLock {
 	}
 
 	public boolean handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return false;
@@ -129,7 +129,6 @@ public class HandleConditionAndLock {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return false;
 		}
-
 		String annotationTypeName = annotationType.getSimpleName();
 
 		boolean lockMode = lockMethod != null;
@@ -166,8 +165,8 @@ public class HandleConditionAndLock {
 			}
 		}
 		
-		final MessageSendBuilder lockCall;
-		final MessageSendBuilder unLockCall;
+		final CallBuilder lockCall;
+		final CallBuilder unLockCall;
 		if (lockMode) {
 			lockCall = Call(Call(Field(This(), completeLockName), lockMethod), "lock");
 			unLockCall = Call(Call(Field(This(), completeLockName), lockMethod), "unlock");

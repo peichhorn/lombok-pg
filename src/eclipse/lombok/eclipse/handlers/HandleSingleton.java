@@ -58,7 +58,7 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 		}
 
 
-		typeDecl.modifiers |= 0x00004000; // Modifier.ENUM
+		typeDecl.modifiers |= AccEnum;
 		replaceConstructorVisibility(typeDecl);
 
 		EnumConstant("INSTANCE").injectInto(typeNode, source);

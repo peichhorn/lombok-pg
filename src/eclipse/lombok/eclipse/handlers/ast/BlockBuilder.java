@@ -38,26 +38,26 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 public class BlockBuilder implements StatementBuilder<Block> {
 	private final List<StatementBuilder<? extends Statement>> statements = new ArrayList<StatementBuilder<? extends Statement>>();
 	
-	public BlockBuilder withStatement(StatementBuilder<? extends Statement> statement) {
+	public BlockBuilder withStatement(final StatementBuilder<? extends Statement> statement) {
 		this.statements.add(statement);
 		return this;
 	}
 	
-	public BlockBuilder withStatements(List<StatementBuilder<? extends Statement>> statements) {
+	public BlockBuilder withStatements(final List<StatementBuilder<? extends Statement>> statements) {
 		this.statements.addAll(statements);
 		return this;
 	}
 	
-	public BlockBuilder withStatements(Statement... statements) {
-		if (statements != null) for (Statement statement : statements) {
+	public BlockBuilder withStatements(final Statement... statements) {
+		if (statements != null) for (final Statement statement : statements) {
 			this.statements.add(new StatementWrapper<Statement>(statement));
 		}
 		return this;
 	}
 	
 	@Override
-	public Block build(EclipseNode node, ASTNode source) {
-		Block block = new Block(0);
+	public Block build(final EclipseNode node, final ASTNode source) {
+		final Block block = new Block(0);
 		setGeneratedByAndCopyPos(block, source);
 		block.statements = buildArray(statements, new Statement[0], node, source);
 		return block;

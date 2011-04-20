@@ -149,7 +149,6 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))).injectInto(typeNode, source);
 	}
 
-
 	private void addFireListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
 		// protected void fireMETHOD_NAME(METHOD_PARAMETER) {
 		//   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
@@ -163,7 +162,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
 			createParamsAndArgs(source, methodBinding, params, args);
 			MethodDef(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-				.withStatement(ForEach(LocalDef(Type(makeType(binding, source, false)), "l")).In(Name("$registered" + interfaceName)) //
+				.withStatement(Foreach(LocalDef(Type(makeType(binding, source, false)), "l")).In(Name("$registered" + interfaceName)) //
 					.Do(Call(Name("l"), methodName).withArguments(args))).injectInto(typeNode, source);
 		}
 	}
