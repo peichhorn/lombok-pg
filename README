@@ -4,6 +4,7 @@ The current extensions are:
 
   - @AutoGenMethodStub
   - @Builder and @BuilderExtension
+  - @DoPrivileged
   - @FluentSetter
   - @ListenerSupport
   - @WriteLock, @ReadLock, @Await, @Signal, @AwaitBeforeAndSignalAfter
