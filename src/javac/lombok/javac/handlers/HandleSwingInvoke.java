@@ -36,7 +36,7 @@ import lombok.javac.JavacNode;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 /**
@@ -79,9 +79,7 @@ public class HandleSwingInvoke {
 			return true;
 		}
 
-		TreeMaker maker = method.node().getTreeMaker();
-
-		method.get().accept(new ThisReferenceReplaceVisitor(chainDotsString(maker, method.node(), typeNodeOf(method.node()).getName() + ".this")), null);
+		replaceWithQualifiedThisReference(method);
 
 		String fieldName = "$" + method.name() + "Runnable";
 
@@ -92,5 +90,10 @@ public class HandleSwingInvoke {
 		method.rebuild();
 
 		return true;
+	}
+
+	private void replaceWithQualifiedThisReference(final JavacMethod method) {
+		final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(typeNodeOf(method.node()).getName(), method.node());
+		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 }

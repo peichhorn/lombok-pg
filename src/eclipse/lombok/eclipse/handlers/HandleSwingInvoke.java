@@ -25,14 +25,12 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.eclipse.handlers.ast.ASTBuilder.*;
-import lombok.RequiredArgsConstructor;
 import lombok.SwingInvokeAndWait;
 import lombok.SwingInvokeLater;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
-import lombok.eclipse.handlers.ThisReferenceReplaceVisitor.IReplacementProvider;
 import lombok.eclipse.handlers.ast.CallBuilder;
 import lombok.eclipse.handlers.ast.StatementBuilder;
 import lombok.eclipse.handlers.ast.TryBuilder;
@@ -77,7 +75,7 @@ public class HandleSwingInvoke {
 			return true;
 		}
 
-		replaceWithQualifiedThisReference(method.node(), source);
+		replaceWithQualifiedThisReference(method, source);
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
@@ -91,13 +89,13 @@ public class HandleSwingInvoke {
 		}
 				
 		method.body(source, Block() //
-				.withStatement(LocalDef(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable"), //
-						ClassDef("").makeAnonymous().makeLocal() //
-							.withMethod(MethodDef(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //
-								.withStatements(method.get().statements))))) //
-				.withStatement(If(Call(Name("java.awt.EventQueue"), "isDispatchThread")) //
-						.Then(Block().withStatement(Call(Name(field), "run"))) //
-						.Else(elseStatement)));
+			.withStatement(LocalDef(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable"), //
+				ClassDef("").makeAnonymous().makeLocal() //
+					.withMethod(MethodDef(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //
+						.withStatements(method.get().statements))))) //
+			.withStatement(If(Call(Name("java.awt.EventQueue"), "isDispatchThread")) //
+				.Then(Block().withStatement(Call(Name(field), "run"))) //
+				.Else(elseStatement)));
 
 		method.rebuild();
 
@@ -110,23 +108,13 @@ public class HandleSwingInvoke {
 			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //
 			.Catch(Arg(Type("java.lang.reflect.InvocationTargetException"), "$ex2"), Block() //
 				.withStatement(If(NotEqual(Call(Name("$ex2"), "getCause"), Null())) //
-						.Then(Throw(New(Type("java.lang.RuntimeException")).withArgument(Call(Name("$ex2"), "getCause"))))));
+					.Then(Throw(New(Type("java.lang.RuntimeException")).withArgument(Call(Name("$ex2"), "getCause"))))));
 	}
 
-	private static void replaceWithQualifiedThisReference(final EclipseNode node, final ASTNode source) {
-		final EclipseNode parent = typeNodeOf(node);
+	private void replaceWithQualifiedThisReference(final EclipseMethod method, final ASTNode source) {
+		final EclipseNode parent = typeNodeOf(method.node());
 		final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
-		final IReplacementProvider replacement = new HandleSwingInvokeReplacementProvider(new String(typeDec.name), source);
-		new ThisReferenceReplaceVisitor(replacement).visit(node.get());
-	}
-
-	@RequiredArgsConstructor
-	private static class HandleSwingInvokeReplacementProvider implements IReplacementProvider {
-		private final String typeName;
-		private final ASTNode source;
-
-		@Override public Expression getReplacement() {
-			return This(Type(typeName)).build(null, source);
-		}
+		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(new String(typeDec.name), source);
+		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 }

@@ -122,38 +122,59 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 		}
 	}
 
+	/**
+	 * creates:
+	 * <pre>
+	 * private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE =
+	 *   new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
+	 * </pre>
+	 */
 	private void addListenerField(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
-		// private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE = new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		FieldDef(Type("java.util.List").withTypeArgument(Type(makeType(binding, source, false))), "$registered" + interfaceName).makePrivateFinal() //
 			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(makeType(binding, source, false))))).injectInto(typeNode, source);
 	}
 
+	/**
+	 * creates:
+	 * <pre>
+	 * public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
+	 *  if (!$registeredLISTENER_TYPE.contains(l))
+	 *    $registeredLISTENER_TYPE.add(l);
+	 * }
+	 * </pre>
+	 */
 	private void addAddListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
-		// public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
-		//   if (!$registeredLISTENER_TYPE.contains(l))
-		//     $registeredLISTENER_TYPE.add(l);
-		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		MethodDef(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
 			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
-					.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))).injectInto(typeNode, source);
+				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))).injectInto(typeNode, source);
 	}
 
+	/**
+	 * creates:
+	 * <pre>
+	 * public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
+	 *   $registeredLISTENER_TYPE.remove(l);
+	 * }
+	 * </pre>
+	 */
 	private void addRemoveListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
-		// public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
-		//   $registeredLISTENER_TYPE.remove(l);
-		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		MethodDef(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))).injectInto(typeNode, source);
 	}
 
+	/**
+	 * creates:
+	 * <pre>
+	 * protected void fireMETHOD_NAME(METHOD_PARAMETER) {
+	 *   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
+	 *     l.METHOD_NAME(METHOD_ARGUMENTS);
+	 * }
+	 * </pre>
+	 */
 	private void addFireListenerMethod(EclipseNode typeNode, ASTNode source, TypeBinding binding) {
-		// protected void fireMETHOD_NAME(METHOD_PARAMETER) {
-		//   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
-		//     l.METHOD_NAME(METHOD_ARGUMENTS);
-		// }
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		List<MethodBinding> methods = getInterfaceMethods(binding);
 		for (MethodBinding methodBinding : methods) {

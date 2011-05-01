@@ -216,33 +216,27 @@ public class HandleWith extends JavacASTAdapter {
 
 		@Override
 		public JCTree visitNewArray(NewArrayTree node, Void p) {
-			JCTree tree = super.visitNewArray(node, p);
-			if (tree instanceof JCNewArray) {
-				((JCNewArray)tree).elems = tryToReplace(((JCNewArray)tree).elems);
-				((JCNewArray)tree).dims = tryToReplace(((JCNewArray)tree).dims);
-			}
+			JCNewArray tree = (JCNewArray) super.visitNewArray(node, p);
+			tree.elems = tryToReplace(tree.elems);
+			tree.dims = tryToReplace(tree.dims);
 			return tree;
 		}
 
 		@Override
 		public JCTree visitNewClass(NewClassTree node, Void p) {
-			JCTree tree = super.visitNewClass(node, p);
-			if (tree instanceof JCNewClass) {
-				((JCNewClass)tree).encl = tryToReplace(((JCNewClass)tree).encl);
-				((JCNewClass)tree).args = tryToReplace(((JCNewClass)tree).args);
-			}
+			JCNewClass tree = (JCNewClass) super.visitNewClass(node, p);
+			tree.encl = tryToReplace(tree.encl);
+			tree.args = tryToReplace(tree.args);
 			return tree;
 		}
 
 		@Override
 		public JCTree visitMethodInvocation(MethodInvocationTree node, Void p) {
-			JCTree tree = super.visitMethodInvocation(node, p);
-			if (tree instanceof JCMethodInvocation) {
-				isMethodName = true;
-				((JCMethodInvocation)tree).meth = tryToReplace(((JCMethodInvocation)tree).meth);
-				isMethodName = false;
-				((JCMethodInvocation)tree).args = tryToReplace(((JCMethodInvocation)tree).args);
-			}
+			JCMethodInvocation tree = (JCMethodInvocation) super.visitMethodInvocation(node, p);
+			isMethodName = true;
+			tree.meth = tryToReplace(tree.meth);
+			isMethodName = false;
+			tree.args = tryToReplace(tree.args);
 			return tree;
 		}
 

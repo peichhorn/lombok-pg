@@ -28,6 +28,7 @@ import static com.sun.tools.javac.code.Flags.PROTECTED;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.SYNCHRONIZED;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.TreeMaker;
@@ -54,8 +55,24 @@ public class JavacMethod {
 	}
 
 	public boolean returns(Class<?> clazz) {
-		final String type = typeStringOf(get().restype);
-		return type.equals(clazz.getName());
+		return returns(clazz.getName());
+	}
+
+	public boolean returns(final String typeName) {
+		final JCExpression returnType = returnType();
+		if (returnType == null) return false;
+		final String type;
+		if (returnType instanceof JCTypeApply) {
+			type = ((JCTypeApply)returnType).clazz.type.toString();
+		} else {
+			type = returnType.type.toString();
+		}
+		return type.equals(typeName);
+	}
+	
+	public JCExpression returnType() {
+		if (isConstructor()) return null;
+		return get().restype;
 	}
 
 	public boolean isSynchronized() {
@@ -94,6 +111,29 @@ public class JavacMethod {
 	public String name() {
 		return node().getName();
 	}
+	
+	public void makePrivate() {
+		makePackagePrivate();
+		get().mods.flags |= PRIVATE;
+	}
+	
+	public void makePackagePrivate() {
+		get().mods.flags &= ~(PRIVATE |PROTECTED | PUBLIC);
+	}
+	
+	public void makeProtected() {
+		makePackagePrivate();
+		get().mods.flags |= PROTECTED;
+	}
+	
+	public void makePublic() {
+		makePackagePrivate();
+		get().mods.flags |= PUBLIC;
+	}
+
+	public boolean wasCompletelyParsed() {
+		return true;
+	}
 
 	public void body(JCStatement... statements) {
 		if (statements != null) {
@@ -121,14 +161,6 @@ public class JavacMethod {
 		node().rebuild();
 	}
 
-	private String typeStringOf(JCExpression type) {
-		if (type instanceof JCTypeApply) {
-			return ((JCTypeApply)type).clazz.type.toString();
-		} else {
-			return type.type.toString();
-		}
-	}
-
 	@Override
 	public String toString() {
 		return get().toString();
@@ -140,24 +172,5 @@ public class JavacMethod {
 			methodNode = methodNode.up();
 		}
 		return methodNode == null ? null : new JavacMethod(methodNode);
-	}
-
-	public void makePrivate() {
-		makePackagePrivate();
-		get().mods.flags |= PRIVATE;
-	}
-	
-	public void makePackagePrivate() {
-		get().mods.flags &= ~(PRIVATE |PROTECTED | PUBLIC);
-	}
-	
-	public void makeProtected() {
-		makePackagePrivate();
-		get().mods.flags |= PROTECTED;
-	}
-	
-	public void makePublic() {
-		makePackagePrivate();
-		get().mods.flags |= PUBLIC;
 	}
 }

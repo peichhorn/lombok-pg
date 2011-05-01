@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2011 Philipp Eichhorn
+ * Copyright © 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,36 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
-import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 
-/**
- * Replaces all implicit and explicit occurrences of 'this' with a specified expression.
- */
-// TODO incomplete, but works for the current use-case
-public class ThisReferenceReplaceVisitor extends ReplaceVisitor<Expression> {
-
-	public ThisReferenceReplaceVisitor(IReplacementProvider<Expression> replacement) {
-		super(replacement);
-	}
-
-	@Override
-	public boolean visit(MessageSend messageSend, BlockScope scope) {
-		replace(messageSend.arguments);
-		return true;
-	}
-
-	@Override
-	public boolean visit(AllocationExpression allocationExpression, BlockScope scope) {
-		replace(allocationExpression.arguments);
-		return true;
-	}
-
-	@Override
-	protected boolean needsReplacing(Expression node) {
-		return node instanceof ThisReference;
-	}
+public interface IReplacementProvider<NODE_TYPE extends ASTNode> {
+	public NODE_TYPE getReplacement();
 }

@@ -54,8 +54,8 @@ public class HandleConditionAndLock {
 		@Override public boolean handle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			return new HandleConditionAndLock()
-					.withLockMethod("readLock")
-					.handle(ann.value(), ReadLock.class, ast, annotationNode);
+				.withLockMethod("readLock")
+				.handle(ann.value(), ReadLock.class, ast, annotationNode);
 		}
 	}
 
@@ -64,8 +64,8 @@ public class HandleConditionAndLock {
 		@Override public boolean handle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			return new HandleConditionAndLock()
-					.withLockMethod("writeLock")
-					.handle(ann.value(), WriteLock.class, ast, annotationNode);
+				.withLockMethod("writeLock")
+				.handle(ann.value(), WriteLock.class, ast, annotationNode);
 		}
 	}
 
@@ -74,8 +74,8 @@ public class HandleConditionAndLock {
 		@Override public boolean handle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			return new HandleConditionAndLock()
-					.withSignal(new SignalData(ann.value(), ann.pos()))
-					.handle(ann.lockName(), Signal.class, ast, annotationNode);
+				.withSignal(new SignalData(ann.value(), ann.pos()))
+				.handle(ann.lockName(), Signal.class, ast, annotationNode);
 		}
 	}
 
@@ -84,8 +84,8 @@ public class HandleConditionAndLock {
 		@Override public boolean handle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
 			return new HandleConditionAndLock()
-					.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
-					.handle(ann.lockName(), Await.class, ast, annotationNode);
+				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
+				.handle(ann.lockName(), Await.class, ast, annotationNode);
 		}
 	}
 
@@ -94,9 +94,9 @@ public class HandleConditionAndLock {
 		@Override public boolean handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			return new HandleConditionAndLock()
-					.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
-					.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-					.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
+				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
+				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
+				.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
 		}
 	}
 

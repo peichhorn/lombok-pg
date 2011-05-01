@@ -23,53 +23,37 @@ package lombok.javac.handlers;
 
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewClassTree;
-import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
 
 /**
  * Replaces all implicit and explicit occurrences of 'this' with a specified expression.
  */
 //TODO incomplete, but works for the current use-case
-public class ThisReferenceReplaceVisitor extends TreeScanner<Void, Void> {
-	private final JCExpression replacement;
+public class ThisReferenceReplaceVisitor extends ReplaceVisitor<JCExpression> {
 
-	public ThisReferenceReplaceVisitor(final JCExpression replacement) {
-		super();
-		this.replacement = replacement;
+	public ThisReferenceReplaceVisitor(IReplacementProvider<JCExpression> replacement) {
+		super(replacement);
 	}
 
 	@Override
 	public Void visitMethodInvocation(MethodInvocationTree tree, Void p) {
-		if (tree instanceof JCMethodInvocation) {
-			JCMethodInvocation methodInvocation = (JCMethodInvocation)tree;
-			methodInvocation.args = replaceArgs(methodInvocation.args);
-		}
+		JCMethodInvocation methodInvocation = (JCMethodInvocation)tree;
+		methodInvocation.args = replace(methodInvocation.args);
 		return super.visitMethodInvocation(tree, p);
 	}
 
 	@Override
 	public Void visitNewClass(NewClassTree tree, Void p) {
-		if (tree instanceof JCNewClass) {
-			JCNewClass newClass = (JCNewClass)tree;
-			newClass.args = replaceArgs(newClass.args);
-		}
+		JCNewClass newClass = (JCNewClass)tree;
+		newClass.args = replace(newClass.args);
 		return super.visitNewClass(tree, p);
 	}
 
-	private List<JCExpression> replaceArgs(List<JCExpression> args) {
-		ListBuffer<JCExpression> newArgs = ListBuffer.lb();
-		for (JCExpression arg : args) {
-			if ((arg instanceof JCIdent) && ("this".equals(arg.toString()))) {
-				arg = replacement;
-			}
-			newArgs.append(arg);
-		}
-		return newArgs.toList();
+	@Override
+	protected boolean needsReplacing(JCExpression node) {
+		return (node instanceof JCIdent) && "this".equals(node.toString());
 	}
 }
-
