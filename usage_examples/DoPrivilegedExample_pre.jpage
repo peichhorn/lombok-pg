@@ -1,0 +1,21 @@
+import lombok.DoPrivileged;
+
+import java.io.File;
+
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+public class DoPrivilegedExample extends JFrame {
+
+	@DoPrivileged
+	public File getFileUsingFileChooser() {
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileFilter(new FileNameExtensionFilter("HTML Documents", "html"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			return fileChooser.getSelectedFile();
+		}
+		return null;
+	}
+}

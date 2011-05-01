@@ -36,6 +36,9 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="Builder" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="DoPrivileged" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="FluentSetter" />
 		</antcall>
 		<antcall target="-integrateSnippet">

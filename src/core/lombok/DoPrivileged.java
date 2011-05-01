@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * After:
  * <pre>
  * int test1() {
- *   return AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+ *   return AccessController.doPrivileged(new PrivilegedAction&lt;Integer&gt;() {
  *     public Integer run() {
  *       // something
  *       return 0;
@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
  * }
  * 
  * void test2() {
- *   AccessController.doPrivileged(new PrivilegedAction<Void>() {
+ *   AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {
  *     public Void run() {
  *       // something else
  *       return null;
