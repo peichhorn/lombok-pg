@@ -132,7 +132,7 @@ public class ClassDefBuilder implements ASTNodeBuilder<TypeDeclaration> {
 		} else {
 			proto.name = name.toCharArray();
 		}
-		if ((bits & (ASTNode.IsAnonymousType | ASTNode.IsLocalType)) != 0) {
+		if ((bits & (ASTNode.IsAnonymousType)) != 0) {
 			proto.sourceEnd = 0;
 			proto.bodyEnd = source.sourceEnd + 2;
 		}

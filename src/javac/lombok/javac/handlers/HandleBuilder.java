@@ -66,7 +66,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 	private final static String CONSTRUCTOR_ASSIGN = "this.%s = builder.%s;";
 	private final static String OPTIONAL_DEF = "$OptionalDef";
 	private final static String BUILDER = "$Builder";
-	private final static String CREATE_METHOD = "%s static %s %s() { return new $Builder(); }";
+	private final static String INITIALIZE_BUILDER_METHOD = "%s static %s %s() { return new $Builder(); }";
 	private final static String BUILDER_METHOD_CALL_ARG1 = "public %s %s(final %s arg0) { this.%s.%s(arg0); return this; }";
 	private final static String BUILDER_METHOD_ASSIGN_ARG1 = "public %s %s(final %s arg0) { this.%s=arg0; return this; }";
 	private final static String BUILDER_METHOD_CALL_ARG2 = "public %s %s(final %s arg0, final %s arg1) { this.%s.%s(arg0, arg1); return this; }";
@@ -92,14 +92,13 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			return true;
 		default:
 		case NOT_EXISTS:
-			//continue with creating the entrypoint
+			//continue with creating the builder
 		}
 
-		handleBuilder(new HandleBuilderDataCollector(typeNode, annotation.getInstance()).collect());
-		return true;
+		return handleBuilder(new HandleBuilderDataCollector(typeNode, annotation.getInstance()).collect());
 	}
 
-	private static void handleBuilder(IBuilderData builderData) {
+	private boolean handleBuilder(IBuilderData builderData) {
 		List<String> requiredFieldDefTypeNames = builderData.getRequiredFieldDefTypeNames();
 		List<String> typeNames = new ListBuffer<String>().appendList(requiredFieldDefTypeNames).append(OPTIONAL_DEF).toList();
 		String fieldDefTypeName = builderData.getRequiredFields().isEmpty() ? OPTIONAL_DEF : requiredFieldDefTypeNames.head;
@@ -110,7 +109,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 			assignments.append(String.format(CONSTRUCTOR_ASSIGN, field.name, field.name));
 		}
 		constructor(typeNode, CONSTRUCTOR, assignments).inject();
-		method(typeNode, CREATE_METHOD, Flags.toString(builderData.getCreateModifier()), fieldDefTypeName, decapitalize(typeNode.getName())).inject();
+		method(typeNode, INITIALIZE_BUILDER_METHOD, Flags.toString(builderData.getCreateModifier()), fieldDefTypeName, decapitalize(typeNode.getName())).inject();
 
 		ListBuffer<JCTree> builderMethods = ListBuffer.lb();
 		createRequiredFieldInterfaces(builderData, builderMethods);
@@ -118,9 +117,10 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 
 		clazz(typeNode, STATIC | PRIVATE, BUILDER).implementing(typeNames)
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods.toList()).inject();
+		return true;
 	}
 
-	private static List<JCTree> createBuilderFields(IBuilderData builderData) {
+	private List<JCTree> createBuilderFields(IBuilderData builderData) {
 		TreeMaker maker = builderData.getTypeNode().getTreeMaker();
 		ListBuffer<JCTree> fields = new ListBuffer<JCTree>();
 		for (JCVariableDecl field : builderData.getAllFields()) {
@@ -130,7 +130,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		return fields.toList();
 	}
 
-	private static void createRequiredFieldInterfaces(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
+	private void createRequiredFieldInterfaces(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
 		List<JCVariableDecl> fields = builderData.getRequiredFields();
 		if (!fields.isEmpty()) {
 			JavacNode typeNode = builderData.getTypeNode();
@@ -159,7 +159,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 	}
 
-	private static void createOptionalFieldInterface(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
+	private void createOptionalFieldInterface(IBuilderData builderData, ListBuffer<JCTree> builderMethods) {
 		ListBuffer<JCTree> interfaceMethods = ListBuffer.lb();
 		for (JCVariableDecl field : builderData.getOptionalFields()) {
 			if (isInitializedMapOrCollection(field)) {
@@ -191,14 +191,14 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		interfaze(typeNode, PUBLIC | STATIC, OPTIONAL_DEF).withMethods(interfaceMethods.toList()).inject();
 	}
 
-	private static void createFluentSetter(IBuilderData builderData, String nextTypeName, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods,
+	private void createFluentSetter(IBuilderData builderData, String nextTypeName, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods,
 			ListBuffer<JCTree> builderMethods) {
 		String fieldName = field.name.toString();
 		String methodName = toCamelCase(false, builderData.getPrefix(), fieldName);
 		addMethodTo(method(builderData.getTypeNode(), BUILDER_METHOD_ASSIGN_ARG1, nextTypeName, methodName, field.vartype, fieldName), interfaceMethods, builderMethods);
 	}
 
-	private static void createCollectionMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
+	private void createCollectionMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		TreeMaker maker = typeNode.getTreeMaker();
 		Object elementType = "java.lang.Object";
@@ -218,7 +218,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG1, OPTIONAL_DEF, addAllMethodName, collectionType, field.name, "addAll"), interfaceMethods, builderMethods);
 	}
 
-	private static void createMapMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
+	private void createMapMethods(IBuilderData builderData, JCVariableDecl field, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		TreeMaker maker = typeNode.getTreeMaker();
 		Object keyType = "java.lang.Object";
@@ -240,7 +240,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_ARG1, OPTIONAL_DEF, putAllMethodName, mapType, field.name, "putAll"), interfaceMethods, builderMethods);
 	}
 
-	private static void createMethodCall(IBuilderData builderData, String method, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
+	private void createMethodCall(IBuilderData builderData, String method, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
 		if ("toString".equals(method)) {
@@ -261,12 +261,12 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 	}
 
-	private static void addMethodTo(MethodBuilder builder, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
+	private void addMethodTo(MethodBuilder builder, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		builderMethods.append(builder.build());
 		interfaceMethods.append(builder.withMods(InterfaceMethodFlags).withoutBody().build());
 	}
 
-	private static Object addWildCard(TreeMaker maker, JCExpression type, ListBuffer<JCExpression> args) {
+	private Object addWildCard(TreeMaker maker, JCExpression type, ListBuffer<JCExpression> args) {
 		if (type instanceof JCWildcard) {
 			args.append(type);
 			return ((JCWildcard)type).inner;

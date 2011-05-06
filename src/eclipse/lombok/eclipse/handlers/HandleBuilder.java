@@ -91,7 +91,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 			return true;
 		default:
 		case NOT_EXISTS:
-			//continue with creating the entrypoint
+			//continue with creating the builder
 		}
 
 		handleBuilder(new HandleBuilderDataCollector(typeNode, source, annotation.getInstance()).collect());
@@ -105,7 +105,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		ExpressionBuilder<? extends TypeReference> fieldDefType = builderData.getRequiredFields().isEmpty() ? Type(OPTIONAL_DEF) : requiredFieldDefTypes.get(0);
 
 		createConstructor(builderData);
-		createCreateMethod(builderData, fieldDefType);
+		createInitializeBuilderMethod(builderData, fieldDefType);
 		List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods = new ArrayList<ASTNodeBuilder<? extends AbstractMethodDeclaration>>();
 		createRequiredFieldInterfaces(builderData, builderMethods);
 		createOptionalFieldInterface(builderData, builderMethods);
@@ -123,9 +123,10 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		builder.injectInto(typeNode, source);
 	}
 
-	private void createCreateMethod(final IBuilderData builderData, final ExpressionBuilder<? extends TypeReference> fieldDefType) {
-		MethodDef(fieldDefType, decapitalize(builderData.getTypeNode().getName())).withModifiers(STATIC | builderData.getCreateModifier()).withStatement(Return(New(Type(BUILDER)))) //
-			.injectInto(builderData.getTypeNode(), builderData.getSource());
+	private void createInitializeBuilderMethod(final IBuilderData builderData, final ExpressionBuilder<? extends TypeReference> fieldDefType) {
+		final EclipseNode typeNode = builderData.getTypeNode();
+		MethodDef(fieldDefType, decapitalize(typeNode.getName())).withModifiers(STATIC | builderData.getCreateModifier()).withStatement(Return(New(Type(BUILDER)))) //
+			.injectInto(typeNode, builderData.getSource());
 	}
 
 	private void createRequiredFieldInterfaces(IBuilderData builderData, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {

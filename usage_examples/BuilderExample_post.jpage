@@ -5,7 +5,6 @@ class BuilderExample {
 	private final int id;
 	private String optionalVal1;
 	private List<Long> optionalVal2;
-	private long optionalVal3;
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderExample(final $Builder builder) {
@@ -35,7 +34,7 @@ class BuilderExample {
 		
 		$OptionalDef withOptionalVal2(final List<Long> arg0);
 		
-		BuilderPlain1 build();
+		BuilderExample build();
 		
 		$OptionalDef withOptionalVal1(Class<?> clazz);
 	}
