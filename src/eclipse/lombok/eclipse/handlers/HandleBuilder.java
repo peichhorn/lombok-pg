@@ -40,6 +40,9 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.BuilderExtension;
+import lombok.Delegate;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseAnnotationHandler;
@@ -166,7 +169,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods = new ArrayList<ASTNodeBuilder<? extends AbstractMethodDeclaration>>();
 		for (FieldDeclaration field : builderData.getOptionalFields()) {
 			if (isInitializedMapOrCollection(field)) {
-				if (builderData.generateConvenientMethods()) {
+				if (builderData.isGenerateConvenientMethodsEnabled()) {
 					if (isCollection(field)) {
 						createCollectionSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
 					}  else if (isMap(field)) {
@@ -442,117 +445,109 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		return type.endsWith("Map");
 	}
 
-	private static class HandleBuilderDataCollector extends EclipseASTAdapter implements IBuilderData {
+	private static class HandleBuilderDataCollector implements IBuilderData {
+		@Getter
 		private final EclipseNode typeNode;
+		@Getter
 		private final ASTNode source;
-		private final Set<String> exclude;
+		@Getter
 		private final String prefix;
-		private final boolean convenientMethods;
+		@Getter
 		private final List<String> callMethods;
 		private final AccessLevel level;
-		private final List<FieldDeclaration> requiredFields = new ArrayList<FieldDeclaration>();
-		private final List<FieldDeclaration> optionalFields = new ArrayList<FieldDeclaration>();
-		private final List<ExpressionBuilder<? extends TypeReference>> requiredFieldDefTypes = new ArrayList<ExpressionBuilder<? extends TypeReference>>();
-		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final List<MethodDeclaration> requiredFieldExtensions = new ArrayList<MethodDeclaration>();
-		private final List<MethodDeclaration> optionalFieldExtensions = new ArrayList<MethodDeclaration>();
-		private boolean isExtensionMethod;
-		private boolean containsRequiredFields;
-		private int typeDepth;
-		private int phase;
+		
+		@Delegate(IBuilderExtensionData.class)
+		private final ExtensionCollector extensionCollector;
+		@Delegate(IBuilderData.class)
+		private final FieldCollector fieldCollector;
 
 		public HandleBuilderDataCollector(EclipseNode typeNode, ASTNode source, Builder builder) {
 			super();
 			this.typeNode = typeNode;
 			this.source = source;
-			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			fieldCollector = new FieldCollector(builder);
+			extensionCollector = new ExtensionCollector();
 			prefix = builder.prefix();
-			convenientMethods = builder.convenientMethods();
 			callMethods = Arrays.asList(builder.callMethods());
 			level = builder.value();
 		}
 
 		public IBuilderData collect() {
-			phase = 1; typeNode.traverse(this);
-			phase = 2; typeNode.traverse(this);
+			typeNode.traverse(fieldCollector);
+			typeNode.traverse(extensionCollector.withRequiredFieldNames(fieldCollector.getAllRequiredFieldNames()));
 			return this;
 		}
 
 		@Override
-		public EclipseNode getTypeNode() {
-			return typeNode;
-		}
-
-		@Override
-		public ASTNode getSource() {
-			return source;
-		}
-
-		@Override
-		public List<FieldDeclaration> getRequiredFields() {
-			return requiredFields;
-		}
-
-		@Override
-		public List<FieldDeclaration> getOptionalFields() {
-			return optionalFields;
-		}
-
-		@Override
 		public List<FieldDeclaration> getAllFields() {
-			List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>(requiredFields);
-			allFields.addAll(optionalFields);
+			List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>(getRequiredFields());
+			allFields.addAll(getOptionalFields());
 			return allFields;
-		}
-
-		@Override
-		public List<ExpressionBuilder<? extends TypeReference>> getRequiredFieldDefTypes() {
-			return requiredFieldDefTypes;
-		}
-		
-		@Override
-		public List<String> getRequiredFieldDefTypeNames() {
-			return requiredFieldDefTypeNames;
-		}
-
-		@Override
-		public List<MethodDeclaration> getRequiredFieldExtensions() {
-			return requiredFieldExtensions;
-		}
-
-		@Override
-		public List<MethodDeclaration> getOptionalFieldExtensions() {
-			return optionalFieldExtensions;
 		}
 
 		@Override
 		public int getCreateModifier() {
 			return toEclipseModifier(level);
 		}
+	}
 
-		@Override
-		public String getPrefix() {
-			return prefix;
+	@Getter
+	private static class FieldCollector extends EclipseASTAdapterWithTypeDepth {
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final List<FieldDeclaration> requiredFields = new ArrayList<FieldDeclaration>();
+		private final List<FieldDeclaration> optionalFields = new ArrayList<FieldDeclaration>();
+		private final List<ExpressionBuilder<? extends TypeReference>> requiredFieldDefTypes = new ArrayList<ExpressionBuilder<? extends TypeReference>>();
+		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();
+		private final boolean generateConvenientMethodsEnabled;
+		private final Set<String> exclude;
+
+		public FieldCollector(Builder builder) {
+			super(1);
+			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			generateConvenientMethodsEnabled = builder.convenientMethods();
 		}
 
-		@Override
-		public boolean generateConvenientMethods() {
-			return convenientMethods;
+		@Override public void visitField(EclipseNode fieldNode, FieldDeclaration field) {
+			if (isOfInterest()) {
+				if ((field.modifiers & STATIC) != 0) return;
+				String fieldName = new String(field.name);
+				if (exclude.contains(fieldName)) return;
+				if ((field.initialization == null) && ((field.modifiers & FINAL) != 0)) {
+					requiredFields.add(field);
+					allRequiredFieldNames.add(fieldName);
+					String typeName = camelCase("$", fieldName, "def");
+					requiredFieldDefTypeNames.add(typeName);
+					requiredFieldDefTypes.add(Type(typeName));
+				}
+				boolean append = isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
+				append |= (field.modifiers & FINAL) == 0;
+				if (append) optionalFields.add(field);
+			}
+		}
+	}
+
+	private static class ExtensionCollector extends EclipseASTAdapterWithTypeDepth {
+		@Getter
+		private final List<MethodDeclaration> requiredFieldExtensions = new ArrayList<MethodDeclaration>();
+		@Getter
+		private final List<MethodDeclaration> optionalFieldExtensions = new ArrayList<MethodDeclaration>();
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final Set<String> requiredFieldNames = new HashSet<String>();
+		private boolean isExtensionMethod;
+		private boolean containsRequiredFields;
+
+		public ExtensionCollector() {
+			super(1);
 		}
 
-		@Override
-		public List<String> getCallMethods() {
-			return callMethods;
-		}
-
-		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
-			typeDepth++;
+		public ExtensionCollector withRequiredFieldNames(final Set<String> fieldNames) {
+			allRequiredFieldNames.clear();
+			allRequiredFieldNames.addAll(fieldNames);
+			return this;
 		}
 
 		@Override public void visitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
-			if ((phase == 2) && (typeDepth == 1)) {
+			if (isOfInterest()) {
 				isExtensionMethod = false;
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
@@ -569,7 +564,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 
 		@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
-			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
+			if (isOfInterest() && (isExtensionMethod)) {
 				if (statement instanceof Assignment) {
 					Assignment assign = (Assignment) statement;
 					String fieldName = assign.lhs.toString();
@@ -584,7 +579,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 
 		@Override public void endVisitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
-			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod) && (method instanceof MethodDeclaration)) {
+			if (isOfInterest() && (isExtensionMethod) && (method instanceof MethodDeclaration)) {
 				MethodDeclaration meth = (MethodDeclaration) method;
 				if (((meth.modifiers & PRIVATE) != 0) && "void".equals(meth.returnType.toString())) {
 					if (containsRequiredFields) {
@@ -603,7 +598,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		}
 
 		@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
-			if ((phase == 2) && (typeDepth == 1)) {
+			if (isOfInterest()) {
 				List<AbstractMethodDeclaration> methods = new ArrayList<AbstractMethodDeclaration>();
 				for (AbstractMethodDeclaration method : type.methods) {
 					if (method instanceof MethodDeclaration) {
@@ -615,34 +610,41 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 					}
 				}
 				type.methods = methods.toArray(new AbstractMethodDeclaration[methods.size()]);
+				typeNode.rebuild();
 			}
-			typeDepth--;
-		}
-
-		@Override public void visitField(EclipseNode fieldNode, FieldDeclaration field) {
-			if ((phase == 1) && (typeDepth == 1)) {
-				if ((field.modifiers & STATIC) != 0) return;
-				String fieldName = new String(field.name);
-				if (exclude.contains(fieldName)) return;
-				if ((field.initialization == null) && ((field.modifiers & FINAL) != 0)) {
-					requiredFields.add(field);
-					allRequiredFieldNames.add(fieldName);
-					String typeName = camelCase("$", fieldName, "def");
-					requiredFieldDefTypeNames.add(typeName);
-					requiredFieldDefTypes.add(Type(typeName));
-				}
-				boolean append = isInitializedMapOrCollection(field) && convenientMethods;
-				append |= (field.modifiers & FINAL) == 0;
-				if (append) optionalFields.add(field);
-			}
+			super.endVisitType(typeNode, type);
 		}
 	}
 
-	private static interface IBuilderData {
+	@RequiredArgsConstructor
+	private static class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
+		private final int maxTypeDepth;
+		private int typeDepth;
+
+		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
+			typeDepth++;
+		}
+
+		@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
+			typeDepth--;
+		}
+
+		public boolean isOfInterest() {
+			return typeDepth <= maxTypeDepth;
+		}
+	}
+
+	private static interface IBuilderData extends IBuilderExtensionData {
 		public EclipseNode getTypeNode();
 
 		public ASTNode getSource();
 
+		public int getCreateModifier();
+
+		public String getPrefix();
+
+		public List<String> getCallMethods();
+		
 		public List<FieldDeclaration> getRequiredFields();
 
 		public List<FieldDeclaration> getOptionalFields();
@@ -653,16 +655,12 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		
 		public List<String> getRequiredFieldDefTypeNames();
 
+		public boolean isGenerateConvenientMethodsEnabled();
+	}
+	
+	private static interface IBuilderExtensionData {
 		public List<MethodDeclaration> getRequiredFieldExtensions();
 
 		public List<MethodDeclaration> getOptionalFieldExtensions();
-
-		public int getCreateModifier();
-
-		public String getPrefix();
-
-		public boolean generateConvenientMethods();
-
-		public List<String> getCallMethods();
 	}
 }

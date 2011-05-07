@@ -35,6 +35,9 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.BuilderExtension;
+import lombok.Delegate;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacAnnotationHandler;
@@ -163,7 +166,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		ListBuffer<JCTree> interfaceMethods = ListBuffer.lb();
 		for (JCVariableDecl field : builderData.getOptionalFields()) {
 			if (isInitializedMapOrCollection(field)) {
-				if (builderData.generateConvenientMethods()) {
+				if (builderData.isGenerateConvenientMethodsEnabled()) {
 					if (isCollection(field)) {
 						createCollectionMethods(builderData, field, interfaceMethods, builderMethods);
 					}  else if (isMap(field)) {
@@ -316,102 +319,120 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		return builder.toString();
 	}
 
-	private static class HandleBuilderDataCollector extends JavacASTAdapter implements IBuilderData {
+	private static class HandleBuilderDataCollector implements IBuilderData {
+		@Getter
 		private final JavacNode typeNode;
-		private final Set<String> exclude;
+		@Getter
 		private final String prefix;
-		private final boolean convenientMethods;
+		@Getter
 		private final List<String> callMethods;
 		private final AccessLevel level;
-		private final ListBuffer<JCVariableDecl> requiredFields = ListBuffer.lb();
-		private final ListBuffer<JCVariableDecl> optionalFields = ListBuffer.lb();
-		private final ListBuffer<String> requiredFieldDefTypeNames = ListBuffer.lb();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final ListBuffer<JCMethodDecl> requiredFieldExtensions = ListBuffer.lb();
-		private final ListBuffer<JCMethodDecl> optionalFieldExtensions = ListBuffer.lb();
-		private boolean isExtensionMethod;
-		private boolean containsRequiredFields;
-		private int typeDepth;
-		private int phase;
 
+		@Delegate(IBuilderExtensionData.class)
+		private final ExtensionCollector extensionCollector;
+		@Delegate(IBuilderData.class)
+		private final FieldCollector fieldCollector;
+		
 		public HandleBuilderDataCollector(JavacNode typeNode, Builder builder) {
 			super();
 			this.typeNode = typeNode;
-			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			fieldCollector = new FieldCollector(builder);
+			extensionCollector = new ExtensionCollector();
 			prefix = builder.prefix();
-			convenientMethods = builder.convenientMethods();
 			callMethods = List.from(builder.callMethods());
 			level = builder.value();
 		}
 
 		public IBuilderData collect() {
-			phase = 1; typeNode.traverse(this);
-			phase = 2; typeNode.traverse(this);
+			typeNode.traverse(fieldCollector);
+			typeNode.traverse(extensionCollector.withRequiredFieldNames(fieldCollector.getAllRequiredFieldNames()));
 			return this;
 		}
-
-		@Override
-		public JavacNode getTypeNode() {
-			return typeNode;
-		}
-
-		@Override
-		public List<JCVariableDecl> getRequiredFields() {
-			return requiredFields.toList();
-		}
-
-		@Override
-		public List<JCVariableDecl> getOptionalFields() {
-			return optionalFields.toList();
-		}
-
+		
 		@Override
 		public List<JCVariableDecl> getAllFields() {
-			return ListBuffer.<JCVariableDecl>lb().appendList(requiredFields).appendList(optionalFields).toList();
-		}
-
-		@Override
-		public List<String> getRequiredFieldDefTypeNames() {
-			return requiredFieldDefTypeNames.toList();
-		}
-
-		@Override
-		public List<JCMethodDecl> getRequiredFieldExtensions() {
-			return requiredFieldExtensions.toList();
-		}
-
-		@Override
-		public List<JCMethodDecl> getOptionalFieldExtensions() {
-			return optionalFieldExtensions.toList();
+			return ListBuffer.<JCVariableDecl>lb().appendList(getRequiredFields()).appendList(getOptionalFields()).toList();
 		}
 
 		@Override
 		public long getCreateModifier() {
 			return toJavacModifier(level);
 		}
+	}
 
-		@Override
-		public String getPrefix() {
-			return prefix;
+	private static class FieldCollector extends JavacASTAdapterWithTypeDepth {
+		@Getter
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final ListBuffer<JCVariableDecl> requiredFields = ListBuffer.lb();
+		private final ListBuffer<JCVariableDecl> optionalFields = ListBuffer.lb();
+		private final ListBuffer<String> requiredFieldDefTypeNames = ListBuffer.lb();
+		@Getter
+		private final boolean generateConvenientMethodsEnabled;
+		private final Set<String> exclude;
+
+		public FieldCollector(Builder builder) {
+			super(1);
+			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			generateConvenientMethodsEnabled = builder.convenientMethods();
 		}
 
-		@Override
-		public boolean generateConvenientMethods() {
-			return convenientMethods;
+		public List<JCVariableDecl> getRequiredFields() {
+			return requiredFields.toList();
 		}
 
-		@Override
-		public List<String> getCallMethods() {
-			return callMethods;
+		public List<JCVariableDecl> getOptionalFields() {
+			return optionalFields.toList();
 		}
 
-		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
-			typeDepth++;
+		public List<String> getRequiredFieldDefTypeNames() {
+			return requiredFieldDefTypeNames.toList();
+		}
+
+		@Override public void visitField(JavacNode fieldNode, JCVariableDecl field) {
+			if (isOfInterest()) {
+				if ((field.mods.flags & STATIC) != 0) return;
+				String fieldName = field.name.toString();
+				if (exclude.contains(fieldName)) return;
+				if ((field.init == null) && ((field.mods.flags & FINAL) != 0)) {
+					requiredFields.append(field);
+					allRequiredFieldNames.add(fieldName);
+					requiredFieldDefTypeNames.append(toCamelCase(false, "$", fieldName, "def"));
+				}
+				boolean append = isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
+				append |= (field.mods.flags & FINAL) == 0;
+				if (append) optionalFields.append(field);
+			}
+		}
+	}
+
+	private static class ExtensionCollector extends JavacASTAdapterWithTypeDepth {
+		private final ListBuffer<JCMethodDecl> requiredFieldExtensions = ListBuffer.lb();
+		private final ListBuffer<JCMethodDecl> optionalFieldExtensions = ListBuffer.lb();
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final Set<String> requiredFieldNames = new HashSet<String>();
+		private boolean isExtensionMethod;
+		private boolean containsRequiredFields;
+
+		public ExtensionCollector() {
+			super(1);
+		}
+		
+		public ExtensionCollector withRequiredFieldNames(final Set<String> fieldNames) {
+			allRequiredFieldNames.clear();
+			allRequiredFieldNames.addAll(fieldNames);
+			return this;
+		}
+
+		public List<JCMethodDecl> getRequiredFieldExtensions() {
+			return requiredFieldExtensions.toList();
+		}
+
+		public List<JCMethodDecl> getOptionalFieldExtensions() {
+			return optionalFieldExtensions.toList();
 		}
 
 		@Override public void visitMethod(JavacNode methodNode, JCMethodDecl method) {
-			if ((phase == 2) && (typeDepth == 1)) {
+			if (isOfInterest()) {
 				isExtensionMethod = false;
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
@@ -428,7 +449,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 
 		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
-			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
+			if (isOfInterest() && (isExtensionMethod)) {
 				if (statement instanceof JCAssign) {
 					JCAssign assign = (JCAssign) statement;
 					String fieldName = assign.lhs.toString();
@@ -443,7 +464,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 
 		@Override public void endVisitMethod(JavacNode methodNode, JCMethodDecl method) {
-			if ((phase == 2) && (typeDepth == 1) && (isExtensionMethod)) {
+			if (isOfInterest() && (isExtensionMethod)) {
 				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
 					if (containsRequiredFields) {
 						if (requiredFieldNames.isEmpty()) {
@@ -457,7 +478,7 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 		}
 
 		@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
-			if ((phase == 2) && (typeDepth == 1)) {
+			if (isOfInterest()) {
 				ListBuffer<JCTree> defs = ListBuffer.lb();
 				for (JCTree def : type.defs) {
 					if (def instanceof JCMethodDecl) {
@@ -468,28 +489,36 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				}
 				type.defs = defs.toList();
 			}
-			typeDepth--;
-		}
-
-		@Override public void visitField(JavacNode fieldNode, JCVariableDecl field) {
-			if ((phase == 1) && (typeDepth == 1)) {
-				if ((field.mods.flags & STATIC) != 0) return;
-				String fieldName = field.name.toString();
-				if (exclude.contains(fieldName)) return;
-				if ((field.init == null) && ((field.mods.flags & FINAL) != 0)) {
-					requiredFields.append(field);
-					allRequiredFieldNames.add(fieldName);
-					requiredFieldDefTypeNames.append(toCamelCase(false, "$", fieldName, "def"));
-				}
-				boolean append = isInitializedMapOrCollection(field) && convenientMethods;
-				append |= (field.mods.flags & FINAL) == 0;
-				if (append) optionalFields.append(field);
-			}
+			super.endVisitType(typeNode, type);
 		}
 	}
 
-	private static interface IBuilderData {
+	@RequiredArgsConstructor
+	private static class JavacASTAdapterWithTypeDepth extends JavacASTAdapter {
+		private final int maxTypeDepth;
+		private int typeDepth;
+
+		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
+			typeDepth++;
+		}
+
+		@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
+			typeDepth--;
+		}
+
+		public boolean isOfInterest() {
+			return typeDepth <= maxTypeDepth;
+		}
+	}
+
+	private static interface IBuilderData extends IBuilderExtensionData {
 		public JavacNode getTypeNode();
+
+		public long getCreateModifier();
+
+		public String getPrefix();
+
+		public List<String> getCallMethods();
 
 		public List<JCVariableDecl> getRequiredFields();
 
@@ -499,16 +528,12 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 
 		public List<String> getRequiredFieldDefTypeNames();
 
+		public boolean isGenerateConvenientMethodsEnabled();
+	}
+	
+	private static interface IBuilderExtensionData {
 		public List<JCMethodDecl> getRequiredFieldExtensions();
 
 		public List<JCMethodDecl> getOptionalFieldExtensions();
-
-		public long getCreateModifier();
-
-		public String getPrefix();
-
-		public boolean generateConvenientMethods();
-
-		public List<String> getCallMethods();
 	}
 }
