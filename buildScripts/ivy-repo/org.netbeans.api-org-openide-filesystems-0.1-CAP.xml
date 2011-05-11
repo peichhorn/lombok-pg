@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<ivy-module version="2.0">
+  <info organisation="org.netbeans.api" module="org-openide-filesystems" revision="0.1-CAP"
+    publication="20100225011200">
+    <license name="Common Development and Distribution License(CDDL) Version 1.0" url="http://www.netbeans.org/cddl-gplv2.html" />
+    <description homepage="http://netbeans.org/bugzilla/show_bug.cgi?id=193952#c4" />
+  </info>
+  <configurations>
+    <conf name="build" />
+  </configurations>
+  <publications>
+    <artifact conf="build"
+      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/org-openide-filesystems-0.1-CAP.jar" />
+  </publications>
+</ivy-module>
