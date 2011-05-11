@@ -8,6 +8,7 @@ The current extensions are:
   - @FluentSetter
   - @ListenerSupport
   - @WriteLock, @ReadLock, @Await, @Signal, @AwaitBeforeAndSignalAfter
+  - @Rethrow, @Rethrows
   - @Singleton
   - @SwingInvokeLater and @SwingInvokeAndWait
   - @VisibleForTesting

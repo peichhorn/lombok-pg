@@ -33,6 +33,9 @@ import static lombok.eclipse.handlers.ast.ASTBuilder.Annotation;
 import static lombok.eclipse.handlers.ast.ASTBuilder.String;
 import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -146,14 +149,15 @@ public class EclipseMethod {
 		setGeneratedByAndCopyPos(get(), source);
 		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		get().statements = statements;
-		Annotation[] originalAnnotationArray = get().annotations;
-		Annotation ann = Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), source);
-		if (originalAnnotationArray == null) {
-			get().annotations = array(ann);
-			return;
+		final List<Annotation> annotations = new ArrayList<Annotation>();
+		Annotation[] originalAnnotations = get().annotations;
+		if (originalAnnotations != null) for (Annotation originalAnnotation : originalAnnotations) {
+			if (!originalAnnotation.type.toString().endsWith("SuppressWarnings")) {
+				annotations.add(originalAnnotation);
+			}
 		}
-		get().annotations = resize(originalAnnotationArray, originalAnnotationArray.length + 1);
-		get().annotations [originalAnnotationArray.length] = ann;
+		annotations.add(Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), source));
+		get().annotations = annotations.toArray(new Annotation[0]);
 	}
 	
 	public void body(ASTNode source, final StatementBuilder<? extends Block> body) {
