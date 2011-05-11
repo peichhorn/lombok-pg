@@ -33,6 +33,7 @@ import lombok.Await;
 import lombok.AwaitBeforeAndSignalAfter;
 import lombok.Position;
 import lombok.ReadLock;
+import lombok.RequiredArgsConstructor;
 import lombok.Signal;
 import lombok.WriteLock;
 import lombok.core.AnnotationValues;
@@ -274,14 +275,9 @@ public class HandleConditionAndLock {
 		}
 	}
 
+	@RequiredArgsConstructor
 	private static abstract class ConditionData {
 		public final String condition;
 		public final Position pos;
-
-		public ConditionData(final String condition, final Position pos) {
-			super();
-			this.condition = condition;
-			this.pos = pos;
-		}
 	}
 }
