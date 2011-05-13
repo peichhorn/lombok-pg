@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Rethrow {
-	Class<? extends Exception> value() default Exception.class;
+	Class<? extends Exception>[] value() default {};
 	
 	Class<? extends Exception> as() default RuntimeException.class;
 	

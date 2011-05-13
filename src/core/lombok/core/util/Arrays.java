@@ -22,6 +22,7 @@
 package lombok.core.util;
 
 import static java.util.Arrays.copyOf;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

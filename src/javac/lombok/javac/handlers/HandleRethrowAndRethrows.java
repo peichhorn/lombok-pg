@@ -21,8 +21,10 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.core.util.Arrays.isEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
+import static lombok.core.util.Lists.list;
 import static lombok.javac.handlers.JavacHandlerUtil.markAnnotationAsProcessed;
 import static lombok.javac.handlers.JavacTreeBuilder.statements;
 
@@ -55,7 +57,7 @@ public class HandleRethrowAndRethrows {
 		public boolean handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
 			return new HandleRethrowAndRethrows() //
-				.withRethrow(new RethrowData(ann.value().getName(), ann.as().getName(), ann.message())) //
+				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
 	}
@@ -68,7 +70,7 @@ public class HandleRethrowAndRethrows {
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
 				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
-				handle.withRethrow(new RethrowData(ann.value().getName(), ann.as().getName(), ann.message()));
+				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
 			}
 			return handle.handle(Rethrow.class, ast, annotationNode);
 		}
@@ -104,11 +106,13 @@ public class HandleRethrowAndRethrows {
 		methodBody.append(String.format(TRY_BLOCK, method.get().body));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
-			String varname = "$e" + counter++;
-			if (rethrow.message.isEmpty()) {
-				methodBody.append(String.format(CATCH_BLOCK_1ARG, rethrow.thrown, varname, rethrow.as, varname));
-			} else {
-				methodBody.append(String.format(CATCH_BLOCK_2ARGS, rethrow.thrown, varname, rethrow.as, rethrow.message, varname));
+			for (String thrown : rethrow.thrown) {
+				String varname = "$e" + counter++;
+				if (rethrow.message.isEmpty()) {
+					methodBody.append(String.format(CATCH_BLOCK_1ARG, thrown, varname, rethrow.as, varname));
+				} else {
+					methodBody.append(String.format(CATCH_BLOCK_2ARGS, thrown, varname, rethrow.as, rethrow.message, varname));
+				}
 			}
 		}
 		
@@ -119,9 +123,20 @@ public class HandleRethrowAndRethrows {
 		return true;
 	}
 	
+	private static List<String> classNames(final Class<?>[] classes) {
+		if (isEmpty(classes)) {
+			return list(Exception.class.getName());
+		}
+		final List<String> classNames = new ArrayList<String>();
+		for (Class<?> clazz : classes) {
+			classNames.add(clazz.getName());
+		}
+		return classNames;
+	}
+	
 	@RequiredArgsConstructor
 	private static class RethrowData {
-		public final String thrown;
+		public final List<String> thrown;
 		public final String as;
 		public final String message;
 	}
