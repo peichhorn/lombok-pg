@@ -31,6 +31,8 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import lombok.AccessLevel;
 import lombok.ListenerSupport;
 import lombok.NoArgsConstructor;
+import lombok.eclipse.Eclipse;
+import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleListenerSupport;
 import lombok.patcher.Hook;
 import lombok.patcher.MethodTarget;
@@ -51,7 +53,11 @@ public final class PatchListenerSupport {
 		TypeDeclaration decl = scope.referenceContext;
 		Annotation ann = getAnnotation(ListenerSupport.class, decl);
 		if (ann != null) {
-			new HandleListenerSupport().handle(ann, decl, getTypeNode(decl));
+			EclipseNode typeNode = getTypeNode(decl);
+			if (typeNode != null) {
+				EclipseNode annotationNode = typeNode.getNodeFor(ann);
+				new HandleListenerSupport().handle(Eclipse.createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
+			}
 		}
 		return false;
 	}

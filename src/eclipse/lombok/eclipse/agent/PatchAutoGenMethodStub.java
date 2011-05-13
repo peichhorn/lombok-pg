@@ -58,21 +58,25 @@ public class PatchAutoGenMethodStub {
 				.build());
 	}
 
-	private static boolean issueWasFixed;
+	private static ThreadLocal<Boolean> issueWasFixed = new ThreadLocal<Boolean>() {
+		protected Boolean initialValue() {
+			return Boolean.FALSE;
+		}
+	};
 
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
 		if (ann != null) {
 			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, ann, getTypeNode(decl));
-			issueWasFixed = true;
+			issueWasFixed.set(true);
 			return method;
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}
 
 	public static void abstractMethodMustBeImplemented(ProblemReporter problemReporter, SourceTypeBinding type, MethodBinding abstractMethod) {
-		if (issueWasFixed) {
-			issueWasFixed = false;
+		if (issueWasFixed.get()) {
+			issueWasFixed.set(false);
 		} else {
 			problemReporter.abstractMethodMustBeImplemented(type, abstractMethod);
 		}

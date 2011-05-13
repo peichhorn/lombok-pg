@@ -57,33 +57,29 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.mangosdk.spi.ProviderFor;
 
 /**
  * Handles the {@link ListenerSupport} annotation for eclipse using the {@link PatchListenerSupport}.
  */
-@ProviderFor(EclipseAnnotationHandler.class)
+// @ProviderFor(EclipseResolutionBasedHandler.class) // TODO
 public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerSupport> {
-	// error handling only
-	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, Annotation ast, EclipseNode annotationNode) {
+
+	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, Annotation ann, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
 		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
+			return true;
 		}
-		return false;
-	}
-
-	// real meat
-	public void handle(Annotation ann, TypeDeclaration decl, EclipseNode typeNode) {
+		
 		List<ClassLiteralAccess> listenerInterfaces = getListenerInterface(ann, "value");
 
 		if (listenerInterfaces.isEmpty()) {
 			typeNode.addError("@ListenerSupport has no effect with if no interface classes was specified.", ann.sourceStart, ann.sourceEnd);
-			return;
+			return true;
 		}
 		for (ClassLiteralAccess cla : listenerInterfaces) {
-			TypeBinding binding = cla.type.resolveType(decl.initializerScope);
+			TypeBinding binding = cla.type.resolveType(typeDecl.initializerScope);
 			if (!binding.isInterface()) {
 				typeNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", new String(binding.readableName())), ann.sourceStart, ann.sourceEnd);
 				continue;
@@ -93,7 +89,7 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			addRemoveListenerMethod(typeNode, ann, binding);
 			addFireListenerMethod(typeNode, ann, binding);
 		}
-		return;
+		return true;
 	}
 
 	private Expression getAnnotationArgumentValue(Annotation ann, String arumentName) {

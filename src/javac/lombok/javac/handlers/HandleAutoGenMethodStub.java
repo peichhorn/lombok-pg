@@ -35,9 +35,12 @@ import static lombok.javac.handlers.JavacTreeBuilder.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
+import lombok.AccessLevel;
 import lombok.AutoGenMethodStub;
+import lombok.RequiredArgsConstructor;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -92,17 +95,14 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 		return true;
 	}
 
+	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	private static class UndefiniedMethods implements Iterator<MethodSymbol>, Iterable<MethodSymbol> {
 		private final Set<String> handledMethods = new HashSet<String>();
 		private final ClassSymbol classSymbol;
 		private final Types types;
-		private MethodSymbol firstUndefinedMethod;
-
-		private UndefiniedMethods(JavacNode typeNode) {
-			classSymbol = ((JCClassDecl)typeNode.get()).sym;
-			types = Types.instance(typeNode.getAst().getContext());
-			firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);
-		}
+		private boolean hasNext;
+		private boolean nextDefined;
+		private MethodSymbol next;
 
 		@Override
 		public Iterator<MethodSymbol> iterator() {
@@ -111,26 +111,40 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 
 		@Override
 		public boolean hasNext() {
-			return firstUndefinedMethod != null;
+			if (!nextDefined) {
+				hasNext = getNext();
+				nextDefined = true;
+			}
+			return hasNext;
 		}
 
 		@Override
 		public MethodSymbol next() {
-			MethodSymbol methodStub = createMethodStubFor(firstUndefinedMethod);
-			if (hasNext()) {
-				handledMethods.add(firstUndefinedMethod.toString());
-				firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);
+			if (!hasNext()) {
+				throw new NoSuchElementException();
 			}
-			return methodStub;
+			nextDefined = false;
+			return next;
 		}
 
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
+		
+		private boolean getNext() {
+			MethodSymbol firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);
+			if (firstUndefinedMethod != null) {
+				next = createMethodStubFor(firstUndefinedMethod);
+				handledMethods.add(firstUndefinedMethod.toString());
+				return true;
+			}
+			return false;
+		}
 
 		public static UndefiniedMethods of(JavacNode node) {
-			return new UndefiniedMethods(typeNodeOf(node));
+			JavacNode typeNode = typeNodeOf(node);
+			return new UndefiniedMethods(((JCClassDecl)typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
 		}
 
 		private MethodSymbol createMethodStubFor(MethodSymbol methodSym) {
