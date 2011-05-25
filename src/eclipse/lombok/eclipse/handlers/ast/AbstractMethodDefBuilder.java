@@ -23,6 +23,8 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.injectMethod;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Arg;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
 import static lombok.eclipse.handlers.ast.Arrays.buildArray;
 
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -123,7 +125,7 @@ abstract class AbstractMethodDefBuilder<SELF_TYPE extends AbstractMethodDefBuild
 	
 	public SELF_TYPE withArguments(final Argument... arguments) {
 		if (arguments != null) for (Argument argument : arguments) {
-			this.arguments.add(new StatementWrapper<Argument>(argument));
+			this.arguments.add(Arg(Type(argument.type), new String(argument.name)).makeFinal());
 		}
 		return self();
 	}

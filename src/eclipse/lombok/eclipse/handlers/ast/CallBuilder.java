@@ -22,12 +22,14 @@
 package lombok.eclipse.handlers.ast;
 
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static lombok.eclipse.handlers.ast.ASTBuilder.Name;
 import static lombok.eclipse.handlers.ast.Arrays.buildArray;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 
@@ -52,6 +54,13 @@ public class CallBuilder extends GenericTypeArgumentBuilder<CallBuilder, Message
 	
 	public CallBuilder withArguments(final List<ExpressionBuilder<? extends Expression>> arguments) {
 		args.addAll(arguments);
+		return this;
+	}
+	
+	public CallBuilder withArguments(final Argument... arguments) {
+		if (arguments != null) for (Argument argument : arguments) {
+			this.args.add(Name(new String(argument.name)));
+		}
 		return this;
 	}
 	

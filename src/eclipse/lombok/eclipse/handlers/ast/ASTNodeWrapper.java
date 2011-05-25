@@ -21,7 +21,7 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static lombok.eclipse.Eclipse.setGeneratedBy;
 import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseNode;
 
@@ -33,7 +33,7 @@ public class ASTNodeWrapper<NODE_TYPE extends ASTNode> implements ASTNodeBuilder
 	
 	@Override
 	public NODE_TYPE build(final EclipseNode node, final ASTNode source) {
-		setGeneratedByAndCopyPos(astNode, source);
+		setGeneratedBy(astNode, source);
 		return astNode;
 	}
 }

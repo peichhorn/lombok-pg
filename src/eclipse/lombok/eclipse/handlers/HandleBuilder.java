@@ -48,6 +48,7 @@ import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.ASTNodeBuilder;
+import lombok.eclipse.handlers.ast.ASTNodeWrapper;
 import lombok.eclipse.handlers.ast.ArgBuilder;
 import lombok.eclipse.handlers.ast.ConstructorDefBuilder;
 import lombok.eclipse.handlers.ast.ExpressionBuilder;
@@ -194,11 +195,14 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 	}
 
 	private void createExtension(IBuilderData builderData, MethodDeclaration extension, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
-		String methodName = new String(extension.selector);	
-		builderMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).withModifiers(PUBLIC | AccImplementing).withArguments(extension.arguments).withAnnotations(extension.annotations) //
-			.withStatements(extension.statements) //
-			.withStatement(Return(This())));
+		String methodName = new String(extension.selector);
+		String newMethodName = "$" + methodName;
 		interfaceMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).makePublic().withNoBody().withArguments(extension.arguments));
+		builderMethods.add(MethodDef(Type(OPTIONAL_DEF), methodName).withModifiers(PUBLIC | AccImplementing).withArguments(extension.arguments) //
+			.withStatement(Call(newMethodName).withArguments(extension.arguments)) //
+			.withStatement(Return(This())));
+		extension.selector = newMethodName.toCharArray();
+		builderMethods.add(new ASTNodeWrapper<AbstractMethodDeclaration>(extension));
 	}
 
 	private void createFluentSetter(IBuilderData builderData, String typeName, FieldDeclaration field, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> interfaceMethods, List<ASTNodeBuilder<? extends AbstractMethodDeclaration>> builderMethods) {
