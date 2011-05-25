@@ -370,7 +370,7 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 		EclipseNode typeNode = builderData.getTypeNode();
 		TypeDeclaration typeDecl = (TypeDeclaration)typeNode.get();
 
-		ExpressionBuilder<? extends TypeReference> returnType = null;
+		ExpressionBuilder<? extends TypeReference> returnType = Type("void");
 		TypeReference[] thrown = null;
 		if ("toString".equals(method)) {
 			returnType = Type("java.lang.String");
@@ -379,11 +379,8 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				if ((def instanceof MethodDeclaration) && method.equals(new String(def.selector)) && ((def.arguments == null) || (def.arguments.length == 0))) {
 					returnType = Type(((MethodDeclaration)def).returnType);
 					thrown = def.thrownExceptions;
+					break;
 				}
-			}
-			if (returnType == null) {
-				typeNode.addWarning("@Builder was unable to find method '" + method + "()' within this class.");
-				return;
 			}
 		}
 

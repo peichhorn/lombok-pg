@@ -74,7 +74,6 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 	private final static String BUILDER_METHOD_ASSIGN_ARG1 = "public %s %s(final %s arg0) { this.%s=arg0; return this; }";
 	private final static String BUILDER_METHOD_CALL_ARG2 = "public %s %s(final %s arg0, final %s arg1) { this.%s.%s(arg0, arg1); return this; }";
 	private final static String BUILDER_BUILD_METHOD = "public %s build() { return new %s(this); }";
-	private final static String BUILDER_TO_STRING_METHOD = "public java.lang.String toString() { return build().toString(); }";
 	private final static String BUILDER_METHOD_CALL_AFTER_BUILD = "public %s %s() { %s build().%s(); }";
 
 	@Override public boolean handle(AnnotationValues<Builder> annotation, JCAnnotation ast, JavacNode annotationNode) {
@@ -246,22 +245,24 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 	private void createMethodCall(IBuilderData builderData, String method, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
 		JavacNode typeNode = builderData.getTypeNode();
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		String returnType = "void";
+		List<JCExpression> thrown = List.nil();
+		
 		if ("toString".equals(method)) {
-			addMethodTo(method(typeNode, BUILDER_TO_STRING_METHOD), interfaceMethods, builderMethods);
+			returnType = "java.lang.String";
 		} else {
 			for (JCTree def : typeDecl.defs) {
 				if (def instanceof JCMethodDecl) {
 					JCMethodDecl m = (JCMethodDecl)def;
 					if (method.equals(m.name.toString()) && m.params.isEmpty()) {
-						String s = "void".equals(m.restype.toString()) ? "" : "return";
-						addMethodTo(method(typeNode, BUILDER_METHOD_CALL_AFTER_BUILD, m.restype, method, s, method).withThrownExceptions(m.thrown),
-								interfaceMethods, builderMethods);
-						return;
+						returnType = m.restype.toString();
+						thrown = m.thrown;
+						break;
 					}
 				}
 			}
-			typeNode.addWarning("@Builder was unable to find method '" + method + "()' within this class.");
 		}
+		addMethodTo(method(typeNode, BUILDER_METHOD_CALL_AFTER_BUILD, returnType, method, "void".equals(returnType) ? "" : "return", method).withThrownExceptions(thrown), interfaceMethods, builderMethods);
 	}
 
 	private void addMethodTo(MethodBuilder builder, ListBuffer<JCTree> interfaceMethods, ListBuffer<JCTree> builderMethods) {
