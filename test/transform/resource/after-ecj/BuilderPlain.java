@@ -49,7 +49,7 @@ import java.util.HashMap;
       return this;
     }
     
-    private @lombok.BuilderExtension void $idAndText(String id, String text) {
+    private @lombok.Builder.Extension void $idAndText(String id, String text) {
       this.id = java.lang.Integer.valueOf(id);
       this.text = text;
     }
@@ -78,7 +78,7 @@ import java.util.HashMap;
       return this;
     }
     
-    private @lombok.BuilderExtension void $optionalVal1(Class<?> clazz) {
+    private @lombok.Builder.Extension void $optionalVal1(Class<?> clazz) {
       this.optionalVal1 = clazz.getSimpleName();
     }
     
@@ -104,7 +104,7 @@ import java.util.HashMap;
     return new $Builder();
   }
   
-  private @lombok.BuilderExtension void brokenExtension() {
+  private @lombok.Builder.Extension void brokenExtension() {
     this.id = 42;
   }
 }

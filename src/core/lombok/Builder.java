@@ -145,4 +145,17 @@ public @interface Builder {
 	 * {@code Java.create().jarOrMainClass("test.jar").Xbootclasspatha("libs/asm.jar").toString()} .
 	 */
 	String[] callMethods() default {};
+	
+	/**
+	 * Use this on methods in a {@link Builder @Builder}-annotated class to specify
+	 * extensions for the generated builder.
+	 * <p>
+	 * <b>Note:</b> For this to work, the methods annotated by {@link Builder.Extension @Builder.Extension},
+	 * need to be private and must return void. And if you want to set a required value in you own extension,
+	 * you need to set all other required values too.
+	 */
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public static @interface Extension {
+	}
 }

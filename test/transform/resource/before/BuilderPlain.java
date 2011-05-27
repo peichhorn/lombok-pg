@@ -17,18 +17,18 @@ class BuilderPlain1 {
 	private java.util.List<java.lang.Long> optionalVal2;
 	private long optionalVal3;
 	
-	@lombok.BuilderExtension
+	@lombok.Builder.Extension
 	private void idAndText(String id, String text) {
 		this.id = java.lang.Integer.valueOf(id);
 		this.text = text;
 	}
 	
-	@lombok.BuilderExtension
+	@lombok.Builder.Extension
 	private void brokenExtension() {
 		this.id = 42;
 	}
 	
-	@lombok.BuilderExtension
+	@lombok.Builder.Extension
 	private void optionalVal1(Class<?> clazz) {
 		this.optionalVal1 = clazz.getSimpleName();
 	}

@@ -39,7 +39,6 @@ import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.BuilderExtension;
 import lombok.Delegate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -553,10 +552,12 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
 				requiredFieldNames.addAll(allRequiredFieldNames);
-				boolean isAnImport = methodNode.getImportStatements().contains(BuilderExtension.class.getName());
+				String className = Builder.Extension.class.getName().replace("$", ".");
+				String simpleClassName = Builder.Extension.class.getSimpleName();
+				boolean isAnImport = methodNode.getImportStatements().contains(className);
 				if (method.annotations != null) for (Annotation annotation : method.annotations) {
-					if (annotation.type.toString().equals(BuilderExtension.class.getName())
-							|| (isAnImport && annotation.type.toString().equals(BuilderExtension.class.getSimpleName()))) {
+					if (annotation.type.toString().equals(className)
+							|| (isAnImport && annotation.type.toString().equals(simpleClassName))) {
 						isExtensionMethod = true;
 						return;
 					}

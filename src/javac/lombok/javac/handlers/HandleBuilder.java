@@ -34,7 +34,6 @@ import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.BuilderExtension;
 import lombok.Delegate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -438,10 +437,12 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
 				requiredFieldNames.addAll(allRequiredFieldNames);
-				boolean isAnImport = methodNode.getImportStatements().contains(BuilderExtension.class.getName());
+				String className = Builder.Extension.class.getName().replace("$", ".");
+				String simpleClassName = Builder.Extension.class.getSimpleName();
+				boolean isAnImport = methodNode.getImportStatements().contains(className);
 				for (JCAnnotation annotation : method.mods.annotations) {
-					if (annotation.annotationType.toString().equals(BuilderExtension.class.getName())
-							|| (isAnImport && annotation.annotationType.toString().equals(BuilderExtension.class.getSimpleName()))) {
+					if (annotation.annotationType.toString().equals(className)
+							|| (isAnImport && annotation.annotationType.toString().equals(simpleClassName))) {
 						isExtensionMethod = true;
 						return;
 					}

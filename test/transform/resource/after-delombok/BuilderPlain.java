@@ -15,7 +15,7 @@ class BuilderPlain1 {
 	private java.util.List<java.lang.Long> optionalVal2;
 	private long optionalVal3;
 	
-	@lombok.BuilderExtension
+	@lombok.Builder.Extension
 	private void brokenExtension() {
 		this.id = 42;
 	}
