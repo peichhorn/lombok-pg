@@ -33,7 +33,7 @@ public @interface FluentSetter {
 	/**
 	 * If you want your setter to be non-public, you can specify an alternate access level here.
 	 */
-	lombok.AccessLevel value() default lombok.AccessLevel.PUBLIC;
+	AccessLevel value() default AccessLevel.PUBLIC;
 
 	/**
 	 * If you want your setter method to have additional annotations, you can specify them here.

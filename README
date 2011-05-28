@@ -1,4 +1,7 @@
-This a playground for extensions to project lombok (https://github.com/rzwitserloot/lombok)
+lombok-pg is a collection of extensions to lombok (https://github.com/rzwitserloot/lombok)
+distrubuted together with lombok in one spice package.
+The lombok version lombok-pg is based on is usaually pretty much up to date, so you
+can do all the funky stuff lombok offers and a bit more.
 
 The current extensions are:
 
@@ -13,12 +16,16 @@ The current extensions are:
   - @SwingInvokeLater and @SwingInvokeAndWait
   - @VisibleForTesting
   - Interfaces lombok.Application and lombok.JVMAgent (Entrypoint Generation)
-  - Tuple.tuple(var1, var2, ...) = Tuple.tuple(expr1, expr2, ...) - tuple assignment
-  - With.with(object, expr1, expr2, ...)
-  - Yield.yield(object)
+  - tuple(var1, var2, ...) = tuple(expr1, expr2, ...) - tuple assignment
+  - with(object, expr1, expr2, ...)
+  - yield(object)
 
-If you like to try it out, fetch a copy from here:
-http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0-BETA2-HEAD.jar (lombok 0.10.0 BETA2 + lombok-pg)
+If you like to try lombok-pg out, grab a copy over here:
+http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0-BETA2-HEAD.jar
 
-You can also find a feature documentation here:
+If don't know where to start or how to use lombok-pg, you might want to
+try lombok out first and read this:
+http://projectlombok.org/features/index.html
+
+You can also find a feature documentation of lombok-pg here:
 http://peichhorn.github.com/lombok-pg/
