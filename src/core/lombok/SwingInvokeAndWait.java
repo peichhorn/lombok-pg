@@ -59,7 +59,9 @@ import java.lang.annotation.Target;
  *         java.awt.EventQueue.invokeAndWait($startRunnable);
  *       } catch (java.lang.InterruptedException $ex1) {
  *       } catch (java.lang.reflect.InvocationTargetException $ex2) {
- *         if ($ex2.getCause() != null) throw new java.lang.RuntimeException($ex2.getCause());
+ *         final java.lang.Throwable $cause = $ex2.getCause();
+ *         if ($cause instanceof FileNotFoundException) throw (FileNotFoundException) $cause;
+ *         if ($cause != null) throw new java.lang.RuntimeException($cause);
  *       }
  *     }
  *   }

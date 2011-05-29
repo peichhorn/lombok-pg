@@ -1,6 +1,6 @@
 package lombok.eclipse.agent;
 
-import static lombok.core.util.Arrays.isNotEmpty;
+import static lombok.eclipse.handlers.Eclipse.hasAnnotations;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.eclipse.EclipseAST;
@@ -28,12 +28,8 @@ final class Patches {
 	public static final String TYPEBINDING = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding";
 	public static final String TYPEBINDINGS = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding[]";
 	public static final String INVOCATIONSITE = "org.eclipse.jdt.internal.compiler.lookup.InvocationSite";
-	
-	public static boolean hasAnnotations(TypeDeclaration decl) {
-		return (decl != null) && isNotEmpty(decl.annotations);
-	}
 
-	public static Annotation getAnnotation(Class<?> expectedType, TypeDeclaration decl) {
+	public static Annotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, TypeDeclaration decl) {
 		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
 			if (matchesType(ann, expectedType, decl)) {
 				return ann;
@@ -42,7 +38,7 @@ final class Patches {
 		return null;
 	}
 
-	public static boolean matchesType(Annotation ann, Class<?> expectedType, TypeDeclaration decl) {
+	private static boolean matchesType(Annotation ann, Class<?> expectedType, TypeDeclaration decl) {
 		if (ann.type == null) return false;
 		TypeBinding tb = ann.resolvedType;
 		if ((tb == null) && (ann.type != null)) {

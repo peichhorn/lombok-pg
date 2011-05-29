@@ -24,14 +24,15 @@ package lombok.javac.handlers;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.core.util.Names.capitalize;
-import static lombok.javac.handlers.Javac.typeNodeOf;
+import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.lang.annotation.Annotation;
-
 import org.mangosdk.spi.ProviderFor;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -40,14 +41,22 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 import lombok.DoPrivileged;
 import lombok.RequiredArgsConstructor;
+import lombok.DoPrivileged.SanitizeWith;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.Javac;
 
+/**
+ * Handles the {@code lombok.DoPrivileged} annotation for javac.
+ */
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<DoPrivileged> {
-	private final static String METHOD_BODY = "%s java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<%s>() {" +
-			"public %s run() { %s %s }});";
+	private final static String METHOD_BODY = "%s try { %s java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<%s>() {" +
+			"public %s run() %s { %s %s }}); } catch (java.security.PrivilegedActionException $ex) {" + 
+			"final java.lang.Throwable $cause = $ex.getCause(); %s throw new java.lang.RuntimeException($cause); }";
+	private final static String RETHROW_STATEMENT = "if ($cause instanceof %s) throw (%s) $cause; ";
+	private final static String SANITIZE_STATEMENT = "%s %s = %s(%s); ";
 	
 	@Override
 	public boolean handle(AnnotationValues<DoPrivileged> annotation, JCAnnotation ast, JavacNode annotationNode) {
@@ -69,12 +78,11 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 
 		JCExpression returnType = method.returnType();
 		JCExpression innerReturnType = boxedReturnType(method.node(), returnType);
-
 		if (method.returns("void")) {
 			replaceReturns(method);
-			method.body(statements(method.node(), METHOD_BODY, "", innerReturnType, innerReturnType, method.get().body, "return null;"));
+			method.body(statements(method.node(), METHOD_BODY, sanitizeParameter(method), "", innerReturnType, innerReturnType, thrownExceptions(method), method.get().body, "return null;", rethrowStatements(method)));
 		} else {
-			method.body(statements(method.node(), METHOD_BODY, "return", innerReturnType, innerReturnType, method.get().body, ""));
+			method.body(statements(method.node(), METHOD_BODY, sanitizeParameter(method), "return", innerReturnType, innerReturnType, thrownExceptions(method), method.get().body, "", rethrowStatements(method)));
 		}
 
 		method.rebuild();
@@ -95,6 +103,38 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 			}
 		}
 		return objectReturnType;
+	}
+	
+	private String sanitizeParameter(final JavacMethod method) {
+		final StringBuilder sanitizeStatements = new StringBuilder();
+		for (JCVariableDecl param : method.get().params) {
+			final JCAnnotation ann = getAnnotation(SanitizeWith.class, param);
+			if (ann != null) {
+				final JavacNode annotationNode = method.node().getNodeFor(ann);
+				String sanatizeMethodName = Javac.createAnnotation(SanitizeWith.class, annotationNode).getInstance().value();
+				final String argumentName = param.name.toString();
+				final String newArgumentName = "$" + argumentName;
+				sanitizeStatements.append(String.format(SANITIZE_STATEMENT, param.vartype, argumentName, sanatizeMethodName, newArgumentName));
+				param.name = method.node().toName(newArgumentName);
+				param.mods.flags |= Flags.FINAL;
+				param.mods.annotations = remove(param.mods.annotations, ann);
+			}
+		}
+		return sanitizeStatements.toString();
+	}
+	
+	private String rethrowStatements(final JavacMethod method) {
+		final StringBuilder rethrowStatements = new StringBuilder();
+		for (JCExpression thrownException : method.get().thrown) {
+			rethrowStatements.append(String.format(RETHROW_STATEMENT, thrownException, thrownException));
+		}
+		return rethrowStatements.toString();
+	}
+
+	private String thrownExceptions(final JavacMethod method) {
+		final StringBuilder thrownExceptions = new StringBuilder();
+		if (!method.get().thrown.isEmpty()) thrownExceptions.append("throws ").append(method.get().thrown);
+		return thrownExceptions.toString();
 	}
 
 	private void replaceReturns(final JavacMethod method) {

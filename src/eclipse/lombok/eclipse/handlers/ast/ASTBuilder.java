@@ -121,6 +121,10 @@ public final class ASTBuilder {
 		return new IfBuilder(condition);
 	}
 	
+	public static InstanceOfBuilder InstanceOf(final ExpressionBuilder<? extends Expression> expression, final ExpressionBuilder<? extends TypeReference> type) {
+		return new InstanceOfBuilder(expression, type);
+	}
+	
 	public static LocalDefBuilder LocalDef(final ExpressionBuilder<? extends TypeReference> type, final String name) {
 		return new LocalDefBuilder(type, name);
 	}

@@ -21,21 +21,32 @@
  */
 package lombok.eclipse.handlers;
 
+import static org.eclipse.jdt.core.dom.Modifier.FINAL;
+import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.core.util.Names.capitalize;
+import static lombok.eclipse.handlers.Eclipse.getAnnotation;
 import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
 import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.DoPrivileged;
 import lombok.RequiredArgsConstructor;
+import lombok.DoPrivileged.SanitizeWith;
 import lombok.core.AnnotationValues;
+import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.ExpressionBuilder;
+import lombok.eclipse.handlers.ast.StatementBuilder;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
@@ -73,17 +84,29 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		if (method.returns("void")) {
 			replaceReturns(method.get(), ast);
 			method.body(ast, Block() //
-				.withStatement(Call(Name("java.security.AccessController"), "doPrivileged").withArgument(
-					New(Type("java.security.PrivilegedAction").withTypeArgument(innerReturnType), ClassDef("").makeAnonymous().makeLocal() //
-					.withMethod(MethodDef(innerReturnType, "run").makePublic() //
-						.withStatements(method.get().statements)
-						.withStatement(Return(Null())))))));
+				.withStatements(sanitizeParameter(method)) //
+				.withStatement(Try(Block() //
+					.withStatement(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
+						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType), ClassDef("").makeAnonymous().makeLocal() //
+						.withMethod(MethodDef(innerReturnType, "run").makePublic().withThrownExceptions(method.get().thrownExceptions) //
+							.withStatements(method.get().statements) //
+							.withStatement(Return(Null()))))))) //
+				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
+					.withStatement(LocalDef(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
+					.withStatements(rethrowStatements(method)) //
+					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
 		} else {
 			method.body(ast, Block() //
-				.withStatement(Return(Call(Name("java.security.AccessController"), "doPrivileged").withArgument(
-					New(Type("java.security.PrivilegedAction").withTypeArgument(innerReturnType), ClassDef("").makeAnonymous().makeLocal() //
-					.withMethod(MethodDef(innerReturnType, "run").makePublic() //
-						.withStatements(method.get().statements)))))));
+				.withStatements(sanitizeParameter(method)) //
+				.withStatement(Try(Block() //
+					.withStatement(Return(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
+						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType), ClassDef("").makeAnonymous().makeLocal() //
+						.withMethod(MethodDef(innerReturnType, "run").makePublic().withThrownExceptions(method.get().thrownExceptions) //
+							.withStatements(method.get().statements))))))) //
+				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
+					.withStatement(LocalDef(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
+					.withStatements(rethrowStatements(method)) //
+					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
 		}
 		
 		return true;
@@ -104,6 +127,32 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		return objectReturnType;
 	}
 	
+	private List<StatementBuilder<? extends Statement>> sanitizeParameter(final EclipseMethod method) {
+		final List<StatementBuilder<? extends Statement>> sanitizeStatements = new ArrayList<StatementBuilder<? extends Statement>>();
+		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
+			final Annotation ann = getAnnotation(SanitizeWith.class, argument);
+			if (ann != null) {
+				final EclipseNode annotationNode = method.node().getNodeFor(ann);
+				String sanatizeMethodName = Eclipse.createAnnotation(SanitizeWith.class, annotationNode).getInstance().value();
+				final String argumentName = new String(argument.name);
+				final String newArgumentName = "$" + argumentName;
+				sanitizeStatements.add(LocalDef(Type(argument.type), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
+				argument.name = newArgumentName.toCharArray();
+				argument.modifiers |= FINAL;
+			}
+		}
+		return sanitizeStatements;
+	}
+	
+	private List<StatementBuilder<? extends Statement>> rethrowStatements(final EclipseMethod method) {
+		final List<StatementBuilder<? extends Statement>> rethrowStatements = new ArrayList<StatementBuilder<? extends Statement>>();
+		if (isNotEmpty(method.get().thrownExceptions)) for (TypeReference thrownException : method.get().thrownExceptions) {
+			rethrowStatements.add(If(InstanceOf(Name("$cause"), Type(thrownException))) //
+				.Then(Throw(Cast(Type(thrownException), Name("$cause")))));
+		}
+		return rethrowStatements;
+	}
+	
 	private void replaceReturns(AbstractMethodDeclaration method, final ASTNode source) {
 		final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(source);
 		new ReturnStatementReplaceVisitor(replacement).visit(method);
@@ -115,7 +164,6 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(new String(typeDec.name), source);
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
-	
 
 	@RequiredArgsConstructor
 	private static class ReturnNullReplacementProvider implements IReplacementProvider<Statement> {

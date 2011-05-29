@@ -48,7 +48,10 @@ public class HandleSwingInvoke {
 	private final static String TRY_CATCH_BLOCK = //
 		"try { %s } catch (final java.lang.InterruptedException $ex1) { " + //
 		"} catch (final java.lang.reflect.InvocationTargetException $ex2) { " + //
-		"if ($ex2.getCause() != null) throw new java.lang.RuntimeException($ex2.getCause()); }";
+		"final java.lang.Throwable $cause = $ex2.getCause();" + //
+		" %s " + //
+		"throw new java.lang.RuntimeException($cause); }";
+	private final static String RETHROW_EXCEPTION = "if ($cause instanceof %s) throw (%s) $cause;";
 	private final static String ELSE_STATEMENT = "java.awt.EventQueue.%s(%s);";
 
 	@ProviderFor(JavacAnnotationHandler.class)
@@ -84,7 +87,13 @@ public class HandleSwingInvoke {
 		String fieldName = "$" + method.name() + "Runnable";
 
 		String elseStatement = String.format(ELSE_STATEMENT, methodName, fieldName);
-		if ("invokeAndWait".equals(methodName)) elseStatement = String.format(TRY_CATCH_BLOCK, elseStatement);
+		if ("invokeAndWait".equals(methodName)) {
+			StringBuilder rethrowExceptions = new StringBuilder();
+			for (JCExpression thrownException : method.get().thrown) {
+				rethrowExceptions.append(String.format(RETHROW_EXCEPTION, thrownException, thrownException));
+			}
+			elseStatement = String.format(TRY_CATCH_BLOCK, elseStatement, rethrowExceptions);
+		}
 		method.body(statements(method.node(), METHOD_BODY, fieldName, method.get().body, fieldName, elseStatement));
 
 		method.rebuild();

@@ -21,10 +21,15 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.SwingInvokeAndWait;
 import lombok.SwingInvokeLater;
 import lombok.core.AnnotationValues;
@@ -40,6 +45,7 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -83,7 +89,7 @@ public class HandleSwingInvoke {
 
 		StatementBuilder<? extends Statement> elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
-			elseStatement =  Block().withStatement(generateTryCatchBlock(elseStatementRun));
+			elseStatement =  Block().withStatement(generateTryCatchBlock(elseStatementRun, method));
 		} else {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
@@ -102,13 +108,23 @@ public class HandleSwingInvoke {
 		return true;
 	}
 
-	private TryBuilder generateTryCatchBlock(CallBuilder elseStatementRun) {
+	private TryBuilder generateTryCatchBlock(CallBuilder elseStatementRun, final EclipseMethod method) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
 			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //
 			.Catch(Arg(Type("java.lang.reflect.InvocationTargetException"), "$ex2"), Block() //
-				.withStatement(If(NotEqual(Call(Name("$ex2"), "getCause"), Null())) //
-					.Then(Throw(New(Type("java.lang.RuntimeException")).withArgument(Call(Name("$ex2"), "getCause"))))));
+				.withStatement(LocalDef(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex2"), "getCause")))
+				.withStatements(rethrowStatements(method)) //
+				.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))));
+	}
+
+	private List<StatementBuilder<? extends Statement>> rethrowStatements(final EclipseMethod method) {
+		final List<StatementBuilder<? extends Statement>> rethrowStatements = new ArrayList<StatementBuilder<? extends Statement>>();
+		if (isNotEmpty(method.get().thrownExceptions)) for (TypeReference thrownException : method.get().thrownExceptions) {
+			rethrowStatements.add(If(InstanceOf(Name("$cause"), Type(thrownException))) //
+				.Then(Throw(Cast(Type(thrownException), Name("$cause")))));
+		}
+		return rethrowStatements;
 	}
 
 	private void replaceWithQualifiedThisReference(final EclipseMethod method, final ASTNode source) {

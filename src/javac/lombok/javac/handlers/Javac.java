@@ -21,14 +21,18 @@
  */
 package lombok.javac.handlers;
 
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
 public final class Javac {
@@ -41,6 +45,14 @@ public final class Javac {
 		wasImported |= methodName.equals(clazz.getSimpleName() + "." + method) && importedStatements.contains(clazz.getName());
 		wasImported |= methodName.equals(method) && importedStatements.contains(clazz.getName() + "." + method);
 		return wasImported;
+	}
+	
+	public static <T> List<T> remove(List<T> list, T elementToRemove) {
+		ListBuffer<T> newList = ListBuffer.lb();
+		for (T element : list) {
+			if (elementToRemove != element) newList.append(element);
+		}
+		return newList.toList();
 	}
 
 	public static void deleteMethodCallImports(JavacNode node, String methodName, Class<?> clazz, String method) {
@@ -90,5 +102,18 @@ public final class Javac {
 			typeDecl = null;
 		}
 		return typeDecl;
+	}
+
+	public static JCAnnotation getAnnotation(Class<? extends Annotation> expectedType, JCVariableDecl decl) {
+		for (JCAnnotation ann : decl.mods.annotations) {
+			if (matchesType(ann, expectedType)) {
+				return ann;
+			}
+		}
+		return null;
+	}
+
+	private static boolean matchesType(JCAnnotation ann, Class<?> expectedType) {
+		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
 	}
 }

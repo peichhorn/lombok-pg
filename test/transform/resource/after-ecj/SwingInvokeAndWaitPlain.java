@@ -27,8 +27,10 @@ class SwingInvokeAndWaitPlain {
           catch (final java.lang.InterruptedException $ex1)             {
             }
           catch (final java.lang.reflect.InvocationTargetException $ex2)             {
-              if (($ex2.getCause() != null))
-                  throw new java.lang.RuntimeException($ex2.getCause());
+              final java.lang.Throwable $cause = $ex2.getCause();
+              if (($cause instanceof Exception))
+                  throw (Exception) $cause;
+              throw new java.lang.RuntimeException($cause);
             }
         }
   }

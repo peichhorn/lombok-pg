@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.eclipse.Eclipse.setGeneratedBy;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.createSuppressWarningsAll;
 
@@ -134,5 +135,26 @@ public final class Eclipse {
 			typeDecl = null;
 		}
 		return typeDecl;
+	}
+
+	public static boolean hasAnnotations(TypeDeclaration decl) {
+		return (decl != null) && isNotEmpty(decl.annotations);
+	}
+
+	public static boolean hasAnnotations(AbstractVariableDeclaration decl) {
+		return (decl != null) && isNotEmpty(decl.annotations);
+	}
+
+	public static Annotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, AbstractVariableDeclaration decl) {
+		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
+			if (matchesType(ann, expectedType)) {
+				return ann;
+			}
+		}
+		return null;
+	}
+
+	private static boolean matchesType(Annotation ann, Class<?> expectedType) {
+		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
 	}
 }

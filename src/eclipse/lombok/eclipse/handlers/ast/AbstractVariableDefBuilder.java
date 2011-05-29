@@ -21,9 +21,7 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static org.eclipse.jdt.core.dom.Modifier.FINAL;
-import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
-import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static org.eclipse.jdt.core.dom.Modifier.*;
 
 import java.util.ArrayList;
 import java.util.List;
