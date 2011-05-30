@@ -29,6 +29,7 @@ import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -437,17 +438,22 @@ public class HandleBuilder extends JavacNonResolutionBasedHandler implements Jav
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
 				requiredFieldNames.addAll(allRequiredFieldNames);
-				String className = Builder.Extension.class.getName().replace("$", ".");
-				String simpleClassName = Builder.Extension.class.getSimpleName();
-				boolean isAnImport = methodNode.getImportStatements().contains(className);
 				for (JCAnnotation annotation : method.mods.annotations) {
-					if (annotation.annotationType.toString().equals(className)
-							|| (isAnImport && annotation.annotationType.toString().equals(simpleClassName))) {
+					if (isBuilderExtension(methodNode, annotation)) {
 						isExtensionMethod = true;
 						return;
 					}
 				}
 			}
+		}
+
+		private boolean isBuilderExtension(JavacNode node, JCAnnotation annotation) {
+			String annotationName = annotation.annotationType.toString();
+			Collection<String> importedStatements = node.getImportStatements();
+			boolean isBuilderExtension = annotationName.equals("lombok.Builder.Extension");
+			isBuilderExtension |= annotationName.equals("Builder.Extension") && importedStatements.contains("lombok.Builder");
+			isBuilderExtension |= annotationName.equals("Extension") && importedStatements.contains("lombok.Builder.Extension");
+			return isBuilderExtension;
 		}
 
 		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {

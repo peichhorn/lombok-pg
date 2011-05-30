@@ -33,6 +33,7 @@ import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -552,17 +553,22 @@ public class HandleBuilder implements EclipseAnnotationHandler<Builder> {
 				containsRequiredFields = false;
 				requiredFieldNames.clear();
 				requiredFieldNames.addAll(allRequiredFieldNames);
-				String className = Builder.Extension.class.getName().replace("$", ".");
-				String simpleClassName = Builder.Extension.class.getSimpleName();
-				boolean isAnImport = methodNode.getImportStatements().contains(className);
 				if (method.annotations != null) for (Annotation annotation : method.annotations) {
-					if (annotation.type.toString().equals(className)
-							|| (isAnImport && annotation.type.toString().equals(simpleClassName))) {
+					if (isBuilderExtension(methodNode, annotation)) {
 						isExtensionMethod = true;
 						return;
 					}
 				}
 			}
+		}
+
+		private boolean isBuilderExtension(EclipseNode node, Annotation annotation) {
+			String annotationName = annotation.type.toString();
+			Collection<String> importedStatements = node.getImportStatements();
+			boolean isBuilderExtension = annotationName.equals("lombok.Builder.Extension");
+			isBuilderExtension |= annotationName.equals("Builder.Extension") && importedStatements.contains("lombok.Builder");
+			isBuilderExtension |= annotationName.equals("Extension") && importedStatements.contains("lombok.Builder.Extension");
+			return isBuilderExtension;
 		}
 
 		@Override public void visitStatement(EclipseNode statementNode, Statement statement) {

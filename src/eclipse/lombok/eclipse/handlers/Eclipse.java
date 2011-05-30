@@ -36,6 +36,8 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
 import lombok.AccessLevel;
@@ -85,6 +87,12 @@ public final class Eclipse {
 		if (target instanceof Annotation) {
 			((Annotation)target).declarationSourceEnd = source.sourceEnd;
 		}
+	}
+
+	public static String getMethodName(MessageSend methodCall) {
+		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
+		methodName += new String(methodCall.selector);
+		return methodName;
 	}
 
 	public static boolean isMethodCallValid(EclipseNode node, String methodName, Class<?> clazz, String method) {

@@ -93,9 +93,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof MessageSend) {
-			MessageSend methodCall = (MessageSend) statement;
-			String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
-			methodName += new String(methodCall.selector);
+			String methodName = getMethodName((MessageSend) statement);
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
 				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
 				if ((method == null) || method.isConstructor()) {

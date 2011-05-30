@@ -23,12 +23,8 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.sameSize;
 import static lombok.core.util.ErrorMessages.canBeUsedInBodyOfMethodsOnly;
-import static lombok.eclipse.handlers.Eclipse.deleteMethodCallImports;
-import static lombok.eclipse.handlers.Eclipse.isMethodCallValid;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Assign;
-import static lombok.eclipse.handlers.ast.ASTBuilder.LocalDef;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Name;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
+import static lombok.eclipse.handlers.Eclipse.*;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -58,7 +54,6 @@ import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
@@ -102,12 +97,6 @@ public class HandleTuple extends EclipseASTAdapter {
 			}
 		}
 		return null;
-	}
-	
-	private String getMethodName(MessageSend methodCall) {
-		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
-		methodName += new String(methodCall.selector);
-		return methodName;
 	}
 
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {

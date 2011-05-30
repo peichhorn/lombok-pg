@@ -82,12 +82,6 @@ public class HandleWith extends EclipseASTAdapter {
 			}
 		}
 	}
-	
-	private String getMethodName(MessageSend methodCall) {
-		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
-		methodName += new String(methodCall.selector);
-		return methodName;
-	}
 
 	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
