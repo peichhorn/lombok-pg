@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * void testMethod() {
  *   // do something
  * }
- * 
+ *
  * void testMethod() throw IOException as RuntimeException {
  *   // do something
  * }
@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  *     // do something
  *   } catch (IOException e1) {
  *     throw new RuntimeException(e1);
- *   } 
+ *   }
  * }
  * </pre>
  */
@@ -53,8 +53,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Rethrow {
 	Class<? extends Exception>[] value() default {};
-	
+
 	Class<? extends Exception> as() default RuntimeException.class;
-	
+
 	String message() default "";
 }

@@ -64,19 +64,19 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 // @ProviderFor(EclipseResolutionBasedHandler.class) // TODO
 public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerSupport> {
 
-	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, Annotation ann, EclipseNode annotationNode) {
+	@Override public void handle(AnnotationValues<ListenerSupport> annotation, Annotation ann, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
 		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
-			return true;
+			return;
 		}
-		
+
 		List<ClassLiteralAccess> listenerInterfaces = getListenerInterface(ann, "value");
 
 		if (listenerInterfaces.isEmpty()) {
 			typeNode.addError("@ListenerSupport has no effect with if no interface classes was specified.", ann.sourceStart, ann.sourceEnd);
-			return true;
+			return;
 		}
 		for (ClassLiteralAccess cla : listenerInterfaces) {
 			TypeBinding binding = cla.type.resolveType(typeDecl.initializerScope);
@@ -89,7 +89,6 @@ public class HandleListenerSupport implements EclipseAnnotationHandler<ListenerS
 			addRemoveListenerMethod(typeNode, ann, binding);
 			addFireListenerMethod(typeNode, ann, binding);
 		}
-		return true;
 	}
 
 	private Expression getAnnotationArgumentValue(Annotation ann, String arumentName) {

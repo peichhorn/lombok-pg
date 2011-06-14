@@ -59,28 +59,25 @@ import org.mangosdk.spi.ProviderFor;
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged> {
-	@Override public boolean handle(AnnotationValues<DoPrivileged> annotation, Annotation ast, EclipseNode annotationNode) {
+	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation ast, EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		
+
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
+			return;
 		}
-		if (!method.wasCompletelyParsed()) {
-			return false;
-		}
-		if (method.isAbstract() || method.isEmpty()) {
+		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		replaceWithQualifiedThisReference(method, ast);
-		
+
 		TypeReference returnType = method.returnType();
 		ExpressionBuilder<? extends TypeReference> innerReturnType = boxedReturnType(returnType);
-		
+
 		if (method.returns("void")) {
 			replaceReturns(method.get(), ast);
 			method.body(ast, Block() //
@@ -108,10 +105,8 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 					.withStatements(rethrowStatements(method)) //
 					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
 		}
-		
-		return true;
 	}
-	
+
 	private ExpressionBuilder<? extends TypeReference> boxedReturnType(TypeReference type) {
 		ExpressionBuilder<? extends TypeReference> objectReturnType = Type(type);
 		if (type instanceof SingleTypeReference) {
@@ -126,7 +121,7 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		}
 		return objectReturnType;
 	}
-	
+
 	private List<StatementBuilder<? extends Statement>> sanitizeParameter(final EclipseMethod method) {
 		final List<StatementBuilder<? extends Statement>> sanitizeStatements = new ArrayList<StatementBuilder<? extends Statement>>();
 		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
@@ -143,7 +138,7 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		}
 		return sanitizeStatements;
 	}
-	
+
 	private List<StatementBuilder<? extends Statement>> rethrowStatements(final EclipseMethod method) {
 		final List<StatementBuilder<? extends Statement>> rethrowStatements = new ArrayList<StatementBuilder<? extends Statement>>();
 		if (isNotEmpty(method.get().thrownExceptions)) for (TypeReference thrownException : method.get().thrownExceptions) {
@@ -152,7 +147,7 @@ public class HandleDoPrivileged implements EclipseAnnotationHandler<DoPrivileged
 		}
 		return rethrowStatements;
 	}
-	
+
 	private void replaceReturns(AbstractMethodDeclaration method, final ASTNode source) {
 		final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(source);
 		new ReturnStatementReplaceVisitor(replacement).visit(method);

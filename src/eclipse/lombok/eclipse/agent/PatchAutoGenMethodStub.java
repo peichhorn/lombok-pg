@@ -59,7 +59,7 @@ public class PatchAutoGenMethodStub {
 	}
 
 	private static ThreadLocal<Boolean> issueWasFixed = new ThreadLocal<Boolean>() {
-		protected Boolean initialValue() {
+		@Override protected Boolean initialValue() {
 			return Boolean.FALSE;
 		}
 	};

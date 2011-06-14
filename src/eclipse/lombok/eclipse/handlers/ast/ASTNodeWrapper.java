@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 @RequiredArgsConstructor
 public class ASTNodeWrapper<NODE_TYPE extends ASTNode> implements ASTNodeBuilder<NODE_TYPE> {
 	private final NODE_TYPE astNode;
-	
+
 	@Override
 	public NODE_TYPE build(final EclipseNode node, final ASTNode source) {
 		setGeneratedBy(astNode, source);

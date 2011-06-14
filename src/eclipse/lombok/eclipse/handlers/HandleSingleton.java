@@ -41,20 +41,20 @@ import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
-	@Override public boolean handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
+	@Override public void handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseNode typeNode = annotationNode.up();
 		TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation | AccEnum);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
-			return true;
+			return;
 		}
 		if (typeDecl.superclass != null) {
 			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
-			return true;
+			return;
 		}
 		if (hasMultiArgumentConstructor(typeDecl)) {
 			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
-			return true;
+			return;
 		}
 
 
@@ -64,8 +64,6 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 		EnumConstant("INSTANCE").injectInto(typeNode, source);
 
 		typeNode.rebuild();
-
-		return true;
 	}
 
 	private void replaceConstructorVisibility(TypeDeclaration type) {

@@ -139,7 +139,7 @@ public class HandleYield extends EclipseASTAdapter {
 		List<ASTNodeBuilder<? extends TypeDeclaration>> classes = collector.getClasses();
 		SwitchStatement switchStatement = collector.getStateSwitch();
 		List<StatementBuilder<? extends FieldDeclaration>> variables = collector.getVariables();
-		
+
 		ClassDefBuilder builder = ClassDef(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
 			.withFields(variables) //
 			.withField(FieldDef(Type("int"), "$state").makePrivate()) //

@@ -29,8 +29,10 @@ import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.SYNCHRONIZED;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
+import lombok.javac.Javac;
 import lombok.javac.JavacNode;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -68,7 +70,7 @@ public class JavacMethod {
 		}
 		return type.equals(typeName);
 	}
-	
+
 	public JCExpression returnType() {
 		if (isConstructor()) return null;
 		return get().restype;
@@ -110,21 +112,21 @@ public class JavacMethod {
 	public String name() {
 		return node().getName();
 	}
-	
+
 	public void makePrivate() {
 		makePackagePrivate();
 		get().mods.flags |= PRIVATE;
 	}
-	
+
 	public void makePackagePrivate() {
 		get().mods.flags &= ~(PRIVATE |PROTECTED | PUBLIC);
 	}
-	
+
 	public void makeProtected() {
 		makePackagePrivate();
 		get().mods.flags |= PROTECTED;
 	}
-	
+
 	public void makePublic() {
 		makePackagePrivate();
 		get().mods.flags |= PUBLIC;
@@ -158,7 +160,8 @@ public class JavacMethod {
 		mods.annotations = mods.annotations.append((JCAnnotation) maker.Annotation(suppressWarningsType, List.of(allLiteral)).setPos(pos));
 	}
 
-	public void rebuild() {
+	public void rebuild(JCTree source) {
+		Javac.recursiveSetGeneratedBy(get(), source);
 		node().rebuild();
 	}
 

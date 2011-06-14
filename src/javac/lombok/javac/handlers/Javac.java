@@ -24,6 +24,8 @@ package lombok.javac.handlers;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -35,10 +37,8 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Javac {
-	private Javac() {
-	}
-
 	public static boolean isMethodCallValid(JavacNode node, String methodName, Class<?> clazz, String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
@@ -46,7 +46,7 @@ public final class Javac {
 		wasImported |= methodName.equals(method) && importedStatements.contains(clazz.getName() + "." + method);
 		return wasImported;
 	}
-	
+
 	public static <T> List<T> remove(List<T> list, T elementToRemove) {
 		ListBuffer<T> newList = ListBuffer.lb();
 		for (T element : list) {

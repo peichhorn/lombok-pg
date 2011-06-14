@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.compiler.ast.Expression;
 @RequiredArgsConstructor
 public class ExpressionWrapper<NODE_TYPE extends Expression> implements ExpressionBuilder<NODE_TYPE> {
 	private final NODE_TYPE expression;
-	
+
 	@Override
 	public NODE_TYPE build(final EclipseNode node, final ASTNode source) {
 		setGeneratedByAndCopyPos(expression, source);

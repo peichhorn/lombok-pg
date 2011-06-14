@@ -55,31 +55,31 @@ public class HandleSwingInvoke {
 	private final static String ELSE_STATEMENT = "java.awt.EventQueue.%s(%s);";
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleSwingInvokeLater extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeLater> {
-		@Override public boolean handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation ast, JavacNode annotationNode) {
-			return new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, annotationNode);
+	public static class HandleSwingInvokeLater extends NonResolutionBased implements JavacAnnotationHandler<SwingInvokeLater> {
+		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation ast, JavacNode annotationNode) {
+			new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, annotationNode);
 		}
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleSwingInvokeAndWait extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<SwingInvokeAndWait> {
-		@Override public boolean handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation ast, JavacNode annotationNode) {
-			return new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, annotationNode);
+	public static class HandleSwingInvokeAndWait extends NonResolutionBased implements JavacAnnotationHandler<SwingInvokeAndWait> {
+		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation ast, JavacNode annotationNode) {
+			new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, annotationNode);
 		}
 	}
 
-	public boolean generateSwingInvoke(String methodName, Class<? extends Annotation> annotationType, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, annotationType);
+	public void generateSwingInvoke(String methodName, Class<? extends Annotation> annotationType, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		JavacMethod method = JavacMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		replaceWithQualifiedThisReference(method);
@@ -96,9 +96,7 @@ public class HandleSwingInvoke {
 		}
 		method.body(statements(method.node(), METHOD_BODY, fieldName, method.get().body, fieldName, elseStatement));
 
-		method.rebuild();
-
-		return true;
+		method.rebuild(annotationNode.get());
 	}
 
 	private void replaceWithQualifiedThisReference(final JavacMethod method) {

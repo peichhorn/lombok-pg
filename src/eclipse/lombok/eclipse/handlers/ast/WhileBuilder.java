@@ -35,16 +35,16 @@ import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 public final class WhileBuilder implements StatementBuilder<WhileStatement> {
 	private final ExpressionBuilder<? extends Expression> condition;
 	private StatementBuilder<? extends Statement> action = new EmptyStatementBuilder();
-	
+
 	public WhileBuilder Do(final StatementBuilder<? extends Statement> action) {
 		this.action = action;
 		return this;
 	}
-	
+
 	public WhileBuilder Do(final Statement action) {
 		return Do(new StatementWrapper<Statement>(action));
 	}
-	
+
 	@Override
 	public WhileStatement build(final EclipseNode node, final ASTNode source) {
 		final WhileStatement whileStatement = new WhileStatement(condition.build(node, source), action.build(node, source), 0, 0);

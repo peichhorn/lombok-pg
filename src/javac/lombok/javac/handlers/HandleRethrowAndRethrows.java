@@ -25,7 +25,7 @@ import static lombok.core.util.Arrays.isEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.core.util.Lists.list;
-import static lombok.javac.handlers.JavacHandlerUtil.markAnnotationAsProcessed;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.JavacTreeBuilder.statements;
 
 import java.lang.annotation.Annotation;
@@ -50,29 +50,29 @@ public class HandleRethrowAndRethrows {
 	private final static String TRY_BLOCK = "try %s ";
 	private final static String CATCH_BLOCK_1ARG = "catch ( %s %s ) { throw new %s(%s); } ";
 	private final static String CATCH_BLOCK_2ARGS = "catch ( %s %s ) { throw new %s(\"%s\", %s); } ";
-	
+
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleRethrow extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Rethrow> {
+	public static class HandleRethrow extends NonResolutionBased implements JavacAnnotationHandler<Rethrow> {
 		@Override
-		public boolean handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		public void handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
-			return new HandleRethrowAndRethrows() //
+			new HandleRethrowAndRethrows() //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleRethrows extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Rethrows> {
+	public static class HandleRethrows extends NonResolutionBased implements JavacAnnotationHandler<Rethrows> {
 		@Override
-		public boolean handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		public void handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
 				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
 			}
-			return handle.handle(Rethrow.class, ast, annotationNode);
+			handle.handle(Rethrow.class, ast, annotationNode);
 		}
 	}
 
@@ -83,25 +83,25 @@ public class HandleRethrowAndRethrows {
 		return this;
 	}
 
-	public boolean handle(Class<? extends Annotation> annotationType, JCAnnotation ast, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, annotationType);
-		
+	public void handle(Class<? extends Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, annotationType);
+
 		if (rethrows.isEmpty()) {
-			return true;
+			return;
 		}
-		
+
 		JavacMethod method = JavacMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
-		
+
 		StringBuilder methodBody = new StringBuilder();
 		methodBody.append(String.format(TRY_BLOCK, method.get().body));
 		int counter = 1;
@@ -115,14 +115,12 @@ public class HandleRethrowAndRethrows {
 				}
 			}
 		}
-		
+
 		method.body(statements(method.node(), methodBody.toString()));
 
-		method.rebuild();
-		
-		return true;
+		method.rebuild(source);
 	}
-	
+
 	private static List<String> classNames(final Class<?>[] classes) {
 		if (isEmpty(classes)) {
 			return list(Exception.class.getName());
@@ -133,7 +131,7 @@ public class HandleRethrowAndRethrows {
 		}
 		return classNames;
 	}
-	
+
 	@RequiredArgsConstructor
 	private static class RethrowData {
 		public final List<String> thrown;

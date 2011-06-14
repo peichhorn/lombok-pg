@@ -51,27 +51,27 @@ import lombok.javac.Javac;
  * Handles the {@code lombok.DoPrivileged} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<DoPrivileged> {
+public class HandleDoPrivileged extends NonResolutionBased implements JavacAnnotationHandler<DoPrivileged> {
 	private final static String METHOD_BODY = "%s try { %s java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<%s>() {" +
-			"public %s run() %s { %s %s }}); } catch (java.security.PrivilegedActionException $ex) {" + 
+			"public %s run() %s { %s %s }}); } catch (java.security.PrivilegedActionException $ex) {" +
 			"final java.lang.Throwable $cause = $ex.getCause(); %s throw new java.lang.RuntimeException($cause); }";
 	private final static String RETHROW_STATEMENT = "if ($cause instanceof %s) throw (%s) $cause; ";
 	private final static String SANITIZE_STATEMENT = "%s %s = %s(%s); ";
-	
+
 	@Override
-	public boolean handle(AnnotationValues<DoPrivileged> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	public void handle(AnnotationValues<DoPrivileged> annotation, JCAnnotation source, JavacNode annotationNode) {
 		final Class<? extends Annotation> annotationType = DoPrivileged.class;
-		markAnnotationAsProcessed(annotationNode, annotationType);
+		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		JavacMethod method = JavacMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		replaceWithQualifiedThisReference(method);
@@ -85,9 +85,7 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 			method.body(statements(method.node(), METHOD_BODY, sanitizeParameter(method), "return", innerReturnType, innerReturnType, thrownExceptions(method), method.get().body, "", rethrowStatements(method)));
 		}
 
-		method.rebuild();
-
-		return true;
+		method.rebuild(source);
 	}
 
 	private JCExpression boxedReturnType(JavacNode node, JCExpression type) {
@@ -104,7 +102,7 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 		}
 		return objectReturnType;
 	}
-	
+
 	private String sanitizeParameter(final JavacMethod method) {
 		final StringBuilder sanitizeStatements = new StringBuilder();
 		for (JCVariableDecl param : method.get().params) {
@@ -122,7 +120,7 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 		}
 		return sanitizeStatements.toString();
 	}
-	
+
 	private String rethrowStatements(final JavacMethod method) {
 		final StringBuilder rethrowStatements = new StringBuilder();
 		for (JCExpression thrownException : method.get().thrown) {
@@ -146,7 +144,7 @@ public class HandleDoPrivileged extends JavacNonResolutionBasedHandler implement
 		final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(typeNodeOf(method.node()).getName(), method.node());
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
-	
+
 	@RequiredArgsConstructor
 	private static class ReturnNullReplacementProvider implements IReplacementProvider<JCStatement> {
 		private final JavacNode node;

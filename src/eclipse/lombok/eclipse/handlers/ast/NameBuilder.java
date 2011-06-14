@@ -37,7 +37,7 @@ import lombok.eclipse.EclipseNode;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class NameBuilder implements ExpressionBuilder<NameReference> {
 	private final String name;
-	
+
 	@Override
 	public NameReference build(final EclipseNode node, final ASTNode source) {
 		final NameReference nameReference;

@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 public final class ArgBuilder extends AbstractVariableDefBuilder<ArgBuilder, Argument> {
-	
+
 	ArgBuilder(final ExpressionBuilder<? extends TypeReference> type, final String name) {
 		super(type, name);
 	}

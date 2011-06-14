@@ -61,15 +61,15 @@ public class PatchVisibleForTesting {
 				.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
 				.build());
 	}
-	
+
 	public static MethodBinding onFindMethod(Scope scope, ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
 		return handleVisibleForTesting(scope, scope.findMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
-	
+
 	public static MethodBinding onFindExactMethod(Scope scope, ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
 		return handleVisibleForTesting(scope, scope.findExactMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
-	
+
 	private static MethodBinding handleVisibleForTesting(Scope scope, MethodBinding methodBinding) {
 		if (methodBinding == null) {
 			return null;

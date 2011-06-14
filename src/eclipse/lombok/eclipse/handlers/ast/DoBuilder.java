@@ -35,12 +35,12 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 public final class DoBuilder implements StatementBuilder<DoStatement> {
 	private final StatementBuilder<? extends Statement> action;
 	private ExpressionBuilder<? extends Expression> condition = new NullTrueFalseBuilder(true);
-	
+
 	public DoBuilder While(final ExpressionBuilder<? extends Expression> condition) {
 		this.condition = condition;
 		return this;
 	}
-	
+
 	@Override
 	public DoStatement build(final EclipseNode node, final ASTNode source) {
 		final DoStatement doStatement = new DoStatement(condition.build(node, source), action.build(node, source), 0, 0);

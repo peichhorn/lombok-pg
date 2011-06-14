@@ -53,22 +53,22 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 	protected final MethodBinding abstractMethod;
 	protected ExpressionBuilder<? extends TypeReference> returnType;
 	protected boolean noBody;
-	
+
 	ResolutionBasedMethodDefBuilder(final MethodBinding abstractMethod) {
 		super(new String(abstractMethod.selector));
 		this.abstractMethod = abstractMethod;
 	}
-	
+
 	public ResolutionBasedMethodDefBuilder withReturnType(final ExpressionBuilder<? extends TypeReference> returnType) {
 		this.returnType = returnType;
 		return this;
 	}
-	
+
 	public ResolutionBasedMethodDefBuilder withNoBody() {
 		noBody = true;
 		return this;
 	}
-	
+
 	@Override
 	public MethodDeclaration build(final EclipseNode node, final ASTNode source) {
 		MethodDeclaration proto = new MethodDeclaration(((CompilationUnitDeclaration) node.top().get()).compilationResult);
@@ -88,7 +88,7 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 		if (isNotEmpty(abstractMethod.parameters)) for (int i = 0; i < abstractMethod.parameters.length; i++) {
 			arguments.add(Arg(Type(abstractMethod.parameters[i]), "arg" + i).makeFinal());
 		}
-		
+
 		if (isNotEmpty(abstractMethod.typeVariables)) for (int i = 0; i < abstractMethod.typeVariables.length; i++) {
 			TypeVariableBinding binding = abstractMethod.typeVariables[i];
 			ReferenceBinding super1 = binding.superclass;
@@ -103,7 +103,7 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 				}
 			}
 		}
-		
+
 		proto.modifiers = (abstractMethod.getAccessFlags() & (~AccAbstract)) | modifiers;
 		proto.returnType = returnType.build(node, source);
 		proto.annotations = buildAnnotations(node, source);
@@ -112,7 +112,7 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 		proto.typeParameters = buildTypeParameters(node, source);
 		proto.bits |=  bits | ECLIPSE_DO_NOT_TOUCH_FLAG;
 		proto.arguments = buildArguments(node, source);
-		
+
 		if (noBody || ((modifiers & AccAbstract) != 0)) {
 			proto.modifiers |= AccSemicolonBody;
 		} else {
@@ -120,12 +120,13 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 		}
 		return proto;
 	}
-	
+
+	@Override
 	public MethodDeclaration injectInto(final EclipseNode node, final ASTNode source) {
 		final EclipseNode typeNode = typeNodeOf(node);
 		final TypeDeclaration type = (TypeDeclaration) typeNode.get();
 		final MethodDeclaration method = build(node, source);
-		
+
 		SourceTypeBinding sourceType = type.scope.referenceContext.binding;
 		MethodScope methodScope = new MethodScope(type.scope, method, false);
 		SourceTypeBinding declaringClass = methodScope.referenceType().binding;
@@ -148,7 +149,7 @@ public class ResolutionBasedMethodDefBuilder extends AbstractMethodDefBuilder<Re
 		System.arraycopy(sourceType.methods(), 0, allMethods, 0, sourceType.methods().length);
 		allMethods[sourceType.methods().length] = methodBinding;
 		sourceType.setMethods(allMethods);
-		
+
 		injectMethod(typeNode, method);
 		return method;
 	}

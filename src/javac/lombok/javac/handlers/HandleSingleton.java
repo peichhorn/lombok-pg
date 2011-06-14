@@ -43,17 +43,17 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.List;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleSingleton extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<Singleton> {
+public class HandleSingleton extends NonResolutionBased implements JavacAnnotationHandler<Singleton> {
 
-	@Override public boolean handle(AnnotationValues<Singleton> annotation, JCAnnotation ast, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, Singleton.class);
+	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);
 
 		if (isNoConcreteClass(annotationNode)) {
-			return false;
+			return;
 		}
 
 		if (hasMultiArgumentConstructor(annotationNode)) {
-			return false;
+			return;
 		}
 
 		JavacNode typeNode = annotationNode.up();
@@ -66,11 +66,9 @@ public class HandleSingleton extends JavacNonResolutionBasedHandler implements J
 		List<JCExpression> nilExp = List.nil();
 		JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
 		JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
-		injectField(typeNode, maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init));
+		injectField(typeNode, lombok.javac.Javac.recursiveSetGeneratedBy(maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init), source));
 
 		typeNode.rebuild();
-
-		return true;
 	}
 
 	private boolean isNoConcreteClass(JavacNode annotationNode) {

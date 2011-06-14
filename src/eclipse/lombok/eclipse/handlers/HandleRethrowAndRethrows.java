@@ -53,13 +53,13 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleRethrowAndRethrows {
-	
+
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleRethrow implements EclipseAnnotationHandler<Rethrow> {
 		@Override
-		public boolean handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
+		public void handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
-			return new HandleRethrowAndRethrows() //
+			new HandleRethrowAndRethrows() //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
@@ -68,14 +68,14 @@ public class HandleRethrowAndRethrows {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleRethrows implements EclipseAnnotationHandler<Rethrows> {
 		@Override
-		public boolean handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
+		public void handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
 			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
 				Rethrow ann = Eclipse.createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
 			}
-			return handle.handle(Rethrow.class, ast, annotationNode);
+			handle.handle(Rethrow.class, ast, annotationNode);
 		}
 	}
 
@@ -86,26 +86,23 @@ public class HandleRethrowAndRethrows {
 		return this;
 	}
 
-	public boolean handle(Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
-		
+	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
+
 		if (rethrows.isEmpty()) {
-			return true;
+			return;
 		}
-		
+
 		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
-		}
-		if (!method.wasCompletelyParsed()) {
-			return false;
+			return;
 		}
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
-		
+
 		TryBuilder tryBuilder = Try(Block().withStatements(method.get().statements));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
@@ -121,10 +118,8 @@ public class HandleRethrowAndRethrows {
 		method.body(source, Block().withStatement(tryBuilder));
 
 		method.rebuild();
-		
-		return true;
 	}
-	
+
 	private static List<String> classNames(final Class<?>[] classes) {
 		if (isEmpty(classes)) {
 			return list(Exception.class.getName());
@@ -135,7 +130,7 @@ public class HandleRethrowAndRethrows {
 		}
 		return classNames;
 	}
-	
+
 	@RequiredArgsConstructor
 	private static class RethrowData {
 		public final List<String> thrown;

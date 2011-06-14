@@ -48,7 +48,7 @@ public final class NumberBuilder implements ExpressionBuilder<NumberLiteral>{
 			literal = new FloatLiteral((Float.toString(number.floatValue()) + "f").toCharArray(), 0, 0);
 		} else {
 			literal = new DoubleLiteral((Double.toString(number.doubleValue()) + "d").toCharArray(), 0, 0);
-		} 
+		}
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
 	}

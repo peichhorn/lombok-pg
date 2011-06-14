@@ -65,34 +65,33 @@ import com.sun.tools.javac.util.Name;
  * Handles the {@code lombok.AutoGenMethodStub} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler implements JavacAnnotationHandler<AutoGenMethodStub> {
+public class HandleAutoGenMethodStub extends ResolutionBased implements JavacAnnotationHandler<AutoGenMethodStub> {
 	private final static String THROW_UNSUPPORTEDOPERATIONEXCEPTION = "throw new java.lang.UnsupportedOperationException(\"This method was not implemented yet.\");";
-	
+
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 	// should be the last annotation to avoid major issues, once again.. curve ball
-	@Override public boolean handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, AutoGenMethodStub.class);
+	@Override public void handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, AutoGenMethodStub.class);
 		JavacNode typeNode = annotationNode.up();
 
 		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
-			return true;
+			return;
 		}
-		
+
 		AutoGenMethodStub autoGenMethodStub = annotation.getInstance();
 		if (autoGenMethodStub.throwException()) {
 			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				method(typeNode, methodSymbol).withStatements(statements(typeNode, THROW_UNSUPPORTEDOPERATIONEXCEPTION)).inject();
+				method(typeNode, methodSymbol).withStatements(statements(typeNode, THROW_UNSUPPORTEDOPERATIONEXCEPTION)).inject(source);
 			}
 		} else {
 			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				method(typeNode, methodSymbol).withDefaultReturnStatement().inject();
+				method(typeNode, methodSymbol).withDefaultReturnStatement().inject(source);
 			}
 		}
 
 		typeNode.rebuild();
-		return true;
 	}
 
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
@@ -131,7 +130,7 @@ public class HandleAutoGenMethodStub extends JavacResolutionBasedHandler impleme
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
-		
+
 		private boolean getNext() {
 			MethodSymbol firstUndefinedMethod = getFirstUndefinedMethod(classSymbol);
 			if (firstUndefinedMethod != null) {

@@ -49,6 +49,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -57,23 +58,23 @@ import com.sun.tools.javac.util.List;
  * Handles the {@code lombok.FluentSetter} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleFluentSetter extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<FluentSetter> {
+public class HandleFluentSetter extends NonResolutionBased implements JavacAnnotationHandler<FluentSetter> {
 
-	@Override public boolean handle(AnnotationValues<FluentSetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	@Override public void handle(AnnotationValues<FluentSetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		Collection<JavacNode> fields = annotationNode.upFromAnnotationToFields();
-		markAnnotationAsProcessed(annotationNode, FluentSetter.class);
+		deleteAnnotationIfNeccessary(annotationNode, FluentSetter.class);
 		deleteImportFromCompilationUnit(annotationNode, "lombok.AccessLevel");
 		FluentSetter annotationInstance = annotation.getInstance();
 		AccessLevel level = annotationInstance.value();
-		return handle(ast, annotationNode, level, fields);
+		handle(ast, annotationNode, level, fields);
 	}
 
-	public boolean generateSetterForType(JavacNode typeNode, JavacNode errorNode, AccessLevel level, boolean checkForTypeLevelSetter) {
+	public void generateSetterForType(JavacNode typeNode, JavacNode errorNode, AccessLevel level, boolean checkForTypeLevelSetter) {
 		if (checkForTypeLevelSetter) {
 			if (typeNode != null) for (JavacNode child : typeNode.down()) {
 				if (child.getKind() == Kind.ANNOTATION) {
 					if (Javac.annotationTypeMatches(FluentSetter.class, child)) {
-						return true;
+						return;
 					}
 				}
 			}
@@ -82,7 +83,7 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
 		if (typeDecl == null) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
-			return false;
+			return;
 		}
 
 		for (JavacNode field : typeNode.down()) {
@@ -94,7 +95,6 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 
 			generateSetterForField(field, errorNode.get(), level, List.<JCExpression>nil(), List.<JCExpression>nil());
 		}
-		return true;
 	}
 
 	public void generateSetterForField(JavacNode fieldNode, DiagnosticPosition pos, AccessLevel level, List<JCExpression> onMethod, List<JCExpression> onParam) {
@@ -108,38 +108,35 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		createSetterForField(level, fieldNode, fieldNode, false, onMethod, onParam);
 	}
 
-	public boolean handle(JCAnnotation ast, JavacNode annotationNode, AccessLevel level, Collection<JavacNode> fields) {
-		if (level == AccessLevel.NONE) return true;
+	public void handle(JCAnnotation ast, JavacNode annotationNode, AccessLevel level, Collection<JavacNode> fields) {
+		if (level == AccessLevel.NONE) return;
 
 		JavacNode node = annotationNode.up();
-		if (node == null) return false;
+		if (node == null) return;
 		List<JCExpression> onMethod = getAndRemoveAnnotationParameter(ast, "onMethod");
 		List<JCExpression> onParam = getAndRemoveAnnotationParameter(ast, "onParam");
 		if (node.getKind() == Kind.FIELD) {
-			return createSetterForFields(level, fields, annotationNode, true, onMethod, onParam);
+			createSetterForFields(level, fields, annotationNode, true, onMethod, onParam);
 		}
 		if (node.getKind() == Kind.TYPE) {
 			if (!onMethod.isEmpty()) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
 			if (!onParam.isEmpty()) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
-			return generateSetterForType(node, annotationNode, level, false);
+			generateSetterForType(node, annotationNode, level, false);
 		}
-		return false;
 	}
 
-	private boolean createSetterForFields(AccessLevel level, Collection<JavacNode> fieldNodes, JavacNode errorNode, boolean whineIfExists,
+	private void createSetterForFields(AccessLevel level, Collection<JavacNode> fieldNodes, JavacNode errorNode, boolean whineIfExists,
 			List<JCExpression> onMethod, List<JCExpression> onParam) {
 		for (JavacNode fieldNode : fieldNodes) {
 			createSetterForField(level, fieldNode, errorNode, whineIfExists, onMethod, onParam);
 		}
-
-		return true;
 	}
 
-	private boolean createSetterForField(AccessLevel level, JavacNode fieldNode, JavacNode errorNode, boolean whineIfExists,
+	private void createSetterForField(AccessLevel level, JavacNode fieldNode, JavacNode source, boolean whineIfExists,
 			List<JCExpression> onMethod, List<JCExpression> onParam) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			fieldNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
-			return true;
+			return;
 		}
 
 		JCVariableDecl fieldDecl = (JCVariableDecl)fieldNode.get();
@@ -148,24 +145,22 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 
 		switch (methodExists(methodName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
-			return true;
+			return;
 		case EXISTS_BY_USER:
-			if (whineIfExists) errorNode.addWarning(
+			if (whineIfExists) source.addWarning(
 					String.format("Not generating %s(%s %s): A method with that name already exists",
 					methodName, fieldDecl.vartype, fieldDecl.name));
-			return true;
+			return;
 		default:
 		case NOT_EXISTS:
 		}
 
 		long access = toJavacModifier(level) | (fieldDecl.mods.flags & STATIC);
 
-		injectMethod(fieldNode.up(), createSetter(access, fieldNode, fieldNode.getTreeMaker(), onMethod, onParam));
-
-		return true;
+		injectMethod(fieldNode.up(), createSetter(access, fieldNode, fieldNode.getTreeMaker(), onMethod, onParam, source.get()));
 	}
 
-	private JCMethodDecl createSetter(long access, JavacNode field, TreeMaker treeMaker, List<JCExpression> onMethod, List<JCExpression> onParam) {
+	private JCMethodDecl createSetter(long access, JavacNode field, TreeMaker treeMaker, List<JCExpression> onMethod, List<JCExpression> onParam, JCTree source) {
 		JCVariableDecl fieldDecl = (JCVariableDecl) field.get();
 
 		JCExpression fieldRef = createFieldAccessor(treeMaker, field, FieldAccess.ALWAYS_FIELD);
@@ -206,7 +201,7 @@ public class HandleFluentSetter extends JavacNonResolutionBasedHandler implement
 		List<JCExpression> throwsClauses = List.nil();
 		JCExpression annotationMethodDefaultValue = null;
 
-		return treeMaker.MethodDef(treeMaker.Modifiers(access, copyAnnotations(onMethod)), fieldDecl.name, methodType,
-				methodGenericParams, parameters, throwsClauses, methodBody, annotationMethodDefaultValue);
+		return Javac.recursiveSetGeneratedBy(treeMaker.MethodDef(treeMaker.Modifiers(access, copyAnnotations(onMethod)), fieldDecl.name, methodType,
+				methodGenericParams, parameters, throwsClauses, methodBody, annotationMethodDefaultValue), source);
 	}
 }

@@ -187,14 +187,13 @@ public class HandleEntrypoint {
 	 */
 	public static void createEntrypoint(EclipseNode node, ASTNode source, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
 		if (methodExists(methodName, node, false) == NOT_EXISTS) {
-			node.addWarning(String.format("The method '%s' is missing, not generating entrypoint 'public static void %s'.", methodName, name));
 			return;
 		}
 
 		if (entrypointExists(name, node)) {
 			return;
 		}
-		
+
 		MethodDef(Type("void"), name).withModifiers(PUBLIC | STATIC).withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
 				.withStatement(Call(New(Type(node.getName())), methodName).withArguments(argsProvider.getArgs(name))) //
 				.injectInto(node, source);

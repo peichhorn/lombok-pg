@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 public final class LocalDefBuilder extends AbstractVariableDefBuilder<LocalDefBuilder, LocalDeclaration> {
-	
+
 	LocalDefBuilder(ExpressionBuilder<? extends TypeReference> type, String name) {
 		super(type, name);
 	}

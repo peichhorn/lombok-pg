@@ -193,7 +193,6 @@ public class HandleEntrypoint {
 	 */
 	public static void createEntrypoint(JavacNode node, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
 		if (methodExists(methodName, node, false) == NOT_EXISTS) {
-			node.addWarning(String.format("The method '%s' is missing, not generating entrypoint 'public static void %s'.", methodName, name));
 			return;
 		}
 
@@ -203,7 +202,7 @@ public class HandleEntrypoint {
 
 		String params = (paramProvider != null) ? paramProvider.getParams(name) : "";
 		String args = (argsProvider != null) ? argsProvider.getArgs(name) : "";
-		method(node, "public static void %s(%s) throws java.lang.Throwable { new %s().%s(%s); }", name, params, node.getName(), methodName, args).inject();
+		method(node, "public static void %s(%s) throws java.lang.Throwable { new %s().%s(%s); }", name, params, node.getName(), methodName, args).inject(node.get());
 	}
 
 	public static interface IArgumentProvider {

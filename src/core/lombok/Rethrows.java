@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * void testMethod(Object arg) {
  *   // do something
  * }
- * 
+ *
  * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
  *   // do something
  * }
@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
  *     throw new RuntimeException(e1);
  *   } catch (NullPointerException e2) {
  *     throw new IllegalArgumentException(e2);
- *   } 
+ *   }
  * }
  * </pre>
  */

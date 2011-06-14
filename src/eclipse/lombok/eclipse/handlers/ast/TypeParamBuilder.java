@@ -40,17 +40,17 @@ public class TypeParamBuilder implements StatementBuilder<TypeParameter>{
 	protected final List<ExpressionBuilder<? extends TypeReference>> bounds = new ArrayList<ExpressionBuilder<? extends TypeReference>>();
 	protected final String name;
 	protected ExpressionBuilder<? extends TypeReference> type;
-	
+
 	public TypeParamBuilder withBound(final ExpressionBuilder<? extends TypeReference> bound) {
 		bounds.add(bound);
 		return this;
 	}
-	
+
 	public TypeParamBuilder withType(final ExpressionBuilder<? extends TypeReference> type) {
 		this.type = type;
 		return this;
 	}
-	
+
 	@Override
 	public TypeParameter build(final EclipseNode node, final ASTNode source) {
 		final TypeParameter typeParameter = new TypeParameter();

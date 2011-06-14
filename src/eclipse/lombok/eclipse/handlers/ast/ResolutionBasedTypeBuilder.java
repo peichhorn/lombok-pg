@@ -36,16 +36,16 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 public class ResolutionBasedTypeBuilder implements ExpressionBuilder<TypeReference> {
 	private final TypeBinding typeBinding;
 	protected int bits;
-	
+
 	public ResolutionBasedTypeBuilder makeSuperType() {
 		return withBits(IsSuperType);
 	}
-	
+
 	public ResolutionBasedTypeBuilder withBits(final int bits) {
 		this.bits |= bits;
 		return this;
 	}
-	
+
 	@Override
 	public TypeReference build(final EclipseNode node, final ASTNode source) {
 		final TypeReference typeReference = makeType(typeBinding, source, false);

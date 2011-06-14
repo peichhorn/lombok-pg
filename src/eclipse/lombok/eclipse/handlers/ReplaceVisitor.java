@@ -41,7 +41,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisit
 			astNode.traverse(this, null);
 		}
 	}
-	
+
 	protected final void replace(NODE_TYPE[] nodes) {
 		if (isNotEmpty(nodes)) for (int i = 0, iend = nodes.length; i < iend; i++) {
 			if (needsReplacing(nodes[i])) {
@@ -49,13 +49,13 @@ public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisit
 			}
 		}
 	}
-	
+
 	protected final NODE_TYPE replace(NODE_TYPE node) {
 		if (needsReplacing(node)) {
 			return replacement.getReplacement();
 		}
 		return node;
 	}
-	
+
 	protected abstract boolean needsReplacing(NODE_TYPE node);
 }

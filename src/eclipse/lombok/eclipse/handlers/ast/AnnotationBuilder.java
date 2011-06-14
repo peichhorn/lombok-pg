@@ -37,12 +37,12 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 public final class AnnotationBuilder implements ExpressionBuilder<Annotation> {
 	private final ExpressionBuilder<? extends TypeReference> type;
 	private ExpressionBuilder<? extends Expression> value;
-	
+
 	public AnnotationBuilder withValue(final ExpressionBuilder<? extends Expression> value) {
 		this.value = value;
 		return this;
 	}
-	
+
 	@Override
 	public Annotation build(final EclipseNode node, final ASTNode source) {
 		final Annotation ann;
@@ -54,5 +54,5 @@ public final class AnnotationBuilder implements ExpressionBuilder<Annotation> {
 		}
 		setGeneratedByAndCopyPos(ann, source);
 		return ann;
-	} 
+	}
 }

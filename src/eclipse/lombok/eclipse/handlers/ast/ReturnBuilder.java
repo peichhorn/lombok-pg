@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ReturnBuilder implements StatementBuilder<ReturnStatement>{
 	private ExpressionBuilder<? extends Expression> expression = null;
-	
+
 	@Override
 	public ReturnStatement build(final EclipseNode node, final ASTNode source) {
 		final ReturnStatement returnStatement = new ReturnStatement((expression == null) ? null : expression.build(node, source), 0, 0);

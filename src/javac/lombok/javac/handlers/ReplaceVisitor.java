@@ -36,7 +36,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 	public void visit(JCTree node) {
 		node.accept(this, null);
 	}
-	
+
 	protected final List<NODE_TYPE> replace(List<NODE_TYPE> nodes) {
 		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
 		for (NODE_TYPE node : nodes) {
@@ -47,13 +47,13 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 		}
 		return newNodes.toList();
 	}
-	
+
 	protected final NODE_TYPE replace(NODE_TYPE node) {
 		if (needsReplacing(node)) {
 			return replacement.getReplacement();
 		}
 		return node;
 	}
-	
+
 	protected abstract boolean needsReplacing(NODE_TYPE node);
 }

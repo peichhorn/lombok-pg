@@ -19,10 +19,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.javac.handlers;
+package lombok.eclipse.handlers;
 
-abstract class JavacNonResolutionBasedHandler {
-	public final boolean isResolutionBased() {
-		return false;
+import java.io.File;
+
+import static lombok.DirectoryRunner.Compiler.ECLIPSE;
+
+import lombok.*;
+import lombok.DirectoryRunner.Compiler;
+import lombok.DirectoryRunner.TestParams;
+
+import org.junit.runner.RunWith;
+
+//For now you need to add the following vm-parameter to run the test:
+//-javaagent:${project_loc:lombok_pg}/dist/lombok_pg.jar
+
+@RunWith(DirectoryRunner.class)
+public class TestWithEclipse implements TestParams {
+
+	@Override public Compiler getCompiler() {
+		return ECLIPSE;
+	}
+
+	@Override public boolean printErrors() {
+		return true;
+	}
+
+	@Override public File getBeforeDirectory() {
+		return new File("test/transform/resource/before");
+	}
+
+	@Override public File getAfterDirectory() {
+		return new File("test/transform/resource/after-eclipse");
+	}
+
+	@Override public File getMessagesDirectory() {
+		return new File("test/transform/resource/messages-eclipse");
 	}
 }

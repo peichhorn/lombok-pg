@@ -51,19 +51,19 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleReadLock implements EclipseAnnotationHandler<ReadLock> {
-		@Override public boolean handle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
-			return new HandleConditionAndLock()
+			new HandleConditionAndLock()
 				.withLockMethod("readLock")
 				.handle(ann.value(), ReadLock.class, ast, annotationNode);
 		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleWriteLock  implements EclipseAnnotationHandler<WriteLock> {
-		@Override public boolean handle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
+	public static class HandleWriteLock implements EclipseAnnotationHandler<WriteLock> {
+		@Override public void handle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
-			return new HandleConditionAndLock()
+			new HandleConditionAndLock()
 				.withLockMethod("writeLock")
 				.handle(ann.value(), WriteLock.class, ast, annotationNode);
 		}
@@ -71,9 +71,9 @@ public class HandleConditionAndLock {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleSignal implements EclipseAnnotationHandler<Signal> {
-		@Override public boolean handle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
-			return new HandleConditionAndLock()
+			new HandleConditionAndLock()
 				.withSignal(new SignalData(ann.value(), ann.pos()))
 				.handle(ann.lockName(), Signal.class, ast, annotationNode);
 		}
@@ -81,9 +81,9 @@ public class HandleConditionAndLock {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleAwait implements EclipseAnnotationHandler<Await> {
-		@Override public boolean handle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
-			return new HandleConditionAndLock()
+			new HandleConditionAndLock()
 				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
 				.handle(ann.lockName(), Await.class, ast, annotationNode);
 		}
@@ -91,9 +91,9 @@ public class HandleConditionAndLock {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleAwaitBeforeAndSignalAfter implements EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
-		@Override public boolean handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
-			return new HandleConditionAndLock()
+			new HandleConditionAndLock()
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
 				.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
@@ -119,15 +119,15 @@ public class HandleConditionAndLock {
 		return this;
 	}
 
-	public boolean handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
+	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return false;
+			return;
 		}
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return false;
+			return;
 		}
 		String annotationTypeName = annotationType.getSimpleName();
 
@@ -135,13 +135,13 @@ public class HandleConditionAndLock {
 
 		if (!lockMode && (await == null) && (signal == null)) {
 			annotationNode.addWarning(String.format("Bad configured Handler for %s. Please file a bug report.", annotationTypeName));
-			return true; // wrong configured handler, so better stop here
+			return; // wrong configured handler, so better stop here
 		}
 
 		String completeLockName = createCompleteLockName(lockName);
 
 		if (!tryToAddLockField(source, annotationNode, completeLockName, lockMode, annotationTypeName)) {
-			return false;
+			return;
 		}
 
 		if (!lockMode) {
@@ -149,22 +149,18 @@ public class HandleConditionAndLock {
 			tryToAddConditionField(source, annotationNode, signal, completeLockName, annotationTypeName);
 		}
 
-		if (!method.wasCompletelyParsed()) {
-			return false; // we need the method body
-		}
-
 		List<StatementBuilder<? extends Statement>> beforeMethodBlock = new ArrayList<StatementBuilder<? extends Statement>>();
 		List<StatementBuilder<? extends Statement>> afterMethodBlock = new ArrayList<StatementBuilder<? extends Statement>>();
 
 		if (!lockMode) {
 			if (!getConditionStatements(source, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
-				return false;
+				return;
 			}
 			if (!getConditionStatements(source, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
-				return false;
+				return;
 			}
 		}
-		
+
 		final CallBuilder lockCall;
 		final CallBuilder unLockCall;
 		if (lockMode) {
@@ -174,7 +170,7 @@ public class HandleConditionAndLock {
 			lockCall = Call(Field(This(), completeLockName), "lock");
 			unLockCall = Call(Field(This(), completeLockName), "unlock");
 		}
-		
+
 		method.body(source, Block() //
 			.withStatement(lockCall)
 			.withStatement(Try(Block() //
@@ -191,8 +187,6 @@ public class HandleConditionAndLock {
 		}
 
 		method.rebuild();
-
-		return true;
 	}
 
 	private boolean getConditionStatements(ASTNode source, EclipseNode node, ConditionData condition, String lockName, String annotationTypeName, List<StatementBuilder<? extends Statement>> before, List<StatementBuilder<? extends Statement>> after) {

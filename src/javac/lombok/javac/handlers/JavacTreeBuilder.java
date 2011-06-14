@@ -27,8 +27,11 @@ import static lombok.javac.handlers.JavacHandlerUtil.*;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.core.AST.Kind;
 import lombok.core.util.Cast;
+import lombok.javac.Javac;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 
@@ -59,11 +62,8 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
 // TODO add features if required
-public class JavacTreeBuilder {
-	private JavacTreeBuilder() {
-		//Prevent instantiation
-	}
-
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
+public final class JavacTreeBuilder {
 	/**
 	 * Adds the given class declaration to the provided type AST Node.
 	 *
@@ -72,7 +72,7 @@ public class JavacTreeBuilder {
 	public static void injectType(JavacNode typeNode, JCClassDecl type) {
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
 		typeDecl.defs = typeDecl.defs.append(type);
-		typeNode.add(type, Kind.TYPE).recursiveSetHandled();
+		typeNode.add(type, Kind.TYPE);
 	}
 
 	public static void injectMethodSymbol(JavacNode node, JCMethodDecl method, MethodSymbol methodSymbol) {
@@ -131,11 +131,16 @@ public class JavacTreeBuilder {
 
 		public JCVariableDecl build() {
 			JCVariableDecl proto = maker.VarDef(mods, fieldName, fieldType, init);
-			return new TreeCopier<JCVariableDecl>(maker).copy(proto); // defensive copy ftw
+			return new TreeCopier<JCVariableDecl>(maker).copy(proto);
 		}
 
-		public void inject() {
-			injectField(node, build());
+		public void inject(JCTree source) {
+			injectField(node, Javac.recursiveSetGeneratedBy(build(), source));
+		}
+
+		@Override
+		public String toString() {
+			return build().toString();
 		}
 	}
 
@@ -181,11 +186,11 @@ public class JavacTreeBuilder {
 
 		public JCClassDecl build() {
 			JCClassDecl proto = maker.ClassDef(mods, typeName, typarams.toList(), extending, implementing.toList(), defs.toList());
-			return new TreeCopier<JCClassDecl>(maker).copy(proto); // defensive copy ftw
+			return new TreeCopier<JCClassDecl>(maker).copy(proto);
 		}
 
-		public void inject() {
-			injectType(node, build());
+		public void inject(JCTree source) {
+			injectType(node, Javac.recursiveSetGeneratedBy(build(), source));
 		}
 
 		@Override
@@ -312,7 +317,7 @@ public class JavacTreeBuilder {
 			this.statements.append(statement);
 			return self();
 		}
-		
+
 		public SELF_TYPE withStatements(List<JCStatement> statements) {
 			this.statements.appendList(statements);
 			return self();
@@ -325,11 +330,11 @@ public class JavacTreeBuilder {
 			}
 			mods.annotations = annotations.toList();
 			JCMethodDecl proto = maker.MethodDef(mods, methodName, returnType, typarams.toList(), params.toList(), thrownExceptions.toList(), body, null);
-			return new TreeCopier<JCMethodDecl>(maker).copy(proto); // defensive copy ftw
+			return new TreeCopier<JCMethodDecl>(maker).copy(proto);
 		}
 
-		public void inject() {
-			JCMethodDecl method = build();
+		public void inject(JCTree source) {
+			JCMethodDecl method = Javac.recursiveSetGeneratedBy(build(), source);
 			injectMethod(node, method);
 			if (methodSymbol != null) {
 				injectMethodSymbol(node, method, methodSymbol);

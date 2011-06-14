@@ -32,11 +32,11 @@ import org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
 
 public class ConstructorDefBuilder extends AbstractMethodDefBuilder<ConstructorDefBuilder, ConstructorDeclaration> {
 	private ExplicitConstructorCall constructorCall;
-	
+
 	public ConstructorDefBuilder(final String typeName) {
 		super(typeName);
 	}
-	
+
 	public ConstructorDefBuilder withImplicitSuper() {
 		this.constructorCall = new ExplicitConstructorCall(ExplicitConstructorCall.ImplicitSuper);
 		return this;

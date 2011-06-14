@@ -31,7 +31,7 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 @RequiredArgsConstructor
 public class StatementWrapper<NODE_TYPE extends Statement> implements StatementBuilder<NODE_TYPE> {
 	private final NODE_TYPE statement;
-	
+
 	@Override
 	public NODE_TYPE build(final EclipseNode node, final ASTNode source) {
 		setGeneratedByAndCopyPos(statement, source);

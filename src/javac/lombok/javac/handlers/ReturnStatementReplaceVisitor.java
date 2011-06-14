@@ -40,56 +40,54 @@ import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 
 public class ReturnStatementReplaceVisitor extends ReplaceVisitor<JCStatement> {
 
-	public ReturnStatementReplaceVisitor(
-			IReplacementProvider<JCStatement> replacement) {
+	public ReturnStatementReplaceVisitor(IReplacementProvider<JCStatement> replacement) {
 		super(replacement);
 	}
 
-	public Void visitBlock(BlockTree tree, Void p) {
+	@Override public Void visitBlock(BlockTree tree, Void p) {
 		JCBlock block = (JCBlock) tree;
 		block.stats = replace(block.stats);
 		return super.visitBlock(block, p);
 	}
 
-	public Void visitDoWhileLoop(DoWhileLoopTree tree, Void p) {
+	@Override public Void visitDoWhileLoop(DoWhileLoopTree tree, Void p) {
 		JCDoWhileLoop doWhileLoop = (JCDoWhileLoop) tree;
 		doWhileLoop.body = replace(doWhileLoop.body);
 		return super.visitDoWhileLoop(doWhileLoop, p);
 	}
 
-	public Void visitWhileLoop(WhileLoopTree tree, Void p) {
+	@Override public Void visitWhileLoop(WhileLoopTree tree, Void p) {
 		JCWhileLoop whileLoop = (JCWhileLoop) tree;
 		whileLoop.body = replace(whileLoop.body);
 		return super.visitWhileLoop(whileLoop, p);
 	}
 
-	public Void visitForLoop(ForLoopTree tree, Void p) {
+	@Override public Void visitForLoop(ForLoopTree tree, Void p) {
 		JCForLoop forLoop = (JCForLoop) tree;
 		forLoop.body = replace(forLoop.body);
 		return super.visitForLoop(forLoop, p);
 	}
 
-	public Void visitEnhancedForLoop(EnhancedForLoopTree tree, Void p) {
+	@Override public Void visitEnhancedForLoop(EnhancedForLoopTree tree, Void p) {
 		JCEnhancedForLoop enhancedForLoop = (JCEnhancedForLoop) tree;
 		enhancedForLoop.body = replace(enhancedForLoop.body);
 		return super.visitEnhancedForLoop(enhancedForLoop, p);
 	}
 
-	public Void visitCase(CaseTree tree, Void p) {
+	@Override public Void visitCase(CaseTree tree, Void p) {
 		JCCase caseTree = (JCCase) tree;
 		caseTree.stats = replace(caseTree.stats);
 		return super.visitCase(caseTree, p);
 	}
 
-	public Void visitIf(IfTree tree, Void p) {
+	@Override public Void visitIf(IfTree tree, Void p) {
 		JCIf ifTree = (JCIf) tree;
 		ifTree.thenpart = replace(ifTree.thenpart);
 		ifTree.elsepart = replace(ifTree.elsepart);
 		return super.visitIf(ifTree, p);
 	}
 
-	@Override
-	protected boolean needsReplacing(JCStatement node) {
+	@Override protected boolean needsReplacing(JCStatement node) {
 		return node instanceof JCReturn;
 	}
 }

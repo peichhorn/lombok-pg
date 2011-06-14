@@ -38,45 +38,44 @@ public class ReturnStatementReplaceVisitor extends ReplaceVisitor<Statement> {
 	public ReturnStatementReplaceVisitor(IReplacementProvider<Statement> replacement) {
 		super(replacement);
 	}
-	
-	public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
+
+	@Override public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
 		replace(methodDeclaration.statements);
 		return true;
 	}
 
-	public boolean visit(Block block, BlockScope scope) {
+	@Override public boolean visit(Block block, BlockScope scope) {
 		replace(block.statements);
 		return true;
 	}
 
-	public boolean visit(DoStatement doStatement, BlockScope scope) {
+	@Override public boolean visit(DoStatement doStatement, BlockScope scope) {
 		doStatement.action = replace(doStatement.action);
 		return true;
 	}
 
-	public boolean visit(WhileStatement whileStatement, BlockScope scope) {
+	@Override public boolean visit(WhileStatement whileStatement, BlockScope scope) {
 		whileStatement.action = replace(whileStatement.action);
 		return true;
 	}
 
-	public boolean visit(ForeachStatement forStatement, BlockScope scope) {
+	@Override public boolean visit(ForeachStatement forStatement, BlockScope scope) {
 		forStatement.action = replace(forStatement.action);
 		return true;
 	}
 
-	public boolean visit(ForStatement forStatement, BlockScope scope) {
+	@Override public boolean visit(ForStatement forStatement, BlockScope scope) {
 		forStatement.action = replace(forStatement.action);
 		return true;
 	}
 
-	public boolean visit(IfStatement ifStatement, BlockScope scope) {
+	@Override public boolean visit(IfStatement ifStatement, BlockScope scope) {
 		ifStatement.thenStatement = replace(ifStatement.thenStatement);
 		ifStatement.elseStatement = replace(ifStatement.elseStatement);
 		return true;
 	}
 
-	@Override
-	protected boolean needsReplacing(Statement node) {
+	@Override protected boolean needsReplacing(Statement node) {
 		return node instanceof ReturnStatement;
 	}
 }

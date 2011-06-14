@@ -84,7 +84,7 @@ public class HandleTuple extends JavacASTAdapter {
 			}
 		}
 	}
-	
+
 	private JCMethodInvocation getTupelCall(JavacNode node, JCExpression expression) {
 		if (expression instanceof JCMethodInvocation) {
 			final JCMethodInvocation tupleCall = (JCMethodInvocation) expression ;
@@ -101,7 +101,7 @@ public class HandleTuple extends JavacASTAdapter {
 			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
 		}
 	}
-	
+
 	public boolean handle(JavacNode tupleAssignNode, JCMethodInvocation leftTupleCall, JCMethodInvocation rightTupleCall) {
 		if (leftTupleCall.args.length() != rightTupleCall.args.length()) {
 			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments for the tuple assignment to work.");
@@ -111,15 +111,15 @@ public class HandleTuple extends JavacASTAdapter {
 			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
 			return false;
 		}
-		
+
 		ListBuffer<JCStatement> tempVarAssignments = ListBuffer.lb();
 		ListBuffer<JCStatement> assignments = ListBuffer.lb();
-		
+
 		TreeMaker maker = tupleAssignNode.getTreeMaker();
-		
+
 		List<String> varnames = collectVarnames(leftTupleCall.args);
 		Iterator<String> varnameIter = varnames.listIterator();
-		
+
 		final Set<String> blacklistedNames = new HashSet<String>();
 		for (JCExpression arg : rightTupleCall.args) {
 			String varname = varnameIter.next();
@@ -141,10 +141,10 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 		tempVarAssignments.appendList(assignments);
 		tryToInjectStatements(tupleAssignNode, tupleAssignNode.get(), tempVarAssignments.toList());
-		
+
 		return true;
 	}
-	
+
 	private void tryToInjectStatements(JavacNode parent, JCTree statementThatUsesTupel, List<JCStatement> statementsToInject) {
 		while (!(statementThatUsesTupel instanceof JCStatement)) {
 			parent = parent.directUp();
@@ -175,7 +175,7 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 		return newStatements.toList();
 	}
-	
+
 	private List<String> collectVarnames(List<JCExpression> expressions) {
 		ListBuffer<String> varnames = ListBuffer.lb();
 		for (JCExpression expression : expressions) {
@@ -183,7 +183,7 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 		return varnames.toList();
 	}
-	
+
 	private boolean containsOnlyNames(List<JCExpression> expressions) {
 		for (JCExpression expression : expressions) {
 			if (!(expression instanceof JCIdent)) {
@@ -192,11 +192,11 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Look for the type of a variable in the scope of the given expression.
 	 * <p>
-	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will 
+	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will
 	 * return the type of a variable in the scope of the given expression.
 	 */
 	@RequiredArgsConstructor
@@ -204,26 +204,27 @@ public class HandleTuple extends JavacASTAdapter {
 		private final String varname;
 		private final JCTree expr;
 		private boolean lockVarname;
-		
-		public JCExpression visitVariable(VariableTree node, Void p) {
+
+		@Override public JCExpression visitVariable(VariableTree node, Void p) {
 			if (!lockVarname && varname.equals(node.getName().toString())) {
 				return (JCExpression) node.getType();
 			}
 			return null;
 		}
-		
-		public JCExpression visitAssignment(AssignmentTree node, Void p) {
+
+		@Override public JCExpression visitAssignment(AssignmentTree node, Void p) {
 			if ((expr != null) && (expr.equals(node))) {
 				lockVarname = true;
 			}
 			return super.visitAssignment(node, p);
 		}
-		
+
+		@Override
 		public JCExpression reduce(JCExpression r1, JCExpression r2) {
 			return (r1 != null) ? r1 : r2;
 		}
 	}
-	
+
 	/**
 	 * Look for variable names that would break a simple assignment after transforming the tuple.<br>
 	 * So look for the use of already changed values (caused the tuple assignment) in the given expression.
@@ -234,16 +235,16 @@ public class HandleTuple extends JavacASTAdapter {
 	@RequiredArgsConstructor
 	private static class SimpleAssignmentAnalyser extends TreeScanner<Boolean, Void> {
 		private final Set<String> blacklistedVarnames;
-		
-		public Boolean visitMemberSelect(MemberSelectTree node, Void p) {
+
+		@Override public Boolean visitMemberSelect(MemberSelectTree node, Void p) {
 			return Boolean.TRUE;
 		}
 
-		public Boolean visitIdentifier(IdentifierTree node, Void p) {
+		@Override public Boolean visitIdentifier(IdentifierTree node, Void p) {
 			return !blacklistedVarnames.contains(node.getName().toString());
 		}
-		
-		public Boolean reduce(Boolean r1, Boolean r2) {
+
+		@Override public Boolean reduce(Boolean r1, Boolean r2) {
 			if ((r1 == Boolean.FALSE) || (r2 == Boolean.FALSE)) {
 				return Boolean.FALSE;
 			}

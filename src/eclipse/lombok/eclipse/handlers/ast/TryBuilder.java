@@ -41,18 +41,18 @@ public class TryBuilder implements StatementBuilder<TryStatement> {
 	private final List<StatementBuilder<? extends Block>> catchBlocks = new ArrayList<StatementBuilder<? extends Block>>();
 	private final StatementBuilder<? extends Block> tryBlock;
 	private StatementBuilder<? extends Block> finallyBlock;
-	
+
 	public TryBuilder Catch(final StatementBuilder<? extends Argument> catchArgument, final StatementBuilder<? extends Block> catchBlock) {
 		catchArguments.add(catchArgument);
 		catchBlocks.add(catchBlock);
 		return this;
 	}
-	
+
 	public TryBuilder Finally(final StatementBuilder<? extends Block> finallyBlock) {
 		this.finallyBlock = finallyBlock;
 		return this;
 	}
-	
+
 	@Override
 	public TryStatement build(final EclipseNode node, final ASTNode source) {
 		final TryStatement tryStatement = new TryStatement();

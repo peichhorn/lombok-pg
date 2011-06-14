@@ -36,17 +36,17 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 public class MethodDefBuilder extends AbstractMethodDefBuilder<MethodDefBuilder, MethodDeclaration> {
 	protected ExpressionBuilder<? extends TypeReference> returnType;
 	protected boolean noBody;
-	
+
 	public MethodDefBuilder(final ExpressionBuilder<? extends TypeReference> returnType, final String name) {
 		super(name);
 		this.returnType = returnType;
 	}
-	
+
 	public MethodDefBuilder withReturnType(final ExpressionBuilder<? extends TypeReference> returnType) {
 		this.returnType = returnType;
 		return self();
 	}
-	
+
 	public MethodDefBuilder withNoBody() {
 		noBody = true;
 		return self();

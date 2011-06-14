@@ -36,17 +36,17 @@ public final class IfBuilder implements StatementBuilder<IfStatement> {
 	private StatementBuilder<? extends Statement> thenStatement = new EmptyStatementBuilder();
 	private final ExpressionBuilder<? extends Expression> condition;
 	private StatementBuilder<? extends Statement> elseStatement;
-	
+
 	public IfBuilder Then(final StatementBuilder<? extends Statement> thenStatement) {
 		this.thenStatement = thenStatement;
 		return this;
 	}
-	
+
 	public IfBuilder Else(final StatementBuilder<? extends Statement> elseStatement) {
 		this.elseStatement = elseStatement;
 		return this;
 	}
-	
+
 	@Override
 	public IfStatement build(final EclipseNode node, final ASTNode source) {
 		final IfStatement ifStatement = new IfStatement(condition.build(node, source), thenStatement.build(node, source), 0, 0);

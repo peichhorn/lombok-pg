@@ -23,7 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
-import static lombok.javac.handlers.JavacHandlerUtil.markAnnotationAsProcessed;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
@@ -36,25 +36,22 @@ import lombok.VisibleForTesting;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleVisibleForTesting extends JavacNonResolutionBasedHandler implements JavacAnnotationHandler<VisibleForTesting > {
+public class HandleVisibleForTesting extends NonResolutionBased implements JavacAnnotationHandler<VisibleForTesting > {
 
 	@Override
-	public boolean handle(AnnotationValues<VisibleForTesting> annotation, JCAnnotation ast, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, VisibleForTesting.class);
+	public void handle(AnnotationValues<VisibleForTesting> annotation, JCAnnotation source, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, VisibleForTesting.class);
 		JavacMethod method = JavacMethod.methodOf(annotationNode);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
-			return false;
+			return;
 		}
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
-			return false;
+			return;
 		}
-		
+
 		method.makePrivate();
-		
-		method.rebuild();
-		
-		return true;
+		method.rebuild(source);
 	}
 }

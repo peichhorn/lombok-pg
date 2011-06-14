@@ -35,15 +35,15 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 public class ThisBuilder implements ExpressionBuilder<ThisReference> {
 	private ExpressionBuilder<? extends TypeReference> type;
 	private boolean isImplicitThis;
-	
+
 	ThisBuilder(final ExpressionBuilder<? extends TypeReference> type) {
 		this.type = type;
 	}
-	
+
 	ThisBuilder(final boolean isImplicitThis) {
 		this.isImplicitThis = isImplicitThis;
 	}
-	
+
 	@Override
 	public ThisReference build(final EclipseNode node, final ASTNode source) {
 		final ThisReference thisReference;

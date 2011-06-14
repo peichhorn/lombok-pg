@@ -45,13 +45,12 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGenMethodStub> {
 	// error handling only
-	@Override public boolean handle(final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
+	@Override public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final EclipseNode typeNode = annotationNode.up();
 		final TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
 		if (typeDecl == null) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 		}
-		return false;
 	}
 
 	// real meat

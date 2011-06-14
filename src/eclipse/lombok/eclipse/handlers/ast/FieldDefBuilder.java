@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 public final class FieldDefBuilder extends AbstractVariableDefBuilder<FieldDefBuilder, FieldDeclaration> {
-	
+
 	protected FieldDefBuilder(final ExpressionBuilder<? extends TypeReference> type, final String name) {
 		super(type, name);
 	}
@@ -43,7 +43,7 @@ public final class FieldDefBuilder extends AbstractVariableDefBuilder<FieldDefBu
 	public void injectInto(final EclipseNode node, final ASTNode source) {
 		injectField(typeNodeOf(node), build(node, source));
 	}
-	
+
 	@Override
 	public FieldDeclaration build(final EclipseNode node, final ASTNode source) {
 		final FieldDeclaration proto = new FieldDeclaration(name.toCharArray(), 0, 0);

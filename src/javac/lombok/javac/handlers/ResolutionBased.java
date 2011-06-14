@@ -21,7 +21,8 @@
  */
 package lombok.javac.handlers;
 
-abstract class JavacResolutionBasedHandler {
+//TODO replace this with marker annotations
+abstract class ResolutionBased {
 	public final boolean isResolutionBased() {
 		return true;
 	}

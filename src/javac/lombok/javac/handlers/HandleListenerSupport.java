@@ -46,25 +46,26 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleListenerSupport extends JavacResolutionBasedHandler implements JavacAnnotationHandler<ListenerSupport> {
+public class HandleListenerSupport extends ResolutionBased implements JavacAnnotationHandler<ListenerSupport> {
 
-	@Override public boolean handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation ast, JavacNode annotationNode) {
-		markAnnotationAsProcessed(annotationNode, ListenerSupport.class);
+	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, ListenerSupport.class);
 
 		if (isNoClassAndNoEnum(annotationNode)) {
-			return false;
+			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
 			annotationNode.addError("@ListenerSupport has no effect with if no interface classes was specified.");
-			return false;
+			return;
 		}
 		List<Type> resolvedInterfaces = new ArrayList<Type>();
 		for (Object listenerInterface : listenerInterfaces) {
@@ -82,15 +83,13 @@ public class HandleListenerSupport extends JavacResolutionBasedHandler implement
 			}
 		}
 		for (Type interfaze : resolvedInterfaces) {
-			addListenerField((ClassType) interfaze, annotationNode);
-			addListenerMethod((ClassType) interfaze, annotationNode);
-			removeListenerMethod((ClassType) interfaze, annotationNode);
-			fireListenerMethod((ClassType) interfaze, annotationNode);
+			addListenerField((ClassType) interfaze, annotationNode, source);
+			addListenerMethod((ClassType) interfaze, annotationNode, source);
+			removeListenerMethod((ClassType) interfaze, annotationNode, source);
+			fireListenerMethod((ClassType) interfaze, annotationNode, source);
 		}
 
 		annotationNode.up().rebuild();
-
-		return true;
 	}
 
 	private static boolean isNoClassAndNoEnum(JavacNode annotationNode) {
@@ -112,34 +111,34 @@ public class HandleListenerSupport extends JavacResolutionBasedHandler implement
 		return type;
 	}
 
-	private static void addListenerField(ClassType ct, JavacNode node) {
+	private static void addListenerField(ClassType ct, JavacNode node, JCTree source) {
 		final String defString = "private final java.util.List<%s> $registered%s = new java.util.concurrent.CopyOnWriteArrayList<%s>();";
 		TypeSymbol tsym = ct.asElement();
 		if (tsym == null) return;
-		field(node.up(), defString, tsym.type, interfaceName(tsym.name.toString()), tsym.type).inject();
+		field(node.up(), defString, tsym.type, interfaceName(tsym.name.toString()), tsym.type).inject(source);
 	}
 
-	private static void addListenerMethod(ClassType ct, JavacNode node) {
+	private static void addListenerMethod(ClassType ct, JavacNode node, JCTree source) {
 		final String defString = "public void add%s(final %s l) { if (!$registered%s.contains(l)) { $registered%s.add(l); } }";
 		TypeSymbol tsym = ct.asElement();
 		if (tsym == null) return;
 		String interfaceName = interfaceName(tsym.name.toString());
-		method(node.up(), defString, interfaceName, tsym.type, interfaceName, interfaceName).inject();
+		method(node.up(), defString, interfaceName, tsym.type, interfaceName, interfaceName).inject(source);
 	}
 
-	private static void removeListenerMethod(ClassType ct, JavacNode node) {
+	private static void removeListenerMethod(ClassType ct, JavacNode node, JCTree source) {
 		final String defString = "public void remove%s(final %s l) { $registered%s.remove(l); }";
 		TypeSymbol tsym = ct.asElement();
 		if (tsym == null) return;
 		String interfaceName = interfaceName(tsym.name.toString());
-		method(node.up(), defString, interfaceName, tsym.type, interfaceName).inject();
+		method(node.up(), defString, interfaceName, tsym.type, interfaceName).inject(source);
 	}
 
-	private static void fireListenerMethod(ClassType interfazeType, JavacNode node) {
-		fireListenerMethodAll(interfazeType, interfazeType, node);
+	private static void fireListenerMethod(ClassType interfazeType, JavacNode node, JCTree source) {
+		fireListenerMethodAll(interfazeType, interfazeType, node, source);
 	}
 
-	private static void fireListenerMethodAll(ClassType interfazeType, ClassType superInterfazeType, JavacNode node) {
+	private static void fireListenerMethodAll(ClassType interfazeType, ClassType superInterfazeType, JavacNode node, JCTree source) {
 		final String defString = "protected void %s(%s) { for (%s l : $registered%s) { l.%s(%s); } }";
 		TypeSymbol isym = interfazeType.asElement();
 		String interfaceName = interfaceName(isym.name.toString());
@@ -150,10 +149,10 @@ public class HandleListenerSupport extends JavacResolutionBasedHandler implement
 			StringBuilder params = new StringBuilder();
 			StringBuilder args = new StringBuilder();
 			createParamsAndArgs((MethodType)((MethodSymbol)member).type, params, args);
-			method(node.up(), defString, camelCase("fire", member.name.toString()), params, isym.type, interfaceName, member.name, args).inject();
+			method(node.up(), defString, camelCase("fire", member.name.toString()), params, isym.type, interfaceName, member.name, args).inject(source);
 		}
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
-			if (iface instanceof ClassType) fireListenerMethodAll(interfazeType, (ClassType) iface, node);
+			if (iface instanceof ClassType) fireListenerMethodAll(interfazeType, (ClassType) iface, node, source);
 		}
 	}
 

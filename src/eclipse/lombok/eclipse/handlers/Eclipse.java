@@ -47,12 +47,12 @@ import lombok.eclipse.EclipseNode;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {
-	
+
 	public static void setGeneratedByAndCopyPos(ASTNode target, ASTNode source) {
 		setGeneratedBy(target, source);
 		copyPosTo(target, source);
 	}
-	
+
 	public static void injectType(EclipseNode typeNode, TypeDeclaration type) {
 		type.annotations = createSuppressWarningsAll(type, type.annotations);
 		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
@@ -65,7 +65,7 @@ public final class Eclipse {
 			newArray[parent.memberTypes.length] = type;
 			parent.memberTypes = newArray;
 		}
-		typeNode.add(type, Kind.TYPE).recursiveSetHandled();
+		typeNode.add(type, Kind.TYPE);
 	}
 
 	public static void copyPosTo(ASTNode target, ASTNode source) {

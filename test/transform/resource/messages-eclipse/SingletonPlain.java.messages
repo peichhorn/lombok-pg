@@ -1,0 +1,2 @@
+9 error @lombok.Singleton requires a default or no-argument constructor
+14 error @lombok.Singleton can be used on concrete classes only

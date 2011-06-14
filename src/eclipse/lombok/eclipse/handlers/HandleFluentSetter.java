@@ -62,23 +62,22 @@ import org.mangosdk.spi.ProviderFor;
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter> {
-	@Override public boolean handle(AnnotationValues<FluentSetter> annotation, Annotation ast, EclipseNode annotationNode) {
+	@Override public void handle(AnnotationValues<FluentSetter> annotation, Annotation ast, EclipseNode annotationNode) {
 		FluentSetter annotationInstance = annotation.getInstance();
 		AccessLevel level = annotationInstance.value();
-		if (level == AccessLevel.NONE) return true;
+		if (level == AccessLevel.NONE) return;
 		EclipseNode node = annotationNode.up();
-		if (node == null) return false;
+		if (node == null) return;
 		Annotation[] onMethod = getAndRemoveAnnotationParameter(ast, "onMethod");
 		Annotation[] onParam = getAndRemoveAnnotationParameter(ast, "onParam");
 		if (node.getKind() == Kind.FIELD) {
-			return createSetterForFields(level, annotationNode.upFromAnnotationToFields(), annotationNode, annotationNode.get(), true, onMethod, onParam);
+			createSetterForFields(level, annotationNode.upFromAnnotationToFields(), annotationNode, annotationNode.get(), true, onMethod, onParam);
 		}
 		if (node.getKind() == Kind.TYPE) {
 			if (isNotEmpty(onMethod)) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
 			if (isNotEmpty(onParam)) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
-			return generateSetterForType(node, annotationNode, level, false);
+			generateSetterForType(node, annotationNode, level, false);
 		}
-		return false;
 	}
 
 	public boolean generateSetterForType(EclipseNode typeNode, EclipseNode pos, AccessLevel level, boolean checkForTypeLevelSetter) {
@@ -125,18 +124,17 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		createSetterForField(level, fieldNode, fieldNode, pos, false, onMethod, onParam);
 	}
 
-	private boolean createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists, Annotation[] onMethod , Annotation[] onParam) {
+	private void createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists, Annotation[] onMethod , Annotation[] onParam) {
 		for (EclipseNode fieldNode : fieldNodes) {
 			createSetterForField(level, fieldNode, errorNode, source, whineIfExists, onMethod, onParam);
 		}
-		return true;
 	}
 
-	private boolean createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
+	private void createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
 			Annotation[] onMethod , Annotation[] onParam) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
-			return true;
+			return;
 		}
 
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
@@ -147,12 +145,12 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 
 		switch (methodExists(fieldName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
-			return true;
+			return;
 		case EXISTS_BY_USER:
 			if (whineIfExists) errorNode.addWarning(
 				String.format("Not generating %s(%s %s): A method with that name already exists",
 						fieldName, field.type, fieldName));
-			return true;
+			return;
 		default:
 		case NOT_EXISTS:
 			//continue with creating the setter
@@ -165,8 +163,6 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		}
 
 		injectMethod(fieldNode.up(), method);
-
-		return true;
 	}
 
 	private MethodDeclaration generateSetter(TypeDeclaration parent, EclipseNode fieldNode, String name, int modifier, ASTNode source, Annotation[] onParam) {
@@ -178,7 +174,7 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		if (isNotEmpty(parent.typeParameters)) for (TypeParameter param : parent.typeParameters) {
 			refs.add(Type(new String(param.name)));
 		}
-		
+
 		MethodDefBuilder builder = MethodDef(Type(new String(parent.name)).withTypeArguments(refs), name).withModifiers(modifier) //
 			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(copyAnnotations(source, nonNulls, nullables, onParam)));
 		if (isNotEmpty(nonNulls)) {

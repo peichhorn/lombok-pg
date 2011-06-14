@@ -41,12 +41,12 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 public final class NewBuilder extends GenericTypeArgumentBuilder<NewBuilder, AllocationExpression> {
 	private final List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
 	private final ExpressionBuilder<? extends TypeReference> type;
-	
+
 	public NewBuilder withArgument(final ExpressionBuilder<? extends Expression> arg) {
 		args.add(arg);
 		return self();
 	}
-	
+
 	@Override
 	public final AllocationExpression build(final EclipseNode node, final ASTNode source) {
 		final AllocationExpression initExpression = new AllocationExpression();

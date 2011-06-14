@@ -60,7 +60,7 @@ public class EclipseMethod {
 		}
 		this.methodNode = methodNode;
 	}
-	
+
 	public boolean returns(Class<?> clazz) {
 		return returns(clazz.getSimpleName());
 	}
@@ -78,7 +78,7 @@ public class EclipseMethod {
 		String type = sb.toString();
 		return type.endsWith(typeName);
 	}
-	
+
 	public TypeReference returnType() {
 		if (isConstructor()) return null;
 		MethodDeclaration methodDecl = (MethodDeclaration)get();
@@ -122,24 +122,20 @@ public class EclipseMethod {
 		return new String(get().selector);
 	}
 
-	public boolean wasCompletelyParsed() {
-		return node().getAst().isCompleteParse();
-	}
-	
 	public void makePrivate() {
 		makePackagePrivate();
 		get().modifiers |= PRIVATE;
 	}
-	
+
 	public void makePackagePrivate() {
 		get().modifiers &= ~(PRIVATE |PROTECTED | PUBLIC);
 	}
-	
+
 	public void makeProtected() {
 		makePackagePrivate();
 		get().modifiers |= PROTECTED;
 	}
-	
+
 	public void makePublic() {
 		makePackagePrivate();
 		get().modifiers |= PUBLIC;
@@ -159,11 +155,11 @@ public class EclipseMethod {
 		annotations.add(Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")).build(node(), source));
 		get().annotations = annotations.toArray(new Annotation[0]);
 	}
-	
+
 	public void body(ASTNode source, final StatementBuilder<? extends Block> body) {
 		body(source, body.build(node(), source).statements);
 	}
-	
+
 	public void withException(final ExpressionBuilder<? extends TypeReference> exception) {
 		TypeReference[] originalThrownExceptionsArray = get().thrownExceptions;
 		TypeReference thrown = exception.build(node(), get());

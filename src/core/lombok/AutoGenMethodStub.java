@@ -69,7 +69,7 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
- * If you rather prefer an {@link java.lang.UnsupportedOperationException} thrown instead of the default value returned, try 
+ * If you rather prefer an {@link java.lang.UnsupportedOperationException} thrown instead of the default value returned, try
  * {@code throwException = true}.
  * <p>
  * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.

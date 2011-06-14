@@ -36,7 +36,7 @@ import lombok.eclipse.EclipseNode;
 public final class UnaryBuilder implements ExpressionBuilder<UnaryExpression> {
 	private final String operator;
 	private final ExpressionBuilder<? extends Expression> expression;
-	
+
 	@Override
 	public UnaryExpression build(final EclipseNode node, final ASTNode source) {
 		final int opCode;

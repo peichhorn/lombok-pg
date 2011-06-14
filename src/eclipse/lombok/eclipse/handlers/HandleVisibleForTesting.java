@@ -37,17 +37,15 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleVisibleForTesting implements EclipseAnnotationHandler<VisibleForTesting> {
 
 	@Override
-	public boolean handle(AnnotationValues<VisibleForTesting> annotation, Annotation ast, EclipseNode annotationNode) {
+	public void handle(AnnotationValues<VisibleForTesting> annotation, Annotation ast, EclipseNode annotationNode) {
 		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
-			return false;
+			return;
 		}
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
-			return false;
+			return;
 		}
-		
-		return true;
 	}
 }

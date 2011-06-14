@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  *   // something
  *   return 0;
  * }
- * 
+ *
  * &#64;DoPrivileged void test2() {
  *   // something else
  * }
@@ -48,7 +48,7 @@ import java.lang.annotation.Target;
  *     }
  *   });
  * }
- * 
+ *
  * void test2() {
  *   AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {
  *     public Void run() {
@@ -62,7 +62,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface DoPrivileged {
-	
+
 	/**
 	 * Method that should be used to sanitize the parameter.
 	 * Any Exception thrown by this method might throw an exception.

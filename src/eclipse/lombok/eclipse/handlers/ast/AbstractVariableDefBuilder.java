@@ -43,58 +43,58 @@ abstract class AbstractVariableDefBuilder<SELF_TYPE extends AbstractVariableDefB
 	protected ExpressionBuilder<? extends Expression> initialization;
 	protected int modifiers;
 	protected int bits;
-	
+
 	protected final SELF_TYPE self() {
 		return Cast.<SELF_TYPE>uncheckedCast(this);
 	}
-	
+
 	public SELF_TYPE makeFinal() {
 		return withModifiers(FINAL);
 	}
-	
+
 	public SELF_TYPE makePublic() {
 		return withModifiers(PUBLIC);
 	}
-	
+
 	public SELF_TYPE makePrivate() {
 		return withModifiers(PRIVATE);
 	}
-	
+
 	public SELF_TYPE makePublicFinal() {
 		return withModifiers(PUBLIC | FINAL);
 	}
-	
+
 	public SELF_TYPE makePrivateFinal() {
 		return withModifiers(PRIVATE | FINAL);
 	}
-	
+
 	public SELF_TYPE withModifiers(final int modifiers) {
 		this.modifiers |= modifiers;
 		return self();
 	}
-	
+
 	public SELF_TYPE withBits(int bits) {
 		this.bits |= bits;
 		return self();
 	}
-	
+
 	public SELF_TYPE withAnnotation(final ExpressionBuilder<? extends Annotation> annotation) {
 		annotations.add(annotation);
 		return self();
 	}
-	
+
 	public SELF_TYPE withAnnotations(Annotation... annotations) {
 		if (annotations != null) for (Annotation annotation : annotations) {
 			this.annotations.add(new ExpressionWrapper<Annotation>(annotation));
 		}
 		return self();
 	}
-	
+
 	public SELF_TYPE withInitialization(final ExpressionBuilder<? extends Expression> initialization) {
 		this.initialization = initialization;
 		return self();
 	}
-	
+
 	public SELF_TYPE withInitialization(final Expression initialization) {
 		return withInitialization(new ExpressionWrapper<Expression>(initialization));
 	}

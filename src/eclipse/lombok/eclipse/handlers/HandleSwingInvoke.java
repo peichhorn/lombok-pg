@@ -54,31 +54,28 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSwingInvoke {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleSwingInvokeLater implements EclipseAnnotationHandler<SwingInvokeLater> {
-		@Override public boolean handle(AnnotationValues<SwingInvokeLater> annotation, Annotation ast, EclipseNode annotationNode) {
-			return new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, ast, annotationNode);
+		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, Annotation ast, EclipseNode annotationNode) {
+			new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, ast, annotationNode);
 		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleSwingInvokeAndWait implements EclipseAnnotationHandler<SwingInvokeAndWait> {
-		@Override public boolean handle(AnnotationValues<SwingInvokeAndWait> annotation, Annotation ast, EclipseNode annotationNode) {
-			return new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, ast, annotationNode);
+		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, Annotation ast, EclipseNode annotationNode) {
+			new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, ast, annotationNode);
 		}
 	}
 
-	public boolean generateSwingInvoke(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, ASTNode source, EclipseNode annotationNode) {
+	public void generateSwingInvoke(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, ASTNode source, EclipseNode annotationNode) {
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return true;
-		}
-		if (!method.wasCompletelyParsed()) {
-			return false;
+			return;
 		}
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return true;
+			return;
 		}
 
 		replaceWithQualifiedThisReference(method, source);
@@ -93,7 +90,7 @@ public class HandleSwingInvoke {
 		} else {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
-				
+
 		method.body(source, Block() //
 			.withStatement(LocalDef(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable"), //
 				ClassDef("").makeAnonymous().makeLocal() //
@@ -104,8 +101,6 @@ public class HandleSwingInvoke {
 				.Else(elseStatement)));
 
 		method.rebuild();
-
-		return true;
 	}
 
 	private TryBuilder generateTryCatchBlock(CallBuilder elseStatementRun, final EclipseMethod method) {

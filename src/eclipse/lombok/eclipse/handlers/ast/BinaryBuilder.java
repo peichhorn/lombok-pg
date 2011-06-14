@@ -36,7 +36,7 @@ public class BinaryBuilder implements ExpressionBuilder<BinaryExpression> {
 	private final String operator;
 	private final ExpressionBuilder<? extends Expression> left;
 	private final ExpressionBuilder<? extends Expression> right;
-	
+
 	@Override
 	public BinaryExpression build(EclipseNode node, ASTNode source) {
 		final int opCode;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<project name="lombok-playground" default="dist" xmlns:ivy="antlib:com.zwitserloot.ivyplusplus">
+<project name="lombok-pg" default="dist" xmlns:ivy="antlib:com.zwitserloot.ivyplusplus">
   <description>
 This buildfile is part of lombok-pg. It is the main entry point that contains
 the common tasks and can be called on to run the main aspects of all the sub-scripts.
@@ -52,7 +52,6 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
       <srcdir dir="src/core" />
       <srcdir dir="src/eclipse" />
       <srcdir dir="src/javac" />
-      <srcdir dir="test/core" />
       <srcdir dir="test/eclipse" />
       <srcdir dir="test/javac" />
       <conf name="build" sources="contrib" />

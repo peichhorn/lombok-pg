@@ -44,12 +44,12 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 public final class TypeBuilder extends GenericTypeArgumentBuilder<TypeBuilder, TypeReference> {
 	private final String typeName;
 	private int dims;
-	
+
 	public TypeBuilder withDimensions(final int dims) {
 		this.dims = dims;
 		return this;
 	}
-	
+
 	@Override
 	public TypeReference build(final EclipseNode node, final ASTNode source) {
 		final TypeReference[] paramTypes = buildTypeArguments(node, source);

@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ThrowBuilder implements StatementBuilder<ThrowStatement> {
 	private final ExpressionBuilder<? extends Expression> init;
-	
+
 	@Override
 	public ThrowStatement build(final EclipseNode node, final ASTNode source) {
 		final ThrowStatement throwStatement = new ThrowStatement(init.build(node, source), 0, 0);

@@ -35,7 +35,7 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 public class InstanceOfBuilder implements ExpressionBuilder<InstanceOfExpression> {
 	private final ExpressionBuilder<? extends Expression> expression;
 	private final ExpressionBuilder<? extends TypeReference> type;
-	
+
 	@Override
 	public InstanceOfExpression build(final EclipseNode node, final ASTNode source) {
 		final InstanceOfExpression instanceExpression = new InstanceOfExpression(expression.build(node, source), type.build(node, source));

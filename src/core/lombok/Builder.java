@@ -145,7 +145,7 @@ public @interface Builder {
 	 * {@code Java.create().jarOrMainClass("test.jar").Xbootclasspatha("libs/asm.jar").toString()} .
 	 */
 	String[] callMethods() default {};
-	
+
 	/**
 	 * Use this on methods in a {@link Builder @Builder}-annotated class to specify
 	 * extensions for the generated builder.

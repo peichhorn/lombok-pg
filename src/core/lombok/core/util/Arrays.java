@@ -36,7 +36,7 @@ public final class Arrays {
 	public static <T> T[] copy(T[] array) {
 		return copyOf(array, array.length);
 	}
-	
+
 	public static boolean sameSize(Object[] array1,  Object[] array2) {
 		if ((array1 == null) || (array2 == null)) {
 			return false;

@@ -87,7 +87,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			}
 		}
 	}
-	
+
 	private MessageSend getTupelCall(EclipseNode node, Expression expression) {
 		if (expression instanceof MessageSend) {
 			final MessageSend tupleCall = (MessageSend) expression ;
@@ -104,7 +104,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
 		}
 	}
-	
+
 	public boolean handle(EclipseNode tupleAssignNode, MessageSend leftTupleCall, MessageSend rightTupleCall) {
 		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments)) {
 			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments for the tuple assignment to work.");
@@ -117,10 +117,10 @@ public class HandleTuple extends EclipseASTAdapter {
 		ASTNode source = leftTupleCall;
 		List<Statement> tempVarAssignments = new ArrayList<Statement>();
 		List<Statement> assignments = new ArrayList<Statement>();
-		
+
 		List<String> varnames = collectVarnames(leftTupleCall.arguments);
 		Iterator<String> varnameIter = varnames.listIterator();
-		
+
 		final Set<String> blacklistedNames = new HashSet<String>();
 		if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
 			String varname = varnameIter.next();
@@ -142,10 +142,10 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 		tempVarAssignments.addAll(assignments);
 		tryToInjectStatements(tupleAssignNode, tupleAssignNode.get(), tempVarAssignments);
-		
+
 		return true;
 	}
-	
+
 	private void tryToInjectStatements(EclipseNode parent, ASTNode statementThatUsesTupel, List<Statement> statementsToInject) {
 		while ((!(parent.directUp().get() instanceof AbstractMethodDeclaration)) && (!(parent.directUp().get() instanceof Block))) {
 			parent = parent.directUp();
@@ -174,7 +174,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 		return newStatements.toArray(new Statement[newStatements.size()]);
 	}
-	
+
 	private List<String> collectVarnames(Expression[] expressions) {
 		List<String> varnames = new ArrayList<String>();
 		if (expressions != null) for (Expression expression : expressions) {
@@ -182,7 +182,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 		return varnames;
 	}
-	
+
 	private boolean containsOnlyNames(Expression[] expressions) {
 		if (expressions != null) for (Expression expression : expressions) {
 			if (!(expression instanceof SingleNameReference)) {
@@ -191,11 +191,11 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Look for the type of a variable in the scope of the given expression.
 	 * <p>
-	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will 
+	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will
 	 * return the type of a variable in the scope of the given expression.
 	 */
 	@RequiredArgsConstructor
@@ -215,30 +215,30 @@ public class HandleTuple extends EclipseASTAdapter {
 			}
 			return vartype;
 		}
-		
-		public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
+
+		@Override public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
 			return visit(localDeclaration);
 		}
-		
-		public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
+
+		@Override public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
 			return visit(fieldDeclaration);
 		}
-		
-		public boolean visit(Argument argument, BlockScope scope) {
+
+		@Override public boolean visit(Argument argument, BlockScope scope) {
 			return visit(argument);
 		}
-		
-		public boolean visit(Argument argument, ClassScope scope) {
+
+		@Override public boolean visit(Argument argument, ClassScope scope) {
 			return visit(argument);
 		}
-		
-		public boolean visit(Assignment assignment, BlockScope scope) {
+
+		@Override public boolean visit(Assignment assignment, BlockScope scope) {
 			if ((expr != null) && (expr.equals(assignment))) {
 				lockVarname = true;
 			}
 			return true;
 		}
-		
+
 		public boolean visit(AbstractVariableDeclaration variableDeclaration) {
 			if (!lockVarname && varname.equals(new String(variableDeclaration.name))) {
 				vartype = variableDeclaration.type;
@@ -246,7 +246,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Look for variable names that would break a simple assignment after transforming the tuple.<br>
 	 * So look for the use of already changed values (caused the tuple assignment) in the given expression.
@@ -258,7 +258,7 @@ public class HandleTuple extends EclipseASTAdapter {
 	private static class SimpleAssignmentAnalyser extends ASTVisitor {
 		private final Set<String> blacklistedVarnames;
 		private boolean canUseSimpleAssignment;
-		
+
 		public boolean scan(ASTNode astNode) {
 			canUseSimpleAssignment = true;
 			if (astNode instanceof CompilationUnitDeclaration) {
@@ -270,8 +270,8 @@ public class HandleTuple extends EclipseASTAdapter {
 			}
 			return canUseSimpleAssignment;
 		}
-		
-		public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
+
+		@Override public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
 			if (blacklistedVarnames.contains(new String(singleNameReference.token))) {
 				canUseSimpleAssignment = false;
 				return false;

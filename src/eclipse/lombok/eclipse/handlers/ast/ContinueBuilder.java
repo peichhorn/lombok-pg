@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
 @AllArgsConstructor
 public class ContinueBuilder implements StatementBuilder<ContinueStatement> {
 	public String label;
-	
+
 	@Override
 	public ContinueStatement build(final EclipseNode node, final ASTNode source) {
 		final ContinueStatement continueStatement = new ContinueStatement(label == null ? null : label.toCharArray(), 0, 0);

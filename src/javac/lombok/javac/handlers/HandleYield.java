@@ -147,7 +147,7 @@ public class HandleYield extends JavacASTAdapter {
 		} else if (returnsIterator) {
 			method.body(statements(method.node(), yielderForIterator(yielderName, elementType, variables, stateSwitch, classes)));
 		}
-		method.rebuild();
+		method.rebuild(method.get());
 
 		return true;
 	}
