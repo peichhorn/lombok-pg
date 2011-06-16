@@ -52,8 +52,8 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
- * <b>Note:</b> It is highly possible that I will add another more flexible
- * Singleton template later on. But the fallback will always be this template.
+ * <b>Note:</b> If you don't like the enum-approach, try the classic singleton using<br>
+ * {@code @Singleton(style = Singleton.Style.HOLDER)}.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
