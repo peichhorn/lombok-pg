@@ -71,8 +71,17 @@ public final class JavacTreeBuilder {
 	 */
 	public static void injectType(JavacNode typeNode, JCClassDecl type) {
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		addSuppressWarningsAll(type.mods, typeNode, type.pos, typeDecl);
 		typeDecl.defs = typeDecl.defs.append(type);
 		typeNode.add(type, Kind.TYPE);
+	}
+	
+	private static void addSuppressWarningsAll(JCModifiers mods, JavacNode node, int pos, JCTree source) {
+		TreeMaker maker = node.getTreeMaker();
+		JCExpression suppressWarningsType = chainDots(maker, node, "java", "lang", "SuppressWarnings").setPos(pos);
+		JCExpression allLiteral = maker.Literal("all").setPos(pos);
+		JCAnnotation annotation = (JCAnnotation) maker.Annotation(suppressWarningsType, List.<JCExpression>of(allLiteral)).setPos(pos);
+		mods.annotations = mods.annotations.append(Javac.recursiveSetGeneratedBy(annotation, source));
 	}
 
 	public static void injectMethodSymbol(JavacNode node, JCMethodDecl method, MethodSymbol methodSymbol) {
@@ -99,12 +108,12 @@ public final class JavacTreeBuilder {
 		return new MethodBuilder(node, JavacStringParser.methodFromString(node.getContext(), String.format(methodString, args)));
 	}
 
-	public static ClassBuilder clazz(JavacNode node, long flags, String methodName) {
-		return new ClassBuilder(node, flags, methodName);
+	public static ClassBuilder clazz(JavacNode node, long flags, String typeName) {
+		return new ClassBuilder(node, flags, typeName);
 	}
 
-	public static ClassBuilder interfaze(JavacNode node, long flags, String methodName) {
-		return new ClassBuilder(node, flags | Flags.INTERFACE, methodName);
+	public static ClassBuilder interfaze(JavacNode node, long flags, String typeName) {
+		return new ClassBuilder(node, flags | Flags.INTERFACE, typeName);
 	}
 
 	public static List<JCStatement> statements(JavacNode node, String statementsString, Object... args) {
@@ -176,6 +185,11 @@ public final class JavacTreeBuilder {
 
 		public ClassBuilder withMethod(JCMethodDecl method) {
 			defs.append(method);
+			return this;
+		}
+		
+		public ClassBuilder withField(JCVariableDecl field) {
+			defs.append(field);
 			return this;
 		}
 

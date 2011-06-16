@@ -26,6 +26,10 @@ import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.injectType;
 import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
+import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
+import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static org.eclipse.jdt.core.dom.Modifier.STATIC;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,9 +82,25 @@ public class ClassDefBuilder implements ASTNodeBuilder<TypeDeclaration> {
 		this.bits |= bits;
 		return this;
 	}
+	
+	public ClassDefBuilder makePrivate() {
+		return withModifiers(PRIVATE);
+	}
+
+	public ClassDefBuilder makeProtected() {
+		return withModifiers(PROTECTED);
+	}
+
+	public ClassDefBuilder makePublic() {
+		return withModifiers(PUBLIC);
+	}
+
+	public ClassDefBuilder makeStatic() {
+		return withModifiers(STATIC);
+	}
 
 	public ClassDefBuilder withModifiers(final int modifiers) {
-		this.modifiers = modifiers;
+		this.modifiers |= modifiers;
 		return this;
 	}
 

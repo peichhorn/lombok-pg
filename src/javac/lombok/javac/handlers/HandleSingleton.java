@@ -24,6 +24,7 @@ package lombok.javac.handlers;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
 import lombok.Singleton;
 import lombok.core.AnnotationValues;
@@ -44,7 +45,7 @@ import com.sun.tools.javac.util.List;
 
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleSingleton extends NonResolutionBased implements JavacAnnotationHandler<Singleton> {
-
+	
 	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);
 
@@ -55,18 +56,35 @@ public class HandleSingleton extends NonResolutionBased implements JavacAnnotati
 		if (hasMultiArgumentConstructor(annotationNode)) {
 			return;
 		}
-
+		
 		JavacNode typeNode = annotationNode.up();
 		JCClassDecl type = (JCClassDecl)typeNode.get();
-		type.mods.flags |= ENUM;
-		makeConstructorNonPublicAndNonProtected(type);
+		Singleton singleton = annotation.getInstance();
+		String typeName = typeNode.getName();
+		
+		switch(singleton.style()) {
+		case HOLDER: {
+			String holderName = typeName + "Holder";
+			clazz(typeNode, PRIVATE | STATIC, holderName) //
+				.withField(field(typeNode, "private final static %s INSTANCE = new %s()", typeName, typeName).build()).inject(source);
+			makeConstructorNonPublicAndNonProtected(type);
+			method(typeNode, "public static %s getInstance() { return %s.INSTANCE; }", typeName, holderName).inject(source);
+		break;
+		}
+		default:
+		case ENUM: {
+			type.mods.flags |= ENUM;
+			makeConstructorNonPublicAndNonProtected(type);
 
-		TreeMaker maker = typeNode.getTreeMaker();
-		JCExpression typeRef = maker.Ident(type.name);
-		List<JCExpression> nilExp = List.nil();
-		JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
-		JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
-		injectField(typeNode, lombok.javac.Javac.recursiveSetGeneratedBy(maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init), source));
+			TreeMaker maker = typeNode.getTreeMaker();
+			JCExpression typeRef = maker.Ident(type.name);
+			List<JCExpression> nilExp = List.nil();
+			JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
+			JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
+			injectField(typeNode, lombok.javac.Javac.recursiveSetGeneratedBy(maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init), source));
+			method(typeNode, "public static %s getInstance() { return INSTANCE; }", typeName).inject(source);
+		}
+		}
 
 		typeNode.rebuild();
 	}

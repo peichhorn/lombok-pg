@@ -33,16 +33,19 @@ class BuilderPlain1 {
 		return new $Builder();
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $TextDef {
 		$IdDef text(final String arg0);
 		
 		$OptionalDef idAndText(String id, String text);
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $IdDef {
 		$OptionalDef id(final int arg0);
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $OptionalDef {
 		$OptionalDef optionalVal1(final String arg0);
 		
@@ -53,6 +56,7 @@ class BuilderPlain1 {
 		$OptionalDef optionalVal1(Class<?> clazz);
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	private static class $Builder implements $TextDef, $IdDef, $OptionalDef {
 		private String text;
 		private int id;
@@ -113,6 +117,7 @@ class BuilderPlain2 {
 		return new $Builder();
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $OptionalDef {
 		$OptionalDef withOptionalVal1(final String arg0);
 		
@@ -127,6 +132,7 @@ class BuilderPlain2 {
 		BuilderPlain2 build();
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	private static class $Builder implements $OptionalDef {
 		private String optionalVal1;
 		private java.util.List<java.lang.Long> optionalVal2 = new java.util.ArrayList<java.lang.Long>();
@@ -184,14 +190,17 @@ class BuilderPlain3 {
 		return new $Builder();
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $TextDef {
 		$IdDef text(final String arg0);
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $IdDef {
 		$OptionalDef id(final int arg0);
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	public static interface $OptionalDef {
 		BuilderPlain3 build();
 		
@@ -200,6 +209,7 @@ class BuilderPlain3 {
 		void bar() throws Exception;
 	}
 	
+	@java.lang.SuppressWarnings("all")
 	private static class $Builder implements $TextDef, $IdDef, $OptionalDef {
 		private String text;
 		private int id;

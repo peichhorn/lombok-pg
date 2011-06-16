@@ -45,6 +45,10 @@ import java.lang.annotation.Target;
  *   INSTANCE;
  *   MySingleton() {
  *   }
+ *   
+ *   public static MySingleton getInstance() {
+ *     return INSTANCE;
+ *   }
  * }
  * </pre>
  * <p>
@@ -54,4 +58,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Singleton {
+	Style style() default Style.ENUM;
+	
+	public static enum Style {
+		ENUM, HOLDER;
+	}
 }

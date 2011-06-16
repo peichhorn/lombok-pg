@@ -24,7 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.eclipse.handlers.ast.ASTBuilder.EnumConstant;
+import static lombok.eclipse.handlers.ast.ASTBuilder.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
@@ -56,12 +56,29 @@ public class HandleSingleton implements EclipseAnnotationHandler<Singleton> {
 			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
 			return;
 		}
-
-
-		typeDecl.modifiers |= AccEnum;
-		replaceConstructorVisibility(typeDecl);
-
-		EnumConstant("INSTANCE").injectInto(typeNode, source);
+		
+		Singleton singleton = annotation.getInstance();
+		String typeName = typeNode.getName();
+		
+		switch(singleton.style()) {
+		case HOLDER: {
+			String holderName = typeName + "Holder";
+			replaceConstructorVisibility(typeDecl);
+			ClassDef(holderName).makePrivate().makeStatic() //
+				.withField(FieldDef(Type(typeName), "INSTANCE").makePrivateFinal().makeStatic().withInitialization(New(Type(typeName)))).injectInto(typeNode, source);
+			MethodDef(Type(typeName), "getInstance").makePublic().makeStatic() //
+				.withStatement(Return(Name(holderName + ".INSTANCE"))).injectInto(typeNode, source);
+			break;
+		}
+		default:
+		case ENUM: {
+			typeDecl.modifiers |= AccEnum;
+			replaceConstructorVisibility(typeDecl);
+			EnumConstant("INSTANCE").injectInto(typeNode, source);
+			MethodDef(Type(typeName), "getInstance").makePublic().makeStatic() //
+				.withStatement(Return(Name("INSTANCE"))).injectInto(typeNode, source);
+		}
+		}
 
 		typeNode.rebuild();
 	}

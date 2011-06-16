@@ -26,6 +26,10 @@ import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.injectField;
 import static lombok.eclipse.handlers.ast.Arrays.buildArray;
+import static org.eclipse.jdt.core.dom.Modifier.FINAL;
+import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
+import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static org.eclipse.jdt.core.dom.Modifier.STATIC;
 
 import lombok.eclipse.EclipseNode;
 
@@ -38,6 +42,26 @@ public final class FieldDefBuilder extends AbstractVariableDefBuilder<FieldDefBu
 
 	protected FieldDefBuilder(final ExpressionBuilder<? extends TypeReference> type, final String name) {
 		super(type, name);
+	}
+	
+	public FieldDefBuilder makePublic() {
+		return withModifiers(PUBLIC);
+	}
+
+	public FieldDefBuilder makePrivate() {
+		return withModifiers(PRIVATE);
+	}
+
+	public FieldDefBuilder makePublicFinal() {
+		return withModifiers(PUBLIC | FINAL);
+	}
+
+	public FieldDefBuilder makePrivateFinal() {
+		return withModifiers(PRIVATE | FINAL);
+	}
+	
+	public FieldDefBuilder makeStatic() {
+		return withModifiers(STATIC);
 	}
 
 	public void injectInto(final EclipseNode node, final ASTNode source) {

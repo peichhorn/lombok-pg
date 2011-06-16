@@ -52,22 +52,6 @@ abstract class AbstractVariableDefBuilder<SELF_TYPE extends AbstractVariableDefB
 		return withModifiers(FINAL);
 	}
 
-	public SELF_TYPE makePublic() {
-		return withModifiers(PUBLIC);
-	}
-
-	public SELF_TYPE makePrivate() {
-		return withModifiers(PRIVATE);
-	}
-
-	public SELF_TYPE makePublicFinal() {
-		return withModifiers(PUBLIC | FINAL);
-	}
-
-	public SELF_TYPE makePrivateFinal() {
-		return withModifiers(PRIVATE | FINAL);
-	}
-
 	public SELF_TYPE withModifiers(final int modifiers) {
 		this.modifiers |= modifiers;
 		return self();

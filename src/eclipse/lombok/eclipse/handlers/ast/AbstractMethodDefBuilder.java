@@ -136,7 +136,7 @@ abstract class AbstractMethodDefBuilder<SELF_TYPE extends AbstractMethodDefBuild
 	}
 
 	public SELF_TYPE withModifiers(final int modifiers) {
-		this.modifiers = modifiers;
+		this.modifiers |= modifiers;
 		return self();
 	}
 

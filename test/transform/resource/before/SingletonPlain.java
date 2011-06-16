@@ -14,3 +14,6 @@ class SingletonPlain3 {
 @lombok.Singleton
 class SingletonPlain4 extends javax.swing.JButton {
 }
+@lombok.Singleton(style=lombok.Singleton.Style.HOLDER)
+class SingletonPlain5{
+}
