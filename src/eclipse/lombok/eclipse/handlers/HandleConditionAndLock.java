@@ -21,10 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,64 +38,122 @@ import lombok.WriteLock;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
-import lombok.eclipse.handlers.ast.CallBuilder;
-import lombok.eclipse.handlers.ast.StatementBuilder;
+import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleReadLock implements EclipseAnnotationHandler<ReadLock> {
+	public static class HandleReadLock extends EclipseAnnotationHandler<ReadLock> {
+		@Override public void preHandle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
+			ReadLock ann = annotation.getInstance();
+			new HandleConditionAndLock()
+				.withLockMethod("readLock")
+				.preHandle(ann.value(), ReadLock.class, ast, annotationNode);
+		}
+
 		@Override public void handle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
 				.withLockMethod("readLock")
 				.handle(ann.value(), ReadLock.class, ast, annotationNode);
 		}
+
+		@Override
+		public boolean deferUntilPostDiet() {
+			return true;
+		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleWriteLock implements EclipseAnnotationHandler<WriteLock> {
+	public static class HandleWriteLock extends EclipseAnnotationHandler<WriteLock> {
+		@Override public void preHandle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
+			WriteLock ann = annotation.getInstance();
+			new HandleConditionAndLock()
+				.withLockMethod("writeLock")
+				.preHandle(ann.value(), WriteLock.class, ast, annotationNode);
+		}
+
 		@Override public void handle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
 				.withLockMethod("writeLock")
 				.handle(ann.value(), WriteLock.class, ast, annotationNode);
 		}
+
+		@Override
+		public boolean deferUntilPostDiet() {
+			return true;
+		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleSignal implements EclipseAnnotationHandler<Signal> {
+	public static class HandleSignal extends EclipseAnnotationHandler<Signal> {
+		@Override public void preHandle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
+			Signal ann = annotation.getInstance();
+			new HandleConditionAndLock()
+				.withSignal(new SignalData(ann.value(), ann.pos()))
+				.preHandle(ann.lockName(), Signal.class, ast, annotationNode);
+		}
+
 		@Override public void handle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			new HandleConditionAndLock()
 				.withSignal(new SignalData(ann.value(), ann.pos()))
 				.handle(ann.lockName(), Signal.class, ast, annotationNode);
 		}
+
+		@Override
+		public boolean deferUntilPostDiet() {
+			return true;
+		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleAwait implements EclipseAnnotationHandler<Await> {
+	public static class HandleAwait extends EclipseAnnotationHandler<Await> {
+		@Override public void preHandle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
+			Await ann = annotation.getInstance();
+			new HandleConditionAndLock()
+				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
+				.preHandle(ann.lockName(), Await.class, ast, annotationNode);
+		}
+
 		@Override public void handle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
 			new HandleConditionAndLock()
 				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
 				.handle(ann.lockName(), Await.class, ast, annotationNode);
 		}
+
+		@Override
+		public boolean deferUntilPostDiet() {
+			return true;
+		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleAwaitBeforeAndSignalAfter implements EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
+	public static class HandleAwaitBeforeAndSignalAfter extends EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
+		@Override public void preHandle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
+			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
+			new HandleConditionAndLock()
+				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
+				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
+				.preHandle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
+		}
+		
 		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			new HandleConditionAndLock()
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
 				.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
+		}
+
+		@Override
+		public boolean deferUntilPostDiet() {
+			return true;
 		}
 	}
 
@@ -119,15 +176,16 @@ public class HandleConditionAndLock {
 		return this;
 	}
 
-	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
-		final EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+	public boolean preHandle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
+		final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
+			return false;
 		}
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
+			return false;
 		}
 		String annotationTypeName = annotationType.getSimpleName();
 
@@ -135,34 +193,46 @@ public class HandleConditionAndLock {
 
 		if (!lockMode && (await == null) && (signal == null)) {
 			annotationNode.addWarning(String.format("Bad configured Handler for %s. Please file a bug report.", annotationTypeName));
-			return; // wrong configured handler, so better stop here
+			return false; // wrong configured handler, so better stop here
 		}
 
 		String completeLockName = createCompleteLockName(lockName);
 
-		if (!tryToAddLockField(source, annotationNode, completeLockName, lockMode, annotationTypeName)) {
-			return;
-		}
+		if (!tryToAddLockField(type, annotationNode, completeLockName, lockMode, annotationTypeName)) return false;
 
 		if (!lockMode) {
-			tryToAddConditionField(source, annotationNode, await, completeLockName, annotationTypeName);
-			tryToAddConditionField(source, annotationNode, signal, completeLockName, annotationTypeName);
+			if (!tryToAddConditionField(type, annotationNode, await, completeLockName, annotationTypeName)) return false;
+			if (!tryToAddConditionField(type, annotationNode, signal, completeLockName, annotationTypeName)) return false;
 		}
+		return true;
+	}
 
-		List<StatementBuilder<? extends Statement>> beforeMethodBlock = new ArrayList<StatementBuilder<? extends Statement>>();
-		List<StatementBuilder<? extends Statement>> afterMethodBlock = new ArrayList<StatementBuilder<? extends Statement>>();
+	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
+		if (!preHandle(lockName, annotationType, source, annotationNode)) return;
+
+		final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
+
+		String annotationTypeName = annotationType.getSimpleName();
+
+		boolean lockMode = lockMethod != null;
+
+		String completeLockName = createCompleteLockName(lockName);
+
+		List<lombok.ast.Statement> beforeMethodBlock = new ArrayList<lombok.ast.Statement>();
+		List<lombok.ast.Statement> afterMethodBlock = new ArrayList<lombok.ast.Statement>();
 
 		if (!lockMode) {
-			if (!getConditionStatements(source, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
+			if (!getConditionStatements(type, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
 				return;
 			}
-			if (!getConditionStatements(source, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
+			if (!getConditionStatements(type, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
 				return;
 			}
 		}
 
-		final CallBuilder lockCall;
-		final CallBuilder unLockCall;
+		final lombok.ast.Call lockCall;
+		final lombok.ast.Call unLockCall;
 		if (lockMode) {
 			lockCall = Call(Call(Field(This(), completeLockName), lockMethod), "lock");
 			unLockCall = Call(Call(Field(This(), completeLockName), lockMethod), "unlock");
@@ -171,11 +241,11 @@ public class HandleConditionAndLock {
 			unLockCall = Call(Field(This(), completeLockName), "unlock");
 		}
 
-		method.body(source, Block() //
+		method.body(Block() //
 			.withStatement(lockCall)
 			.withStatement(Try(Block() //
 				.withStatements(beforeMethodBlock) //
-				.withStatements(method.get().statements) //
+				.withStatements(method.statements()) //
 				.withStatements(afterMethodBlock)//
 			).Finally(Block() //
 				.withStatement(unLockCall) //
@@ -189,11 +259,11 @@ public class HandleConditionAndLock {
 		method.rebuild();
 	}
 
-	private boolean getConditionStatements(ASTNode source, EclipseNode node, ConditionData condition, String lockName, String annotationTypeName, List<StatementBuilder<? extends Statement>> before, List<StatementBuilder<? extends Statement>> after) {
+	private boolean getConditionStatements(EclipseType type, EclipseNode node, ConditionData condition, String lockName, String annotationTypeName, List<lombok.ast.Statement> before, List<lombok.ast.Statement> after) {
 		if (condition == null) {
 			return true;
 		}
-		if (tryToAddConditionField(source, node, condition, lockName, annotationTypeName)) {
+		if (tryToAddConditionField(type, node, condition, lockName, annotationTypeName)) {
 			switch (condition.pos) {
 			case BEFORE:
 				before.add(condition.toStatement());
@@ -220,20 +290,19 @@ public class HandleConditionAndLock {
 		return completeLockName;
 	}
 
-	private static boolean tryToAddLockField(ASTNode source, EclipseNode annotationNode, String lockName, boolean isReadWriteLock, String annotationTypeName) {
+	private static boolean tryToAddLockField(EclipseType type, EclipseNode annotationNode, String lockName, boolean isReadWriteLock, String annotationTypeName) {
 		lockName = trim(lockName);
 		if (lockName.isEmpty()) {
 			annotationNode.addError(String.format("@%s 'lockName' may not be empty or null.", annotationTypeName));
 			return false;
 		}
-		EclipseNode methodNode = annotationNode.up();
-		if (fieldExists(lockName, methodNode) == MemberExistsResult.NOT_EXISTS) {
+		if (!type.hasField(lockName)) {
 			if(isReadWriteLock) {
-				FieldDef(Type("java.util.concurrent.locks.ReadWriteLock"), lockName).makePrivateFinal() //
-					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantReadWriteLock"))).injectInto(methodNode, source);
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.ReadWriteLock"), lockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantReadWriteLock"))));
 			} else {
-				FieldDef(Type("java.util.concurrent.locks.Lock"), lockName).makePrivateFinal() //
-					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantLock"))).injectInto(methodNode, source);
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.Lock"), lockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantLock"))));
 			}
 		} else {
 			// TODO type check
@@ -243,7 +312,7 @@ public class HandleConditionAndLock {
 		return true;
 	}
 
-	private static boolean tryToAddConditionField(ASTNode source, EclipseNode annotationNode, ConditionData condition, String lockName, String annotationTypeName) {
+	private static boolean tryToAddConditionField(EclipseType type, EclipseNode annotationNode, ConditionData condition, String lockName, String annotationTypeName) {
 		if (condition == null) {
 			return true;
 		}
@@ -252,10 +321,9 @@ public class HandleConditionAndLock {
 			annotationNode.addError(String.format("@%s 'conditionName' may not be empty or null.", annotationTypeName));
 			return false;
 		}
-		EclipseNode methodNode = annotationNode.up();
-		if (fieldExists(conditionName, methodNode) == MemberExistsResult.NOT_EXISTS) {
-			FieldDef(Type("java.util.concurrent.locks.Condition"), conditionName).makePrivateFinal() //
-				.withInitialization(Call(Name(lockName), "newCondition")).injectInto(methodNode, source);
+		if (!type.hasField(conditionName)) {
+			type.injectField(FieldDecl(Type("java.util.concurrent.locks.Condition"), conditionName).makePrivate().makeFinal() //
+				.withInitialization(Call(Name(lockName), "newCondition")));
 		} else {
 			// TODO type check
 			// java.util.concurrent.locks.Condition
@@ -272,7 +340,7 @@ public class HandleConditionAndLock {
 		}
 
 		@Override
-		public StatementBuilder<? extends Statement> toStatement() {
+		public lombok.ast.Statement toStatement() {
 			return While(Call(This(), conditionMethod)).Do(Call(Field(This(), condition), "await"));
 		}
 	}
@@ -283,7 +351,7 @@ public class HandleConditionAndLock {
 		}
 
 		@Override
-		public StatementBuilder<? extends Statement> toStatement() {
+		public lombok.ast.Statement toStatement() {
 			return Call(Field(This(), condition), "signal");
 		}
 	}
@@ -293,6 +361,6 @@ public class HandleConditionAndLock {
 		public final String condition;
 		public final Position pos;
 
-		public abstract StatementBuilder<? extends Statement> toStatement();
+		public abstract lombok.ast.Statement toStatement();
 	}
 }

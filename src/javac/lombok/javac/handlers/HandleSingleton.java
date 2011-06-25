@@ -44,7 +44,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.List;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleSingleton extends NonResolutionBased implements JavacAnnotationHandler<Singleton> {
+public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
 	
 	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);

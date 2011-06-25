@@ -52,7 +52,6 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCBreak;
 import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCContinue;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
@@ -86,7 +85,7 @@ public class HandleYield extends JavacASTAdapter {
 		"public boolean hasNext() { if (!$nextDefined) { $hasNext = getNext(); $nextDefined = true; } return $hasNext; } " + //
 		"public %s next() { if (!hasNext()) { throw new java.util.NoSuchElementException(); } $nextDefined = false; return $next; }" + //
 		"public void remove() { throw new java.lang.UnsupportedOperationException(); }" + //
-		"private boolean getNext() { while(true) %s } %s} return new %s();";
+		"private boolean getNext() { while(true) %s } } return new %s();";
 	private final static String ITERABLE_IMPORT = ", java.lang.Iterable<%s>";
 	private final static String ITERATOR_METHOD = "public java.util.Iterator<%s> iterator() { return new %s(); }";
 
@@ -140,12 +139,11 @@ public class HandleYield extends JavacASTAdapter {
 		final String elementType = elementType(method.node());
 		final String variables = collector.getVariables();
 		final String stateSwitch = collector.getStateSwitch();
-		final String classes = collector.getClasses();
 
 		if (returnsIterable) {
-			method.body(statements(method.node(), yielderForIterable(yielderName, elementType, variables, stateSwitch, classes)));
+			method.body(statements(method.node(), yielderForIterable(yielderName, elementType, variables, stateSwitch)));
 		} else if (returnsIterator) {
-			method.body(statements(method.node(), yielderForIterator(yielderName, elementType, variables, stateSwitch, classes)));
+			method.body(statements(method.node(), yielderForIterator(yielderName, elementType, variables, stateSwitch)));
 		}
 		method.rebuild(method.get());
 
@@ -170,21 +168,20 @@ public class HandleYield extends JavacASTAdapter {
 		}
 	}
 
-	private String yielderForIterator(String yielderName, String elementType, String variables, String stateSwitch, String classes) {
-		return String.format(YIELDER_TEMPLATE, yielderName, elementType, "", variables, elementType, "", elementType, stateSwitch, classes, yielderName);
+	private String yielderForIterator(String yielderName, String elementType, String variables, String stateSwitch) {
+		return String.format(YIELDER_TEMPLATE, yielderName, elementType, "", variables, elementType, "", elementType, stateSwitch, yielderName);
 	}
 
-	private String yielderForIterable(String yielderName, String elementType, String variables, String stateSwitch, String classes) {
+	private String yielderForIterable(String yielderName, String elementType, String variables, String stateSwitch) {
 		String iterableImport = String.format(ITERABLE_IMPORT, elementType);
 		String iteratorMethod = String.format(ITERATOR_METHOD, elementType, yielderName);
-		return String.format(YIELDER_TEMPLATE, yielderName, elementType, iterableImport, variables, elementType, iteratorMethod, elementType, stateSwitch, classes, yielderName);
+		return String.format(YIELDER_TEMPLATE, yielderName, elementType, iterableImport, variables, elementType, iteratorMethod, elementType, stateSwitch, yielderName);
 	}
 
 	private static class YieldDataCollector {
 		private JavacNode methodNode;
 		private JCMethodDecl methodTree;
 		private final HashSet<String> names = new HashSet<String>();
-		private final ListBuffer<JCTree> classes = ListBuffer.lb();
 		private ListBuffer<Scope> yields = ListBuffer.lb();
 		private final ListBuffer<Scope> breaks = ListBuffer.lb();
 		private final ListBuffer<Scope> variableDecls = ListBuffer.lb();
@@ -203,14 +200,6 @@ public class HandleYield extends JavacASTAdapter {
 			StringBuilder builder = new StringBuilder();
 			for (JCVariableDecl variable : stateVariables) {
 				builder.append(variable).append(";");
-			}
-			return builder.toString();
-		}
-
-		public String getClasses() {
-			StringBuilder builder = new StringBuilder();
-			for (JCTree variable : classes) {
-				builder.append(variable).append(" ");
 			}
 			return builder.toString();
 		}
@@ -844,11 +833,6 @@ public class HandleYield extends JavacASTAdapter {
 				scan(tree.encl);
 				scan(tree.clazz);
 				scan(tree.args);
-			}
-
-			@Override
-			public void visitClassDef(JCClassDecl tree) {
-				classes.add(tree);
 			}
 		}
 	}

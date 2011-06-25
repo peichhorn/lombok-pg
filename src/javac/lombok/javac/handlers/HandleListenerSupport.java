@@ -53,7 +53,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleListenerSupport extends ResolutionBased implements JavacAnnotationHandler<ListenerSupport> {
+public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
 
 	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, ListenerSupport.class);
@@ -90,6 +90,10 @@ public class HandleListenerSupport extends ResolutionBased implements JavacAnnot
 		}
 
 		annotationNode.up().rebuild();
+	}
+
+	public boolean isResolutionBased() {
+		return true;
 	}
 
 	private static boolean isNoClassAndNoEnum(JavacNode annotationNode) {

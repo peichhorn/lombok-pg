@@ -21,7 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
@@ -56,7 +56,8 @@ import lombok.With;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.ExpressionWrapper;
+import lombok.eclipse.handlers.ast.EclipseASTMaker;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleWith extends EclipseASTAdapter {
@@ -73,7 +74,7 @@ public class HandleWith extends EclipseASTAdapter {
 			final MessageSend methodCall = (MessageSend) statement;
 			final String methodName = getMethodName(methodCall);
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
-				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
+				final EclipseMethod method = EclipseMethod.methodOf(statementNode, statement);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
 				} else if (handle(statementNode, methodCall)) {
@@ -102,8 +103,9 @@ public class HandleWith extends EclipseASTAdapter {
 			withExprName = withExpr.toString();
 		} else if (withExpr instanceof AllocationExpression) {
 			withExprName = "$with" + (withVarCounter++);
-			withCallStatements.add(LocalDef(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(new ExpressionWrapper<Expression>(withExpr)).build(methodCallNode, source));
-			withExpr = Name(withExprName).build(methodCallNode, source);
+			EclipseASTMaker builder = new EclipseASTMaker(methodCallNode, source);
+			withCallStatements.add(builder.build(LocalDecl(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(Expr(withExpr)), Statement.class));
+			withExpr = builder.build(Name(withExprName));
 		} else {
 			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
 			return false;
@@ -233,7 +235,7 @@ public class HandleWith extends EclipseASTAdapter {
 			if (expr == null) return null;
 			if (expr instanceof ThisReference) {
 				if ((expr.bits & ASTNode.IsImplicitThis) != 0) {
-					return Name(withExprName).build(null, source);
+					return new EclipseASTMaker(null, source).build(Name(withExprName));
 				} else {
 					expr.bits |= ASTNode.IsImplicitThis;
 				}
@@ -245,10 +247,15 @@ public class HandleWith extends EclipseASTAdapter {
 			} else if (expr instanceof FieldReference) {
 				Expression receiver = ((FieldReference)expr).receiver;
 				if (receiver instanceof ThisReference) {
-					return Name(new String(((FieldReference)expr).token)).build(null, source);
+					return new EclipseASTMaker(null, source).build(Name(new String(((FieldReference)expr).token)));
 				}
 			}
 			return expr;
 		}
+	}
+
+	@Override
+	public boolean deferUntilPostDiet() {
+		return false;
 	}
 }

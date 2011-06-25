@@ -22,7 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
 import static lombok.core.util.Types.*;
@@ -48,7 +48,6 @@ import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
 import org.eclipse.jdt.internal.compiler.ast.DoStatement;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ForStatement;
 import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
 import org.eclipse.jdt.internal.compiler.ast.IfStatement;
@@ -65,7 +64,6 @@ import org.eclipse.jdt.internal.compiler.ast.SuperReference;
 import org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
 import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
@@ -73,15 +71,14 @@ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
 
+import lombok.Getter;
 import lombok.Yield;
+import lombok.ast.ClassDecl;
+import lombok.ast.FieldDecl;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.ASTNodeBuilder;
-import lombok.eclipse.handlers.ast.ASTNodeWrapper;
-import lombok.eclipse.handlers.ast.ExpressionWrapper;
-import lombok.eclipse.handlers.ast.StatementBuilder;
-import lombok.eclipse.handlers.ast.ClassDefBuilder;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleYield extends EclipseASTAdapter {
@@ -95,7 +92,7 @@ public class HandleYield extends EclipseASTAdapter {
 		if (statement instanceof MessageSend) {
 			String methodName = getMethodName((MessageSend) statement);
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
-				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
+				final EclipseMethod method = EclipseMethod.methodOf(statementNode, statement);
 				if ((method == null) || method.isConstructor()) {
 					method.node().addError(canBeUsedInBodyOfMethodsOnly("yield"));
 				} else if (handle(method)) {
@@ -118,55 +115,49 @@ public class HandleYield extends EclipseASTAdapter {
 			method.node().addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable");
 			return true;
 		}
-		if (method.hasNonFinalParameter()) {
+		if (method.hasNonFinalArgument()) {
 			method.node().addError("Parameters should be final.");
 			return true;
 		}
 
 
 		YieldDataCollector collector = new YieldDataCollector();
-		collector.collect(method.node(), "$state", "$next");
+		collector.collect(method, "$state", "$next");
 
 		if (!collector.hasYields()) {
 			return true;
 		}
 
-		ASTNode source = method.get();
-
 		final String yielderName = yielderName(method.node());
 		final String elementType = elementType(method.node());
 
-		List<ASTNodeBuilder<? extends TypeDeclaration>> classes = collector.getClasses();
-		SwitchStatement switchStatement = collector.getStateSwitch();
-		List<StatementBuilder<? extends FieldDeclaration>> variables = collector.getVariables();
+		lombok.ast.Statement switchStatement = Stat(collector.getStateSwitch());
+		List<FieldDecl> variables = collector.getStateVariables();
 
-		ClassDefBuilder builder = ClassDef(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
+		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
 			.withFields(variables) //
-			.withField(FieldDef(Type("int"), "$state").makePrivate()) //
-			.withField(FieldDef(Type("boolean"), "$hasNext").makePrivate()) //
-			.withField(FieldDef(Type("boolean"), "$nextDefined").makePrivate()) //
-			.withField(FieldDef(Type(elementType), "$next").makePrivate()) //
-			.withMethod(ConstructorDef(yielderName).withImplicitSuper().makePrivate()); //
+			.withField(FieldDecl(Type("int"), "$state").makePrivate()) //
+			.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
+			.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
+			.withField(FieldDecl(Type(elementType), "$next").makePrivate()) //
+			.withMethod(ConstructorDecl(yielderName).withImplicitSuper().makePrivate()); //
 		if (returnsIterable) {
-			builder.implementing(Type("java.lang.Iterable").withTypeArgument(Type(elementType))) //
-				.withMethod(MethodDef(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
+			yielder.implementing(Type("java.lang.Iterable").withTypeArgument(Type(elementType))) //
+				.withMethod(MethodDecl(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
 		}
-		TypeDeclaration yielder = builder //
-			.withMethod(MethodDef(Type("boolean"), "hasNext").makePublic() //
+		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
 					.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
 						.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
 						.withStatement(Assign(Name("$nextDefined"), True())))) //
 					.withStatement(Return(Name("$hasNext")))) //
-			.withMethod(MethodDef(Type(elementType), "next").makePublic() //
+			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
 					.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
 					.withStatement(Assign(Name("$nextDefined"), False())) //
 					.withStatement(Return(Name("$next")))) //
-			.withMethod(MethodDef(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException"))))) //
-			.withMethod(MethodDef(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(switchStatement))) //
-			.withTypes(classes) //
-			.build(method.node(), source);
+			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException"))))) //
+			.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(switchStatement)));
 
-		method.body(source, yielder, Return(New(Type(yielderName))).build(method.node(), source));
+		method.body(yielder, Return(New(Type(yielderName))));
 		method.rebuild();
 
 		return true;
@@ -193,14 +184,14 @@ public class HandleYield extends EclipseASTAdapter {
 	}
 
 	private static class YieldDataCollector {
-		private EclipseNode methodNode;
+		private EclipseMethod method;
 		private MethodDeclaration declaration;
 		private Set<String> names = new HashSet<String>();
-		private List<ASTNodeBuilder<? extends TypeDeclaration>> classes = new ArrayList<ASTNodeBuilder<? extends TypeDeclaration>>();
 		private List<Scope> yields = new ArrayList<Scope>();
 		private List<Scope> breaks = new ArrayList<Scope>();
 		private List<Scope> variableDecls = new ArrayList<Scope>();
-		private List<StatementBuilder<? extends FieldDeclaration>> stateVariables = new ArrayList<StatementBuilder<? extends FieldDeclaration>>();
+		@Getter
+		private List<FieldDecl> stateVariables = new ArrayList<FieldDecl>();
 		private Scope root;
 		private Map<ASTNode, Scope> allScopes = new HashMap<ASTNode, Scope>();
 		private List<Statement> statements = new ArrayList<Statement>();
@@ -209,20 +200,12 @@ public class HandleYield extends EclipseASTAdapter {
 		private String stateName;
 		private String nextName;
 
-		public List<StatementBuilder<? extends FieldDeclaration>> getVariables() {
-			return stateVariables;
-		}
-
-		public List<ASTNodeBuilder<? extends TypeDeclaration>> getClasses() {
-			return classes;
-		}
-
 		public SwitchStatement getStateSwitch() {
 			List<Statement> switchStatements = new ArrayList<Statement>(statements);
 			switchStatements.add(new CaseStatement(null, 0, 0));
-			switchStatements.add(Return(False()).build(methodNode, declaration));
+			switchStatements.add(method.build(Return(False()), Statement.class));
 			SwitchStatement switchStatement = new SwitchStatement();
-			switchStatement.expression = Name(stateName).build(methodNode, declaration);
+			switchStatement.expression = method.build(Name(stateName));
 			switchStatement.statements = switchStatements.toArray(new Statement[switchStatements.size()]);
 			return switchStatement;
 		}
@@ -231,9 +214,9 @@ public class HandleYield extends EclipseASTAdapter {
 			return !yields.isEmpty();
 		}
 
-		public void collect(final EclipseNode methodNode, final String state, final String next) {
-			this.methodNode = methodNode;
-			this.declaration = (MethodDeclaration)methodNode.get();
+		public void collect(final EclipseMethod eclipseMethod, final String state, final String next) {
+			this.method = eclipseMethod;
+			this.declaration = (MethodDeclaration)eclipseMethod.get();
 			stateName = state;
 			nextName = next;
 			try {
@@ -287,7 +270,7 @@ public class HandleYield extends EclipseASTAdapter {
 				if (stateVariable) {
 					LocalDeclaration variable = (LocalDeclaration) scope.node;
 					allScopes.put(scope.node, scope);
-					stateVariables.add(FieldDef(Type(variable.type), new String(variable.name)).makePrivate());
+					stateVariables.add(FieldDecl(Type(variable.type), new String(variable.name)).makePrivate());
 				}
 			}
 
@@ -325,14 +308,12 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 		}
 
-		private void addStatement(Statement statement) {
-			if (statement != null) {
-				statements.add(statement);
-			}
+		private void addStatement(lombok.ast.Statement statement) {
+			statements.add(method.build(statement, Statement.class));
 		}
 
 		private Expression labelLiteral(Label label) {
-			Expression literal = new UnaryExpression(label.constantExpression != null ? label.constantExpression : Number(Integer.valueOf(-1)).build(methodNode, declaration), OperatorIds.PLUS);
+			Expression literal = new UnaryExpression(label.constantExpression != null ? label.constantExpression : method.build(Number(Integer.valueOf(-1)), Expression.class), OperatorIds.PLUS);
 			labelLiterals.put(literal, label);
 			return literal;
 		}
@@ -355,8 +336,8 @@ public class HandleYield extends EclipseASTAdapter {
 			return label;
 		}
 
-		private StatementBuilder<? extends Statement> setStateId(Expression expression) {
-			return Assign(Name(stateName), new ExpressionWrapper<Expression>(expression));
+		private lombok.ast.Statement setStateId(Expression expression) {
+			return Assign(Name(stateName), Expr(expression));
 		}
 
 		private void refactorStatement(Statement statement) {
@@ -367,7 +348,7 @@ public class HandleYield extends EclipseASTAdapter {
 			if (scope != null) {
 				scope.refactor();
 			} else {
-				addStatement(statement);
+				addStatement(Stat(statement));
 			}
 		}
 
@@ -385,7 +366,7 @@ public class HandleYield extends EclipseASTAdapter {
 						statements.remove(i--);
 					}
 					label.id = id++;
-					label.constantExpression = Number(Integer.valueOf(label.id)).build(methodNode, declaration);
+					label.constantExpression = method.build(Number(Integer.valueOf(label.id)));
 				}
 				previous = statement;
 			}
@@ -395,7 +376,7 @@ public class HandleYield extends EclipseASTAdapter {
 			for (Map.Entry<Expression, Label> entry : labelLiterals.entrySet()) {
 				UnaryExpression expression = (UnaryExpression) entry.getKey();
 				Label label = entry.getValue();
-				expression.expression = Number(Integer.valueOf(label.id)).build(methodNode, declaration);
+				expression.expression = method.build(Number(Integer.valueOf(label.id)));
 			}
 		}
 
@@ -489,10 +470,10 @@ public class HandleYield extends EclipseASTAdapter {
 						Label breakLabel = getBreakLabel(this);
 						addStatement(label);
 						if ((forStatement.condition != null) && !(forStatement.condition instanceof TrueLiteral)) {
-							addStatement(If(Not(new ExpressionWrapper<Expression>(forStatement.condition))).Then(Block() //
+							addStatement(If(Not(Expr(forStatement.condition))).Then(Block() //
 								.withStatement(setStateId(labelLiteral(breakLabel))) //
 								.withStatement(Continue()) //
-							).build(methodNode, declaration));
+							));
 						}
 						refactorStatement(forStatement.action);
 						addStatement(getIterationLabel(this));
@@ -501,8 +482,8 @@ public class HandleYield extends EclipseASTAdapter {
 								refactorStatement(statement);
 							}
 						}
-						addStatement(setStateId(labelLiteral(label)).build(methodNode, declaration));
-						addStatement(Continue().build(methodNode, declaration));
+						addStatement(setStateId(labelLiteral(label)));
+						addStatement(Continue());
 						addStatement(breakLabel);
 					}
 				};
@@ -521,17 +502,17 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						String iteratorVarName = "$" + new String(forStatement.elementVariable.name) + "Iter";
-						stateVariables.add(FieldDef(Type("java.util.Iterator"), iteratorVarName).makePrivate());
-						addStatement(Assign(Name(iteratorVarName), Call(new ExpressionWrapper<Expression>(forStatement.collection), "iterator")).build(methodNode, declaration));
+						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVarName).makePrivate());
+						addStatement(Assign(Name(iteratorVarName), Call(Expr(forStatement.collection), "iterator")));
 						addStatement(getIterationLabel(this));
 						addStatement(If(Not(Call(Name(iteratorVarName), "hasNext"))).Then(Block() //
 							.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
 							.withStatement(Continue()) //
-						).build(methodNode, declaration));
-						addStatement(Assign(Name(new String(forStatement.elementVariable.name)), Cast(Type(forStatement.elementVariable.type), Call(Name(iteratorVarName), "next"))).build(methodNode, declaration));
+						));
+						addStatement(Assign(Name(new String(forStatement.elementVariable.name)), Cast(Type(forStatement.elementVariable.type), Call(Name(iteratorVarName), "next"))));
 						refactorStatement(forStatement.action);
-						addStatement(setStateId(labelLiteral(getIterationLabel(this))).build(methodNode, declaration));
-						addStatement(Continue().build(methodNode, declaration));
+						addStatement(setStateId(labelLiteral(getIterationLabel(this))));
+						addStatement(Continue());
 						addStatement(getBreakLabel(this));
 					}
 				};
@@ -551,10 +532,10 @@ public class HandleYield extends EclipseASTAdapter {
 					public void refactor() {
 						addStatement(getIterationLabel(this));
 						refactorStatement(doStatement.action);
-						addStatement(If(new ExpressionWrapper<Expression>(doStatement.condition)).Then(Block() //
+						addStatement(If(Expr(doStatement.condition)).Then(Block() //
 							.withStatement(setStateId(labelLiteral(breakLabel))) //
 							.withStatement(Continue()) //
-						).build(methodNode, declaration));
+						));
 						addStatement(getBreakLabel(this));
 					}
 				};
@@ -574,14 +555,14 @@ public class HandleYield extends EclipseASTAdapter {
 					public void refactor() {
 						addStatement(getIterationLabel(this));
 						if (!(whileStatement.condition instanceof TrueLiteral)) {
-							addStatement(If(Not(new ExpressionWrapper<Expression>(whileStatement.condition))).Then(Block() //
+							addStatement(If(Not(Expr(whileStatement.condition))).Then(Block() //
 								.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
 								.withStatement(Continue()) //
-							).build(methodNode, declaration));
+							));
 						}
 						refactorStatement(whileStatement.action);
-						addStatement(setStateId(labelLiteral(getIterationLabel(this))).build(methodNode, declaration));
-						addStatement(new ContinueStatement(null, 0, 0));
+						addStatement(setStateId(labelLiteral(getIterationLabel(this))));
+						addStatement(Continue());
 						addStatement(getBreakLabel(this));
 					}
 				};
@@ -600,14 +581,14 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						Label label = ifStatement.elseStatement == null ? getBreakLabel(this) : label();
-						addStatement(If(Not(new ExpressionWrapper<Expression>(ifStatement.condition))).Then(Block() //
+						addStatement(If(Not(Expr(ifStatement.condition))).Then(Block() //
 							.withStatement(setStateId(labelLiteral(label))) //
 							.withStatement(Continue()) //
-						).build(methodNode, declaration));
+						));
 						if (ifStatement.elseStatement != null) {
 							refactorStatement(ifStatement.thenStatement);
-							addStatement(setStateId(labelLiteral(getBreakLabel(this))).build(methodNode, declaration));
-							addStatement(new ContinueStatement(null, 0, 0));
+							addStatement(setStateId(labelLiteral(getBreakLabel(this))));
+							addStatement(Continue());
 							addStatement(label);
 							refactorStatement(ifStatement.elseStatement);
 							addStatement(getBreakLabel(this));
@@ -634,7 +615,7 @@ public class HandleYield extends EclipseASTAdapter {
 						Label breakLabel = getBreakLabel(this);
 						SwitchStatement newSwitchStatement = new SwitchStatement();
 						newSwitchStatement.expression = switchStatement.expression;
-						addStatement(newSwitchStatement);
+						addStatement(Stat(newSwitchStatement));
 						if (switchStatement.statements != null) {
 							boolean hasDefault = false;
 							ArrayList<Statement> cases = new ArrayList<Statement>();
@@ -646,7 +627,7 @@ public class HandleYield extends EclipseASTAdapter {
 									}
 									Label label = label();
 									cases.add(caseStatement);
-									cases.add(setStateId(labelLiteral(label)).build(methodNode, declaration));
+									cases.add(method.build(setStateId(labelLiteral(label)), Statement.class));
 									cases.add(new ContinueStatement(null, 0, 0));
 									addStatement(label);
 								} else {
@@ -655,7 +636,7 @@ public class HandleYield extends EclipseASTAdapter {
 							}
 							if (!hasDefault) {
 								cases.add(new CaseStatement(null, 0, 0));
-								cases.add(setStateId(labelLiteral(breakLabel)).build(methodNode, declaration));
+								cases.add(method.build(setStateId(labelLiteral(breakLabel)), Statement.class));
 								cases.add(new ContinueStatement(null, 0, 0));
 							}
 							newSwitchStatement.statements = cases.toArray(new Statement[cases.size()]);
@@ -681,12 +662,12 @@ public class HandleYield extends EclipseASTAdapter {
 							if (localDeclaration.initialization instanceof ArrayInitializer) {
 								ArrayInitializer initializer = (ArrayInitializer) localDeclaration.initialization;
 								ArrayAllocationExpression allocation = new ArrayAllocationExpression();
-								allocation.type = Type(localDeclaration.type.toString()).build(methodNode, declaration);
+								allocation.type = method.build(Type(localDeclaration.type.toString()));
 								allocation.initializer = initializer;
 								allocation.dimensions = new Expression[localDeclaration.type.dimensions()];
-								addStatement(Assign(Name(new String(localDeclaration.name)), new ExpressionWrapper<Expression>(allocation)).build(methodNode, declaration));
+								addStatement(Assign(Name(new String(localDeclaration.name)), Expr(allocation)));
 							} else {
-								addStatement(Assign(Name(new String(localDeclaration.name)), new ExpressionWrapper<Expression>(localDeclaration.initialization)).build(methodNode, declaration));
+								addStatement(Assign(Name(new String(localDeclaration.name)), Expr(localDeclaration.initialization)));
 							}
 						}
 					}
@@ -716,7 +697,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 			@Override
 			public boolean visit(final ReturnStatement returnStatement, final BlockScope scope) {
-				methodNode.addError("The 'return' expression is permitted.");
+				method.node().addError("The 'return' expression is permitted.");
 				return false;
 			}
 
@@ -735,7 +716,7 @@ public class HandleYield extends EclipseASTAdapter {
 							LabeledStatement labeledStatement = (LabeledStatement) labelScope.node;
 							if (Arrays.equals(label, labeledStatement.label)) {
 								if (target != null) {
-									methodNode.addError("Invalid label.");
+									method.node().addError("Invalid label.");
 								}
 								target = labelScope;
 							}
@@ -754,14 +735,14 @@ public class HandleYield extends EclipseASTAdapter {
 				}
 
 				if (target == null) {
-					methodNode.addError("Invalid break.");
+					method.node().addError("Invalid break.");
 				}
 
 				current = new Scope(current, breakStatement) {
 					@Override
 					public void refactor() {
-						addStatement(setStateId(labelLiteral(getBreakLabel(target))).build(methodNode, declaration));
-						addStatement(new ContinueStatement(null, 0, 0));
+						addStatement(setStateId(labelLiteral(getBreakLabel(target))));
+						addStatement(Continue());
 					}
 				};
 
@@ -787,12 +768,12 @@ public class HandleYield extends EclipseASTAdapter {
 							LabeledStatement labeledStatement = (LabeledStatement) labelScope.node;
 							if (label == labeledStatement.label) {
 								if (target != null) {
-									methodNode.addError("Invalid label.");
+									method.node().addError("Invalid label.");
 								}
 								if (isOneOf(labelScope, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
 									target = labelScope;
 								} else {
-									methodNode.addError("Invalid continue.");
+									method.node().addError("Invalid continue.");
 								}
 							}
 						}
@@ -810,14 +791,14 @@ public class HandleYield extends EclipseASTAdapter {
 				}
 
 				if (target == null) {
-					methodNode.addError("Invalid continue.");
+					method.node().addError("Invalid continue.");
 				}
 
 				current = new Scope(current, continueStatement) {
 					@Override
 					public void refactor() {
-						addStatement(setStateId(labelLiteral(getIterationLabel(target))).build(methodNode, declaration));
-						addStatement(new ContinueStatement(null, 0, 0));
+						addStatement(setStateId(labelLiteral(getIterationLabel(target))));
+						addStatement(Continue());
 					}
 				};
 
@@ -834,14 +815,14 @@ public class HandleYield extends EclipseASTAdapter {
 			@Override
 			public boolean visit(ThisReference thisReference, BlockScope scope) {
 				if (!thisReference.isImplicitThis()) {
-					methodNode.addError("No unqualified 'this' expression is permitted.");
+					method.node().addError("No unqualified 'this' expression is permitted.");
 				}
 				return false;
 			}
 
 			@Override
 			public boolean visit(SuperReference thisReference, BlockScope scope) {
-				methodNode.addError("No unqualified 'super' expression is permitted.");
+				method.node().addError("No unqualified 'super' expression is permitted.");
 				return false;
 			}
 
@@ -852,14 +833,6 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public boolean visit(TypeDeclaration localTypeDeclaration, BlockScope scope) {
-				if (localTypeDeclaration.allocation == null) {
-					classes.add(new ASTNodeWrapper<TypeDeclaration>(localTypeDeclaration));
-				}
-				return false;
-			}
-
-			@Override
 			public boolean visit(final MessageSend messageSend, final BlockScope scope) {
 				final Expression expression = getYieldExpression(messageSend);
 				if (expression != null) {
@@ -867,9 +840,9 @@ public class HandleYield extends EclipseASTAdapter {
 						@Override
 						public void refactor() {
 							Label label = getBreakLabel(this);
-							addStatement(Assign(Name(nextName), new ExpressionWrapper<Expression>(expression)).build(methodNode, declaration));
-							addStatement(setStateId(labelLiteral(label)).build(methodNode, declaration));
-							addStatement(Return(True()).build(methodNode, declaration));
+							addStatement(Assign(Name(nextName), Expr(expression)));
+							addStatement(setStateId(labelLiteral(label)));
+							addStatement(Return(True()));
 							addStatement(label);
 						}
 					});
@@ -879,7 +852,7 @@ public class HandleYield extends EclipseASTAdapter {
 					if (messageSend.receiver.isImplicitThis()) {
 						String name = new String(messageSend.selector);
 						if ("hasNext".equals(name) || "next".equals(name) || "remove".equals(name)) {
-							methodNode.addError("Cannot call method " + name + "(), as it is hidden.");
+							method.node().addError("Cannot call method " + name + "(), as it is hidden.");
 						}
 					}
 					return super.visit(messageSend, scope);
@@ -909,5 +882,10 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		public abstract void refactor();
+	}
+
+	@Override
+	public boolean deferUntilPostDiet() {
+		return false;
 	}
 }

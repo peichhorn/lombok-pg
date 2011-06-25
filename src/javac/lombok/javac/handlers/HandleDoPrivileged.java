@@ -51,7 +51,7 @@ import lombok.javac.Javac;
  * Handles the {@code lombok.DoPrivileged} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleDoPrivileged extends NonResolutionBased implements JavacAnnotationHandler<DoPrivileged> {
+public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 	private final static String METHOD_BODY = "%s try { %s java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<%s>() {" +
 			"public %s run() %s { %s %s }}); } catch (java.security.PrivilegedActionException $ex) {" +
 			"final java.lang.Throwable $cause = $ex.getCause(); %s throw new java.lang.RuntimeException($cause); }";

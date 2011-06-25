@@ -34,6 +34,8 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import lombok.AccessLevel;
 import lombok.AutoGenMethodStub;
 import lombok.NoArgsConstructor;
+import lombok.eclipse.Eclipse;
+import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleAutoGenMethodStub;
 import lombok.patcher.*;
 
@@ -67,9 +69,13 @@ public class PatchAutoGenMethodStub {
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
 		if (ann != null) {
-			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, ann, getTypeNode(decl));
-			issueWasFixed.set(true);
-			return method;
+			EclipseNode typeNode = getTypeNode(decl);
+			if (typeNode != null) {
+				EclipseNode annotationNode = typeNode.getNodeFor(ann);
+				MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, Eclipse.createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
+				issueWasFixed.set(true);
+				return method;
+			}
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}

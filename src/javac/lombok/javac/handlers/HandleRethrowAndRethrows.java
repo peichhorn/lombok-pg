@@ -52,7 +52,7 @@ public class HandleRethrowAndRethrows {
 	private final static String CATCH_BLOCK_2ARGS = "catch ( %s %s ) { throw new %s(\"%s\", %s); } ";
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleRethrow extends NonResolutionBased implements JavacAnnotationHandler<Rethrow> {
+	public static class HandleRethrow extends JavacAnnotationHandler<Rethrow> {
 		@Override
 		public void handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
@@ -63,7 +63,7 @@ public class HandleRethrowAndRethrows {
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleRethrows extends NonResolutionBased implements JavacAnnotationHandler<Rethrows> {
+	public static class HandleRethrows extends JavacAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();

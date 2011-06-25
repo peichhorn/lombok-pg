@@ -1,2 +1,0 @@
-4:1 WARNING Not generating 'public static $Builder builderPlain0()' A method with that name already exists
-27:22 WARNING @BuilderExtension: The method 'brokenExtension' does not contain all required fields and was skipped.

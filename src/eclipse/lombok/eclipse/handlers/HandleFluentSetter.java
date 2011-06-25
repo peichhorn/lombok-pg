@@ -26,34 +26,31 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import lombok.AccessLevel;
 import lombok.FluentSetter;
 import lombok.Setter;
+import lombok.ast.MethodDecl;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.handlers.TransformationsUtil;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.FieldAccess;
-import lombok.eclipse.handlers.ast.ExpressionBuilder;
-import lombok.eclipse.handlers.ast.ExpressionWrapper;
-import lombok.eclipse.handlers.ast.MethodDefBuilder;
+import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
@@ -61,21 +58,17 @@ import org.mangosdk.spi.ProviderFor;
  * Handles the {@code lombok.FluentSetter} annotation for eclipse.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
-public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter> {
+public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 	@Override public void handle(AnnotationValues<FluentSetter> annotation, Annotation ast, EclipseNode annotationNode) {
 		FluentSetter annotationInstance = annotation.getInstance();
 		AccessLevel level = annotationInstance.value();
 		if (level == AccessLevel.NONE) return;
 		EclipseNode node = annotationNode.up();
 		if (node == null) return;
-		Annotation[] onMethod = getAndRemoveAnnotationParameter(ast, "onMethod");
-		Annotation[] onParam = getAndRemoveAnnotationParameter(ast, "onParam");
 		if (node.getKind() == Kind.FIELD) {
-			createSetterForFields(level, annotationNode.upFromAnnotationToFields(), annotationNode, annotationNode.get(), true, onMethod, onParam);
+			createSetterForFields(level, annotationNode.upFromAnnotationToFields(), annotationNode, annotationNode.get(), true);
 		}
 		if (node.getKind() == Kind.TYPE) {
-			if (isNotEmpty(onMethod)) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
-			if (isNotEmpty(onParam)) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
 			generateSetterForType(node, annotationNode, level, false);
 		}
 	}
@@ -121,17 +114,16 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			}
 		}
 
-		createSetterForField(level, fieldNode, fieldNode, pos, false, onMethod, onParam);
+		createSetterForField(level, fieldNode, fieldNode, pos, false);
 	}
 
-	private void createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists, Annotation[] onMethod , Annotation[] onParam) {
+	private void createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists) {
 		for (EclipseNode fieldNode : fieldNodes) {
-			createSetterForField(level, fieldNode, errorNode, source, whineIfExists, onMethod, onParam);
+			createSetterForField(level, fieldNode, errorNode, source, whineIfExists);
 		}
 	}
 
-	private void createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists,
-			Annotation[] onMethod , Annotation[] onParam) {
+	private void createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return;
@@ -140,8 +132,6 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 
 		String fieldName = new String(field.name);
-
-		int modifier = toEclipseModifier(level) | (field.modifiers & AccStatic);
 
 		switch (methodExists(fieldName, fieldNode, false)) {
 		case EXISTS_BY_LOMBOK:
@@ -156,32 +146,35 @@ public class HandleFluentSetter implements EclipseAnnotationHandler<FluentSetter
 			//continue with creating the setter
 		}
 
-		MethodDeclaration method = generateSetter((TypeDeclaration) fieldNode.up().get(), fieldNode, fieldName, modifier, source, onParam);
-		Annotation[] copiedAnnotations = copyAnnotations(source, onMethod);
-		if (isNotEmpty(copiedAnnotations)) {
-			method.annotations = copiedAnnotations;
-		}
-
-		injectMethod(fieldNode.up(), method);
+		generateSetter(EclipseType.typeOf(fieldNode, source), fieldNode, fieldName, level, source);
 	}
-
-	private MethodDeclaration generateSetter(TypeDeclaration parent, EclipseNode fieldNode, String name, int modifier, ASTNode source, Annotation[] onParam) {
+	
+	public static List<lombok.ast.Annotation> findAnnotations(AbstractVariableDeclaration variable, Pattern namePattern) {
+		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
+		if (isNotEmpty(variable.annotations)) for (Annotation annotation : variable.annotations) {
+			TypeReference typeRef = annotation.type;
+			char[][] typeName = typeRef.getTypeName();
+			String suspect = new String(typeName[typeName.length - 1]);
+			if (namePattern.matcher(suspect).matches()) {
+				result.add(Annotation(Type(typeRef)));
+			}
+		}	
+		return result;
+	}
+	
+	private void generateSetter(EclipseType type, EclipseNode fieldNode, String name, AccessLevel level, ASTNode source) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
-		Annotation[] nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-		Annotation[] nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
+		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 
-		List<ExpressionBuilder<? extends TypeReference>> refs = new ArrayList<ExpressionBuilder<? extends TypeReference>>();
-		if (isNotEmpty(parent.typeParameters)) for (TypeParameter param : parent.typeParameters) {
-			refs.add(Type(new String(param.name)));
+		MethodDecl methodDecl = MethodDecl(Type(new String(type.name())).withTypeArguments(type.typeParameters()), name).withAccessLevel(level) //
+			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(nonNulls));
+		
+		if ((field.modifiers & AccStatic) != 0) methodDecl.makeStatic();
+		if (!nonNulls.isEmpty() && !isPrimitive(field.type)) {
+			methodDecl.withStatement(If(Equal(Name(name), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(name)))));
 		}
-
-		MethodDefBuilder builder = MethodDef(Type(new String(parent.name)).withTypeArguments(refs), name).withModifiers(modifier) //
-			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(copyAnnotations(source, nonNulls, nullables, onParam)));
-		if (isNotEmpty(nonNulls)) {
-			Statement nullCheck = generateNullCheck(field, source);
-			if (nullCheck != null) builder.withStatements(nullCheck);
-		}
-		return builder.withStatement(Assign(new ExpressionWrapper<Expression>(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source)), Name(new String(field.name)))) //
-			.withStatement(Return(This())).build(fieldNode, source);
+		methodDecl.withStatement(Assign(Expr(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source)), Name(new String(field.name)))) //
+			.withStatement(Return(This()));
+		type.injectMethod(methodDecl);
 	}
 }

@@ -24,9 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.methodExists;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult.NOT_EXISTS;
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,13 +36,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.ExpressionBuilder;
-import lombok.eclipse.handlers.ast.StatementBuilder;
+import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
@@ -65,16 +60,16 @@ public class HandleEntrypoint {
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<ExpressionBuilder<? extends Expression>> getArgs(String name) {
-				List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
+			@Override public List<lombok.ast.Expression> getArgs(String name) {
+				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
 				args.add(Name("args"));
 				return args;
 			}
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<StatementBuilder<? extends Argument>> getParams(String name) {
-				List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
+			@Override public List<lombok.ast.Argument> getParams(String name) {
+				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
 				params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
 				return params;
 			}
@@ -98,8 +93,8 @@ public class HandleEntrypoint {
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<ExpressionBuilder<? extends Expression>> getArgs(String name) {
-				List<ExpressionBuilder<? extends Expression>> args = new ArrayList<ExpressionBuilder<? extends Expression>>();
+			@Override public List<lombok.ast.Expression> getArgs(String name) {
+				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
 				args.add(("agentmain".equals(name) ? True() : False()));
 				args.add(Name("params"));
 				args.add(Name("instrumentation"));
@@ -108,8 +103,8 @@ public class HandleEntrypoint {
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<StatementBuilder<? extends Argument>> getParams(String name) {
-				List<StatementBuilder<? extends Argument>> params = new ArrayList<StatementBuilder<? extends Argument>>();
+			@Override public List<lombok.ast.Argument> getParams(String name) {
+				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
 				params.add(Arg(Type("java.lang.String"), "params"));
 				params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
 				return params;
@@ -143,6 +138,11 @@ public class HandleEntrypoint {
 		 * @param type
 		 */
 		protected abstract void handle(EclipseNode typeNode, TypeDeclaration type);
+		
+		@Override
+		public boolean deferUntilPostDiet() {
+			return false;
+		}
 	}
 
 
@@ -186,7 +186,8 @@ public class HandleEntrypoint {
 	 * @param argsProvider argument provider used for the constructor
 	 */
 	public static void createEntrypoint(EclipseNode node, ASTNode source, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
-		if (methodExists(methodName, node, false) == NOT_EXISTS) {
+		EclipseType type = EclipseType.typeOf(node, source);
+		if (!type.hasMethod(methodName)) {
 			return;
 		}
 
@@ -194,16 +195,15 @@ public class HandleEntrypoint {
 			return;
 		}
 
-		MethodDef(Type("void"), name).withModifiers(PUBLIC | STATIC).withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-				.withStatement(Call(New(Type(node.getName())), methodName).withArguments(argsProvider.getArgs(name))) //
-				.injectInto(node, source);
+		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
+				.withStatement(Call(New(Type(node.getName())), methodName).withArguments(argsProvider.getArgs(name))));
 	}
 
 	public static interface IArgumentProvider {
-		public List<ExpressionBuilder<? extends Expression>> getArgs(String name);
+		public List<lombok.ast.Expression> getArgs(String name);
 	}
 
 	public static interface IParameterProvider {
-		public List<StatementBuilder<? extends Argument>> getParams(String name);
+		public List<lombok.ast.Argument> getParams(String name);
 	}
 }

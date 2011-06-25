@@ -25,14 +25,7 @@ import static lombok.core.util.Arrays.isEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.core.util.Lists.list;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Arg;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Block;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Name;
-import static lombok.eclipse.handlers.ast.ASTBuilder.New;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Throw;
-import static lombok.eclipse.handlers.ast.ASTBuilder.String;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Try;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
+import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +33,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.Rethrow;
 import lombok.Rethrows;
+import lombok.ast.Try;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.InitializableEclipseNode;
 import lombok.eclipse.Eclipse;
-import lombok.eclipse.handlers.ast.TryBuilder;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -55,7 +49,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleRethrowAndRethrows {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleRethrow implements EclipseAnnotationHandler<Rethrow> {
+	public static class HandleRethrow extends EclipseAnnotationHandler<Rethrow> {
 		@Override
 		public void handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
@@ -63,10 +57,14 @@ public class HandleRethrowAndRethrows {
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
+
+		public boolean deferUntilPostDiet() {
+			return true;
+		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleRethrows implements EclipseAnnotationHandler<Rethrows> {
+	public static class HandleRethrows extends EclipseAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
 			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();
@@ -76,6 +74,10 @@ public class HandleRethrowAndRethrows {
 				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
 			}
 			handle.handle(Rethrow.class, ast, annotationNode);
+		}
+
+		public boolean deferUntilPostDiet() {
+			return true;
 		}
 	}
 
@@ -92,7 +94,7 @@ public class HandleRethrowAndRethrows {
 			return;
 		}
 
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+		EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
@@ -103,7 +105,7 @@ public class HandleRethrowAndRethrows {
 			return;
 		}
 
-		TryBuilder tryBuilder = Try(Block().withStatements(method.get().statements));
+		Try tryBuilder = Try(Block().withStatements(method.statements()));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
 			for (String thrown : rethrow.thrown) {
@@ -115,7 +117,7 @@ public class HandleRethrowAndRethrows {
 				}
 			}
 		}
-		method.body(source, Block().withStatement(tryBuilder));
+		method.body(Block().withStatement(tryBuilder));
 
 		method.rebuild();
 	}

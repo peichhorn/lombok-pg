@@ -21,21 +21,16 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
-import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccImplementing;
+import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.eclipse.handlers.Eclipse.*;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import lombok.AutoGenMethodStub;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.mangosdk.spi.ProviderFor;
 
@@ -43,28 +38,22 @@ import org.mangosdk.spi.ProviderFor;
  * Handles the {@link AutoGenMethodStub} annotation for eclipse using the {@link PatchAutoGenMethodStub}.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
-public class HandleAutoGenMethodStub implements EclipseAnnotationHandler<AutoGenMethodStub> {
+public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMethodStub> {
 	// error handling only
 	@Override public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final EclipseNode typeNode = annotationNode.up();
-		final TypeDeclaration typeDecl = typeDeclFiltering(typeNode, AccInterface | AccAnnotation);
-		if (typeDecl == null) {
+		final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		if (type.isInterface() || type.isAnnotation()) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 		}
 	}
 
 	// real meat
-	public MethodDeclaration handle(final MethodBinding abstractMethod, final Annotation annotation, final EclipseNode typeNode) {
-		boolean throwException = false;
-		for (final MemberValuePair pair : annotation.memberValuePairs()) {
-			if ("throwException".equals(new String(pair.name))) {
-				throwException = pair.value instanceof TrueLiteral;
-			}
-		}
-		if (throwException) {
-			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method was not implemented yet.")))).injectInto(typeNode, annotation);
+	public MethodDeclaration handle(final MethodBinding abstractMethod, final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
+		final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		if (annotation.getInstance().throwException()) {
+			return type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method was not implemented yet.")))));
 		} else {
-			return MethodDef(abstractMethod).withModifiers(AccImplementing).withStatement(ReturnDefault()).injectInto(typeNode, annotation);
+			return type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(ReturnDefault()));
 		}
 	}
 }

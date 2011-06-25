@@ -65,7 +65,7 @@ import com.sun.tools.javac.util.Name;
  * Handles the {@code lombok.AutoGenMethodStub} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleAutoGenMethodStub extends ResolutionBased implements JavacAnnotationHandler<AutoGenMethodStub> {
+public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
 	private final static String THROW_UNSUPPORTEDOPERATIONEXCEPTION = "throw new java.lang.UnsupportedOperationException(\"This method was not implemented yet.\");";
 
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
@@ -92,6 +92,10 @@ public class HandleAutoGenMethodStub extends ResolutionBased implements JavacAnn
 		}
 
 		typeNode.rebuild();
+	}
+
+	public boolean isResolutionBased() {
+		return true;
 	}
 
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)

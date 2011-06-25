@@ -21,9 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.handlers.ast.ASTBuilder.This;
-import static lombok.eclipse.handlers.ast.ASTBuilder.Type;
+import static lombok.ast.AST.*;
 import lombok.RequiredArgsConstructor;
+import lombok.eclipse.handlers.ast.EclipseASTMaker;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
@@ -34,6 +34,6 @@ public class QualifiedThisReplacementProvider implements IReplacementProvider<Ex
 	private final ASTNode source;
 
 	@Override public Expression getReplacement() {
-		return This(Type(typeName)).build(null, source);
+		return new EclipseASTMaker(null, source).build(This(Type(typeName)));
 	}
 }

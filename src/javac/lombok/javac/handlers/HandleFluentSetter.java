@@ -58,7 +58,7 @@ import com.sun.tools.javac.util.List;
  * Handles the {@code lombok.FluentSetter} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleFluentSetter extends NonResolutionBased implements JavacAnnotationHandler<FluentSetter> {
+public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 
 	@Override public void handle(AnnotationValues<FluentSetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
 		Collection<JavacNode> fields = annotationNode.upFromAnnotationToFields();

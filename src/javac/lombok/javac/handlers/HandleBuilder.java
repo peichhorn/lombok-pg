@@ -64,7 +64,7 @@ import com.sun.tools.javac.util.ListBuffer;
  * Handles the {@code lombok.Builder} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleBuilder extends NonResolutionBased implements JavacAnnotationHandler<Builder> {
+public class HandleBuilder extends JavacAnnotationHandler<Builder> {
 	private final static String CONSTRUCTOR = "private ctor(final $Builder builder) {%s}";
 	private final static String CONSTRUCTOR_ASSIGN = "this.%s = builder.%s;";
 	private final static String OPTIONAL_DEF = "$OptionalDef";
@@ -482,10 +482,10 @@ public class HandleBuilder extends NonResolutionBased implements JavacAnnotation
 						if (requiredFieldNames.isEmpty()) {
 							requiredFieldExtensions.append(method);
 						} else {
-							methodNode.addWarning("@BuilderExtension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method);
+							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method);
 						}
 					} else optionalFieldExtensions.append(method);
-				} else methodNode.addWarning("@BuilderExtension:  The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
+				} else methodNode.addWarning("@Builder.Extension:  The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
 			}
 		}
 

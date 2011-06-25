@@ -49,7 +49,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 public class HandleConditionAndLock {
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleReadLock extends NonResolutionBased implements JavacAnnotationHandler<ReadLock> {
+	public static class HandleReadLock extends JavacAnnotationHandler<ReadLock> {
 		@Override public void handle(AnnotationValues<ReadLock> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
@@ -59,7 +59,7 @@ public class HandleConditionAndLock {
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleWriteLock extends NonResolutionBased implements JavacAnnotationHandler<WriteLock> {
+	public static class HandleWriteLock extends JavacAnnotationHandler<WriteLock> {
 		@Override public void handle(AnnotationValues<WriteLock> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
@@ -69,7 +69,7 @@ public class HandleConditionAndLock {
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleSignal extends NonResolutionBased implements JavacAnnotationHandler<Signal> {
+	public static class HandleSignal extends JavacAnnotationHandler<Signal> {
 		@Override public void handle(AnnotationValues<Signal> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			new HandleConditionAndLock()
@@ -79,7 +79,7 @@ public class HandleConditionAndLock {
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleAwait extends NonResolutionBased implements JavacAnnotationHandler<Await> {
+	public static class HandleAwait extends JavacAnnotationHandler<Await> {
 		@Override public void handle(AnnotationValues<Await> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Await ann = annotation.getInstance();
 			new HandleConditionAndLock()
@@ -89,7 +89,7 @@ public class HandleConditionAndLock {
 	}
 
 	@ProviderFor(JavacAnnotationHandler.class)
-	public static class HandleAwaitBeforeAndSignalAfter extends NonResolutionBased implements JavacAnnotationHandler<AwaitBeforeAndSignalAfter> {
+	public static class HandleAwaitBeforeAndSignalAfter extends JavacAnnotationHandler<AwaitBeforeAndSignalAfter> {
 		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			new HandleConditionAndLock()

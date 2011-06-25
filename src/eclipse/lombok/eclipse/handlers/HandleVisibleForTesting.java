@@ -27,18 +27,18 @@ import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.EclipseMethod;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.VisibleForTesting;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
-public class HandleVisibleForTesting implements EclipseAnnotationHandler<VisibleForTesting> {
+public class HandleVisibleForTesting extends EclipseAnnotationHandler<VisibleForTesting> {
 
 	@Override
-	public void handle(AnnotationValues<VisibleForTesting> annotation, Annotation ast, EclipseNode annotationNode) {
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode);
+	public void handle(AnnotationValues<VisibleForTesting> annotation, Annotation source, EclipseNode annotationNode) {
+		EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
 			return;

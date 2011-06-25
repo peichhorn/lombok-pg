@@ -36,7 +36,7 @@ import lombok.VisibleForTesting;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleVisibleForTesting extends NonResolutionBased implements JavacAnnotationHandler<VisibleForTesting > {
+public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTesting > {
 
 	@Override
 	public void handle(AnnotationValues<VisibleForTesting> annotation, JCAnnotation source, JavacNode annotationNode) {

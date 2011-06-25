@@ -24,7 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.sameSize;
 import static lombok.core.util.ErrorMessages.canBeUsedInBodyOfMethodsOnly;
 import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.eclipse.handlers.ast.ASTBuilder.*;
+import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,7 +37,8 @@ import lombok.Tuple;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.ExpressionWrapper;
+import lombok.eclipse.handlers.ast.EclipseASTMaker;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -77,7 +78,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			final MessageSend leftTupleCall = getTupelCall(statementNode, assignment.lhs);
 			final MessageSend rightTupleCall = getTupelCall(statementNode, assignment.expression);
 			if ((leftTupleCall != null) && (rightTupleCall != null)) {
-				final EclipseMethod method = EclipseMethod.methodOf(statementNode);
+				final EclipseMethod method = EclipseMethod.methodOf(statementNode, statement);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("tuple"));
 				} else if (handle(statementNode, leftTupleCall, rightTupleCall)) {
@@ -120,6 +121,7 @@ public class HandleTuple extends EclipseASTAdapter {
 
 		List<String> varnames = collectVarnames(leftTupleCall.arguments);
 		Iterator<String> varnameIter = varnames.listIterator();
+		EclipseASTMaker builder = new EclipseASTMaker(tupleAssignNode, source);
 
 		final Set<String> blacklistedNames = new HashSet<String>();
 		if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
@@ -130,14 +132,14 @@ public class HandleTuple extends EclipseASTAdapter {
 				final TypeReference vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get());
 				if (vartype != null) {
 					String tempVarname = "$tuple" + withVarCounter++;
-					tempVarAssignments.add(LocalDef(Type(vartype), tempVarname).makeFinal().withInitialization(new ExpressionWrapper<Expression>(arg)).build(tupleAssignNode, source));
-					assignments.add(Assign(Name(varname), Name(tempVarname)).build(tupleAssignNode, source));
+					tempVarAssignments.add(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), Statement.class));
+					assignments.add(builder.build(Assign(Name(varname), Name(tempVarname)), Statement.class));
 				} else {
 					tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
 					return false;
 				}
 			} else {
-				assignments.add(Assign(Name(varname), new ExpressionWrapper<Expression>(arg)).build(tupleAssignNode, source));
+				assignments.add(builder.build(Assign(Name(varname), Expr(arg)), Statement.class));
 			}
 		}
 		tempVarAssignments.addAll(assignments);
@@ -278,5 +280,10 @@ public class HandleTuple extends EclipseASTAdapter {
 			}
 			return true;
 		}
+	}
+
+	@Override
+	public boolean deferUntilPostDiet() {
+		return false;
 	}
 }
