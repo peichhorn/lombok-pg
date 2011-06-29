@@ -6,6 +6,10 @@ class BuilderExample {
 	private String optionalVal1;
 	private List<Long> optionalVal2;
 	
+	public boolean save() throws IOException {
+		// do something
+	}
+	
 	@java.lang.SuppressWarnings("all")
 	private BuilderExample(final $Builder builder) {
 		this.text = builder.text;
@@ -35,6 +39,8 @@ class BuilderExample {
 		$OptionalDef withOptionalVal2(final List<Long> arg0);
 		
 		BuilderExample build();
+		
+		public boolean save() throws IOException;
 		
 		$OptionalDef withOptionalVal1(Class<?> clazz);
 	}
@@ -73,6 +79,10 @@ class BuilderExample {
 		
 		public BuilderExample build() {
 			return new BuilderExample(this);
+		}
+		
+		public boolean save() throws IOException {
+			return build().save();
 		}
 		
 		public $OptionalDef withOptionalVal1(Class<?> clazz) {

@@ -21,16 +21,16 @@ import lombok.AutoGenMethodStub;
 }
 @AutoGenMethodStub(throwException = true) class AutoGenMethodStubPlain2 implements java.awt.event.MouseListener {
   public @java.lang.SuppressWarnings("all") void mousePressed(final java.awt.event.MouseEvent arg0) {
-    throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+    throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
   }
   public @java.lang.SuppressWarnings("all") void mouseReleased(final java.awt.event.MouseEvent arg0) {
-    throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+    throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
   }
   public @java.lang.SuppressWarnings("all") void mouseEntered(final java.awt.event.MouseEvent arg0) {
-    throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+    throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
   }
   public @java.lang.SuppressWarnings("all") void mouseClicked(final java.awt.event.MouseEvent arg0) {
-    throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+    throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
   }
   AutoGenMethodStubPlain2() {
     super();

@@ -54,6 +54,9 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="Lock" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Rethrow" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Condition" />
 		</antcall>
 		<antcall target="-integrateSnippet">

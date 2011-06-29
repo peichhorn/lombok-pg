@@ -24,7 +24,6 @@ package lombok.javac.handlers;
 import static lombok.core.util.Arrays.isEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
-import static lombok.core.util.Lists.list;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.JavacTreeBuilder.statements;
 
@@ -37,6 +36,7 @@ import lombok.Rethrow;
 import lombok.Rethrows;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
+import lombok.core.util.Lists;
 import lombok.javac.Javac;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -48,6 +48,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 public class HandleRethrowAndRethrows {
 	private final static String TRY_BLOCK = "try %s ";
+	private final static String CATCH_BLOCK_RETHROW = "catch ( java.lang.RuntimeException %s ) { throw %s; } ";
 	private final static String CATCH_BLOCK_1ARG = "catch ( %s %s ) { throw new %s(%s); } ";
 	private final static String CATCH_BLOCK_2ARGS = "catch ( %s %s ) { throw new %s(\"%s\", %s); } ";
 
@@ -57,7 +58,7 @@ public class HandleRethrowAndRethrows {
 		public void handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
 			new HandleRethrowAndRethrows() //
-				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
+				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
 	}
@@ -70,7 +71,7 @@ public class HandleRethrowAndRethrows {
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
 				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
-				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
+				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
 			handle.handle(Rethrow.class, ast, annotationNode);
 		}
@@ -106,12 +107,14 @@ public class HandleRethrowAndRethrows {
 		methodBody.append(String.format(TRY_BLOCK, method.get().body));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
-			for (String thrown : rethrow.thrown) {
+			for (Class<?> thrown : rethrow.thrown) {
 				String varname = "$e" + counter++;
-				if (rethrow.message.isEmpty()) {
-					methodBody.append(String.format(CATCH_BLOCK_1ARG, thrown, varname, rethrow.as, varname));
+				if (RethrowData.class == thrown) {
+					methodBody.append(String.format(CATCH_BLOCK_RETHROW, varname, varname));
+				} else if (rethrow.message.isEmpty()) {
+					methodBody.append(String.format(CATCH_BLOCK_1ARG, thrown.getName(), varname, rethrow.as.getName(), varname));
 				} else {
-					methodBody.append(String.format(CATCH_BLOCK_2ARGS, thrown, varname, rethrow.as, rethrow.message, varname));
+					methodBody.append(String.format(CATCH_BLOCK_2ARGS, thrown.getName(), varname, rethrow.as.getName(), rethrow.message, varname));
 				}
 			}
 		}
@@ -121,21 +124,17 @@ public class HandleRethrowAndRethrows {
 		method.rebuild(source);
 	}
 
-	private static List<String> classNames(final Class<?>[] classes) {
+	private static List<Class<?>> classNames(final Class<?>[] classes) {
 		if (isEmpty(classes)) {
-			return list(Exception.class.getName());
+			return Lists.<Class<?>>list(RethrowData.class, Exception.class);
 		}
-		final List<String> classNames = new ArrayList<String>();
-		for (Class<?> clazz : classes) {
-			classNames.add(clazz.getName());
-		}
-		return classNames;
+		return Lists.list(classes);
 	}
 
 	@RequiredArgsConstructor
 	private static class RethrowData {
-		public final List<String> thrown;
-		public final String as;
+		public final List<Class<?>> thrown;
+		public final Class<?> as;
 		public final String message;
 	}
 }

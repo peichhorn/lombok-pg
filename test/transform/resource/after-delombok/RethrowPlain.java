@@ -22,8 +22,10 @@ class RethrowPlain {
 	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
 		try {
 			System.out.println("code throws all kinds of Exceptions");
-		} catch (java.lang.Exception $e1) {
-			throw new java.lang.IllegalArgumentException("meh.", $e1);
+		} catch (java.lang.RuntimeException $e1) {
+			throw $e1;
+		} catch (java.lang.Exception $e2) {
+			throw new java.lang.IllegalArgumentException("meh.", $e2);
 		}
 	}
 

@@ -25,8 +25,11 @@ class RethrowPlain {
       {
         System.out.println("code throws all kinds of Exceptions");
       }
-    catch (final java.lang.Exception $e1)       {
-        throw new java.lang.IllegalArgumentException("meh.", $e1);
+    catch (final java.lang.RuntimeException $e1)       {
+        throw $e1;
+      }
+    catch (final java.lang.Exception $e2)       {
+        throw new java.lang.IllegalArgumentException("meh.", $e2);
       }
   }
   @lombok.Rethrows({@lombok.Rethrow(value = java.io.FileNotFoundException.class,as = java.lang.IllegalArgumentException.class), @lombok.Rethrow(value = java.io.IOException.class,as = java.lang.RuntimeException.class)}) @java.lang.SuppressWarnings("all") void testFullyCustomizedRethrow() {

@@ -27,21 +27,21 @@ class AutoGenMethodStubPlain2 implements java.awt.event.MouseListener {
 	
 	@java.lang.SuppressWarnings("all")
 	public void mouseEntered(java.awt.event.MouseEvent arg1) {
-		throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public void mouseReleased(java.awt.event.MouseEvent arg1) {
-		throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public void mousePressed(java.awt.event.MouseEvent arg1) {
-		throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public void mouseClicked(java.awt.event.MouseEvent arg1) {
-		throw new java.lang.UnsupportedOperationException("This method was not implemented yet.");
+		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 }

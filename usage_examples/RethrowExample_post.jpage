@@ -1,0 +1,32 @@
+class RethrowExample {
+	@java.lang.SuppressWarnings("all")
+	void test1() {
+		try {
+			System.out.println("code that might throw all kinds of Exceptions");
+		} catch (java.lang.RuntimeException $e1) {
+			throw $e1;
+		} catch (java.lang.Exception $e2) {
+			throw new java.lang.RuntimeException($e2);
+		}
+	}
+
+	@java.lang.SuppressWarnings("all")
+	void test2() {
+		try {
+			System.out.println("code that might throw InterruptedException due to cancelation");
+		} catch (java.lang.InterruptedException $e1) {
+			throw new java.lang.RuntimeException("meh.", $e1);
+		}
+	}
+
+	@java.lang.SuppressWarnings("all")
+	void test3(final File file) {
+		try {
+			new java.io.FileInputStream(file);
+		} catch (java.io.FileNotFoundException $e1) {
+			throw new java.lang.IllegalArgumentException();
+		} catch (java.lang.NullPointerException($e2) {
+			throw new java.lang.IllegalArgumentException($e2);
+		}
+	}
+}

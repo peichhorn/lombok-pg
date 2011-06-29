@@ -1,12 +1,17 @@
 import lombok.Singleton
 
 @Singleton
-public class SingletonExample {
+public class SingletonEnumExample {
+	private String s;
+	
+	public void bar() {
+	}
+}
+
+@Singleton(style=Singleton.Style.HOLDER)
+public class SingletonHolderExample {
 	private String s;
 	
 	public void foo() {
-	}
-	
-	public bar bar() {
 	}
 }

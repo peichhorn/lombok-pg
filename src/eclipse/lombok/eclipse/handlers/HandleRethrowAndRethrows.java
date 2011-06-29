@@ -24,7 +24,6 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.isEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
-import static lombok.core.util.Lists.list;
 import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import lombok.Rethrows;
 import lombok.ast.Try;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
+import lombok.core.util.Lists;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.InitializableEclipseNode;
@@ -54,7 +54,7 @@ public class HandleRethrowAndRethrows {
 		public void handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
 			new HandleRethrowAndRethrows() //
-				.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message())) //
+				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
 				.handle(Rethrow.class, ast, annotationNode);
 		}
 
@@ -71,7 +71,7 @@ public class HandleRethrowAndRethrows {
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
 				Rethrow ann = Eclipse.createAnnotation(Rethrow.class, rethrowNode).getInstance();
-				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as().getName(), ann.message()));
+				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
 			handle.handle(Rethrow.class, ast, annotationNode);
 		}
@@ -108,12 +108,14 @@ public class HandleRethrowAndRethrows {
 		Try tryBuilder = Try(Block().withStatements(method.statements()));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
-			for (String thrown : rethrow.thrown) {
+			for (Class<?> thrown : rethrow.thrown) {
 				String varname = "$e" + counter++;
-				if (rethrow.message.isEmpty()) {
-					tryBuilder.Catch(Arg(Type(thrown), varname), Block().withStatement(Throw(New(Type(rethrow.as)).withArgument(Name(varname)))));
+				if (RethrowData.class == thrown) {
+					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
+				} else if (rethrow.message.isEmpty()) {
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(Name(varname)))));
 				} else {
-					tryBuilder.Catch(Arg(Type(thrown), varname), Block().withStatement(Throw(New(Type(rethrow.as)).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
 				}
 			}
 		}
@@ -122,21 +124,17 @@ public class HandleRethrowAndRethrows {
 		method.rebuild();
 	}
 
-	private static List<String> classNames(final Class<?>[] classes) {
+	private static List<Class<?>> classNames(final Class<?>[] classes) {
 		if (isEmpty(classes)) {
-			return list(Exception.class.getName());
+			return Lists.<Class<?>>list(RethrowData.class, Exception.class);
 		}
-		final List<String> classNames = new ArrayList<String>();
-		for (Class<?> clazz : classes) {
-			classNames.add(clazz.getName());
-		}
-		return classNames;
+		return Lists.list(classes);
 	}
 
 	@RequiredArgsConstructor
 	private static class RethrowData {
-		public final List<String> thrown;
-		public final String as;
+		public final List<Class<?>> thrown;
+		public final Class<?> as;
 		public final String message;
 	}
 }

@@ -1,0 +1,18 @@
+import lombok.Rethrow
+
+class RethrowExample {
+	@Rethrow
+	void test1() {
+		System.out.println("code that might throw all kinds of Exceptions");
+	}
+	
+	@Rethrow(value = InterruptedException.class, message = "meh.")
+	void test2() {
+		System.out.println("code that might throw InterruptedException due to cancelation");
+	}
+	
+	@Rethrow(value = {java.io.FileNotFoundException.class, NullPointerException.class}, as = IllegalArgumentException.class);
+	void test3(final File file) {
+		new java.io.FileInputStream(file);
+	}
+}

@@ -2,20 +2,24 @@ import lombok.Builder;
 
 import java.util.List;
 
-@Builder(prefix="with")
+@Builder(prefix="with", callMethods="save")
 class BuilderExample {
 	private final String text;
 	private final int id;
 	private String optionalVal1 = "default";
 	private List<Long> optionalVal2;
 	
-	@lombok.BuilderExtension
+	public boolean save() throws IOException {
+		// do something
+	}
+	
+	@Builder.Extension
 	private void withIdAndText(String id, String text) {
 		this.id = Integer.valueOf(id);
 		this.text = text;
 	}
 	
-	@lombok.BuilderExtension
+	@Builder.Extension
 	private void withOptionalVal1(Class<?> clazz) {
 		this.optionalVal1 = clazz.getSimpleName();
 	}

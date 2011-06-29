@@ -66,7 +66,7 @@ import com.sun.tools.javac.util.Name;
  */
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
-	private final static String THROW_UNSUPPORTEDOPERATIONEXCEPTION = "throw new java.lang.UnsupportedOperationException(\"This method was not implemented yet.\");";
+	private final static String THROW_UNSUPPORTEDOPERATIONEXCEPTION = "throw new java.lang.UnsupportedOperationException(\"This method is not implemented yet.\");";
 
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 	// should be the last annotation to avoid major issues, once again.. curve ball

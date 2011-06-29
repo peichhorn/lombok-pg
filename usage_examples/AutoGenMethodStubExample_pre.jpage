@@ -9,3 +9,10 @@ class AutoGenMethodStubExample implements MouseListener {
 		// defined
 	}
 }
+
+@AutoGenMethodStub(throwException=true)
+class AutoGenMethodStubThrowExceptionExample implements MouseListener {
+	public void mouseExited(MouseEvent e) {
+		// defined
+	}
+}

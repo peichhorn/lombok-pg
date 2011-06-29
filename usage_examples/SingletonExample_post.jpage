@@ -1,11 +1,30 @@
-public enum SingletonExample {
+public enum SingletonEnumExample {
 	INSTANCE;
+	
+	@java.lang.SuppressWarnings("all")
+	public static SingletonEnumExample getInstance() {
+		return INSTANCE;
+	}
+	
+	private String s;
+
+	public void bar() {
+	}
+}
+
+public class SingletonHolderExample {
+	@java.lang.SuppressWarnings("all")
+	private static class SingletonHolderExampleHolder {
+		private static final SingletonHolderExample INSTANCE = new SingletonHolderExample();
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static SingletonHolderExample getInstance() {
+		return SingletonHolderExampleHolder.INSTANCE;
+	}
 	
 	private String s;
 	
 	public void foo() {
-	}
-	
-	public bar bar() {
 	}
 }
