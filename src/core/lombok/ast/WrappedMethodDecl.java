@@ -21,8 +21,6 @@
  */
 package lombok.ast;
 
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-
 import lombok.Getter;
 
 @Getter
@@ -30,15 +28,8 @@ public class WrappedMethodDecl extends MethodDecl {
 	private final Object wrappedObject;
 
 	public WrappedMethodDecl(final Object wrappedObject) {
-		super(null, methodName(wrappedObject));
+		super(null, null);
 		this.wrappedObject = wrappedObject;
-	}
-
-	private static String methodName(final Object object) {
-		if (object instanceof MethodBinding) {
-			return new String(((MethodBinding)object).selector);
-		}
-		return null;
 	}
 
 	@Override

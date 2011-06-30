@@ -749,7 +749,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		methodDeclaration.modifiers = (abstractMethod.getAccessFlags() & (~AccAbstract));
 		methodDeclaration.returnType = build(node.getReturnType(), TypeReference.class);
 		methodDeclaration.annotations = toArray(build(node.getAnnotations()), new Annotation[0]);
-		methodDeclaration.selector = node.getName().toCharArray();
+		methodDeclaration.selector = abstractMethod.selector;
 		methodDeclaration.thrownExceptions = toArray(build(node.getThrownExceptions()), new TypeReference[0]);
 		methodDeclaration.typeParameters = toArray(build(node.getTypeParameters()), new TypeParameter[0]);
 		methodDeclaration.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;

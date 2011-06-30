@@ -134,7 +134,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
         <attribute name="Agent-Class" value="lombok.core.LombokPGAgent" />
         <attribute name="Can-Redefine-Classes" value="true" />
         <attribute name="Main-Class" value="lombok.core.Main" />
-        <attribute name="Lombok-Version" value="0.10.0-BETA2-PG-HEAD" />
+        <attribute name="Lombok-Version" value="0.10.0-PG" />
       </manifest>
     </jar>
     <property name="lombok.dist.built" value="true" />
