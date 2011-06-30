@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class Continue extends Statement {
 	private String label;
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitContinue(this, p);

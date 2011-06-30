@@ -67,7 +67,7 @@ public class EclipseType {
 		this.source = source;
 		builder = new EclipseASTMaker(typeNode, source);
 	}
-	
+
 	public <T extends ASTNode> T build(lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
@@ -87,19 +87,19 @@ public class EclipseType {
 	public boolean isInterface() {
 		return (get().modifiers & AccInterface) != 0;
 	}
-	
+
 	public boolean isEnum() {
 		return (get().modifiers & AccEnum) != 0;
 	}
-	
+
 	public boolean isAnnotation() {
 		return (get().modifiers & AccAnnotation) != 0;
 	}
-	
+
 	public boolean hasSuperClass() {
 		return get().superclass != null;
 	}
-	
+
 	public EclipseType memberType(String typeName) {
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
@@ -109,7 +109,7 @@ public class EclipseType {
 		}
 		throw new IllegalArgumentException();
 	}
-	
+
 	public List<EclipseMethod> methods() {
 		List<EclipseMethod> methods = new ArrayList<EclipseMethod>();
 		for (EclipseNode child : node().down()) {
@@ -118,7 +118,7 @@ public class EclipseType {
 		}
 		return methods;
 	}
-	
+
 	public boolean hasMultiArgumentConstructor() {
 		if (isNotEmpty(get().methods)) for (AbstractMethodDeclaration def : get().methods) {
 			if ((def instanceof ConstructorDeclaration) && isNotEmpty(def.arguments)) return true;
@@ -138,7 +138,7 @@ public class EclipseType {
 		final FieldDeclaration field = builder.build(fieldDecl);
 		EclipseHandlerUtil.injectField(typeNode, field);
 	}
-	
+
 	public void injectField(lombok.ast.EnumConstant enumConstant) {
 		final FieldDeclaration field = builder.build(enumConstant);
 		EclipseHandlerUtil.injectField(typeNode, field);
@@ -155,7 +155,7 @@ public class EclipseType {
 	private AbstractMethodDeclaration injectMethodImpl(lombok.ast.AbstractMethodDecl<?> methodDecl) {
 		final AbstractMethodDeclaration method = builder.build(methodDecl, MethodDeclaration.class);
 		EclipseHandlerUtil.injectMethod(typeNode, method);
-		
+
 		TypeDeclaration type = (TypeDeclaration) typeNode.get();
 		if (type.scope != null && method.scope == null) {
 			boolean aboutToBeResolved = false;
@@ -190,7 +190,7 @@ public class EclipseType {
 		final TypeDeclaration type = builder.build(typeDecl);
 		Eclipse.injectType(typeNode, type);
 	}
-	
+
 	public void removeMethod(EclipseMethod method) {
 		TypeDeclaration type = (TypeDeclaration) typeNode.get();
 		List<AbstractMethodDeclaration> methods = new ArrayList<AbstractMethodDeclaration>();
@@ -206,7 +206,7 @@ public class EclipseType {
 	public String name() {
 		return new String(get().name);
 	}
-	
+
 	public List<lombok.ast.TypeRef> typeParameters() {
 		final List<lombok.ast.TypeRef> typeParameters = new ArrayList<lombok.ast.TypeRef>();
 		if (isNotEmpty(get().typeParameters)) for (TypeParameter param : get().typeParameters) {

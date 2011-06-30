@@ -33,12 +33,12 @@ public final class This extends Expression {
 	This(final TypeRef type) {
 		this.type = child(type);
 	}
-	
+
 	public This implicit() {
 		implicit = true;
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitThis(this, p);

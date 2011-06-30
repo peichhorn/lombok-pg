@@ -43,7 +43,7 @@ public class ClassDecl extends Statement {
 	private boolean local;
 	private boolean anonymous;
 	private boolean isInterface;
-	
+
 	public ClassDecl(final String name) {
 		this.name = name;
 	}
@@ -67,12 +67,12 @@ public class ClassDecl extends Statement {
 		anonymous = true;
 		return this;
 	}
-	
+
 	public ClassDecl makeInterface() {
 		isInterface = true;
 		return this;
 	}
-	
+
 	public ClassDecl makePrivate() {
 		return withModifier(PRIVATE);
 	}
@@ -88,7 +88,7 @@ public class ClassDecl extends Statement {
 	public ClassDecl makeStatic() {
 		return withModifier(STATIC);
 	}
-	
+
 	public ClassDecl makeFinal() {
 		return withModifier(FINAL);
 	}
@@ -102,7 +102,7 @@ public class ClassDecl extends Statement {
 		methods.add(child(method));
 		return this;
 	}
-	
+
 	public ClassDecl withMethods(final List<AbstractMethodDecl<?>> methods) {
 		for (AbstractMethodDecl<?> method : methods) withMethod(method);
 		return this;
@@ -112,7 +112,7 @@ public class ClassDecl extends Statement {
 		fields.add(child(field));
 		return this;
 	}
-	
+
 	public ClassDecl withFields(final List<FieldDecl> fields) {
 		for (FieldDecl field : fields) withField(field);
 		return this;
@@ -122,7 +122,7 @@ public class ClassDecl extends Statement {
 		memberTypes.add(child(type));
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitClassDecl(this, p);

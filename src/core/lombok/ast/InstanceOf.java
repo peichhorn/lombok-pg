@@ -27,12 +27,12 @@ import lombok.Getter;
 public final class InstanceOf extends Expression {
 	private final Expression expression;
 	private final TypeRef type;
-	
+
 	public InstanceOf(final Expression expression, final TypeRef type) {
 		this.expression = child(expression);
 		this.type = child(type);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitInstanceOf(this, p);

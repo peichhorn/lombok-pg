@@ -21,7 +21,7 @@ class BuilderPlain {
 	
 	@java.lang.SuppressWarnings("all")
 	public static interface $OptionalDef {
-		$OptionalDef withOptionalVal1(final String arg0);
+		$OptionalDef withOptionalVal1(final String optionalVal1);
 		
 		$OptionalDef withOptionalVal2(final java.lang.Long arg0);
 		
@@ -40,8 +40,8 @@ class BuilderPlain {
 		private java.util.List<java.lang.Long> optionalVal2 = new java.util.ArrayList<java.lang.Long>();
 		private Map<java.lang.String, java.lang.Long> optionalVal3 = new HashMap<java.lang.String, java.lang.Long>();
 		
-		public $OptionalDef withOptionalVal1(final String arg0) {
-			this.optionalVal1 = arg0;
+		public $OptionalDef withOptionalVal1(final String optionalVal1) {
+			this.optionalVal1 = optionalVal1;
 			return this;
 		}
 		

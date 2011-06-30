@@ -21,30 +21,24 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
+import static lombok.ast.AST.*;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static lombok.javac.handlers.JavacTreeBuilder.*;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.Await;
-import lombok.AwaitBeforeAndSignalAfter;
-import lombok.Position;
-import lombok.ReadLock;
-import lombok.RequiredArgsConstructor;
-import lombok.Signal;
-import lombok.WriteLock;
+import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
+import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 public class HandleConditionAndLock {
@@ -53,8 +47,8 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<ReadLock> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
-					.withLockMethod("readLock")
-					.handle(ann.value(), ReadLock.class, ast, annotationNode);
+				.withLockMethod("readLock")
+				.handle(ann.value(), ReadLock.class, ast, annotationNode);
 		}
 	}
 
@@ -63,8 +57,8 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<WriteLock> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			new HandleConditionAndLock()
-					.withLockMethod("writeLock")
-					.handle(ann.value(), WriteLock.class, ast, annotationNode);
+				.withLockMethod("writeLock")
+				.handle(ann.value(), WriteLock.class, ast, annotationNode);
 		}
 	}
 
@@ -73,8 +67,8 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<Signal> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			new HandleConditionAndLock()
-					.withSignal(new SignalData(ann.value(), ann.pos()))
-					.handle(ann.lockName(), Signal.class, ast, annotationNode);
+				.withSignal(new SignalData(ann.value(), ann.pos()))
+				.handle(ann.lockName(), Signal.class, ast, annotationNode);
 		}
 	}
 
@@ -83,8 +77,8 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<Await> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Await ann = annotation.getInstance();
 			new HandleConditionAndLock()
-					.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
-					.handle(ann.lockName(), Await.class, ast, annotationNode);
+				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
+				.handle(ann.lockName(), Await.class, ast, annotationNode);
 		}
 	}
 
@@ -93,9 +87,9 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			new HandleConditionAndLock()
-					.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
-					.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-					.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
+				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
+				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
+				.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
 		}
 	}
 
@@ -121,7 +115,8 @@ public class HandleConditionAndLock {
 	public void handle(String lockName, Class<? extends Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		deleteImportFromCompilationUnit(annotationNode, Position.class.getName());
-		JavacMethod method = JavacMethod.methodOf(annotationNode);
+		final JavacType type = JavacType.typeOf(annotationNode, source);
+		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
@@ -140,44 +135,56 @@ public class HandleConditionAndLock {
 		String annotationTypeName = annotationType.getSimpleName();
 		String completeLockName = createCompleteLockName(lockName);
 
-		if (!tryToAddLockField(lockMode ? lockName : completeLockName, lockMode, annotationTypeName, annotationNode)) {
-			return;
-		}
+		if (!tryToAddLockField(type, annotationNode, completeLockName, lockMode, annotationTypeName)) return;
 
-		StringBuilder beforeMethodBlock = new StringBuilder();
-		StringBuilder afterMethodBlock = new StringBuilder();
+		List<lombok.ast.Statement> beforeMethodBlock = new ArrayList<lombok.ast.Statement>();
+		List<lombok.ast.Statement> afterMethodBlock = new ArrayList<lombok.ast.Statement>();
 
 		if (!lockMode) {
-			if (!getConditionStatements(await, completeLockName, annotationTypeName, annotationNode, beforeMethodBlock, afterMethodBlock)) {
-				return;
-			}
-			if (!getConditionStatements(signal, completeLockName, annotationTypeName, annotationNode, beforeMethodBlock, afterMethodBlock)) {
-				return;
-			}
+			if (!getConditionStatements(type, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
+			if (!getConditionStatements(type, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
 		}
 
-		TreeMaker maker = method.node().getTreeMaker();
-		method.body(statements(method.node(), "this.%s.lock(); try { %s %s %s } finally { this.%s.unlock(); }",
-				completeLockName, beforeMethodBlock, removeCurlyBrackets(method.get().body.toString()), afterMethodBlock, completeLockName));
+		final lombok.ast.Call lockCall;
+		final lombok.ast.Call unLockCall;
+		if (lockMode) {
+			lockCall = Call(Call(Field(This(), completeLockName), lockMethod), "lock");
+			unLockCall = Call(Call(Field(This(), completeLockName), lockMethod), "unlock");
+		} else {
+			lockCall = Call(Field(This(), completeLockName), "lock");
+			unLockCall = Call(Field(This(), completeLockName), "unlock");
+		}
+
+		method.body(Block() //
+			.withStatement(lockCall)
+			.withStatement(Try(Block() //
+				.withStatements(beforeMethodBlock) //
+				.withStatements(method.statements()) //
+				.withStatements(afterMethodBlock)//
+			).Finally(Block() //
+				.withStatement(unLockCall) //
+			) //
+		));
+
 		if (await != null) {
-			method.get().thrown = method.get().thrown.append(chainDotsString(maker, method.node(), "java.lang.InterruptedException"));
+			method.withException(Type("java.lang.InterruptedException"));
 		}
 
-		method.rebuild(source);
+		method.rebuild();
 	}
 
-	private boolean getConditionStatements(ConditionData condition, String lockName, String annotationTypeName, JavacNode node, StringBuilder before, StringBuilder after) {
+	private boolean getConditionStatements(JavacType type, JavacNode annotationNode, ConditionData condition, String lockName, String annotationTypeName, List<lombok.ast.Statement> before, List<lombok.ast.Statement> after) {
 		if (condition == null) {
 			return true;
 		}
-		if (tryToAddConditionField(condition.condition, lockName, annotationTypeName, node)) {
+		if (tryToAddConditionField(type, annotationNode, condition, lockName, annotationTypeName)) {
 			switch (condition.pos) {
 			case BEFORE:
-				before.append(condition);
+				before.add(condition.toStatement());
 				break;
 			default:
 			case AFTER:
-				after.append(condition);
+				after.add(condition.toStatement());
 				break;
 			}
 			return true;
@@ -186,33 +193,30 @@ public class HandleConditionAndLock {
 	}
 
 	private String createCompleteLockName(String lockName) {
-		String completeLockName;
-		if (lockMethod != null) {
-			completeLockName = lockName + "." + lockMethod + "()";
-		} else {
+		String completeLockName = lockName;
+		if (lockMethod == null) {
 			if (trim(lockName).isEmpty()) {
 				String awaitCondition = trim(await == null ? "" : await.condition);
 				String signalCondition = trim(signal == null ? "" : signal.condition);
 				completeLockName = "$" + camelCase(awaitCondition, signalCondition, "lock");
-			} else {
-				completeLockName = lockName;
 			}
 		}
 		return completeLockName;
 	}
 
-	private static boolean tryToAddLockField(String lockName, boolean isReadWriteLock, String annotationTypeName, JavacNode annotationNode) {
+	private static boolean tryToAddLockField(JavacType type, JavacNode annotationNode, String lockName, boolean isReadWriteLock, String annotationTypeName) {
 		lockName = trim(lockName);
 		if (lockName.isEmpty()) {
 			annotationNode.addError(String.format("@%s 'lockName' may not be empty or null.", annotationTypeName));
 			return false;
 		}
-		JavacNode methodNode = annotationNode.up();
-		if (fieldExists(lockName, methodNode) == MemberExistsResult.NOT_EXISTS) {
+		if (!type.hasField(lockName)) {
 			if(isReadWriteLock) {
-				addReadWriteLockField(methodNode, lockName, annotationNode.get());
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.ReadWriteLock"), lockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantReadWriteLock"))));
 			} else {
-				addLockField(methodNode, lockName, annotationNode.get());
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.Lock"), lockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantLock"))));
 			}
 		} else {
 			// TODO type check
@@ -222,32 +226,23 @@ public class HandleConditionAndLock {
 		return true;
 	}
 
-	private static boolean tryToAddConditionField(String conditionName, String lockName, String annotationTypeName, JavacNode annotationNode) {
-		conditionName = trim(conditionName);
+	private static boolean tryToAddConditionField(JavacType type, JavacNode annotationNode, ConditionData condition, String lockName, String annotationTypeName) {
+		if (condition == null) {
+			return true;
+		}
+		String conditionName = trim(condition.condition);
 		if (conditionName.isEmpty()) {
 			annotationNode.addError(String.format("@%s 'conditionName' may not be empty or null.", annotationTypeName));
 			return false;
 		}
-		JavacNode methodNode = annotationNode.up();
-		if (fieldExists(conditionName, methodNode) == MemberExistsResult.NOT_EXISTS) {
-			addConditionField(methodNode, conditionName, lockName, annotationNode.get());
+		if (!type.hasField(conditionName)) {
+			type.injectField(FieldDecl(Type("java.util.concurrent.locks.Condition"), conditionName).makePrivate().makeFinal() //
+				.withInitialization(Call(Name(lockName), "newCondition")));
 		} else {
 			// TODO type check
 			// java.util.concurrent.locks.Condition
 		}
 		return true;
-	}
-
-	private static void addLockField(JavacNode node, String lockName, JCTree source) {
-		field(node.up(), "private final java.util.concurrent.locks.Lock %s = new java.util.concurrent.locks.ReentrantLock();", lockName).inject(source);
-	}
-
-	private static void addReadWriteLockField(JavacNode node, String lockName, JCTree source) {
-		field(node.up(), "private final java.util.concurrent.locks.ReadWriteLock %s = new java.util.concurrent.locks.ReentrantReadWriteLock();", lockName).inject(source);
-	}
-
-	private static void addConditionField(JavacNode node, String conditionName, String lockName, JCTree source) {
-		field(node.up(), "private final java.util.concurrent.locks.Condition %s = %s.newCondition();", conditionName, lockName).inject(source);
 	}
 
 	private static class AwaitData extends ConditionData {
@@ -259,8 +254,8 @@ public class HandleConditionAndLock {
 		}
 
 		@Override
-		public String toString() {
-			return String.format("while(this.%s()) { this.%s.await();}", conditionMethod, condition);
+		public lombok.ast.Statement toStatement() {
+			return While(Call(This(), conditionMethod)).Do(Call(Field(This(), condition), "await"));
 		}
 	}
 
@@ -270,8 +265,8 @@ public class HandleConditionAndLock {
 		}
 
 		@Override
-		public String toString() {
-			return String.format("this.%s.signal();", condition);
+		public lombok.ast.Statement toStatement() {
+			return Call(Field(This(), condition), "signal");
 		}
 	}
 
@@ -279,5 +274,7 @@ public class HandleConditionAndLock {
 	private static abstract class ConditionData {
 		public final String condition;
 		public final Position pos;
+
+		public abstract lombok.ast.Statement toStatement();
 	}
 }

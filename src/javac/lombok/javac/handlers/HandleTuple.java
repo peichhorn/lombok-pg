@@ -21,11 +21,10 @@
  */
 package lombok.javac.handlers;
 
-import static com.sun.tools.javac.code.Flags.FINAL;
-import static lombok.core.util.ErrorMessages.canBeUsedInBodyOfMethodsOnly;
+import static lombok.ast.AST.*;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.deleteMethodCallImports;
 import static lombok.javac.handlers.Javac.isMethodCallValid;
-import static lombok.javac.handlers.JavacHandlerUtil.chainDots;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -36,6 +35,8 @@ import lombok.Tuple;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacASTMaker;
+import lombok.javac.handlers.ast.JavacMethod;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -45,7 +46,6 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCase;
@@ -74,7 +74,7 @@ public class HandleTuple extends JavacASTAdapter {
 			final JCMethodInvocation leftTupleCall = getTupelCall(statementNode, assignment.lhs);
 			final JCMethodInvocation rightTupleCall = getTupelCall(statementNode, assignment.rhs);
 			if ((leftTupleCall != null) && (rightTupleCall != null)) {
-				final JavacMethod method = JavacMethod.methodOf(statementNode);
+				final JavacMethod method = JavacMethod.methodOf(statementNode, statement);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("tuple"));
 				} else if (handle(statementNode, leftTupleCall, rightTupleCall)) {
@@ -115,10 +115,9 @@ public class HandleTuple extends JavacASTAdapter {
 		ListBuffer<JCStatement> tempVarAssignments = ListBuffer.lb();
 		ListBuffer<JCStatement> assignments = ListBuffer.lb();
 
-		TreeMaker maker = tupleAssignNode.getTreeMaker();
-
 		List<String> varnames = collectVarnames(leftTupleCall.args);
 		Iterator<String> varnameIter = varnames.listIterator();
+		JavacASTMaker builder = new JavacASTMaker(tupleAssignNode, leftTupleCall);
 
 		final Set<String> blacklistedNames = new HashSet<String>();
 		for (JCExpression arg : rightTupleCall.args) {
@@ -129,14 +128,14 @@ public class HandleTuple extends JavacASTAdapter {
 				final JCExpression vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get(), null);
 				if (vartype != null) {
 					String tempVarname = "$tuple" + withVarCounter++;
-					tempVarAssignments.append(maker.VarDef(maker.Modifiers(FINAL), tupleAssignNode.toName(tempVarname), vartype, arg));
-					assignments.append(maker.Exec(maker.Assign(chainDots(maker, tupleAssignNode, varname), chainDots(maker, tupleAssignNode, tempVarname))));
+					tempVarAssignments.append(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), JCStatement.class));
+					assignments.append(builder.build(Assign(Name(varname), Name(tempVarname)), JCStatement.class));
 				} else {
 					tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
 					return false;
 				}
 			} else {
-				assignments.append(maker.Exec(maker.Assign(chainDots(maker, tupleAssignNode, varname), arg)));
+				assignments.append(builder.build(Assign(Name(varname), Expr(arg)), JCStatement.class));
 			}
 		}
 		tempVarAssignments.appendList(assignments);

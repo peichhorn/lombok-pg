@@ -30,7 +30,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
-import lombok.javac.handlers.JavacMethod;
+import lombok.javac.handlers.ast.JavacMethod;
 import lombok.VisibleForTesting;
 
 import org.mangosdk.spi.ProviderFor;
@@ -41,7 +41,7 @@ public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTe
 	@Override
 	public void handle(AnnotationValues<VisibleForTesting> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, VisibleForTesting.class);
-		JavacMethod method = JavacMethod.methodOf(annotationNode);
+		JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
 			return;
@@ -52,6 +52,6 @@ public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTe
 		}
 
 		method.makePrivate();
-		method.rebuild(source);
+		method.rebuild();
 	}
 }

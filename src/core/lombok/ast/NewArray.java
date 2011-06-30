@@ -33,16 +33,16 @@ public final class NewArray extends Expression {
 	private final List<Expression> initializerExpressions = new ArrayList<Expression>();
 	private final TypeRef type;
 	private final int dimensions;
-	
+
 	public NewArray(TypeRef type, int dimensions) {
 		this.type = child(type);
 		this.dimensions = dimensions;
 	}
-	
+
 	public NewArray(final TypeRef type) {
 		this(type, 1);
 	}
-	
+
 	public NewArray addDimensionExpression(final Expression dimensionExpression) {
 		dimensionExpressions.add(child(dimensionExpression));
 		return this;
@@ -52,7 +52,7 @@ public final class NewArray extends Expression {
 		initializerExpressions.add(child(initializerExpression));
 		return this;
 	}
-	
+
 	public NewArray withInitializerExpressions(final List<Expression> initializerExpressions) {
 		for (Expression initializerExpression : initializerExpressions) withInitializerExpression(initializerExpression);
 		return this;

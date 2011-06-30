@@ -21,18 +21,21 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
+import static lombok.ast.AST.*;
 import lombok.RequiredArgsConstructor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacASTMaker;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
 @RequiredArgsConstructor
 public class QualifiedThisReplacementProvider implements IReplacementProvider<JCExpression> {
 	private final String typeName;
 	private final JavacNode node;
+	private final JCTree source;
 
 	@Override public JCExpression getReplacement() {
-		return chainDotsString(node.getTreeMaker(), node, typeName + ".this");
+		return new JavacASTMaker(node, source).build(This(Type(typeName)));
 	}
 }

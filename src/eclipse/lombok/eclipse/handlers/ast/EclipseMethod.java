@@ -28,6 +28,7 @@ import static org.eclipse.jdt.internal.compiler.ast.ASTNode.IsSynchronized;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccFinal;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Lists.list;
+import static lombok.core.util.Names.capitalize;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import static lombok.ast.AST.*;
@@ -45,6 +46,7 @@ import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
@@ -65,7 +67,7 @@ public class EclipseMethod {
 		this.source = source;
 		builder = new EclipseASTMaker(methodNode, source);
 	}
-	
+
 	public <T extends ASTNode> T build(lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
@@ -80,6 +82,28 @@ public class EclipseMethod {
 
 	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
+	}
+
+	public TypeRef returns() {
+		if (isConstructor()) return null;
+		return Type(returnType());
+	}
+
+	public TypeRef boxedReturns() {
+		if (isConstructor()) return null;
+		TypeReference type = returnType();
+		lombok.ast.TypeRef objectReturnType = Type(type);
+		if (type instanceof SingleTypeReference) {
+			final String name = new String(type.getLastToken());
+			if ("int".equals(name)) {
+				objectReturnType = Type("java.lang.Integer");
+			} else if ("char".equals(name)) {
+				objectReturnType = Type("java.lang.Character");
+			} else {
+				objectReturnType = Type("java.lang." + capitalize(name));
+			}
+		}
+		return objectReturnType;
 	}
 
 	public boolean returns(Class<?> clazz) {
@@ -100,15 +124,10 @@ public class EclipseMethod {
 		return type.endsWith(typeName);
 	}
 
-	public TypeReference returnType() {
+	private TypeReference returnType() {
 		if (isConstructor()) return null;
 		MethodDeclaration methodDecl = (MethodDeclaration)get();
 		return methodDecl.returnType;
-	}
-	
-	public TypeRef returns() {
-		if (isConstructor()) return null;
-		return Type(returnType());
 	}
 
 	public boolean isSynchronized() {
@@ -117,6 +136,14 @@ public class EclipseMethod {
 
 	public boolean isConstructor() {
 		return get() instanceof ConstructorDeclaration;
+	}
+
+	public boolean isAbstract() {
+		return get().isAbstract();
+	}
+
+	public boolean isEmpty() {
+		return Arrays.isEmpty(get().statements);
 	}
 
 	public AbstractMethodDeclaration get() {
@@ -135,17 +162,9 @@ public class EclipseMethod {
 		}
 		return false;
 	}
-	
+
 	public boolean hasArguments() {
 		return isNotEmpty(get().arguments);
-	}
-
-	public boolean isAbstract() {
-		return get().isAbstract();
-	}
-
-	public boolean isEmpty() {
-		return Arrays.isEmpty(get().statements);
 	}
 
 	public String name() {
@@ -174,7 +193,7 @@ public class EclipseMethod {
 	public void body(lombok.ast.Statement... statements) {
 		body(list(statements));
 	}
-	
+
 	public void body(List<lombok.ast.Statement> statements) {
 		setGeneratedByAndCopyPos(get(), source);
 		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
@@ -193,7 +212,15 @@ public class EclipseMethod {
 	public void body(final lombok.ast.Block body) {
 		body(body.getStatements());
 	}
-	
+
+	public void rebuild() {
+		node().rebuild();
+	}
+
+	public EclipseType surroundingType() {
+		return EclipseType.typeOf(node(), source);
+	}
+
 	public List<lombok.ast.Statement> statements() {
 		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
 		if (isNotEmpty(get().statements)) for (Object statement : get().statements) {
@@ -201,7 +228,7 @@ public class EclipseMethod {
 		}
 		return methodStatements;
 	}
-	
+
 	public List<lombok.ast.Annotation> annotations() {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		if (isNotEmpty(get().annotations)) for (Annotation annotation : get().annotations) {
@@ -217,15 +244,15 @@ public class EclipseMethod {
 		}
 		return annotations;
 	}
-	
+
 	public List<lombok.ast.Argument> arguments() {
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
 		if (isNotEmpty(get().arguments)) for (Argument argument : get().arguments) {
-			methodArguments.add(Arg(Type(argument.type), new String(argument.name)).makeFinal());
+			methodArguments.add(Arg(Type(argument.type), new String(argument.name)));
 		}
 		return methodArguments;
 	}
-	
+
 	public List<lombok.ast.TypeRef> thrownExceptions() {
 		final List<lombok.ast.TypeRef> thrownExceptions = new ArrayList<lombok.ast.TypeRef>();
 		if (isNotEmpty(get().thrownExceptions)) for (Object thrownException : get().thrownExceptions) {
@@ -243,10 +270,6 @@ public class EclipseMethod {
 		}
 		get().thrownExceptions = resize(originalThrownExceptionsArray, originalThrownExceptionsArray.length + 1);
 		get().thrownExceptions[originalThrownExceptionsArray.length] = thrown;
-	}
-
-	public void rebuild() {
-		node().rebuild();
 	}
 
 	@Override

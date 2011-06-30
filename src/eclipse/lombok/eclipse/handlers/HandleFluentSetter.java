@@ -148,7 +148,7 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 
 		generateSetter(EclipseType.typeOf(fieldNode, source), fieldNode, fieldName, level, source);
 	}
-	
+
 	public static List<lombok.ast.Annotation> findAnnotations(AbstractVariableDeclaration variable, Pattern namePattern) {
 		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
 		if (isNotEmpty(variable.annotations)) for (Annotation annotation : variable.annotations) {
@@ -158,17 +158,17 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 			if (namePattern.matcher(suspect).matches()) {
 				result.add(Annotation(Type(typeRef)));
 			}
-		}	
+		}
 		return result;
 	}
-	
+
 	private void generateSetter(EclipseType type, EclipseNode fieldNode, String name, AccessLevel level, ASTNode source) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 
 		MethodDecl methodDecl = MethodDecl(Type(new String(type.name())).withTypeArguments(type.typeParameters()), name).withAccessLevel(level) //
 			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(nonNulls));
-		
+
 		if ((field.modifiers & AccStatic) != 0) methodDecl.makeStatic();
 		if (!nonNulls.isEmpty() && !isPrimitive(field.type)) {
 			methodDecl.withStatement(If(Equal(Name(name), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(name)))));

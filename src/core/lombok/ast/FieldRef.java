@@ -27,16 +27,16 @@ import lombok.Getter;
 public final class FieldRef extends Expression {
 	private Expression receiver;
 	private final String name;
-	
+
 	public FieldRef(final Expression receiver, final String name) {
 		this.receiver = child(receiver);
 		this.name = name;
 	}
-	
+
 	public FieldRef(final String name) {
 		this(new This().implicit(), name);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitFieldRef(this, p);

@@ -8,17 +8,17 @@
   public @java.lang.SuppressWarnings("all") void removeKeyListener(final java.awt.event.KeyListener l) {
     $registeredKeyListener.remove(l);
   }
-  protected @java.lang.SuppressWarnings("all") void fireKeyPressed(final java.awt.event.KeyEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireKeyPressed(final java.awt.event.KeyEvent arg0) {
     for (java.awt.event.KeyListener l : $registeredKeyListener) 
-      l.keyPressed( arg0);
+      l.keyPressed(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireKeyReleased(final java.awt.event.KeyEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireKeyReleased(final java.awt.event.KeyEvent arg0) {
     for (java.awt.event.KeyListener l : $registeredKeyListener) 
-      l.keyReleased( arg0);
+      l.keyReleased(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireKeyTyped(final java.awt.event.KeyEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireKeyTyped(final java.awt.event.KeyEvent arg0) {
     for (java.awt.event.KeyListener l : $registeredKeyListener) 
-      l.keyTyped( arg0);
+      l.keyTyped(arg0);
   }
   public @java.lang.SuppressWarnings("all") void addMouseWheelListener(final java.awt.event.MouseWheelListener l) {
     if ((! $registeredMouseWheelListener.contains(l)))
@@ -27,9 +27,9 @@
   public @java.lang.SuppressWarnings("all") void removeMouseWheelListener(final java.awt.event.MouseWheelListener l) {
     $registeredMouseWheelListener.remove(l);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseWheelMoved(final java.awt.event.MouseWheelEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseWheelMoved(final java.awt.event.MouseWheelEvent arg0) {
     for (java.awt.event.MouseWheelListener l : $registeredMouseWheelListener) 
-      l.mouseWheelMoved( arg0);
+      l.mouseWheelMoved(arg0);
   }
   ListenerSupportPlain1() {
     super();
@@ -49,33 +49,33 @@
   public @java.lang.SuppressWarnings("all") void removeMouseInputListener(final javax.swing.event.MouseInputListener l) {
     $registeredMouseInputListener.remove(l);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseClicked(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseClicked(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseClicked( arg0);
+      l.mouseClicked(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseEntered(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseEntered(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseEntered( arg0);
+      l.mouseEntered(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseExited(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseExited(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseExited( arg0);
+      l.mouseExited(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMousePressed(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMousePressed(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mousePressed( arg0);
+      l.mousePressed(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseReleased(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseReleased(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseReleased( arg0);
+      l.mouseReleased(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseDragged(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseDragged(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseDragged( arg0);
+      l.mouseDragged(arg0);
   }
-  protected @java.lang.SuppressWarnings("all") void fireMouseMoved(final java.awt.event.MouseEvent  arg0) {
+  protected @java.lang.SuppressWarnings("all") void fireMouseMoved(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
-      l.mouseMoved( arg0);
+      l.mouseMoved(arg0);
   }
   ListenerSupportPlain3() {
     super();

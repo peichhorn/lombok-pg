@@ -21,17 +21,14 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
+import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
-import static lombok.eclipse.handlers.Eclipse.*;
-import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.SwingInvokeAndWait;
-import lombok.SwingInvokeLater;
+import lombok.*;
 import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
@@ -41,21 +38,20 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 /**
  * Handles the {@code lombok.SwingInvokeLater} and {@code lombok.SwingInvokeAndWait} annotation for eclipse.
  */
 public class HandleSwingInvoke {
-	
+
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleSwingInvokeLater extends EclipseAnnotationHandler<SwingInvokeLater> {
 		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, Annotation ast, EclipseNode annotationNode) {
 			new HandleSwingInvoke().generateSwingInvoke("invokeLater", SwingInvokeLater.class, ast, annotationNode);
 		}
 
+		@Override
 		public boolean deferUntilPostDiet() {
 			return true;
 		}
@@ -67,6 +63,7 @@ public class HandleSwingInvoke {
 			new HandleSwingInvoke().generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class, ast, annotationNode);
 		}
 
+		@Override
 		public boolean deferUntilPostDiet() {
 			return true;
 		}
@@ -121,17 +118,15 @@ public class HandleSwingInvoke {
 
 	private List<Statement> rethrowStatements(final EclipseMethod method) {
 		final List<Statement> rethrowStatements = new ArrayList<Statement>();
-		if (isNotEmpty(method.get().thrownExceptions)) for (TypeReference thrownException : method.get().thrownExceptions) {
-			rethrowStatements.add(If(InstanceOf(Name("$cause"), Type(thrownException))) //
-				.Then(Throw(Cast(Type(thrownException), Name("$cause")))));
+		for (TypeRef thrownException : method.thrownExceptions()) {
+			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
+				.Then(Throw(Cast(thrownException, Name("$cause")))));
 		}
 		return rethrowStatements;
 	}
 
 	private void replaceWithQualifiedThisReference(final EclipseMethod method, final ASTNode source) {
-		final EclipseNode parent = typeNodeOf(method.node());
-		final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
-		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(new String(typeDec.name), source);
+		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType().name(), source);
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 }

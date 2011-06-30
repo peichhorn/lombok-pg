@@ -115,13 +115,13 @@ public class HandleTuple extends EclipseASTAdapter {
 			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
 			return false;
 		}
-		ASTNode source = leftTupleCall;
+
 		List<Statement> tempVarAssignments = new ArrayList<Statement>();
 		List<Statement> assignments = new ArrayList<Statement>();
 
 		List<String> varnames = collectVarnames(leftTupleCall.arguments);
 		Iterator<String> varnameIter = varnames.listIterator();
-		EclipseASTMaker builder = new EclipseASTMaker(tupleAssignNode, source);
+		EclipseASTMaker builder = new EclipseASTMaker(tupleAssignNode, leftTupleCall);
 
 		final Set<String> blacklistedNames = new HashSet<String>();
 		if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {

@@ -27,12 +27,12 @@ import lombok.Getter;
 public final class Unary extends Expression {
 	private final String operator;
 	private final Expression expression;
-	
+
 	public Unary(final String operator, final Expression expression) {
 		this.operator = operator;
 		this.expression = child(expression);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitUnary(this, p);

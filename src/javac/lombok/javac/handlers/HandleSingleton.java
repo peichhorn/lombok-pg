@@ -21,122 +21,73 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.Javac.typeDeclFiltering;
-import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static lombok.javac.handlers.JavacTreeBuilder.*;
 import static com.sun.tools.javac.code.Flags.*;
+import static lombok.ast.AST.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
+
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+
 import lombok.Singleton;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
+import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.util.List;
-
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
-	
+
 	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);
 
-		if (isNoConcreteClass(annotationNode)) {
-			return;
-		}
-
-		if (hasMultiArgumentConstructor(annotationNode)) {
-			return;
-		}
-		
-		JavacNode typeNode = annotationNode.up();
-		JCClassDecl type = (JCClassDecl)typeNode.get();
-		Singleton singleton = annotation.getInstance();
-		String typeName = typeNode.getName();
-		
-		switch(singleton.style()) {
-		case HOLDER: {
-			String holderName = typeName + "Holder";
-			clazz(typeNode, PRIVATE | STATIC, holderName) //
-				.withField(field(typeNode, "private final static %s INSTANCE = new %s()", typeName, typeName).build()).inject(source);
-			makeConstructorNonPublicAndNonProtected(type);
-			method(typeNode, "public static %s getInstance() { return %s.INSTANCE; }", typeName, holderName).inject(source);
-		break;
-		}
-		default:
-		case ENUM: {
-			type.mods.flags |= ENUM;
-			makeConstructorNonPublicAndNonProtected(type);
-
-			TreeMaker maker = typeNode.getTreeMaker();
-			JCExpression typeRef = maker.Ident(type.name);
-			List<JCExpression> nilExp = List.nil();
-			JCNewClass init = maker.NewClass(null, nilExp, typeRef, nilExp, null);
-			JCModifiers mods = maker.Modifiers(PUBLIC | STATIC | FINAL| ENUM);
-			injectField(typeNode, lombok.javac.Javac.recursiveSetGeneratedBy(maker.VarDef(mods, typeNode.toName("INSTANCE"), typeRef, init), source));
-			method(typeNode, "public static %s getInstance() { return INSTANCE; }", typeName).inject(source);
-		}
-		}
-
-		typeNode.rebuild();
-	}
-
-	private boolean isNoConcreteClass(JavacNode annotationNode) {
-		JavacNode typeNode = annotationNode.up();
-		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION | ENUM);
-		if (typeDecl == null) {
+		JavacType type = JavacType.typeOf(annotationNode, source);
+		if (type.isAnnotation() || type.isInterface() || type.isEnum()) {
 			annotationNode.addError(canBeUsedOnClassOnly(Singleton.class));
-			return true;
+			return;
 		}
-		if (typeDecl.extending != null) {
+		if (type.hasSuperClass()) {
 			annotationNode.addError(canBeUsedOnConcreteClassOnly(Singleton.class));
-			return true;
+			return;
 		}
-		return false;
-	}
-
-	private boolean hasMultiArgumentConstructor(JavacNode annotationNode) {
-		JavacNode typeNode = annotationNode.up();
-		JCClassDecl type = (JCClassDecl)typeNode.get();
-		if (hasMultiArgumentConstructor(type)) {
+		if (type.hasMultiArgumentConstructor()) {
 			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
-			return true;
+			return;
 		}
-		return false;
+
+		Singleton singleton = annotation.getInstance();
+		String typeName = type.name();
+
+		switch(singleton.style()) {
+		case HOLDER:
+			String holderName = typeName + "Holder";
+			replaceConstructorVisibility(type);
+
+			type.injectType(ClassDecl(holderName).makePrivate().makeStatic() //
+					.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
+				type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
+					.withStatement(Return(Name(holderName + ".INSTANCE"))));
+			break;
+		default:
+		case ENUM:
+			type.get().mods.flags |= ENUM;
+			replaceConstructorVisibility(type);
+
+			type.injectField(EnumConstant("INSTANCE"));
+			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
+				.withStatement(Return(Name("INSTANCE"))));
+		}
+
+		type.rebuild();
 	}
 
-	private void makeConstructorNonPublicAndNonProtected(JCClassDecl type) {
-		for (JCTree def : type.defs) {
-			if (isConstructor(def)) {
-				((JCMethodDecl)def).mods.flags &= ~(PUBLIC | PROTECTED);
+	private void replaceConstructorVisibility(JavacType type) {
+		for (JavacMethod method : type.methods()) {
+			if (method.isConstructor()) {
+				method.get().mods.flags &= ~(PUBLIC | PROTECTED);
 			}
 		}
-	}
-
-	private boolean hasMultiArgumentConstructor(JCClassDecl type) {
-		for (JCTree def : type.defs) {
-			if (isConstructor(def)) {
-				if (!((JCMethodDecl)def).params.isEmpty()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private boolean isConstructor(JCTree def) {
-		if (def instanceof JCMethodDecl) {
-			JCMethodDecl method = (JCMethodDecl)def;
-			return method.name.contentEquals("<init>");
-		}
-		return false;
 	}
 }

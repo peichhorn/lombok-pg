@@ -37,9 +37,9 @@ public class Call extends Expression {
 		this.receiver = child(receiver);
 		this.name = name;
 	}
-	
+
 	public Call(final String name) {
-		this(new This().implicit(), name);
+		this(null, name);
 	}
 
 	public Call withArgument(final Expression argument) {
@@ -56,7 +56,7 @@ public class Call extends Expression {
 		typeArgs.add(child(typeArg));
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitCall(this, p);

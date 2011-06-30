@@ -21,18 +21,30 @@
  */
 package lombok.ast;
 
-public class Argument extends AbstractVariableDecl<Argument> {
+import lombok.Getter;
 
-	public Argument(TypeRef type, String name) {
-		super(type, name);
+@Getter
+public class Wildcard extends TypeRef {
+	public enum Bound {
+		EXTENDS,
+		SUPER;
 	}
 
-	public TypeRef getType() {
-		return type;
+	private final TypeRef type;
+	private final Bound bound;
+
+	public Wildcard() {
+		this(null, null);
+	}
+
+	public Wildcard(Bound bound, TypeRef type) {
+		super((String) null);
+		this.type = type;
+		this.bound = bound;
 	}
 
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
-		return v.visitArgument(this, p);
+		return v.visitWildcard(this, p);
 	}
 }

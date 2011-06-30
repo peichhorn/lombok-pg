@@ -1,3 +1,24 @@
+/*
+ * Copyright © 2011 Philipp Eichhorn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -16,7 +37,7 @@ import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.makeType;
 import static lombok.eclipse.Eclipse.poss;
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,13 +111,13 @@ import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
 import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
+import org.eclipse.jdt.internal.compiler.ast.Wildcard;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 import lombok.RequiredArgsConstructor;
-import lombok.ast.WrappedMethodDecl;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 
@@ -127,7 +148,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		}
 		return list;
 	}
-	
+
 	private int modifiersFor(Set<lombok.ast.Modifier> modifiers) {
 		int mods = 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? PRIVATE : 0;
@@ -143,7 +164,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		setGeneratedByAndCopyPos(emptyStatement, source);
 		return emptyStatement;
 	}
-	
+
 	private static <ELEMENT_TYPE> ELEMENT_TYPE[] toArray(final List<?> list, final ELEMENT_TYPE[] array) {
 		if ((list != null) && !list.isEmpty()) {
 			return list.toArray(array);
@@ -235,7 +256,11 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	public ASTNode visitCall(lombok.ast.Call node, Void p) {
 		final MessageSend messageSend = new MessageSend();
 		setGeneratedByAndCopyPos(messageSend, source);
-		messageSend.receiver = build(node.getReceiver());
+		if (node.getReceiver() == null) {
+			messageSend.receiver = build(This().implicit());
+		} else {
+			messageSend.receiver = build(node.getReceiver());
+		}
 		messageSend.selector = node.getName().toCharArray();
 		messageSend.typeArguments = toArray(build(node.getTypeArgs()), new TypeReference[0]);
 		messageSend.arguments = toArray(build(node.getArgs()), new Expression[0]);
@@ -454,7 +479,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		allocationExpression.arguments = toArray(build(node.getArgs()), new Expression[0]);
 		return allocationExpression;
 	}
-	
+
 	@Override
 	public ASTNode visitNewArray(lombok.ast.NewArray node, Void p) {
 		ArrayAllocationExpression allocationExpression = new ArrayAllocationExpression();
@@ -507,29 +532,30 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	public ASTNode visitReturnDefault(lombok.ast.ReturnDefault node, Void p) {
 		lombok.ast.Return returnDefault = Return(Null());
 		lombok.ast.TypeRef returnType = node.upTo(lombok.ast.MethodDecl.class).getReturnType();
-		if (returnType != null) {
-			final TypeReference type = build(returnType);
-			if (type instanceof SingleTypeReference) {
-				final String name = new String(type.getLastToken());
-				if ("int".equals(name)) {
-					returnDefault = Return(Number(Integer.valueOf(0)));
-				} else if ("byte".equals(name)) {
-					returnDefault = Return(Number(Integer.valueOf(0)));
-				} else if ("short".equals(name)) {
-					returnDefault = Return(Number(Integer.valueOf(0)));
-				} else if ("char".equals(name)) {
-					returnDefault = Return(Char(""));
-				} else if ("long".equals(name)) {
-					returnDefault = Return(Number(Long.valueOf(0)));
-				} else if ("float".equals(name)) {
-					returnDefault = Return(Number(Float.valueOf(0)));
-				} else if ("double".equals(name)) {
-					returnDefault = Return(Number(Double.valueOf(0)));
-				} else if ("boolean".equals(name)) {
-					returnDefault = Return(False());
-				} else if ("void".equals(name)) {
-					returnDefault = Return();
-				}
+		if (returnType == null) {
+			returnType = Type(methodNodeOf(sourceNode).getName());
+		}
+		final TypeReference type = build(returnType);
+		if (type instanceof SingleTypeReference) {
+			final String name = new String(type.getLastToken());
+			if ("int".equals(name)) {
+				returnDefault = Return(Number(Integer.valueOf(0)));
+			} else if ("byte".equals(name)) {
+				returnDefault = Return(Number(Integer.valueOf(0)));
+			} else if ("short".equals(name)) {
+				returnDefault = Return(Number(Integer.valueOf(0)));
+			} else if ("char".equals(name)) {
+				returnDefault = Return(Char(""));
+			} else if ("long".equals(name)) {
+				returnDefault = Return(Number(Long.valueOf(0)));
+			} else if ("float".equals(name)) {
+				returnDefault = Return(Number(Float.valueOf(0)));
+			} else if ("double".equals(name)) {
+				returnDefault = Return(Number(Double.valueOf(0)));
+			} else if ("boolean".equals(name)) {
+				returnDefault = Return(False());
+			} else if ("void".equals(name)) {
+				returnDefault = Return();
 			}
 		}
 		return build(returnDefault);
@@ -595,9 +621,13 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	@Override
 	public ASTNode visitTypeParam(lombok.ast.TypeParam node, Void p) {
 		final TypeParameter typeParameter = new TypeParameter();
-		typeParameter.type = build(node.getType());
 		typeParameter.name = node.getName().toCharArray();
-		typeParameter.bounds = toArray(build(node.getBounds()), new TypeReference[0]);
+		final List<lombok.ast.TypeRef> bounds = new ArrayList<lombok.ast.TypeRef>(node.getBounds());
+		if (!bounds.isEmpty()) {
+			typeParameter.type = build(bounds.get(0));
+			bounds.remove(0);
+			typeParameter.bounds = toArray(build(bounds), new TypeReference[0]);
+		}
 		setGeneratedByAndCopyPos(typeParameter, source);
 		return typeParameter;
 	}
@@ -661,49 +691,33 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	}
 
 	@Override
+	public ASTNode visitWildcard(lombok.ast.Wildcard node, Void p) {
+		int kind = Wildcard.UNBOUND;
+		if (node.getBound() != null) {
+			switch(node.getBound()) {
+			case SUPER:
+				kind = Wildcard.SUPER;
+				break;
+			default:
+			case EXTENDS:
+				kind = Wildcard.EXTENDS;
+			}
+		}
+		final Wildcard wildcard = new Wildcard(kind);
+		setGeneratedByAndCopyPos(wildcard, source);
+		wildcard.bound = build(node.getType());
+		return wildcard;
+	}
+
+	@Override
 	public ASTNode visitWrappedExpression(lombok.ast.WrappedExpression node, Void p) {
 		Expression expression = (Expression) node.getWrappedObject();
 		setGeneratedByAndCopyPos(expression, source);
 		return expression;
 	}
 
-	/*
 	@Override
-	public MethodDeclaration injectInto(final EclipseNode node, final ASTNode source) {
-		final EclipseNode typeNode = typeNodeOf(node);
-		final TypeDeclaration type = (TypeDeclaration) typeNode.get();
-		final MethodDeclaration method = build(node, source);
-
-		SourceTypeBinding sourceType = type.scope.referenceContext.binding;
-		MethodScope methodScope = new MethodScope(type.scope, method, false);
-		SourceTypeBinding declaringClass = methodScope.referenceType().binding;
-		MethodBinding methodBinding = new MethodBinding(method.modifiers, method.selector, abstractMethod.returnType, abstractMethod.parameters, abstractMethod.thrownExceptions, declaringClass);
-		method.binding = methodBinding;
-		method.scope = methodScope;
-
-		Argument[] argTypes = method.arguments;
-		int argLength = argTypes == null ? 0 : argTypes.length;
-		if ((argLength > 0) && argTypes[--argLength].isVarArgs())
-			methodBinding.modifiers |= AccVarargs;
-
-		TypeParameter[] typeParameters = method.typeParameters();
-		if (typeParameters != null) {
-			methodBinding.typeVariables = methodScope.createTypeVariables(typeParameters, method.binding);
-			methodBinding.modifiers |= AccGenericSignature;
-		}
-
-		MethodBinding[] allMethods = new MethodBinding[sourceType.methods().length + 1];
-		System.arraycopy(sourceType.methods(), 0, allMethods, 0, sourceType.methods().length);
-		allMethods[sourceType.methods().length] = methodBinding;
-		sourceType.setMethods(allMethods);
-
-		injectMethod(typeNode, method);
-		return method;
-	}
-	*/
-	
-	@Override
-	public ASTNode visitWrappedMethodDecl(WrappedMethodDecl node, Void p) {
+	public ASTNode visitWrappedMethodDecl(lombok.ast.WrappedMethodDecl node, Void p) {
 		MethodDeclaration methodDeclaration = new MethodDeclaration(((CompilationUnitDeclaration) sourceNode.top().get()).compilationResult);
 		setGeneratedByAndCopyPos(methodDeclaration, source);
 		MethodBinding abstractMethod = (MethodBinding) node.getWrappedObject();
@@ -715,9 +729,8 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 			node.withThrownException(Type(abstractMethod.thrownExceptions[i]));
 		}
 		if (node.getArguments().isEmpty() && isNotEmpty(abstractMethod.parameters)) for (int i = 0; i < abstractMethod.parameters.length; i++) {
-			node.withArgument(Arg(Type(abstractMethod.parameters[i]), "arg" + i).makeFinal());
+			node.withArgument(Arg(Type(abstractMethod.parameters[i]), "arg" + i));
 		}
-
 		if (node.getTypeParameters().isEmpty() && isNotEmpty(abstractMethod.typeVariables)) for (int i = 0; i < abstractMethod.typeVariables.length; i++) {
 			TypeVariableBinding binding = abstractMethod.typeVariables[i];
 			ReferenceBinding super1 = binding.superclass;
@@ -725,10 +738,9 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 			lombok.ast.TypeParam typeParameter = TypeParam(new String(binding.sourceName));
 			if (super2 == null) super2 = new ReferenceBinding[0];
 			if (super1 != null || super2.length > 0) {
-				if (super1 != null) typeParameter.withType(Type(super1));
-				else typeParameter.withType(Type(super2[0]));
-				for (int j = (super1 == null) ? 1 : 0; j < super2.length; j++) {
-					typeParameter.withBound(Type(super2[j]).makeSuperType());
+				if (super1 != null) typeParameter.withBound(Type(super1));
+				for (ReferenceBinding bound : super2) {
+					typeParameter.withBound(Type(bound).makeSuperType());
 				}
 			}
 			node.withTypeParameter(typeParameter);
@@ -743,7 +755,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		methodDeclaration.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		methodDeclaration.arguments = toArray(build(node.getArguments()), new Argument[0]);
 		if (node.isImplementing()) methodDeclaration.modifiers |= AccImplementing;
-		if (node.noBody() || ((methodDeclaration.modifiers & AccAbstract) != 0)) {
+		if (node.noBody()) {
 			methodDeclaration.modifiers |= AccSemicolonBody;
 		} else {
 			methodDeclaration.statements = toArray(build(node.getStatements()), new Statement[0]);

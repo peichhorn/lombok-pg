@@ -28,13 +28,13 @@ public class Binary extends Expression {
 	private final Expression left;
 	private final String operator;
 	private final Expression right;
-	
+
 	public Binary(final Expression left, final String operator, final Expression right) {
 		this.left = child(left);
 		this.operator = operator;
 		this.right = child(right);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitBinary(this, p);

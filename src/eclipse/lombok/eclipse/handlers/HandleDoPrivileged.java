@@ -21,14 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
-import static org.eclipse.jdt.core.dom.Modifier.FINAL;
-import static lombok.core.util.Arrays.isNotEmpty;
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
-import static lombok.core.util.Names.capitalize;
-import static lombok.eclipse.handlers.Eclipse.getAnnotation;
-import static lombok.eclipse.handlers.Eclipse.typeNodeOf;
 import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.isNotEmpty;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +37,14 @@ import lombok.core.AnnotationValues;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseASTMaker;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
+import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -60,7 +52,7 @@ import org.mangosdk.spi.ProviderFor;
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
-	public boolean deferUntilPostDiet() {
+	@Override public boolean deferUntilPostDiet() {
 		return true;
 	}
 
@@ -80,11 +72,13 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 
 		replaceWithQualifiedThisReference(method, source);
 
-		TypeReference returnType = method.returnType();
-		TypeRef innerReturnType = boxedReturnType(returnType);
-
 		if (method.returns("void")) {
-			replaceReturns(method.get(), source);
+			replaceReturns(method);
+		}
+
+		final TypeRef innerReturnType = method.boxedReturns();
+		if (method.returns("void")) {
+			replaceReturns(method);
 			method.body(Block() //
 				.withStatements(sanitizeParameter(method)) //
 				.withStatement(Try(Block() //
@@ -110,21 +104,8 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 					.withStatements(rethrowStatements(method)) //
 					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
 		}
-	}
 
-	private lombok.ast.TypeRef boxedReturnType(TypeReference type) {
-		lombok.ast.TypeRef objectReturnType = Type(type);
-		if (type instanceof SingleTypeReference) {
-			final String name = new String(type.getLastToken());
-			if ("int".equals(name)) {
-				objectReturnType = Type("java.lang.Integer");
-			} else if ("char".equals(name)) {
-				objectReturnType = Type("java.lang.Character");
-			} else {
-				objectReturnType = Type("java.lang." + capitalize(name));
-			}
-		}
-		return objectReturnType;
+		method.rebuild();
 	}
 
 	private List<lombok.ast.Statement> sanitizeParameter(final EclipseMethod method) {
@@ -138,7 +119,7 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 				final String newArgumentName = "$" + argumentName;
 				sanitizeStatements.add(LocalDecl(Type(argument.type), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
 				argument.name = newArgumentName.toCharArray();
-				argument.modifiers |= FINAL;
+				argument.modifiers |= Modifier.FINAL;
 			}
 		}
 		return sanitizeStatements;
@@ -146,31 +127,29 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 
 	private List<lombok.ast.Statement> rethrowStatements(final EclipseMethod method) {
 		final List<lombok.ast.Statement> rethrowStatements = new ArrayList<lombok.ast.Statement>();
-		if (isNotEmpty(method.get().thrownExceptions)) for (TypeReference thrownException : method.get().thrownExceptions) {
-			rethrowStatements.add(If(InstanceOf(Name("$cause"), Type(thrownException))) //
-				.Then(Throw(Cast(Type(thrownException), Name("$cause")))));
+		for (lombok.ast.TypeRef thrownException : method.thrownExceptions()) {
+			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
+				.Then(Throw(Cast(thrownException, Name("$cause")))));
 		}
 		return rethrowStatements;
 	}
 
-	private void replaceReturns(AbstractMethodDeclaration method, final ASTNode source) {
-		final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(source);
-		new ReturnStatementReplaceVisitor(replacement).visit(method);
+	private void replaceReturns(final EclipseMethod method) {
+		final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(method);
+		new ReturnStatementReplaceVisitor(replacement).visit(method.get());
 	}
 
 	private void replaceWithQualifiedThisReference(final EclipseMethod method, final ASTNode source) {
-		final EclipseNode parent = typeNodeOf(method.node());
-		final TypeDeclaration typeDec = (TypeDeclaration)parent.get();
-		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(new String(typeDec.name), source);
+		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType().name(), source);
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 
 	@RequiredArgsConstructor
 	private static class ReturnNullReplacementProvider implements IReplacementProvider<Statement> {
-		private final ASTNode source;
+		private final EclipseMethod method;
 
 		@Override public Statement getReplacement() {
-			return new EclipseASTMaker(null, source).build(Return(Null()));
+			return method.build(Return(Null()));
 		}
 	}
 }

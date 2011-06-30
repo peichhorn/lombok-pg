@@ -28,11 +28,11 @@ import lombok.NoArgsConstructor;
 @Getter
 public final class Return extends Statement {
 	private Expression expression;
-	
+
 	public Return(final Expression expression) {
 		this.expression = child(expression);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitReturn(this, p);

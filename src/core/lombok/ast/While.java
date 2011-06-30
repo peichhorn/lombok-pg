@@ -27,7 +27,7 @@ import lombok.Getter;
 public final class While extends Statement {
 	private final Expression condition;
 	private Statement action;
-	
+
 	public While(final Expression condition) {
 		this.condition = child(condition);
 	}
@@ -36,7 +36,7 @@ public final class While extends Statement {
 		this.action = child(action);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitWhile(this, p);

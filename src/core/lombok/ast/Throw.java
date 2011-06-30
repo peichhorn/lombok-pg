@@ -26,11 +26,11 @@ import lombok.Getter;
 @Getter
 public final class Throw extends Statement {
 	private final Expression init;
-	
+
 	public Throw(final Expression init) {
 		this.init = child(init);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitThrow(this, p);

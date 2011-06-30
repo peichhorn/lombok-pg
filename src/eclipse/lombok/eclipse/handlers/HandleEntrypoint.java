@@ -38,7 +38,6 @@ import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -55,8 +54,8 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected void handle(EclipseNode typeNode, TypeDeclaration type) {
-			createEntrypoint(typeNode, type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
+		@Override protected void handle(EclipseType type) {
+			createEntrypoint(type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
@@ -85,11 +84,11 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected void handle(EclipseNode typeNode, TypeDeclaration type) {
+		@Override protected void handle(EclipseType type) {
 			IArgumentProvider argumentProvider = new ArgumentProvider();
 			IParameterProvider parameterProvider = new ParameterProvider();
-			createEntrypoint(typeNode, type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			createEntrypoint(typeNode, type, "premain", "runAgent", parameterProvider, argumentProvider);
+			createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
@@ -127,7 +126,7 @@ public class HandleEntrypoint {
 				}
 			}
 			if (implementsInterface) {
-				handle(typeNode, type);
+				handle(EclipseType.typeOf(typeNode, type));
 			}
 		}
 
@@ -137,8 +136,8 @@ public class HandleEntrypoint {
 		 * @param typeNode
 		 * @param type
 		 */
-		protected abstract void handle(EclipseNode typeNode, TypeDeclaration type);
-		
+		protected abstract void handle(EclipseType type);
+
 		@Override
 		public boolean deferUntilPostDiet() {
 			return false;
@@ -185,18 +184,17 @@ public class HandleEntrypoint {
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public static void createEntrypoint(EclipseNode node, ASTNode source, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
-		EclipseType type = EclipseType.typeOf(node, source);
+	public static void createEntrypoint(EclipseType type, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
 		if (!type.hasMethod(methodName)) {
 			return;
 		}
 
-		if (entrypointExists(name, node)) {
+		if (entrypointExists(name, type.node())) {
 			return;
 		}
 
 		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-				.withStatement(Call(New(Type(node.getName())), methodName).withArguments(argsProvider.getArgs(name))));
+				.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
 	}
 
 	public static interface IArgumentProvider {

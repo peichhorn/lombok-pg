@@ -2,7 +2,6 @@ class BuilderBrokenExtension {
 	private final String text;
 	private final int id;
 	
-	@lombok.Builder.Extension
 	private void brokenExtension() {
 		this.id = 42;
 	}
@@ -21,13 +20,13 @@ class BuilderBrokenExtension {
 	@java.lang.SuppressWarnings("all")
 	public static interface $TextDef {
 		
-		$IdDef text(final String arg0);
+		$IdDef text(final String text);
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public static interface $IdDef {
 		
-		$OptionalDef id(final int arg0);
+		$OptionalDef id(final int id);
 	}
 	
 	@java.lang.SuppressWarnings("all")
@@ -42,13 +41,13 @@ class BuilderBrokenExtension {
 		private String text;
 		private int id;
 		
-		public $IdDef text(final String arg0) {
-			this.text = arg0;
+		public $IdDef text(final String text) {
+			this.text = text;
 			return this;
 		}
 		
-		public $OptionalDef id(final int arg0) {
-			this.id = arg0;
+		public $OptionalDef id(final int id) {
+			this.id = id;
 			return this;
 		}
 		

@@ -16,9 +16,7 @@ class ConditionPlain {
 	void pause() throws java.lang.InterruptedException {
 		this.$canResumeLock.lock();
 		try {
-			while (this.isPaused()) {
-				this.canResume.await();
-			}
+			while (this.isPaused()) this.canResume.await();
 		} finally {
 			this.$canResumeLock.unlock();
 		}

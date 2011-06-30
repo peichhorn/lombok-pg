@@ -4,19 +4,23 @@ class AutoGenMethodStubPlain1 implements java.awt.event.MouseListener {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseEntered(java.awt.event.MouseEvent arg1) {
+	public void mouseEntered(final java.awt.event.MouseEvent arg1) {
+		return;
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseReleased(java.awt.event.MouseEvent arg1) {
+	public void mouseReleased(final java.awt.event.MouseEvent arg1) {
+		return;
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mousePressed(java.awt.event.MouseEvent arg1) {
+	public void mousePressed(final java.awt.event.MouseEvent arg1) {
+		return;
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseClicked(java.awt.event.MouseEvent arg1) {
+	public void mouseClicked(final java.awt.event.MouseEvent arg1) {
+		return;
 	}
 }
 
@@ -26,22 +30,22 @@ class AutoGenMethodStubPlain2 implements java.awt.event.MouseListener {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseEntered(java.awt.event.MouseEvent arg1) {
+	public void mouseEntered(final java.awt.event.MouseEvent arg1) {
 		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseReleased(java.awt.event.MouseEvent arg1) {
+	public void mouseReleased(final java.awt.event.MouseEvent arg1) {
 		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mousePressed(java.awt.event.MouseEvent arg1) {
+	public void mousePressed(final java.awt.event.MouseEvent arg1) {
 		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public void mouseClicked(java.awt.event.MouseEvent arg1) {
+	public void mouseClicked(final java.awt.event.MouseEvent arg1) {
 		throw new java.lang.UnsupportedOperationException("This method is not implemented yet.");
 	}
 }

@@ -27,12 +27,12 @@ import lombok.Getter;
 public final class Assignment extends Expression {
 	private final Expression left;
 	private final Expression right;
-	
+
 	public Assignment(final Expression left, final Expression right) {
 		this.left = child(left);
 		this.right = child(right);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitAssignment(this, p);

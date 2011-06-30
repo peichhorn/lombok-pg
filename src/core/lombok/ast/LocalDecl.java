@@ -30,16 +30,16 @@ public final class LocalDecl extends AbstractVariableDecl<LocalDecl> {
 	public LocalDecl(TypeRef type, String name) {
 		super(type, name);
 	}
-	
+
 	public TypeRef getType() {
 		return type;
 	}
-	
+
 	public LocalDecl withInitialization(final Expression initialization) {
 		this.initialization = child(initialization);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitLocalDecl(this, p);

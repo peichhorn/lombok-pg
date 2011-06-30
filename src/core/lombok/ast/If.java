@@ -28,7 +28,7 @@ public final class If extends Statement {
 	private final Expression condition;
 	private Statement thenStatement;
 	private Statement elseStatement;
-	
+
 	public If(final Expression condition) {
 		this.condition = child(condition);
 	}
@@ -42,7 +42,7 @@ public final class If extends Statement {
 		this.elseStatement = child(elseStatement);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitIf(this, p);

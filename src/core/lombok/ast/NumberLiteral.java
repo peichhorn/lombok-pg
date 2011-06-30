@@ -21,14 +21,15 @@
  */
 package lombok.ast;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-@RequiredArgsConstructor
-@Getter
+@AllArgsConstructor
+@Getter @Setter
 public final class NumberLiteral extends Expression {
-	private final Number number;
-	
+	private Number number;
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitNumberLiteral(this, p);

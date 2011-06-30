@@ -22,19 +22,13 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Names.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Await;
-import lombok.AwaitBeforeAndSignalAfter;
-import lombok.Position;
-import lombok.ReadLock;
-import lombok.RequiredArgsConstructor;
-import lombok.Signal;
-import lombok.WriteLock;
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -142,7 +136,7 @@ public class HandleConditionAndLock {
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
 				.preHandle(ann.lockName(), AwaitBeforeAndSignalAfter.class, ast, annotationNode);
 		}
-		
+
 		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			new HandleConditionAndLock()
@@ -187,15 +181,14 @@ public class HandleConditionAndLock {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return false;
 		}
-		String annotationTypeName = annotationType.getSimpleName();
 
 		boolean lockMode = lockMethod != null;
 
 		if (!lockMode && (await == null) && (signal == null)) {
-			annotationNode.addWarning(String.format("Bad configured Handler for %s. Please file a bug report.", annotationTypeName));
 			return false; // wrong configured handler, so better stop here
 		}
 
+		String annotationTypeName = annotationType.getSimpleName();
 		String completeLockName = createCompleteLockName(lockName);
 
 		if (!tryToAddLockField(type, annotationNode, completeLockName, lockMode, annotationTypeName)) return false;
@@ -213,22 +206,17 @@ public class HandleConditionAndLock {
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 
-		String annotationTypeName = annotationType.getSimpleName();
-
 		boolean lockMode = lockMethod != null;
 
+		String annotationTypeName = annotationType.getSimpleName();
 		String completeLockName = createCompleteLockName(lockName);
 
 		List<lombok.ast.Statement> beforeMethodBlock = new ArrayList<lombok.ast.Statement>();
 		List<lombok.ast.Statement> afterMethodBlock = new ArrayList<lombok.ast.Statement>();
 
 		if (!lockMode) {
-			if (!getConditionStatements(type, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
-				return;
-			}
-			if (!getConditionStatements(type, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) {
-				return;
-			}
+			if (!getConditionStatements(type, annotationNode, await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
+			if (!getConditionStatements(type, annotationNode, signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
 		}
 
 		final lombok.ast.Call lockCall;
@@ -259,11 +247,11 @@ public class HandleConditionAndLock {
 		method.rebuild();
 	}
 
-	private boolean getConditionStatements(EclipseType type, EclipseNode node, ConditionData condition, String lockName, String annotationTypeName, List<lombok.ast.Statement> before, List<lombok.ast.Statement> after) {
+	private boolean getConditionStatements(EclipseType type, EclipseNode annotationNode, ConditionData condition, String lockName, String annotationTypeName, List<lombok.ast.Statement> before, List<lombok.ast.Statement> after) {
 		if (condition == null) {
 			return true;
 		}
-		if (tryToAddConditionField(type, node, condition, lockName, annotationTypeName)) {
+		if (tryToAddConditionField(type, annotationNode, condition, lockName, annotationTypeName)) {
 			switch (condition.pos) {
 			case BEFORE:
 				before.add(condition.toStatement());

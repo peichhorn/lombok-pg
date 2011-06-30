@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public final class StringLiteral extends Expression {
 	private final String string;
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitStringLiteral(this, p);

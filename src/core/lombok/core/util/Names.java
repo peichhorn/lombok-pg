@@ -70,7 +70,7 @@ public class Names {
 	public static boolean isNotEmpty(String s) {
 		return !isEmpty(s);
 	}
-	
+
 	public static boolean isOneOf(String s, String... candidates) {
 		if (candidates != null) for (String candidate : candidates) {
 			if (candidate.equals(s)) return true;

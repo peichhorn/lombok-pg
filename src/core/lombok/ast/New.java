@@ -41,17 +41,17 @@ public final class New extends Expression {
 		args.add(child(arg));
 		return this;
 	}
-	
+
 	public New withTypeArgument(final TypeRef typeArg) {
 		typeArgs.add(child(typeArg));
 		return this;
 	}
-	
+
 	public New withTypeDeclaration(ClassDecl anonymousType) {
 		this.anonymousType = child(anonymousType);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitNew(this, p);

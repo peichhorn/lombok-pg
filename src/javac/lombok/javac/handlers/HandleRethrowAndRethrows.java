@@ -21,11 +21,10 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.Arrays.isEmpty;
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
+import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
-import static lombok.javac.handlers.JavacTreeBuilder.statements;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -34,12 +33,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.Rethrow;
 import lombok.Rethrows;
+import lombok.ast.Try;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.util.Lists;
 import lombok.javac.Javac;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -47,10 +48,6 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 public class HandleRethrowAndRethrows {
-	private final static String TRY_BLOCK = "try %s ";
-	private final static String CATCH_BLOCK_RETHROW = "catch ( java.lang.RuntimeException %s ) { throw %s; } ";
-	private final static String CATCH_BLOCK_1ARG = "catch ( %s %s ) { throw new %s(%s); } ";
-	private final static String CATCH_BLOCK_2ARGS = "catch ( %s %s ) { throw new %s(\"%s\", %s); } ";
 
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleRethrow extends JavacAnnotationHandler<Rethrow> {
@@ -91,7 +88,7 @@ public class HandleRethrowAndRethrows {
 			return;
 		}
 
-		JavacMethod method = JavacMethod.methodOf(annotationNode);
+		JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
@@ -103,25 +100,23 @@ public class HandleRethrowAndRethrows {
 			return;
 		}
 
-		StringBuilder methodBody = new StringBuilder();
-		methodBody.append(String.format(TRY_BLOCK, method.get().body));
+		Try tryBuilder = Try(Block().withStatements(method.statements()));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
 			for (Class<?> thrown : rethrow.thrown) {
 				String varname = "$e" + counter++;
 				if (RethrowData.class == thrown) {
-					methodBody.append(String.format(CATCH_BLOCK_RETHROW, varname, varname));
+					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
 				} else if (rethrow.message.isEmpty()) {
-					methodBody.append(String.format(CATCH_BLOCK_1ARG, thrown.getName(), varname, rethrow.as.getName(), varname));
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(Name(varname)))));
 				} else {
-					methodBody.append(String.format(CATCH_BLOCK_2ARGS, thrown.getName(), varname, rethrow.as.getName(), rethrow.message, varname));
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
 				}
 			}
 		}
+		method.body(Block().withStatement(tryBuilder));
 
-		method.body(statements(method.node(), methodBody.toString()));
-
-		method.rebuild(source);
+		method.rebuild();
 	}
 
 	private static List<Class<?>> classNames(final Class<?>[] classes) {

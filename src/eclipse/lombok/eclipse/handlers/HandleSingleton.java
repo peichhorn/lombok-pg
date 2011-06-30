@@ -22,7 +22,6 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Arrays.*;
 import static lombok.ast.AST.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
@@ -31,12 +30,10 @@ import lombok.Singleton;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
@@ -55,37 +52,37 @@ public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 			annotationNode.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
 			return;
 		}
-		
+
 		Singleton singleton = annotation.getInstance();
 		String typeName = type.name();
-		
+
 		switch(singleton.style()) {
-		case HOLDER: {
+		case HOLDER:
 			String holderName = typeName + "Holder";
-			replaceConstructorVisibility(type.get());
-			
+			replaceConstructorVisibility(type);
+
 			type.injectType(ClassDecl(holderName).makePrivate().makeStatic() //
 				.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
 			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
 				.withStatement(Return(Name(holderName + ".INSTANCE"))));
 			break;
-		}
 		default:
-		case ENUM: {
+		case ENUM:
 			type.get().modifiers |= AccEnum;
-			replaceConstructorVisibility(type.get());
+			replaceConstructorVisibility(type);
 			type.injectField(EnumConstant("INSTANCE"));
 			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
 				.withStatement(Return(Name("INSTANCE"))));
-		}
 		}
 
 		type.rebuild();
 	}
 
-	private void replaceConstructorVisibility(TypeDeclaration type) {
-		if (isNotEmpty(type.methods)) for (AbstractMethodDeclaration def : type.methods) {
-			if (def instanceof ConstructorDeclaration) def.modifiers &= ~(PUBLIC | PROTECTED);
+	private void replaceConstructorVisibility(EclipseType type) {
+		for (EclipseMethod method : type.methods()) {
+			if (method.isConstructor()) {
+				method.get().modifiers &= ~(PUBLIC | PROTECTED);
+			}
 		}
 	}
 }

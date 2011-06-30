@@ -59,6 +59,7 @@ import lombok.With;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
 
 @ProviderFor(JavacASTVisitor.class)
 public class HandleWith extends JavacASTAdapter {
@@ -75,7 +76,7 @@ public class HandleWith extends JavacASTAdapter {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			String methodName = methodCall.meth.toString();
 			if (isMethodCallValid(statementNode, methodName, With.class, "with")) {
-				final JavacMethod method = JavacMethod.methodOf(statementNode);
+				final JavacMethod method = JavacMethod.methodOf(statementNode, statement);
 				if (method == null) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("with"));
 				} else if (handle(statementNode, methodCall)) {

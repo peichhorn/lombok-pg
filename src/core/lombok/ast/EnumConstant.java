@@ -29,7 +29,7 @@ import lombok.Getter;
 @Getter
 public final class EnumConstant extends AbstractVariableDecl<EnumConstant> {
 	private final List<Expression> args = new ArrayList<Expression>();
-	
+
 	public EnumConstant(String name) {
 		super(null, name);
 	}
@@ -38,7 +38,7 @@ public final class EnumConstant extends AbstractVariableDecl<EnumConstant> {
 		args.add(child(arg));
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitEnumConstant(this, p);

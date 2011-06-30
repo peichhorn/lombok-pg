@@ -4,7 +4,7 @@ class RethrowPlain {
 	void testRethrowAs() {
 		try {
 			System.out.println("code that throws FileNotFoundException");
-		} catch (java.io.FileNotFoundException $e1) {
+		} catch (final java.io.FileNotFoundException $e1) {
 			throw new java.lang.IllegalArgumentException($e1);
 		}
 	}
@@ -13,7 +13,7 @@ class RethrowPlain {
 	void testRethrowAsRuntimeException() {
 		try {
 			System.out.println("code that might throw InterruptedException due to cancelation");
-		} catch (java.lang.InterruptedException $e1) {
+		} catch (final java.lang.InterruptedException $e1) {
 			throw new java.lang.RuntimeException($e1);
 		}
 	}
@@ -22,9 +22,9 @@ class RethrowPlain {
 	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
 		try {
 			System.out.println("code throws all kinds of Exceptions");
-		} catch (java.lang.RuntimeException $e1) {
+		} catch (final java.lang.RuntimeException $e1) {
 			throw $e1;
-		} catch (java.lang.Exception $e2) {
+		} catch (final java.lang.Exception $e2) {
 			throw new java.lang.IllegalArgumentException("meh.", $e2);
 		}
 	}
@@ -33,9 +33,9 @@ class RethrowPlain {
 	void testFullyCustomizedRethrow() {
 		try {
 			System.out.println("code that throws FileNotFoundException and IOException");
-		} catch (java.io.FileNotFoundException $e1) {
+		} catch (final java.io.FileNotFoundException $e1) {
 			throw new java.lang.IllegalArgumentException($e1);
-		} catch (java.io.IOException $e2) {
+		} catch (final java.io.IOException $e2) {
 			throw new java.lang.RuntimeException($e2);
 		}
 	}

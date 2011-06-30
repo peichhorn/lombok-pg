@@ -28,13 +28,13 @@ public final class Equal extends Expression {
 	private final Expression left;
 	private final Expression right;
 	private final boolean notEqual;
-	
+
 	public Equal(final Expression left, final Expression right, final boolean notEqual) {
 		this.left = child(left);
 		this.right = child(right);
 		this.notEqual = notEqual;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitEqual(this, p);

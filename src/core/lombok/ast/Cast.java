@@ -27,12 +27,12 @@ import lombok.Getter;
 public class Cast extends Expression {
 	private final TypeRef type;
 	private final Expression expression;
-	
+
 	public Cast(final TypeRef type, final Expression expression) {
 		this.type = child(type);
 		this.expression = child(expression);
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitCast(this, p);

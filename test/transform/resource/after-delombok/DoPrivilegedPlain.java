@@ -11,13 +11,11 @@ class DoPrivilegedPlain {
 		try {
 			return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>(){
 				public java.lang.Integer run() {
-					{
-						System.out.println("Test");
-						return 0;
-					}
+					System.out.println("Test");
+					return 0;
 				}
 			});
-		} catch (java.security.PrivilegedActionException $ex) {
+		} catch (final java.security.PrivilegedActionException $ex) {
 			final java.lang.Throwable $cause = $ex.getCause();
 			throw new java.lang.RuntimeException($cause);
 		}
@@ -28,16 +26,14 @@ class DoPrivilegedPlain {
 		try {
 			java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Void>(){
 				public java.lang.Void run() {
-					{
-						if (b) {
-							return null;
-						}
-						System.out.println("Test");
+					if (b) {
+						return null;
 					}
+					System.out.println("Test");
 					return null;
 				}
 			});
-		} catch (java.security.PrivilegedActionException $ex) {
+		} catch (final java.security.PrivilegedActionException $ex) {
 			final java.lang.Throwable $cause = $ex.getCause();
 			throw new java.lang.RuntimeException($cause);
 		}
@@ -57,15 +53,13 @@ class DoPrivilegedPlain {
 		try {
 			return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>(){
 				public java.lang.Integer run() throws FileNotFoundException {
-					{
-						FileInputStream fis = new FileInputStream(filename);
-						int i = fis.read();
-						fis.close();
-						return i;
-					}
+					FileInputStream fis = new FileInputStream(filename);
+					int i = fis.read();
+					fis.close();
+					return i;
 				}
 			});
-		} catch (java.security.PrivilegedActionException $ex) {
+		} catch (final java.security.PrivilegedActionException $ex) {
 			final java.lang.Throwable $cause = $ex.getCause();
 			if ($cause instanceof FileNotFoundException) throw (FileNotFoundException)$cause;
 			throw new java.lang.RuntimeException($cause);

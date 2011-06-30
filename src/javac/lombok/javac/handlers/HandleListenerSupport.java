@@ -21,12 +21,10 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static lombok.javac.handlers.JavacTreeBuilder.*;
-import static com.sun.tools.javac.code.Flags.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +35,7 @@ import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
-
-import org.mangosdk.spi.ProviderFor;
+import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -46,11 +43,11 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+
+import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
@@ -58,7 +55,9 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, ListenerSupport.class);
 
-		if (isNoClassAndNoEnum(annotationNode)) {
+		JavacType type = JavacType.typeOf(annotationNode, source);
+		if (type.isAnnotation() || type.isInterface()) {
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 			return;
 		}
 
@@ -72,10 +71,10 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			if (listenerInterface instanceof JCFieldAccess) {
 				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
 				if (interfaze.name.toString().equals("class")) {
-					Type type = getType(interfaze.selected, annotationNode);
-					if (type == null) continue;
-					if (type.isInterface()) {
-						resolvedInterfaces.add(type);
+					Type interfaceType = getType(interfaze.selected, annotationNode);
+					if (interfaceType == null) continue;
+					if (interfaceType.isInterface()) {
+						resolvedInterfaces.add(interfaceType);
 					} else {
 						annotationNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", listenerInterface));
 					}
@@ -83,27 +82,18 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			}
 		}
 		for (Type interfaze : resolvedInterfaces) {
-			addListenerField((ClassType) interfaze, annotationNode, source);
-			addListenerMethod((ClassType) interfaze, annotationNode, source);
-			removeListenerMethod((ClassType) interfaze, annotationNode, source);
-			fireListenerMethod((ClassType) interfaze, annotationNode, source);
+			addListenerField(type, (ClassType) interfaze);
+			addAddListenerMethod(type, (ClassType) interfaze);
+			addRemoveListenerMethod(type, (ClassType) interfaze);
+			addFireListenerMethod(type, (ClassType) interfaze);
 		}
 
-		annotationNode.up().rebuild();
+		type.rebuild();
 	}
 
+	@Override
 	public boolean isResolutionBased() {
 		return true;
-	}
-
-	private static boolean isNoClassAndNoEnum(JavacNode annotationNode) {
-		JavacNode typeNode = annotationNode.up();
-		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
-		if (typeDecl == null) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
-			return true;
-		}
-		return false;
 	}
 
 	private static Type getType(JCExpression expr, JavacNode annotationNode) {
@@ -115,59 +105,96 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		return type;
 	}
 
-	private static void addListenerField(ClassType ct, JavacNode node, JCTree source) {
-		final String defString = "private final java.util.List<%s> $registered%s = new java.util.concurrent.CopyOnWriteArrayList<%s>();";
-		TypeSymbol tsym = ct.asElement();
-		if (tsym == null) return;
-		field(node.up(), defString, tsym.type, interfaceName(tsym.name.toString()), tsym.type).inject(source);
-	}
-
-	private static void addListenerMethod(ClassType ct, JavacNode node, JCTree source) {
-		final String defString = "public void add%s(final %s l) { if (!$registered%s.contains(l)) { $registered%s.add(l); } }";
-		TypeSymbol tsym = ct.asElement();
-		if (tsym == null) return;
-		String interfaceName = interfaceName(tsym.name.toString());
-		method(node.up(), defString, interfaceName, tsym.type, interfaceName, interfaceName).inject(source);
-	}
-
-	private static void removeListenerMethod(ClassType ct, JavacNode node, JCTree source) {
-		final String defString = "public void remove%s(final %s l) { $registered%s.remove(l); }";
+	/**
+	 * creates:
+	 * <pre>
+	 * private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE =
+	 *   new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
+	 * </pre>
+	 */
+	private void addListenerField(JavacType type, ClassType ct) {
 		TypeSymbol tsym = ct.asElement();
 		if (tsym == null) return;
 		String interfaceName = interfaceName(tsym.name.toString());
-		method(node.up(), defString, interfaceName, tsym.type, interfaceName).inject(source);
+		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(tsym.type)), "$registered" + interfaceName).makePrivate().makeFinal() //
+			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(tsym.type)))));
 	}
 
-	private static void fireListenerMethod(ClassType interfazeType, JavacNode node, JCTree source) {
-		fireListenerMethodAll(interfazeType, interfazeType, node, source);
+	/**
+	 * creates:
+	 * <pre>
+	 * public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
+	 *  if (!$registeredLISTENER_TYPE.contains(l))
+	 *    $registeredLISTENER_TYPE.add(l);
+	 * }
+	 * </pre>
+	 */
+	private void addAddListenerMethod(JavacType type, ClassType ct) {
+		TypeSymbol tsym = ct.asElement();
+		if (tsym == null) return;
+		String interfaceName = interfaceName(tsym.name.toString());
+		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(tsym.type), "l")) //
+			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
+				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
 
-	private static void fireListenerMethodAll(ClassType interfazeType, ClassType superInterfazeType, JavacNode node, JCTree source) {
-		final String defString = "protected void %s(%s) { for (%s l : $registered%s) { l.%s(%s); } }";
+	/**
+	 * creates:
+	 * <pre>
+	 * public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
+	 *   $registeredLISTENER_TYPE.remove(l);
+	 * }
+	 * </pre>
+	 */
+	private void addRemoveListenerMethod(JavacType type, ClassType ct) {
+		TypeSymbol tsym = ct.asElement();
+		if (tsym == null) return;
+		String interfaceName = interfaceName(tsym.name.toString());
+		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(tsym.type), "l")) //
+				.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
+	}
+
+	/**
+	 * creates:
+	 * <pre>
+	 * protected void fireMETHOD_NAME(METHOD_PARAMETER) {
+	 *   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
+	 *     l.METHOD_NAME(METHOD_ARGUMENTS);
+	 * }
+	 * </pre>
+	 */
+	private void addFireListenerMethod(JavacType type, ClassType interfazeType) {
+		addFireListenerMethodAll(type, interfazeType, interfazeType);
+	}
+
+	private static void addFireListenerMethodAll(JavacType type, ClassType interfazeType, ClassType superInterfazeType) {
 		TypeSymbol isym = interfazeType.asElement();
 		String interfaceName = interfaceName(isym.name.toString());
 		TypeSymbol tsym = superInterfazeType.asElement();
 		if (tsym == null) return;
 		for (Symbol member : tsym.getEnclosedElements()) {
 			if (member.getKind() != ElementKind.METHOD) continue;
-			StringBuilder params = new StringBuilder();
-			StringBuilder args = new StringBuilder();
+			String methodName = member.name.toString();
+			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
 			createParamsAndArgs((MethodType)((MethodSymbol)member).type, params, args);
-			method(node.up(), defString, camelCase("fire", member.name.toString()), params, isym.type, interfaceName, member.name, args).inject(source);
+			type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
+					.withStatement(Foreach(LocalDecl(Type(isym.type), "l")).In(Name("$registered" + interfaceName)) //
+						.Do(Call(Name("l"), methodName).withArguments(args))));
 		}
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
-			if (iface instanceof ClassType) fireListenerMethodAll(interfazeType, (ClassType) iface, node, source);
+			if (iface instanceof ClassType) addFireListenerMethodAll(type, interfazeType, (ClassType) iface);
 		}
 	}
 
-	private static void createParamsAndArgs(MethodType mtype, StringBuilder params, StringBuilder args) {
+	private static void createParamsAndArgs(MethodType mtype, List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
 		if (mtype.argtypes.isEmpty()) return;
 		int argCounter = 0;
-		params.append("final ").append(mtype.argtypes.head).append(" arg").append(argCounter);
-		args.append("arg").append(argCounter++);
-		if (mtype.argtypes.tail != null) for (Type atype : mtype.argtypes.tail) {
-			params.append(", final ").append(atype).append(" arg").append(argCounter);
-			args.append(", arg").append(argCounter++);
+		String arg;
+		for (Type atype : mtype.argtypes) {
+			arg = "arg" + argCounter++;
+			params.add(Arg(Type(atype), arg));
+			args.add(Name(arg));
 		}
 	}
 }

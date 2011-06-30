@@ -58,6 +58,7 @@ public class HandleRethrowAndRethrows {
 				.handle(Rethrow.class, ast, annotationNode);
 		}
 
+		@Override
 		public boolean deferUntilPostDiet() {
 			return true;
 		}
@@ -76,6 +77,7 @@ public class HandleRethrowAndRethrows {
 			handle.handle(Rethrow.class, ast, annotationNode);
 		}
 
+		@Override
 		public boolean deferUntilPostDiet() {
 			return true;
 		}

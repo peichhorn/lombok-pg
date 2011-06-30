@@ -22,16 +22,14 @@
 package lombok.javac.handlers;
 
 import static com.sun.tools.javac.code.Flags.ABSTRACT;
-import static com.sun.tools.javac.code.Flags.ANNOTATION;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.IPROXY;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.TypeTags.CLASS;
 import static lombok.core.util.ErrorMessages.canBeUsedOnClassAndEnumOnly;
-import static lombok.javac.handlers.Javac.typeDeclFiltering;
 import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static lombok.javac.handlers.JavacTreeBuilder.*;
+import static lombok.ast.AST.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -66,16 +65,14 @@ import com.sun.tools.javac.util.Name;
  */
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
-	private final static String THROW_UNSUPPORTEDOPERATIONEXCEPTION = "throw new java.lang.UnsupportedOperationException(\"This method is not implemented yet.\");";
-
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 	// should be the last annotation to avoid major issues, once again.. curve ball
 	@Override public void handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, AutoGenMethodStub.class);
 		JavacNode typeNode = annotationNode.up();
 
-		JCClassDecl typeDecl = typeDeclFiltering(typeNode, INTERFACE | ANNOTATION);
-		if (typeDecl == null) {
+		final JavacType type = JavacType.typeOf(annotationNode, source);
+		if (type.isInterface() || type.isAnnotation()) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
 			return;
 		}
@@ -83,17 +80,18 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 		AutoGenMethodStub autoGenMethodStub = annotation.getInstance();
 		if (autoGenMethodStub.throwException()) {
 			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				method(typeNode, methodSymbol).withStatements(statements(typeNode, THROW_UNSUPPORTEDOPERATIONEXCEPTION)).inject(source);
+				type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")))));
 			}
 		} else {
 			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				method(typeNode, methodSymbol).withDefaultReturnStatement().inject(source);
+				type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(ReturnDefault()));
 			}
 		}
 
 		typeNode.rebuild();
 	}
 
+	@Override
 	public boolean isResolutionBased() {
 		return true;
 	}

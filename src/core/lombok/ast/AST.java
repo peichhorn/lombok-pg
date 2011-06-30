@@ -23,6 +23,7 @@ package lombok.ast;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.ast.Wildcard.Bound;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AST {
@@ -57,11 +58,11 @@ public final class AST {
 	public static Cast Cast(final TypeRef type, final Expression expression) {
 		return new Cast(type, expression);
 	}
-	
+
 	public static Case Case(final Expression expression) {
 		return new Case(expression);
 	}
-	
+
 	public static Case Case() {
 		return new Case();
 	}
@@ -97,7 +98,7 @@ public final class AST {
 	public static Equal NotEqual(final Expression left, final Expression right) {
 		return new Equal(left, right, true);
 	}
-	
+
 	public static Expression Expr(final Object wrappedObject) {
 		return new WrappedExpression(wrappedObject);
 	}
@@ -125,11 +126,11 @@ public final class AST {
 	public static If If(final Expression condition) {
 		return new If(condition);
 	}
-	
+
 	public static InstanceOf InstanceOf(final Expression expression, final TypeRef type) {
 		return new InstanceOf(expression, type);
 	}
-	
+
 	public static ClassDecl InterfaceDecl(final String name) {
 		return new ClassDecl(name).makeInterface();
 	}
@@ -165,7 +166,7 @@ public final class AST {
 	public static MethodDecl MethodDecl(final TypeRef returnType, final String name) {
 		return new MethodDecl(returnType, name);
 	}
-	
+
 	public static MethodDecl MethodDecl(final Object wrappedObject) {
 		return new WrappedMethodDecl(wrappedObject);
 	}
@@ -197,7 +198,7 @@ public final class AST {
 	public static Statement Stat(final Object wrappedObject) {
 		return new WrappedStatement(wrappedObject);
 	}
-	
+
 	public static StringLiteral String(final String value) {
 		return new StringLiteral(value);
 	}
@@ -233,7 +234,7 @@ public final class AST {
 	public static TypeRef Type(final String typeName) {
 		return new TypeRef(typeName);
 	}
-	
+
 	public static TypeRef Type(final Object wrappedObject) {
 		return new WrappedTypeRef(wrappedObject);
 	}
@@ -244,5 +245,13 @@ public final class AST {
 
 	public static While While(final Expression condition) {
 		return new While(condition);
+	}
+
+	public static Wildcard Wildcard() {
+		return new Wildcard();
+	}
+
+	public static Wildcard Wildcard(Bound bound, TypeRef type) {
+		return new Wildcard(bound, type);
 	}
 }

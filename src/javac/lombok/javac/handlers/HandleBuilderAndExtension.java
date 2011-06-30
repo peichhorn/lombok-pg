@@ -19,41 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
-import static lombok.eclipse.handlers.Eclipse.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
+import static lombok.javac.handlers.Javac.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static com.sun.tools.javac.code.Flags.*;
 
 import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
-import lombok.ast.Wildcard.Bound;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
-import lombok.eclipse.Eclipse;
-import lombok.eclipse.EclipseASTAdapter;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
-import lombok.eclipse.handlers.ast.EclipseMethod;
-import lombok.eclipse.handlers.ast.EclipseType;
+import lombok.javac.Javac;
+import lombok.javac.JavacASTAdapter;
+import lombok.javac.JavacAnnotationHandler;
+import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
+import lombok.javac.handlers.ast.JavacType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleBuilderAndExtension {
@@ -61,13 +56,14 @@ public class HandleBuilderAndExtension {
 	private final static String BUILDER = "$Builder";
 
 	/**
-	 * Handles the {@code lombok.Builder} annotation for eclipse.
+	 * Handles the {@code lombok.Builder} annotation for javac.
 	 */
-	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleBuilder extends EclipseAnnotationHandler<Builder> {
+	@ProviderFor(JavacAnnotationHandler.class)
+	public static class HandleBuilder extends JavacAnnotationHandler<Builder> {
 
-		@Override public void handle(AnnotationValues<Builder> annotation, Annotation source, EclipseNode annotationNode) {
-			final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		@Override public void handle(AnnotationValues<Builder> annotation, JCAnnotation source, JavacNode annotationNode) {
+			deleteAnnotationIfNeccessary(annotationNode, Builder.class);
+			final JavacType type = JavacType.typeOf(annotationNode, source);
 
 			if (type.isInterface() || type.isEnum() || type.isAnnotation()) {
 				annotationNode.addError(canBeUsedOnClassOnly(Builder.class));
@@ -90,15 +86,16 @@ public class HandleBuilderAndExtension {
 	}
 
 	/**
-	 * Handles the {@code lombok.Builder.Extension} annotation for eclipse.
+	 * Handles the {@code lombok.Builder.Extension} annotation for javac.
 	 */
-	@ProviderFor(EclipseAnnotationHandler.class)
-	public static class HandleBuilderExtension extends EclipseAnnotationHandler<Builder.Extension> {
+	@ProviderFor(JavacAnnotationHandler.class)
+	public static class HandleBuilderExtension extends JavacAnnotationHandler<Builder.Extension> {
 
-		@Override public void handle(AnnotationValues<Builder.Extension> annotation, Annotation source, EclipseNode annotationNode) {
+		@Override public void handle(AnnotationValues<Builder.Extension> annotation, JCAnnotation source, JavacNode annotationNode) {
 			final Class<? extends java.lang.annotation.Annotation> annotationType = Builder.Extension.class;
+			deleteAnnotationIfNeccessary(annotationNode, annotationType);
 
-			final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
+			final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 
 			if (method == null) {
 				annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
@@ -109,12 +106,12 @@ public class HandleBuilderAndExtension {
 				return;
 			}
 
-			final EclipseNode typeNode = typeNodeOf(annotationNode);
-			EclipseNode builderNode = null;
+			final JavacNode typeNode = typeNodeOf(annotationNode);
+			JavacNode builderNode = null;
 
-			for (EclipseNode child : typeNode.down()) {
+			for (JavacNode child : typeNode.down()) {
 				if (child.getKind() != Kind.ANNOTATION) continue;
-				if (Eclipse.annotationTypeMatches(Builder.class, child)) {
+				if (Javac.annotationTypeMatches(Builder.class, child)) {
 					builderNode = child;
 				}
 			}
@@ -123,21 +120,16 @@ public class HandleBuilderAndExtension {
 				annotationNode.addError("@Builder.Extension is only allowed in types annotated with @Builder");
 				return;
 			}
-			AnnotationValues<Builder> builderAnnotation = Eclipse.createAnnotation(Builder.class, builderNode);
+			AnnotationValues<Builder> builderAnnotation = Javac.createAnnotation(Builder.class, builderNode);
 			if (methodExists(decapitalize(typeNode.getName()), typeNode, false) == MemberExistsResult.NOT_EXISTS) {
-				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
+				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
 			}
 
 			new HandleBuilderAndExtension().handleExtension(new BuilderDataCollector(typeNode, source, builderAnnotation.getInstance()).collect(), method);
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
-	public void handleBuilder(final IBuilderData builderData) {
+	private void handleBuilder(IBuilderData builderData) {
 		final List<TypeRef> requiredFieldDefTypes = builderData.getRequiredFieldDefTypes();
 		final List<TypeRef> interfaceTypes = new ArrayList<TypeRef>(requiredFieldDefTypes);
 		interfaceTypes.add(Type(OPTIONAL_DEF));
@@ -151,13 +143,13 @@ public class HandleBuilderAndExtension {
 		createBuilder(builderData, interfaceTypes, builderMethods);
 	}
 
-	public void handleExtension(final IBuilderData builderData, final EclipseMethod method) {
-		EclipseType type = builderData.getType();
+	public void handleExtension(final IBuilderData builderData, final JavacMethod method) {
+		JavacType type = builderData.getType();
 		ExtensionCollector extensionCollector = new ExtensionCollector().withRequiredFieldNames(builderData.getAllRequiredFieldNames());
 		method.node().traverse(extensionCollector);
 		if (extensionCollector.isExtension()) {
-			EclipseType builderType = type.memberType(BUILDER);
-			EclipseType interfaceType;
+			JavacType builderType = type.memberType(BUILDER);
+			JavacType interfaceType;
 			if (extensionCollector.isRequiredFieldsExtension()) {
 				interfaceType = type.memberType(builderData.getRequiredFieldDefTypeNames().get(0));
 			} else {
@@ -173,26 +165,26 @@ public class HandleBuilderAndExtension {
 	}
 
 	private void createConstructor(final IBuilderData builderData) {
-		EclipseType type = builderData.getType();
+		JavacType type = builderData.getType();
 		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER), "builder").makeFinal()).withImplicitSuper();
-		for (final FieldDeclaration field : builderData.getAllFields()) {
-			final String fieldName = new String(field.name);
+		for (final JCVariableDecl field : builderData.getAllFields()) {
+			final String fieldName = field.name.toString();
 			constructorDecl.withStatement(Assign(Field(This(), fieldName), Field(Name("builder"), fieldName)));
 		}
 		type.injectConstructor(constructorDecl);
 	}
 
 	private void createInitializeBuilderMethod(final IBuilderData builderData, final TypeRef fieldDefType) {
-		final EclipseType type = builderData.getType();
+		final JavacType type = builderData.getType();
 		type.injectMethod(MethodDecl(fieldDefType, decapitalize(type.name())).makeStatic().withAccessLevel(builderData.getLevel()).withStatement(Return(New(Type(BUILDER)))));
 	}
 
 	private void createRequiredFieldInterfaces(IBuilderData builderData, List<AbstractMethodDecl<?>> builderMethods) {
-		List<FieldDeclaration> fields = builderData.getRequiredFields();
+		List<JCVariableDecl> fields = builderData.getRequiredFields();
 		if (!fields.isEmpty()) {
-			EclipseType type = builderData.getType();
+			JavacType type = builderData.getType();
 			List<String> names = builderData.getRequiredFieldDefTypeNames();
-			FieldDeclaration field = fields.get(0);
+			JCVariableDecl field = fields.get(0);
 			String name = names.get(0);
 			for (int i = 1, iend = fields.size(); i < iend; i++) {
 				List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
@@ -210,21 +202,22 @@ public class HandleBuilderAndExtension {
 	}
 
 	private void createOptionalFieldInterface(IBuilderData builderData, List<AbstractMethodDecl<?>> builderMethods) {
-		EclipseType type = builderData.getType();
+		JavacType type = builderData.getType();
 		List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
-		for (FieldDeclaration field : builderData.getOptionalFields()) {
+		for (JCVariableDecl field : builderData.getOptionalFields()) {
 			if (isInitializedMapOrCollection(field)) {
 				if (builderData.isGenerateConvenientMethodsEnabled()) {
 					if (isCollection(field)) {
-						createCollectionSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
+						createCollectionMethods(builderData, field, interfaceMethods, builderMethods);
 					}  else if (isMap(field)) {
-						createMapSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
+						createMapMethods(builderData, field, interfaceMethods, builderMethods);
 					}
 				}
 			} else {
 				createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 			}
 		}
+
 		createBuildMethod(builderData, type.name(), interfaceMethods, builderMethods);
 
 		for (String callMethod : builderData.getCallMethods()) {
@@ -234,26 +227,26 @@ public class HandleBuilderAndExtension {
 		type.injectType(InterfaceDecl(OPTIONAL_DEF).makePublic().makeStatic().withMethods(interfaceMethods));
 	}
 
-	private void createFluentSetter(IBuilderData builderData, String typeName, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
-		String fieldName = new String(field.name);
+	private void createFluentSetter(IBuilderData builderData, String typeName, JCVariableDecl field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
+		String fieldName = field.name.toString();
 		String methodName = camelCase(builderData.getPrefix(), fieldName);
-		final Argument arg0 = Arg(Type(field.type), fieldName).makeFinal();
+		final Argument arg0 = Arg(Type(field.vartype), fieldName).makeFinal();
 		builderMethods.add(MethodDecl(Type(typeName), methodName).makePublic().implementing().withArgument(arg0) //
 			.withStatement(Assign(Field(This(), fieldName), Name(fieldName))) //
 			.withStatement(Return(This())));
 		interfaceMethods.add(MethodDecl(Type(typeName), methodName).makePublic().withNoBody().withArgument(arg0));
 	}
 
-	private void createCollectionSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
+	private void createCollectionMethods(IBuilderData builderData, JCVariableDecl field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef elementType = Type("java.lang.Object");
 		TypeRef collectionType = Type("java.util.Collection");
-		TypeReference[] typeArguments = getTypeArguments(field.type);
+		JCExpression[] typeArguments = getTypeArguments(field.vartype);
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
-			collectionType.withTypeArgument(Wildcard(Bound.EXTENDS, elementType));
+			collectionType.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, elementType));
 		}
 
-		String fieldName = new String(field.name);
+		String fieldName = field.name.toString();
 
 		{ // add
 			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
@@ -273,19 +266,19 @@ public class HandleBuilderAndExtension {
 		}
 	}
 
-	private void createMapSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
+	private void createMapMethods(IBuilderData builderData, JCVariableDecl field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef keyType = Type("java.lang.Object");
 		TypeRef valueType = Type("java.lang.Object");
 		TypeRef mapType = Type("java.util.Map");
-		TypeReference[] typeArguments = getTypeArguments(field.type);
+		JCExpression[] typeArguments = getTypeArguments(field.vartype);
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
 			valueType = Type(typeArguments[1]);
-			mapType.withTypeArgument(Wildcard(Bound.EXTENDS, keyType)) //
-				.withTypeArgument(Wildcard(Bound.EXTENDS, valueType));
+			mapType.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, keyType)) //
+				.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, valueType));
 		}
 
-		String fieldName = new String(field.name);
+		String fieldName = field.name.toString();
 
 		{ // put
 			final String putMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
@@ -306,16 +299,9 @@ public class HandleBuilderAndExtension {
 		}
 	}
 
-	private TypeReference[] getTypeArguments(TypeReference type) {
-		if (type instanceof ParameterizedQualifiedTypeReference) {
-			ParameterizedQualifiedTypeReference typeRef = (ParameterizedQualifiedTypeReference)type;
-			if (typeRef.typeArguments != null) {
-				return typeRef.typeArguments[typeRef.typeArguments.length - 1];
-			}
-		}
-		if (type instanceof ParameterizedSingleTypeReference) {
-			ParameterizedSingleTypeReference typeRef = (ParameterizedSingleTypeReference)type;
-			return typeRef.typeArguments;
+	private JCExpression[] getTypeArguments(JCExpression type) {
+		if (type instanceof JCTypeApply) {
+			return ((JCTypeApply) type).arguments.toArray(new JCExpression[0]);
 		}
 		return null;
 	}
@@ -327,14 +313,14 @@ public class HandleBuilderAndExtension {
 	}
 
 	private void createMethodCall(IBuilderData builderData, String methodName, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
-		EclipseType type = builderData.getType();
+		JavacType type = builderData.getType();
 
 		TypeRef returnType = Type("void");
 		List<TypeRef> thrownExceptions = new ArrayList<TypeRef>();
 		if ("toString".equals(methodName)) {
 			returnType = Type("java.lang.String");
 		} else {
-			for (EclipseMethod method : type.methods()) {
+			for (JavacMethod method : type.methods()) {
 				if (methodName.equals(method.name()) && !method.hasArguments()) {
 					returnType = method.returns();
 					thrownExceptions.addAll(method.thrownExceptions());
@@ -355,85 +341,76 @@ public class HandleBuilderAndExtension {
 	}
 
 	private void createBuilder(IBuilderData builderData, List<TypeRef> interfaceTypes, List<AbstractMethodDecl<?>> builderMethods) {
-		EclipseType type = builderData.getType();
-		builderMethods.add(ConstructorDecl(BUILDER).makePrivate().withImplicitSuper());
+		JavacType type = builderData.getType();
 		type.injectType(ClassDecl(BUILDER).makePrivate().makeStatic().implementing(interfaceTypes) //
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods));
 	}
 
 	private List<FieldDecl> createBuilderFields(IBuilderData builderData) {
 		List<FieldDecl> fields = new ArrayList<FieldDecl>();
-		for (FieldDeclaration field : builderData.getAllFields()) {
-			FieldDecl builder = FieldDecl(Type(field.type), new String(field.name)).makePrivate();
-			if (field.initialization != null) {
-				builder.withInitialization(Expr(field.initialization));
-				field.initialization = null;
+		for (JCVariableDecl field : builderData.getAllFields()) {
+			FieldDecl builder = FieldDecl(Type(field.vartype), field.name.toString()).makePrivate();
+			if (field.init != null) {
+				builder.withInitialization(Expr(field.init));
+				field.init = null;
 			}
 			fields.add(builder);
 		}
 		return fields;
 	}
 
-	private static boolean isInitializedMapOrCollection(FieldDeclaration field) {
-		return (isMap(field) || isCollection(field)) && (field.initialization != null);
+	private static boolean isInitializedMapOrCollection(JCVariableDecl field) {
+		return (field.init != null) && (isMap(field) || isCollection(field));
 	}
 
-	// TODO use LombokNode.getImportStatements()
-	private static boolean isCollection(FieldDeclaration field) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (char[] elem : field.type.getTypeName()) {
-			if (first) first = false;
-			else sb.append('.');
-			sb.append(elem);
+	private static boolean isCollection(JCVariableDecl field) {
+		String type = getTypeStringOf(field);
+		return type.startsWith("java.util") && (type.endsWith("Collection") || type.endsWith("List") || type.endsWith("Set"));
+	}
+
+	private static boolean isMap(JCVariableDecl field) {
+		String type = getTypeStringOf(field);
+		return type.startsWith("java.util") && type.endsWith("Map");
+	}
+
+	private static String getTypeStringOf(JCVariableDecl field) {
+		if (field.vartype instanceof JCTypeApply) {
+			return ((JCTypeApply)field.vartype).clazz.type.toString();
+		} else {
+			return field.vartype.type.toString();
 		}
-		String type = sb.toString();
-		return type.endsWith("Collection") || type.endsWith("List") || type.endsWith("Set");
 	}
 
-	// TODO use LombokNode.getImportStatements()
-	private static boolean isMap(FieldDeclaration field) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (char[] elem : field.type.getTypeName()) {
-			if (first) first = false;
-			else sb.append('.');
-			sb.append(elem);
-		}
-		String type = sb.toString();
-		return type.endsWith("Map");
-	}
-
-	private static class BuilderDataCollector extends EclipseASTAdapterWithTypeDepth implements IBuilderData {
+	private static class BuilderDataCollector extends JavacASTAdapterWithTypeDepth implements IBuilderData {
 		@Getter
-		private final EclipseType type;
+		private final JavacType type;
 		@Getter
-		private final EclipseNode typeNode;
+		private final JavacNode typeNode;
 		@Getter
-		private final ASTNode source;
+		private final JCTree source;
 		@Getter
 		private final String prefix;
 		@Getter
 		private final List<String> callMethods;
 		@Getter
-		private final List<FieldDeclaration> requiredFields = new ArrayList<FieldDeclaration>();
+		private final List<JCVariableDecl> requiredFields = new ArrayList<JCVariableDecl>();
 		@Getter
-		private final List<FieldDeclaration> optionalFields = new ArrayList<FieldDeclaration>();
+		private final List<JCVariableDecl> optionalFields = new ArrayList<JCVariableDecl>();
 		@Getter
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
 		@Getter
 		private final List<String> allRequiredFieldNames = new ArrayList<String>();
 		@Getter
-		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();
+		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
 		@Getter
 		private final boolean generateConvenientMethodsEnabled;
 		@Getter
 		private final AccessLevel level;
 		private final Set<String> exclude;
 
-		public BuilderDataCollector(EclipseNode typeNode, ASTNode source, Builder builder) {
+		public BuilderDataCollector(JavacNode typeNode, JCTree source, Builder builder) {
 			super(1);
-			type = EclipseType.typeOf(typeNode, source);
+			type = JavacType.typeOf(typeNode, source);
 			this.typeNode = typeNode;
 			this.source = source;
 			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
@@ -449,18 +426,18 @@ public class HandleBuilderAndExtension {
 		}
 
 		@Override
-		public List<FieldDeclaration> getAllFields() {
-			List<FieldDeclaration> allFields = new ArrayList<FieldDeclaration>(getRequiredFields());
+		public List<JCVariableDecl> getAllFields() {
+			List<JCVariableDecl> allFields = new ArrayList<JCVariableDecl>(getRequiredFields());
 			allFields.addAll(getOptionalFields());
 			return allFields;
 		}
 
-		@Override public void visitField(EclipseNode fieldNode, FieldDeclaration field) {
+		@Override public void visitField(JavacNode fieldNode, JCVariableDecl field) {
 			if (isOfInterest()) {
-				if ((field.modifiers & STATIC) != 0) return;
-				String fieldName = new String(field.name);
+				if ((field.mods.flags & STATIC) != 0) return;
+				String fieldName = field.name.toString();
 				if (exclude.contains(fieldName)) return;
-				if ((field.initialization == null) && ((field.modifiers & FINAL) != 0)) {
+				if ((field.init == null) && ((field.mods.flags & FINAL) != 0)) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
 					String typeName = camelCase("$", fieldName, "def");
@@ -468,13 +445,13 @@ public class HandleBuilderAndExtension {
 					requiredFieldDefTypes.add(Type(typeName));
 				}
 				boolean append = isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
-				append |= (field.modifiers & FINAL) == 0;
+				append |= (field.mods.flags & FINAL) == 0;
 				if (append) optionalFields.add(field);
 			}
 		}
 	}
 
-	private static class ExtensionCollector extends EclipseASTAdapterWithTypeDepth {
+	private static class ExtensionCollector extends JavacASTAdapterWithTypeDepth {
 		@Getter
 		private boolean isRequiredFieldsExtension;
 		@Getter
@@ -493,8 +470,8 @@ public class HandleBuilderAndExtension {
 			return this;
 		}
 
-		@Override public void visitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
-			if (isOfInterest() && (method instanceof MethodDeclaration)) {
+		@Override public void visitMethod(JavacNode methodNode, JCMethodDecl method) {
+			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
 				containsRequiredFields = false;
 				isRequiredFieldsExtension = false;
 				isExtension = false;
@@ -503,10 +480,10 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
+		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
 			if (isOfInterest()) {
-				if (statement instanceof Assignment) {
-					Assignment assign = (Assignment) statement;
+				if (statement instanceof JCAssign) {
+					JCAssign assign = (JCAssign) statement;
 					String fieldName = assign.lhs.toString();
 					if (fieldName.startsWith("this.")) {
 						fieldName = fieldName.substring(5);
@@ -518,56 +495,50 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void endVisitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
-			if (isOfInterest() && (method instanceof MethodDeclaration)) {
-				MethodDeclaration meth = (MethodDeclaration) method;
-				if (((meth.modifiers & PRIVATE) != 0) && "void".equals(meth.returnType.toString())) {
+		@Override public void endVisitMethod(JavacNode methodNode, JCMethodDecl method) {
+			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
+				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
 					if (containsRequiredFields) {
 						if (requiredFieldNames.isEmpty()) {
 							isRequiredFieldsExtension = true;
 							isExtension = true;
 						} else {
-							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method.sourceStart, method.sourceEnd);
+							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method);
 						}
 					} else {
 						isExtension = true;
 					}
 				} else {
-					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method.sourceStart, method.sourceEnd);
+					methodNode.addWarning("@Builder.Extension:  The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
 				}
 			}
 		}
 	}
 
 	@RequiredArgsConstructor
-	private static class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
+	private static class JavacASTAdapterWithTypeDepth extends JavacASTAdapter {
 		private final int maxTypeDepth;
 		private int typeDepth;
 
-		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
+		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
 			typeDepth++;
 		}
 
-		@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
+		@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
 			typeDepth--;
 		}
 
 		public boolean isOfInterest() {
 			return typeDepth <= maxTypeDepth;
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return false;
-		}
 	}
 
 	private static interface IBuilderData {
-		public EclipseType getType();
+		public JavacType getType();
 
-		public EclipseNode getTypeNode();
+		public JavacNode getTypeNode();
 
-		public ASTNode getSource();
+		public JCTree getSource();
 
 		public AccessLevel getLevel();
 
@@ -575,11 +546,11 @@ public class HandleBuilderAndExtension {
 
 		public List<String> getCallMethods();
 
-		public List<FieldDeclaration> getAllFields();
+		public List<JCVariableDecl> getAllFields();
 
-		public List<FieldDeclaration> getRequiredFields();
+		public List<JCVariableDecl> getRequiredFields();
 
-		public List<FieldDeclaration> getOptionalFields();
+		public List<JCVariableDecl> getOptionalFields();
 
 		public List<TypeRef> getRequiredFieldDefTypes();
 

@@ -24,7 +24,6 @@ package lombok.eclipse.handlers;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.eclipse.Eclipse.*;
 import static lombok.ast.AST.*;
 
 import java.lang.reflect.Method;
@@ -40,13 +39,8 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.agent.PatchListenerSupport;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
-import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
@@ -66,49 +60,26 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			return;
 		}
 
-		List<ClassLiteralAccess> listenerInterfaces = getListenerInterface(source, "value");
-
+		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
 			annotationNode.addError("@ListenerSupport has no effect with if no interface classes was specified.");
 			return;
 		}
-		for (ClassLiteralAccess cla : listenerInterfaces) {
-			TypeBinding binding = cla.type.resolveType(type.get().initializerScope);
-			if (!binding.isInterface()) {
-				annotationNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", new String(binding.readableName())));
-				continue;
-			}
-			addListenerField(type, source, binding);
-			addAddListenerMethod(type, source, binding);
-			addRemoveListenerMethod(type, source, binding);
-			addFireListenerMethod(type, source, binding);
-		}
-	}
-
-	private Expression getAnnotationArgumentValue(Annotation ann, String arumentName) {
-		for (MemberValuePair pair : ann.memberValuePairs()) {
-			if ((pair.name == null) || arumentName.equals(new String(pair.name))) {
-				return pair.value;
+		for (Object listenerInterface : listenerInterfaces) {
+			if (listenerInterface instanceof ClassLiteralAccess) {
+				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
+				if (!binding.isInterface()) {
+					annotationNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", new String(binding.readableName())));
+					continue;
+				}
+				addListenerField(type, binding);
+				addAddListenerMethod(type, binding);
+				addRemoveListenerMethod(type, binding);
+				addFireListenerMethod(type, binding);
 			}
 		}
-		return new NullLiteral(0, 0);
-	}
 
-	private List<ClassLiteralAccess> getListenerInterface(Annotation ann, String arumentName) {
-		Expression value = getAnnotationArgumentValue(ann, arumentName);
-		List<ClassLiteralAccess> listenerInterfaces = new ArrayList<ClassLiteralAccess>();
-		if (value instanceof ArrayInitializer) {
-			for (Expression expr : ((ArrayInitializer)value).expressions) {
-				tryToAdd(listenerInterfaces, expr);
-			}
-		} else tryToAdd(listenerInterfaces, value);
-		return listenerInterfaces;
-	}
-
-	private void tryToAdd(List<ClassLiteralAccess> list, Expression cla) {
-		if (cla instanceof ClassLiteralAccess) {
-			list.add((ClassLiteralAccess) cla);
-		}
+		type.rebuild();
 	}
 
 	/**
@@ -118,10 +89,10 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 *   new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
 	 * </pre>
 	 */
-	private void addListenerField(EclipseType type, ASTNode source, TypeBinding binding) {
+	private void addListenerField(EclipseType type, TypeBinding binding) {
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(makeType(binding, source, false))), "$registered" + interfaceName).makePrivate().makeFinal() //
-			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(makeType(binding, source, false))))));
+		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(binding)), "$registered" + interfaceName).makePrivate().makeFinal() //
+			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(binding)))));
 	}
 
 	/**
@@ -133,9 +104,9 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * }
 	 * </pre>
 	 */
-	private void addAddListenerMethod(EclipseType type, ASTNode source, TypeBinding binding) {
+	private void addAddListenerMethod(EclipseType type, TypeBinding binding) {
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
+		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(binding), "l")) //
 			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
 				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
@@ -148,9 +119,9 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * }
 	 * </pre>
 	 */
-	private void addRemoveListenerMethod(EclipseType type, ASTNode source, TypeBinding binding) {
+	private void addRemoveListenerMethod(EclipseType type, TypeBinding binding) {
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(makeType(binding, source, false)), "l")) //
+		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(binding), "l")) //
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
@@ -163,27 +134,27 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * }
 	 * </pre>
 	 */
-	private void addFireListenerMethod(EclipseType type, ASTNode source, TypeBinding binding) {
+	private void addFireListenerMethod(EclipseType type, TypeBinding binding) {
 		String interfaceName = interfaceName(new String(binding.shortReadableName()));
 		List<MethodBinding> methods = getInterfaceMethods(binding);
 		for (MethodBinding methodBinding : methods) {
 			String methodName = new String(methodBinding.selector);
 			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
 			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-			createParamsAndArgs(source, methodBinding, params, args);
+			createParamsAndArgs(methodBinding, params, args);
 			type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-				.withStatement(Foreach(LocalDecl(Type(makeType(binding, source, false)), "l")).In(Name("$registered" + interfaceName)) //
+				.withStatement(Foreach(LocalDecl(Type(binding), "l")).In(Name("$registered" + interfaceName)) //
 					.Do(Call(Name("l"), methodName).withArguments(args))));
 		}
 	}
 
-	private void createParamsAndArgs(ASTNode source, MethodBinding methodBinding , List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
+	private void createParamsAndArgs(MethodBinding methodBinding, List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
 		if (isEmpty(methodBinding.parameters)) return;
 		int argCounter = 0;
 		String arg;
 		for (TypeBinding parameter : methodBinding.parameters) {
-			arg = " arg" + argCounter++;
-			params.add(Arg(Type(makeType(parameter, source, false)), arg));
+			arg = "arg" + argCounter++;
+			params.add(Arg(Type(parameter), arg));
 			args.add(Name(arg));
 		}
 	}

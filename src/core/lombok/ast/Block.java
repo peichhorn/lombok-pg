@@ -36,12 +36,12 @@ public class Block extends Statement {
 		statements.add(child(statement));
 		return this;
 	}
-	
+
 	public Block withStatements(final List<Statement> statements) {
 		for (Statement statement : statements) withStatement(statement);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitBlock(this, p);

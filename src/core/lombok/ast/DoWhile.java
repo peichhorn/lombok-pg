@@ -27,7 +27,7 @@ import lombok.Getter;
 public final class DoWhile extends Statement {
 	private final Statement action;
 	private Expression condition;
-	
+
 	public DoWhile(final Statement action) {
 		this.action = child(action);
 		this.condition = child(new BooleanLiteral(true));
@@ -37,7 +37,7 @@ public final class DoWhile extends Statement {
 		this.condition = child(condition);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitDoWhile(this, p);

@@ -125,6 +125,17 @@ public final class Eclipse {
 		unit.imports = newImports.toArray(new ImportReference[newImports.size()]);
 	}
 
+	public static EclipseNode methodNodeOf(final EclipseNode node) {
+		EclipseNode typeNode = node;
+		while ((typeNode != null) && !(typeNode.get() instanceof AbstractMethodDeclaration)) {
+			typeNode = typeNode.up();
+		}
+		if (typeNode == null) {
+			throw new IllegalArgumentException();
+		}
+		return typeNode;
+	}
+
 	public static EclipseNode typeNodeOf(final EclipseNode node) {
 		EclipseNode typeNode = node;
 		while ((typeNode != null) && !(typeNode.get() instanceof TypeDeclaration)) {

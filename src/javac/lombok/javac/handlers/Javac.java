@@ -21,24 +21,51 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
+
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Javac {
+	public static void injectType(JavacNode typeNode, JCClassDecl type) {
+		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		addSuppressWarningsAll(type.mods, typeNode, type.pos);
+		typeDecl.defs = typeDecl.defs.append(type);
+		typeNode.add(type, Kind.TYPE);
+	}
+
+	public static void addSuppressWarningsAll(JCModifiers mods, JavacNode node, int pos) {
+		TreeMaker maker = node.getTreeMaker();
+		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings").setPos(pos);
+		JCExpression allLiteral = maker.Literal("all").setPos(pos);
+		for (JCAnnotation annotation : mods.annotations) {
+			if (annotation.annotationType.toString().endsWith("SuppressWarnings")) {
+				mods.annotations.remove(annotation);
+				break;
+			}
+		}
+		mods.annotations = mods.annotations.append((JCAnnotation) maker.Annotation(suppressWarningsType, List.of(allLiteral)).setPos(pos));
+	}
+
 	public static boolean isMethodCallValid(JavacNode node, String methodName, Class<?> clazz, String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
@@ -82,6 +109,17 @@ public final class Javac {
 			if (!delete) newDefs.append(def);
 		}
 		unit.defs = newDefs.toList();
+	}
+
+	public static JavacNode methodNodeOf(final JavacNode node) {
+		JavacNode typeNode = node;
+		while ((typeNode != null) && !(typeNode.get() instanceof JCMethodDecl)) {
+			typeNode = typeNode.up();
+		}
+		if (typeNode == null) {
+			throw new IllegalArgumentException();
+		}
+		return typeNode;
 	}
 
 	public static JavacNode typeNodeOf(final JavacNode node) {

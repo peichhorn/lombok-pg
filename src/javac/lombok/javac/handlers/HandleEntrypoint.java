@@ -21,11 +21,13 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.ast.AST.*;
 import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static lombok.javac.handlers.JavacTreeBuilder.method;
 import static com.sun.tools.javac.code.Flags.*;
-import static lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult.NOT_EXISTS;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -34,6 +36,7 @@ import lombok.JvmAgent;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -52,21 +55,25 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected boolean handle(JavacNode typeNode) {
-			markInterfaceAsProcessed(typeNode, Application.class);
-			createEntrypoint(typeNode, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
+		@Override protected boolean handle(JavacType type) {
+			markInterfaceAsProcessed(type.node(), Application.class);
+			createEntrypoint(type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
 			return true;
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public String getArgs(String name) {
-				return "args";
+			@Override public List<lombok.ast.Expression> getArgs(String name) {
+				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+				args.add(Name("args"));
+				return args;
 			}
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public String getParams(String name) {
-				return "final java.lang.String[] args";
+			@Override public List<lombok.ast.Argument> getParams(String name) {
+				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
+				params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
+				return params;
 			}
 		}
 	}
@@ -80,24 +87,31 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected boolean handle(JavacNode typeNode) {
-			markInterfaceAsProcessed(typeNode, JvmAgent.class);
+		@Override protected boolean handle(JavacType type) {
+			markInterfaceAsProcessed(type.node(), JvmAgent.class);
 			IArgumentProvider argumentProvider = new ArgumentProvider();
 			IParameterProvider parameterProvider = new ParameterProvider();
-			createEntrypoint(typeNode, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			createEntrypoint(typeNode, "premain", "runAgent", parameterProvider, argumentProvider);
+			createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 			return true;
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public String getArgs(String name) {
-				return String.valueOf("agentmain".equals(name)) + ", params, instrumentation";
+			@Override public List<lombok.ast.Expression> getArgs(String name) {
+				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+				args.add(("agentmain".equals(name) ? True() : False()));
+				args.add(Name("params"));
+				args.add(Name("instrumentation"));
+				return args;
 			}
 		}
 
 		private static class ParameterProvider implements IParameterProvider {
-			@Override public String getParams(String name) {
-				return "final java.lang.String params, final java.lang.instrument.Instrumentation instrumentation";
+			@Override public List<lombok.ast.Argument> getParams(String name) {
+				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
+				params.add(Arg(Type("java.lang.String"), "params"));
+				params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
+				return params;
 			}
 		}
 	}
@@ -120,7 +134,7 @@ public class HandleEntrypoint {
 				}
 			}
 			if (implementsInterface) {
-				handled = handle(typeNode);
+				handled = handle(JavacType.typeOf(typeNode, type));
 			}
 		}
 
@@ -135,7 +149,7 @@ public class HandleEntrypoint {
 		 *
 		 * @param typeNode
 		 */
-		abstract protected boolean handle(JavacNode typeNode);
+		abstract protected boolean handle(JavacType type);
 	}
 
 	/**
@@ -191,25 +205,24 @@ public class HandleEntrypoint {
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public static void createEntrypoint(JavacNode node, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
-		if (methodExists(methodName, node, false) == NOT_EXISTS) {
+	public static void createEntrypoint(JavacType type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
+		if (!type.hasMethod(methodName)) {
 			return;
 		}
 
-		if (entrypointExists(name, node)) {
+		if (entrypointExists(name, type.node())) {
 			return;
 		}
 
-		String params = (paramProvider != null) ? paramProvider.getParams(name) : "";
-		String args = (argsProvider != null) ? argsProvider.getArgs(name) : "";
-		method(node, "public static void %s(%s) throws java.lang.Throwable { new %s().%s(%s); }", name, params, node.getName(), methodName, args).inject(node.get());
+		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
+				.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
 	}
 
 	public static interface IArgumentProvider {
-		public String getArgs(String name);
+		public List<lombok.ast.Expression> getArgs(String name);
 	}
 
 	public static interface IParameterProvider {
-		public String getParams(String name);
+		public List<lombok.ast.Argument> getParams(String name);
 	}
 }

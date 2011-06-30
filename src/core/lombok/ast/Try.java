@@ -47,7 +47,7 @@ public final class Try extends Statement {
 		this.finallyBlock = child(finallyBlock);
 		return this;
 	}
-	
+
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
 		return v.visitTry(this, p);
