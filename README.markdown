@@ -21,6 +21,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 #### Interfaces:
 
 - `Application` and `JVMAgent`
+
 #### Methods:
 
 - `tuple(var1, var2, ...) = tuple(expr1, expr2, ...)`
