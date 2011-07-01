@@ -1,8 +1,8 @@
 # lombok-pg
 
-lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok) distributed together with lombok in one spicy package. The lombok version lombok-pg is based on, is usually pretty much up to date, so you can do all the funky stuff lombok offers and a bit more.
+lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). Together with lombok it is distributed in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers and a bit more.
 
-## The current extensions are:
+## Extensions:
 
 #### Annotations:
 
@@ -11,9 +11,9 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@DoPrivileged`
 - `@FluentSetter`
 - `@ListenerSupport`
-- `@WriteLock`, `@ReadLock`
-- `@Await`, `@Signal`, `@AwaitBeforeAndSignalAfter`
-- `@Rethrow`, `@Rethrows`
+- `@WriteLock` and `@ReadLock`
+- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter`
+- `@Rethrow` and `@Rethrows`
 - `@Singleton`
 - `@SwingInvokeLater` and `@SwingInvokeAndWait`
 - `@VisibleForTesting`
