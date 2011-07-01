@@ -37,6 +37,7 @@ import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.makeType;
 import static lombok.eclipse.Eclipse.poss;
+import static lombok.eclipse.Eclipse.setGeneratedBy;
 import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.util.ArrayList;
@@ -712,7 +713,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	@Override
 	public ASTNode visitWrappedExpression(lombok.ast.WrappedExpression node, Void p) {
 		Expression expression = (Expression) node.getWrappedObject();
-		setGeneratedByAndCopyPos(expression, source);
+		setGeneratedBy(expression, source);
 		return expression;
 	}
 
@@ -766,7 +767,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 	@Override
 	public ASTNode visitWrappedStatement(lombok.ast.WrappedStatement node, Void p) {
 		Statement statement = (Statement) node.getWrappedObject();
-		setGeneratedByAndCopyPos(statement, source);
+		setGeneratedBy(statement, source);
 		return statement;
 	}
 
@@ -778,7 +779,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		} else if (node.getWrappedObject() instanceof TypeReference) {
 			typeReference = Eclipse.copyType((TypeReference) node.getWrappedObject(), source);
 		}
-		setGeneratedByAndCopyPos(typeReference, source);
+		setGeneratedBy(typeReference, source);
 		if (node.isSuperType()) typeReference.bits |= IsSuperType;
 		return typeReference;
 	}
