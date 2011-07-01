@@ -31,10 +31,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import javax.lang.model.type.NoType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeVisitor;
-
 import com.sun.tools.javac.code.BoundKind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Type;
@@ -457,16 +453,34 @@ public class JavacASTMaker implements ASTVisitor<JCTree, Void> {
 	@Override
 	public JCTree visitTypeRef(lombok.ast.TypeRef node, Void p) {
 		JCExpression typeRef;
-		if ("void".equals(node.getTypeName())) {
-			typeRef = setGeneratedBy(M.Type(new JCNoType(TypeTags.VOID)), source);
+		final String typeName = node.getTypeName();
+		if ("void".equals(typeName)) {
+			return setGeneratedBy(M.TypeIdent(TypeTags.VOID), source);
+		} else if ("int".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.INT);
+		} else if ("long".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.LONG);
+		} else if ("short".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.SHORT);
+		} else if ("boolean".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.BOOLEAN);
+		} else if ("byte".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.BYTE);
+		} else if ("char".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.CHAR);
+		} else if ("float".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.FLOAT);
+		} else if ("double".equals(typeName)) {
+			typeRef = M.TypeIdent(TypeTags.DOUBLE);
 		} else {
-			typeRef = setGeneratedBy(chainDots(node.getTypeName()), source);
+			typeRef = chainDots(node.getTypeName());
 			if (!node.getTypeArgs().isEmpty()) {
-				typeRef = setGeneratedBy(M.TypeApply(typeRef, build(node.getTypeArgs(), JCExpression.class)), source);
+				typeRef = M.TypeApply(setGeneratedBy(typeRef, source), build(node.getTypeArgs(), JCExpression.class));
 			}
-			for (int i = 0; i < node.getDims(); i++) {
-				typeRef = setGeneratedBy(M.TypeArray(typeRef), source);
-			}
+		}
+		typeRef = setGeneratedBy(typeRef, source);
+		for (int i = 0; i < node.getDims(); i++) {
+			typeRef = setGeneratedBy(M.TypeArray(typeRef), source);
 		}
 		return typeRef;
 	}
@@ -566,23 +580,5 @@ public class JavacASTMaker implements ASTVisitor<JCTree, Void> {
 			typeReference = new TreeCopier<Void>(M).copy((JCExpression) node.getWrappedObject());
 		}
 		return typeReference;
-	}
-
-	private static class JCNoType extends Type implements NoType {
-		public JCNoType(int tag) {
-			super(tag, null);
-		}
-
-		@Override
-		public TypeKind getKind() {
-			if (tag == TypeTags.VOID) return TypeKind.VOID;
-			if (tag == TypeTags.NONE) return TypeKind.NONE;
-			throw new AssertionError("Unexpected tag: " + tag);
-		}
-
-		@Override
-		public <R, P> R accept(TypeVisitor<R, P> v, P p) {
-			return v.visitNoType(this, p);
-		}
 	}
 }
