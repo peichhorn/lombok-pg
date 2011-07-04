@@ -21,12 +21,11 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.ErrorMessages.*;
 import static lombok.ast.AST.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
+import static lombok.core.util.ErrorMessages.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
-import lombok.Singleton;
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -38,6 +37,7 @@ import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
+
 	@Override public void handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface() || type.isEnum()) {
@@ -70,6 +70,7 @@ public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 		case ENUM:
 			type.get().modifiers |= AccEnum;
 			replaceConstructorVisibility(type);
+
 			type.injectField(EnumConstant("INSTANCE"));
 			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
 				.withStatement(Return(Name("INSTANCE"))));
@@ -80,9 +81,7 @@ public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 
 	private void replaceConstructorVisibility(EclipseType type) {
 		for (EclipseMethod method : type.methods()) {
-			if (method.isConstructor()) {
-				method.get().modifiers &= ~(PUBLIC | PROTECTED);
-			}
+			if (method.isConstructor()) method.makePackagePrivate();
 		}
 	}
 }

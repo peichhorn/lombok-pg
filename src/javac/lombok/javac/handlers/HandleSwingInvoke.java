@@ -23,6 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Names.camelCase;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.ArrayList;
@@ -38,7 +39,6 @@ import lombok.javac.handlers.ast.JavacMethod;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -77,7 +77,7 @@ public class HandleSwingInvoke {
 
 		replaceWithQualifiedThisReference(method, source);
 
-		String field = "$" + method.name() + "Runnable";
+		String field = "$" + camelCase(method.name(), "runnable");
 
 		Call elseStatementRun = Call(Name("java.awt.EventQueue"), methodName).withArgument(Name(field));
 

@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
+import static lombok.ast.Wildcard.Bound.EXTENDS;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.eclipse.handlers.Eclipse.*;
@@ -32,7 +33,6 @@ import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
-import lombok.ast.Wildcard.Bound;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.eclipse.Eclipse;
@@ -43,7 +43,6 @@ import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Assignment;
@@ -85,7 +84,7 @@ public class HandleBuilderAndExtension {
 				//continue with creating the builder
 			}
 
-			new HandleBuilderAndExtension().handleBuilder(new BuilderDataCollector(type.node(), source, annotation.getInstance()).collect());
+			new HandleBuilderAndExtension().handleBuilder(new BuilderDataCollector(type, annotation.getInstance()).collect());
 		}
 	}
 
@@ -128,7 +127,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
 			}
 
-			new HandleBuilderAndExtension().handleExtension(new BuilderDataCollector(typeNode, source, builderAnnotation.getInstance()).collect(), method);
+			new HandleBuilderAndExtension().handleExtension(new BuilderDataCollector(EclipseType.typeOf(typeNode, source), builderAnnotation.getInstance()).collect(), method);
 		}
 
 		@Override
@@ -216,7 +215,7 @@ public class HandleBuilderAndExtension {
 			if (isInitializedMapOrCollection(field)) {
 				if (builderData.isGenerateConvenientMethodsEnabled()) {
 					if (isCollection(field)) {
-						createCollectionSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
+						createCollectionMethods(builderData, field, interfaceMethods, builderMethods);
 					}  else if (isMap(field)) {
 						createMapSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
 					}
@@ -225,6 +224,7 @@ public class HandleBuilderAndExtension {
 				createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 			}
 		}
+
 		createBuildMethod(builderData, type.name(), interfaceMethods, builderMethods);
 
 		for (String callMethod : builderData.getCallMethods()) {
@@ -244,13 +244,13 @@ public class HandleBuilderAndExtension {
 		interfaceMethods.add(MethodDecl(Type(typeName), methodName).makePublic().withNoBody().withArgument(arg0));
 	}
 
-	private void createCollectionSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
+	private void createCollectionMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef elementType = Type("java.lang.Object");
 		TypeRef collectionType = Type("java.util.Collection");
 		TypeReference[] typeArguments = getTypeArguments(field.type);
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
-			collectionType.withTypeArgument(Wildcard(Bound.EXTENDS, elementType));
+			collectionType.withTypeArgument(Wildcard(EXTENDS, elementType));
 		}
 
 		String fieldName = new String(field.name);
@@ -281,8 +281,8 @@ public class HandleBuilderAndExtension {
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
 			valueType = Type(typeArguments[1]);
-			mapType.withTypeArgument(Wildcard(Bound.EXTENDS, keyType)) //
-				.withTypeArgument(Wildcard(Bound.EXTENDS, valueType));
+			mapType.withTypeArgument(Wildcard(EXTENDS, keyType)) //
+				.withTypeArgument(Wildcard(EXTENDS, valueType));
 		}
 
 		String fieldName = new String(field.name);
@@ -378,7 +378,6 @@ public class HandleBuilderAndExtension {
 		return (isMap(field) || isCollection(field)) && (field.initialization != null);
 	}
 
-	// TODO use LombokNode.getImportStatements()
 	private static boolean isCollection(FieldDeclaration field) {
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
@@ -391,7 +390,6 @@ public class HandleBuilderAndExtension {
 		return type.endsWith("Collection") || type.endsWith("List") || type.endsWith("Set");
 	}
 
-	// TODO use LombokNode.getImportStatements()
 	private static boolean isMap(FieldDeclaration field) {
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
@@ -407,10 +405,6 @@ public class HandleBuilderAndExtension {
 	private static class BuilderDataCollector extends EclipseASTAdapterWithTypeDepth implements IBuilderData {
 		@Getter
 		private final EclipseType type;
-		@Getter
-		private final EclipseNode typeNode;
-		@Getter
-		private final ASTNode source;
 		@Getter
 		private final String prefix;
 		@Getter
@@ -431,11 +425,9 @@ public class HandleBuilderAndExtension {
 		private final AccessLevel level;
 		private final Set<String> exclude;
 
-		public BuilderDataCollector(EclipseNode typeNode, ASTNode source, Builder builder) {
+		public BuilderDataCollector(EclipseType type, Builder builder) {
 			super(1);
-			type = EclipseType.typeOf(typeNode, source);
-			this.typeNode = typeNode;
-			this.source = source;
+			this.type = type;
 			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
 			generateConvenientMethodsEnabled = builder.convenientMethods();
 			prefix = builder.prefix();
@@ -444,7 +436,7 @@ public class HandleBuilderAndExtension {
 		}
 
 		public IBuilderData collect() {
-			typeNode.traverse(this);
+			type.node().traverse(this);
 			return this;
 		}
 
@@ -564,10 +556,6 @@ public class HandleBuilderAndExtension {
 
 	private static interface IBuilderData {
 		public EclipseType getType();
-
-		public EclipseNode getTypeNode();
-
-		public ASTNode getSource();
 
 		public AccessLevel getLevel();
 

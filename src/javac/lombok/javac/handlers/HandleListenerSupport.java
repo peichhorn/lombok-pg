@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.lang.model.element.ElementKind;
-import lombok.ListenerSupport;
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -151,7 +151,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		if (tsym == null) return;
 		String interfaceName = interfaceName(tsym.name.toString());
 		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(tsym.type), "l")) //
-				.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
+			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		addFireListenerMethodAll(type, interfazeType, interfazeType);
 	}
 
-	private static void addFireListenerMethodAll(JavacType type, ClassType interfazeType, ClassType superInterfazeType) {
+	private void addFireListenerMethodAll(JavacType type, ClassType interfazeType, ClassType superInterfazeType) {
 		TypeSymbol isym = interfazeType.asElement();
 		String interfaceName = interfaceName(isym.name.toString());
 		TypeSymbol tsym = superInterfazeType.asElement();
@@ -179,21 +179,21 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
 			createParamsAndArgs((MethodType)((MethodSymbol)member).type, params, args);
 			type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-					.withStatement(Foreach(LocalDecl(Type(isym.type), "l")).In(Name("$registered" + interfaceName)) //
-						.Do(Call(Name("l"), methodName).withArguments(args))));
+				.withStatement(Foreach(LocalDecl(Type(isym.type), "l")).In(Name("$registered" + interfaceName)) //
+					.Do(Call(Name("l"), methodName).withArguments(args))));
 		}
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
 			if (iface instanceof ClassType) addFireListenerMethodAll(type, interfazeType, (ClassType) iface);
 		}
 	}
 
-	private static void createParamsAndArgs(MethodType mtype, List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
+	private void createParamsAndArgs(MethodType mtype, List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
 		if (mtype.argtypes.isEmpty()) return;
 		int argCounter = 0;
 		String arg;
-		for (Type atype : mtype.argtypes) {
+		for (Type parameter : mtype.argtypes) {
 			arg = "arg" + argCounter++;
-			params.add(Arg(Type(atype), arg));
+			params.add(Arg(Type(parameter), arg));
 			args.add(Name(arg));
 		}
 	}

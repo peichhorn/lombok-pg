@@ -28,7 +28,7 @@ import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
-import lombok.Singleton;
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -66,9 +66,9 @@ public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
 			replaceConstructorVisibility(type);
 
 			type.injectType(ClassDecl(holderName).makePrivate().makeStatic() //
-					.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
-				type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
-					.withStatement(Return(Name(holderName + ".INSTANCE"))));
+				.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
+			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
+				.withStatement(Return(Name(holderName + ".INSTANCE"))));
 			break;
 		default:
 		case ENUM:
@@ -85,9 +85,7 @@ public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
 
 	private void replaceConstructorVisibility(JavacType type) {
 		for (JavacMethod method : type.methods()) {
-			if (method.isConstructor()) {
-				method.get().mods.flags &= ~(PUBLIC | PROTECTED);
-			}
+			if (method.isConstructor()) method.makePackagePrivate();
 		}
 	}
 }

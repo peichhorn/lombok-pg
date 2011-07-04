@@ -76,6 +76,7 @@ public class HandleSwingInvoke {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
 		}
+
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;

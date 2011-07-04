@@ -29,10 +29,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mangosdk.spi.ProviderFor;
-
-import lombok.Application;
-import lombok.JvmAgent;
+import lombok.*;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
@@ -44,6 +41,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.ListBuffer;
+import org.mangosdk.spi.ProviderFor;
 
 public class HandleEntrypoint {
 	/**
@@ -55,10 +53,9 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected boolean handle(JavacType type) {
+		@Override protected void handle(JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
 			createEntrypoint(type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
-			return true;
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
@@ -87,13 +84,12 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected boolean handle(JavacType type) {
+		@Override protected void handle(JavacType type) {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
 			IArgumentProvider argumentProvider = new ArgumentProvider();
 			IParameterProvider parameterProvider = new ParameterProvider();
 			createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
 			createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
-			return true;
 		}
 
 		private static class ArgumentProvider implements IArgumentProvider {
@@ -116,13 +112,9 @@ public class HandleEntrypoint {
 		}
 	}
 
+	@RequiredArgsConstructor
 	public static abstract class AbstractHandleEntrypoint extends JavacASTAdapter {
-		private boolean handled = false;
 		private final Class<?> interfaze;
-
-		public AbstractHandleEntrypoint(Class<?> interfaze) {
-			this.interfaze = interfaze;
-		}
 
 		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
 			boolean implementsInterface = false;
@@ -134,22 +126,20 @@ public class HandleEntrypoint {
 				}
 			}
 			if (implementsInterface) {
-				handled = handle(JavacType.typeOf(typeNode, type));
+				 handle(JavacType.typeOf(typeNode, type));
 			}
 		}
 
 		@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
-			if (handled) {
-				deleteImportFromCompilationUnit(top, interfaze.getName());
-			}
+			deleteImportFromCompilationUnit(top, interfaze.getName());
 		}
 
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
 		 *
-		 * @param typeNode
+		 * @param type
 		 */
-		abstract protected boolean handle(JavacType type);
+		protected abstract void handle(JavacType type);
 	}
 
 	/**
@@ -199,7 +189,7 @@ public class HandleEntrypoint {
 	 *   new &lt;TYPENAME&gt;().&lt;METHODNAME&gt;(&lt;ARGUMENTS&gt;);
 	 * }
 	 * </pre>
-	 * @param node Any node that represents the Type (JCClassDecl)
+	 * @param type Type (JCClassDecl)
 	 * @param name name of the entrypoint ("main", "premain, "agentmain")
 	 * @param methodName name of method that should be called in the entrypoint
 	 * @param paramProvider parameter provider used for the entrypoint

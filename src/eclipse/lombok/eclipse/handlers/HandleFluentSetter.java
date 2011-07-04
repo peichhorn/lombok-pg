@@ -21,12 +21,12 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
-import static lombok.ast.AST.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.util.ArrayList;
@@ -34,12 +34,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import lombok.AccessLevel;
-import lombok.FluentSetter;
-import lombok.Setter;
-import lombok.ast.MethodDecl;
-import lombok.core.AnnotationValues;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AST.Kind;
+import lombok.core.AnnotationValues;
 import lombok.core.handlers.TransformationsUtil;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -59,6 +57,7 @@ import org.mangosdk.spi.ProviderFor;
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
+
 	@Override public void handle(AnnotationValues<FluentSetter> annotation, Annotation ast, EclipseNode annotationNode) {
 		FluentSetter annotationInstance = annotation.getInstance();
 		AccessLevel level = annotationInstance.value();
@@ -143,10 +142,9 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 			return;
 		default:
 		case NOT_EXISTS:
-			//continue with creating the setter
 		}
 
-		generateSetter(EclipseType.typeOf(fieldNode, source), fieldNode, fieldName, level, source);
+		generateSetter(EclipseType.typeOf(fieldNode, source), fieldNode, level, source);
 	}
 
 	public static List<lombok.ast.Annotation> findAnnotations(AbstractVariableDeclaration variable, Pattern namePattern) {
@@ -162,18 +160,19 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		return result;
 	}
 
-	private void generateSetter(EclipseType type, EclipseNode fieldNode, String name, AccessLevel level, ASTNode source) {
+	private void generateSetter(EclipseType type, EclipseNode fieldNode, AccessLevel level, ASTNode source) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
+		String fieldName = fieldNode.getName();
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 
-		MethodDecl methodDecl = MethodDecl(Type(new String(type.name())).withTypeArguments(type.typeParameters()), name).withAccessLevel(level) //
-			.withArgument(Arg(Type(field.type), new String(field.name)).withAnnotations(nonNulls));
+		MethodDecl methodDecl = MethodDecl(Type(new String(type.name())).withTypeArguments(type.typeParameters()), fieldName).withAccessLevel(level) //
+			.withArgument(Arg(Type(field.type), fieldName).withAnnotations(nonNulls));
 
 		if ((field.modifiers & AccStatic) != 0) methodDecl.makeStatic();
 		if (!nonNulls.isEmpty() && !isPrimitive(field.type)) {
-			methodDecl.withStatement(If(Equal(Name(name), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(name)))));
+			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
 		}
-		methodDecl.withStatement(Assign(Expr(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source)), Name(new String(field.name)))) //
+		methodDecl.withStatement(Assign(Expr(createFieldAccessor(fieldNode, FieldAccess.ALWAYS_FIELD, source)), Name(new String(fieldName)))) //
 			.withStatement(Return(This()));
 		type.injectMethod(methodDecl);
 	}

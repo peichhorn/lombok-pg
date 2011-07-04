@@ -36,10 +36,8 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
-import lombok.DoPrivileged;
-import lombok.RequiredArgsConstructor;
-import lombok.DoPrivileged.SanitizeWith;
-import lombok.ast.TypeRef;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -106,10 +104,10 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 	private List<lombok.ast.Statement> sanitizeParameter(final JavacMethod method) {
 		final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
 		for (JCVariableDecl param : method.get().params) {
-			final JCAnnotation ann = getAnnotation(SanitizeWith.class, param);
+			final JCAnnotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, param);
 			if (ann != null) {
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
-				String sanatizeMethodName = Javac.createAnnotation(SanitizeWith.class, annotationNode).getInstance().value();
+				String sanatizeMethodName = Javac.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
 				final String argumentName = param.name.toString();
 				final String newArgumentName = "$" + argumentName;
 				sanitizeStatements.add(LocalDecl(Type(param.vartype), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));

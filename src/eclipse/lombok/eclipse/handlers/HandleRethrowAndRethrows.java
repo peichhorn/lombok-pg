@@ -21,18 +21,15 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isEmpty;
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
 import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.ErrorMessages.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Rethrow;
-import lombok.Rethrows;
-import lombok.ast.Try;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.util.Lists;
@@ -102,6 +99,7 @@ public class HandleRethrowAndRethrows {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
 		}
+
 		if (method.isAbstract() || method.isEmpty()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;

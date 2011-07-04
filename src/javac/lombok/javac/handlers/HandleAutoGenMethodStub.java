@@ -39,6 +39,7 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AutoGenMethodStub;
 import lombok.RequiredArgsConstructor;
+import lombok.ast.Statement;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -69,8 +70,6 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 	// should be the last annotation to avoid major issues, once again.. curve ball
 	@Override public void handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, AutoGenMethodStub.class);
-		JavacNode typeNode = annotationNode.up();
-
 		final JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isInterface() || type.isAnnotation()) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
@@ -78,17 +77,17 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 		}
 
 		AutoGenMethodStub autoGenMethodStub = annotation.getInstance();
+		final Statement statement;
 		if (autoGenMethodStub.throwException()) {
-			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")))));
-			}
+			statement = Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")));
 		} else {
-			for (MethodSymbol methodSymbol : UndefiniedMethods.of(typeNode)) {
-				type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(ReturnDefault()));
-			}
+			statement = ReturnDefault();
 		}
-
-		typeNode.rebuild();
+		for (MethodSymbol methodSymbol : UndefiniedMethods.of(type.node())) {
+			type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(statement));
+		}
+		
+		type.rebuild();
 	}
 
 	@Override

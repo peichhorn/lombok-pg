@@ -29,10 +29,8 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.DoPrivileged;
-import lombok.RequiredArgsConstructor;
-import lombok.DoPrivileged.SanitizeWith;
-import lombok.ast.TypeRef;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
@@ -72,10 +70,6 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 
 		replaceWithQualifiedThisReference(method, source);
 
-		if (method.returns("void")) {
-			replaceReturns(method);
-		}
-
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
 			replaceReturns(method);
@@ -111,10 +105,10 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 	private List<lombok.ast.Statement> sanitizeParameter(final EclipseMethod method) {
 		final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
 		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
-			final Annotation ann = getAnnotation(SanitizeWith.class, argument);
+			final Annotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, argument);
 			if (ann != null) {
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
-				String sanatizeMethodName = Eclipse.createAnnotation(SanitizeWith.class, annotationNode).getInstance().value();
+				String sanatizeMethodName = Eclipse.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
 				final String argumentName = new String(argument.name);
 				final String newArgumentName = "$" + argumentName;
 				sanitizeStatements.add(LocalDecl(Type(argument.type), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));

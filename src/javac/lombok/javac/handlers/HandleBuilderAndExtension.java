@@ -22,6 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
+import static lombok.ast.Wildcard.Bound.EXTENDS;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.Javac.*;
@@ -81,7 +82,7 @@ public class HandleBuilderAndExtension {
 				//continue with creating the builder
 			}
 
-			new HandleBuilderAndExtension().handleBuilder(new BuilderDataCollector(type.node(), source, annotation.getInstance()).collect());
+			new HandleBuilderAndExtension().handleBuilder(new BuilderDataCollector(type, annotation.getInstance()).collect());
 		}
 	}
 
@@ -125,11 +126,11 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
 			}
 
-			new HandleBuilderAndExtension().handleExtension(new BuilderDataCollector(typeNode, source, builderAnnotation.getInstance()).collect(), method);
+			new HandleBuilderAndExtension().handleExtension(new BuilderDataCollector(JavacType.typeOf(typeNode, source), builderAnnotation.getInstance()).collect(), method);
 		}
 	}
 
-	private void handleBuilder(IBuilderData builderData) {
+	public void handleBuilder(final IBuilderData builderData) {
 		final List<TypeRef> requiredFieldDefTypes = builderData.getRequiredFieldDefTypes();
 		final List<TypeRef> interfaceTypes = new ArrayList<TypeRef>(requiredFieldDefTypes);
 		interfaceTypes.add(Type(OPTIONAL_DEF));
@@ -243,7 +244,7 @@ public class HandleBuilderAndExtension {
 		JCExpression[] typeArguments = getTypeArguments(field.vartype);
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
-			collectionType.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, elementType));
+			collectionType.withTypeArgument(Wildcard(EXTENDS, elementType));
 		}
 
 		String fieldName = field.name.toString();
@@ -274,8 +275,8 @@ public class HandleBuilderAndExtension {
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
 			valueType = Type(typeArguments[1]);
-			mapType.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, keyType)) //
-				.withTypeArgument(Wildcard(Wildcard.Bound.EXTENDS, valueType));
+			mapType.withTypeArgument(Wildcard(EXTENDS, keyType)) //
+				.withTypeArgument(Wildcard(EXTENDS, valueType));
 		}
 
 		String fieldName = field.name.toString();
@@ -360,7 +361,7 @@ public class HandleBuilderAndExtension {
 	}
 
 	private static boolean isInitializedMapOrCollection(JCVariableDecl field) {
-		return (field.init != null) && (isMap(field) || isCollection(field));
+		return (isMap(field) || isCollection(field)) && (field.init != null);
 	}
 
 	private static boolean isCollection(JCVariableDecl field) {
@@ -385,10 +386,6 @@ public class HandleBuilderAndExtension {
 		@Getter
 		private final JavacType type;
 		@Getter
-		private final JavacNode typeNode;
-		@Getter
-		private final JCTree source;
-		@Getter
 		private final String prefix;
 		@Getter
 		private final List<String> callMethods;
@@ -408,11 +405,9 @@ public class HandleBuilderAndExtension {
 		private final AccessLevel level;
 		private final Set<String> exclude;
 
-		public BuilderDataCollector(JavacNode typeNode, JCTree source, Builder builder) {
+		public BuilderDataCollector(JavacType type, Builder builder) {
 			super(1);
-			type = JavacType.typeOf(typeNode, source);
-			this.typeNode = typeNode;
-			this.source = source;
+			this.type = type;
 			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
 			generateConvenientMethodsEnabled = builder.convenientMethods();
 			prefix = builder.prefix();
@@ -421,7 +416,7 @@ public class HandleBuilderAndExtension {
 		}
 
 		public IBuilderData collect() {
-			typeNode.traverse(this);
+			type.node().traverse(this);
 			return this;
 		}
 
@@ -509,7 +504,7 @@ public class HandleBuilderAndExtension {
 						isExtension = true;
 					}
 				} else {
-					methodNode.addWarning("@Builder.Extension:  The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
+					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
 				}
 			}
 		}
@@ -535,10 +530,6 @@ public class HandleBuilderAndExtension {
 
 	private static interface IBuilderData {
 		public JavacType getType();
-
-		public JavacNode getTypeNode();
-
-		public JCTree getSource();
 
 		public AccessLevel getLevel();
 

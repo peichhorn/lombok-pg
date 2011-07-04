@@ -24,6 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import lombok.AutoGenMethodStub;
+import lombok.ast.Statement;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -50,10 +51,16 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 	// real meat
 	public MethodDeclaration handle(final MethodBinding abstractMethod, final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
+		final Statement statement;
 		if (annotation.getInstance().throwException()) {
-			return type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")))));
+			statement = Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")));
 		} else {
-			return type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(ReturnDefault()));
+			statement = ReturnDefault();
 		}
+		MethodDeclaration method = type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(statement));
+		
+		type.rebuild();
+
+		return method;
 	}
 }

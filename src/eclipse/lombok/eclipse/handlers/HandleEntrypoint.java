@@ -21,18 +21,15 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
-import static lombok.ast.AST.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Application;
-import lombok.JvmAgent;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -112,8 +109,7 @@ public class HandleEntrypoint {
 	}
 
 	@RequiredArgsConstructor
-	private static  abstract class EclipseEntrypointHandler extends EclipseASTAdapter {
-		@NonNull
+	public static abstract class EclipseEntrypointHandler extends EclipseASTAdapter {
 		private final Class<?> interfaze;
 
 		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
@@ -133,7 +129,6 @@ public class HandleEntrypoint {
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
 		 *
-		 * @param typeNode
 		 * @param type
 		 */
 		protected abstract void handle(EclipseType type);
@@ -143,7 +138,6 @@ public class HandleEntrypoint {
 			return false;
 		}
 	}
-
 
 	/**
 	 * Checks if there is an entry point with the provided name.
@@ -177,14 +171,13 @@ public class HandleEntrypoint {
 	 *   new &lt;TYPENAME&gt;().&lt;METHODNAME&gt;(&lt;ARGUMENTS&gt;);
 	 * }
 	 * </pre>
-	 * @param node Any node that represents the Type (TypeDeclaration)
-	 * @param source
+	 * @param type Type (TypeDeclaration)
 	 * @param name name of the entrypoint ("main", "premain, "agentmain")
 	 * @param methodName name of method that should be called in the entrypoint
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public static void createEntrypoint(EclipseType type, String name, String methodName, @NonNull IParameterProvider paramProvider, @NonNull IArgumentProvider argsProvider) {
+	public static void createEntrypoint(EclipseType type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
 		if (!type.hasMethod(methodName)) {
 			return;
 		}

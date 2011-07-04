@@ -21,10 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.ast.AST.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.ListenerSupport;
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
