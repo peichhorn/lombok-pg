@@ -23,22 +23,18 @@ package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.Javac.deleteMethodCallImports;
-import static lombok.javac.handlers.Javac.isMethodCallValid;
+import static lombok.javac.handlers.Javac.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Tuple;
+import lombok.*;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacASTMaker;
 import lombok.javac.handlers.ast.JavacMethod;
-
-import org.mangosdk.spi.ProviderFor;
 
 import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.IdentifierTree;
@@ -55,8 +51,10 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacASTVisitor.class)
 public class HandleTuple extends JavacASTAdapter {
@@ -66,6 +64,18 @@ public class HandleTuple extends JavacASTAdapter {
 	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
 		methodNames.clear();
 		withVarCounter = 0;
+	}
+	
+	@Override public void visitLocal(JavacNode localNode, JCVariableDecl local) {
+		JCMethodInvocation initTupleCall = getTupelCall(localNode, local.init);
+		if (initTupleCall != null) {
+			final JavacMethod method = JavacMethod.methodOf(localNode, local);
+			if (method == null) {
+				localNode.addError(canBeUsedInBodyOfMethodsOnly("tuple"));
+			} else if (handle(localNode, initTupleCall)) {
+				methodNames.add(initTupleCall.meth.toString());
+			}
+		}
 	}
 
 	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
@@ -101,10 +111,40 @@ public class HandleTuple extends JavacASTAdapter {
 			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
 		}
 	}
+	
+	public boolean handle(JavacNode tupleInitNode, JCMethodInvocation initTupleCall) {
+		if (initTupleCall.args.isEmpty()) {
+			return true;
+		}
+		int numberOfArguments = initTupleCall.args.size();
+		List<JCVariableDecl> localDecls = List.<JCVariableDecl>nil();
+		String type = ((JCVariableDecl)tupleInitNode.get()).vartype.toString();
+		for (JavacNode node : tupleInitNode.directUp().down()) {
+			if (!(node.get() instanceof JCVariableDecl)) continue;
+			JCVariableDecl localDecl = (JCVariableDecl)node.get();
+			if (!type.equals(localDecl.vartype.toString())) continue;
+			localDecls = localDecls.append(localDecl);
+			if (localDecls.size() > numberOfArguments) {
+				localDecls.head = localDecls.tail.head;
+			}
+			if (node.equals(tupleInitNode)) {
+				break;
+			}
+		}
+		if (numberOfArguments != localDecls.length()) {
+			tupleInitNode.addError(String.format("Argument mismatch on the right side. (required: %s found: %s)", localDecls.length(), numberOfArguments));
+			return false;
+		}
+		int index = 0;
+		for (JCVariableDecl localDecl : localDecls) {
+			localDecl.init = initTupleCall.args.get(index++);
+		}
+		return true;
+	}
 
 	public boolean handle(JavacNode tupleAssignNode, JCMethodInvocation leftTupleCall, JCMethodInvocation rightTupleCall) {
-		if (leftTupleCall.args.length() != rightTupleCall.args.length()) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments for the tuple assignment to work.");
+		if ((leftTupleCall.args.length() != rightTupleCall.args.length()) && (rightTupleCall.args.length() != 1)) {
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or must have one array-type argument for the tuple assignment to work.");
 			return false;
 		}
 		if (!containsOnlyNames(leftTupleCall.args)) {
@@ -116,26 +156,37 @@ public class HandleTuple extends JavacASTAdapter {
 		ListBuffer<JCStatement> assignments = ListBuffer.lb();
 
 		List<String> varnames = collectVarnames(leftTupleCall.args);
-		Iterator<String> varnameIter = varnames.listIterator();
 		JavacASTMaker builder = new JavacASTMaker(tupleAssignNode, leftTupleCall);
-
-		final Set<String> blacklistedNames = new HashSet<String>();
-		for (JCExpression arg : rightTupleCall.args) {
-			String varname = varnameIter.next();
-			final Boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg, null);
-			blacklistedNames.add(varname);
-			if ((canUseSimpleAssignment != null) && !canUseSimpleAssignment) {
-				final JCExpression vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get(), null);
-				if (vartype != null) {
-					String tempVarname = "$tuple" + withVarCounter++;
-					tempVarAssignments.append(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), JCStatement.class));
-					assignments.append(builder.build(Assign(Name(varname), Name(tempVarname)), JCStatement.class));
+		if (leftTupleCall.args.length() == rightTupleCall.args.length()) {
+			Iterator<String> varnameIter = varnames.listIterator();
+			final Set<String> blacklistedNames = new HashSet<String>();
+			for (JCExpression arg : rightTupleCall.args) {
+				String varname = varnameIter.next();
+				final Boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg, null);
+				blacklistedNames.add(varname);
+				if ((canUseSimpleAssignment != null) && !canUseSimpleAssignment) {
+					final JCExpression vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get(), null);
+					if (vartype != null) {
+						String tempVarname = "$tuple" + withVarCounter++;
+						tempVarAssignments.append(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), JCStatement.class));
+						assignments.append(builder.build(Assign(Name(varname), Name(tempVarname)), JCStatement.class));
+					} else {
+						tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
+						return false;
+					}
 				} else {
-					tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
-					return false;
+					assignments.append(builder.build(Assign(Name(varname), Expr(arg)), JCStatement.class));
 				}
-			} else {
-				assignments.append(builder.build(Assign(Name(varname), Expr(arg)), JCStatement.class));
+			}
+		} else {
+			final JCExpression vartype = new VarTypeFinder(varnames.get(0), tupleAssignNode.get()).scan(tupleAssignNode.top().get(), null);
+			if (vartype != null) {
+				String tempVarname = "$tuple" + withVarCounter++;
+				tempVarAssignments.append(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.args.head)), JCStatement.class));
+				int arrayIndex = 0;
+				for (String varname : varnames) {
+					assignments.append(builder.build(Assign(Name(varname), ArrayRef(Name(tempVarname), Number(arrayIndex++))), JCStatement.class));
+				}
 			}
 		}
 		tempVarAssignments.appendList(assignments);

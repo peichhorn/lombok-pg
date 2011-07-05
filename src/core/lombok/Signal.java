@@ -26,27 +26,50 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * <pre>
+ * void methodAnnotatedWithSignal() {
+ *   this.&lt;LOCK_NAME&gt;.lock();
+ *   try {
+ *
+ *     // method body
+ *
+ *     this.&lt;CONDITION_NAME&gt;.signal();
+ *   } finally {
+ *     this.&lt;LOCK_NAME&gt;.unlock();
+ *   }
+ * }
+ * <pre>
+ *
+ * @author Philipp Eichhorn
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Signal {
 	/**
 	 * Name of the condition.
 	 * <p>
-	 * If no condition with this name exists a new Lock and
-	 * a Condition will be created for this name.
+	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition}
+	 * will be created, using this name.
 	 */
 	String value();
 
 	/**
-	 * Specifies the place to put the signal-block
+	 * Specifies the place to put the await-block, default is {@link lombok.Position AFTER}.
+	 * <p>
+	 * Supported positions:
+	 * <ul>
+	 * <li>{@link lombok.Position BEFORE} - before the method body</li>
+	 * <li>{@link lombok.Position AFTER} - after the method body</li>
+	 * </ul>
 	 */
 	Position pos() default lombok.Position.AFTER;
 
 	/**
-	 * Name of the lock.
+	 * Name of the lock, default is {@code $<CONDITION_NAME>Lock}.
 	 * <p>
-	 * If no lock with this name exists a new {@link java.util.concurrent.locks.Lock Lock}
-	 * will be created for this name.
+	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock}
+	 * will be created, using this name.
 	 */
 	String lockName() default "";
 }

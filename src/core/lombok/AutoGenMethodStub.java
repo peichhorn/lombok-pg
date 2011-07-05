@@ -33,9 +33,6 @@ import java.lang.annotation.Target;
  * <pre>
  * &#64;AutoGenMethodStub
  * class Foo extends Bar implements Buzz {
- *   Foo() {
- *     super();
- *   }
  *
  *   public void a() { // overrides Bar.a()
  *     super.a();
@@ -48,9 +45,6 @@ import java.lang.annotation.Target;
  * After:
  * <pre>
  * class Foo extends Bar implements Buzz {
- *   Foo() {
- *     super();
- *   }
  *
  *   public void a() { // overrides Bar.a()
  *     super.a();
@@ -69,8 +63,8 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
- * If you rather prefer an {@link java.lang.UnsupportedOperationException} thrown instead of the default value returned, try
- * {@code throwException = true}.
+ * If you rather prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} thrown instead of the default value returned, try
+ * {@code @AutoGenMethodStub(throwException = true)}.
  * <p>
  * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.
  * But in few cases it may remove massive amounts of boilerplate.
@@ -78,5 +72,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
 public @interface AutoGenMethodStub {
+	/**
+	 * If you rather prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} thrown instead of the default value returned, try
+	 * {@code @AutoGenMethodStub(throwException = true)}.
+	 */
 	boolean throwException() default false;
 }

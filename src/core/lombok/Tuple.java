@@ -22,6 +22,21 @@
 package lombok;
 
 public class Tuple {
+	/**
+	 * A simplified (incomplete) take on tuple assignments.
+	 * <pre>
+	 * public void tuple() {
+	 *   int a, b, c = tuple(1, 2, 3);
+	 *   int[] d = new int[] {4, 5, 6};
+	 *   tuple(a, b) = tuple(b, a);
+	 *   tuple(c, a, b) = tuple(d);
+	 * }
+	 * </pre>
+	 * <p>
+	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
+	 *
+	 * @author Philipp Eichhorn
+	 */
 	public static Tuple tuple(Object... objects) {
 		return null;
 	}

@@ -9,7 +9,7 @@ class ConditionPlain {
 		paused = false;
 	}
 	
-	@lombok.Await(value = "canResume", conditionMethod="isPaused")
+	@lombok.Await(conditionName = "canResume", conditionMethod="isPaused")
 	void pause() {
 	}
 }

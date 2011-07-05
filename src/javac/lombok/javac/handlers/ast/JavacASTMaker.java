@@ -38,6 +38,7 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -77,11 +78,10 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-import lombok.ast.ASTVisitor;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.JavacHandlerUtil;
 
-public class JavacASTMaker implements ASTVisitor<JCTree, Void> {
+public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	private final JavacNode sourceNode;
 	private final JCTree source;
 	private final TreeMaker M;
@@ -167,6 +167,12 @@ public class JavacASTMaker implements ASTVisitor<JCTree, Void> {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		final JCVariableDecl argument = setGeneratedBy(M.VarDef(mods, name(node.getName()), build(node.getType(), JCExpression.class), null), source);
 		return argument;
+	}
+
+	@Override
+	public JCTree visitArrayRef(lombok.ast.ArrayRef node, Void p) {
+		final JCArrayAccess arrayAccess = setGeneratedBy(M.Indexed(build(node.getIndexed(), JCExpression.class), build(node.getIndex(), JCExpression.class)), source);
+		return arrayAccess;
 	}
 
 	@Override

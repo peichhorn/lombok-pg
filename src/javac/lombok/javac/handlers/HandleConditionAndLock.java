@@ -77,7 +77,7 @@ public class HandleConditionAndLock {
 		@Override public void handle(AnnotationValues<Await> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Await ann = annotation.getInstance();
 			new HandleConditionAndLock()
-				.withAwait(new AwaitData(ann.value(), ann.conditionMethod(), ann.pos()))
+				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
 				.handle(ann.lockName(), Await.class, ast, annotationNode);
 		}
 	}
@@ -194,12 +194,10 @@ public class HandleConditionAndLock {
 
 	private String createCompleteLockName(String lockName) {
 		String completeLockName = lockName;
-		if (lockMethod == null) {
-			if (trim(lockName).isEmpty()) {
-				String awaitCondition = trim(await == null ? "" : await.condition);
-				String signalCondition = trim(signal == null ? "" : signal.condition);
-				completeLockName = "$" + camelCase(awaitCondition, signalCondition, "lock");
-			}
+		if ((lockMethod == null) && trim(lockName).isEmpty()) {
+			String awaitCondition = trim(await == null ? "" : await.condition);
+			String signalCondition = trim(signal == null ? "" : signal.condition);
+			completeLockName = "$" + camelCase(awaitCondition, signalCondition, "lock");
 		}
 		return completeLockName;
 	}

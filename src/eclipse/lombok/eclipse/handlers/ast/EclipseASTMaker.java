@@ -54,6 +54,7 @@ import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.ArrayQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ArrayReference;
 import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Assignment;
 import org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
@@ -204,6 +205,13 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		argument.type = build(node.getType());
 		return argument;
+	}
+
+	@Override
+	public ASTNode visitArrayRef(lombok.ast.ArrayRef node, Void p) {
+		final ArrayReference arrayReference = new ArrayReference(build(node.getIndexed(), Expression.class), build(node.getIndex(), Expression.class));
+		setGeneratedByAndCopyPos(arrayReference, source);
+		return arrayReference;
 	}
 
 	@Override

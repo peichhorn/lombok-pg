@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The nicest singleton templates of them all.
+ * Two popular singleton templates.
  * <p>
  * Although not much code is generated the annotation also acts as documentation.
  * <p>
@@ -58,6 +58,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Singleton {
+	/** Specifies the singleton-style to use, default is ENUM. */
 	Style style() default Style.ENUM;
 
 	public static enum Style {

@@ -54,7 +54,9 @@ public class With {
 	 * }
 	 * </pre>
 	 * <p>
-	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure that I like the way it works right now.
+	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
+	 *
+	 * @author Philipp Eichhorn
 	 */
 	public static <T> T with(T implicitThisExpression, Object firstExpression, Object... otherExpressions) {
 		return null; // yup, that's about all we need

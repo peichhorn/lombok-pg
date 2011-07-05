@@ -29,8 +29,15 @@ public class TuplePlain {
   public void tuple1() {
     int a = 1;
     int b = 2;
+    int c = 3;
+    int[] d = new int[]{4, 5, 6};
     final int $tuple1 = a;
     a = b;
     b = $tuple1;
+    final int $tuple2 = d;
+    c = $tuple2[0];
+    b = $tuple2[1];
+    a = $tuple2[2];
+    a = b;
   }
 }

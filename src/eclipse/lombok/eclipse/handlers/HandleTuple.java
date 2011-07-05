@@ -21,10 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.sameSize;
-import static lombok.core.util.ErrorMessages.canBeUsedInBodyOfMethodsOnly;
-import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,8 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Tuple;
+import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -71,6 +70,18 @@ public class HandleTuple extends EclipseASTAdapter {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
+	
+	@Override public void visitLocal(EclipseNode localNode, LocalDeclaration local) {
+		MessageSend initTupleCall = getTupelCall(localNode, local.initialization);
+		if (initTupleCall != null) {
+			final EclipseMethod method = EclipseMethod.methodOf(localNode, local);
+			if (method == null) {
+				localNode.addError(canBeUsedInBodyOfMethodsOnly("tuple"));
+			} else if (handle(localNode, initTupleCall)) {
+				methodNames.add(getMethodName(initTupleCall));
+			}
+		}
+	}
 
 	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
 		if (statement instanceof Assignment) {
@@ -106,9 +117,39 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 	}
 
+	public boolean handle(EclipseNode tupleInitNode, MessageSend initTupleCall) {
+		if (isEmpty(initTupleCall.arguments)) {
+			return true;
+		}
+		int numberOfArguments = initTupleCall.arguments.length;
+		List<LocalDeclaration> localDecls = new ArrayList<LocalDeclaration>();
+		String type = ((LocalDeclaration)tupleInitNode.get()).type.toString();
+		for (EclipseNode node : tupleInitNode.directUp().down()) {
+			if (!(node.get() instanceof LocalDeclaration)) continue;
+			LocalDeclaration localDecl = (LocalDeclaration)node.get();
+			if (!type.equals(localDecl.type.toString())) continue;
+			localDecls.add(localDecl);
+			if (localDecls.size() > numberOfArguments) {
+				localDecls.remove(0);
+			}
+			if (node.equals(tupleInitNode)) {
+				break;
+			}
+		}
+		if (numberOfArguments != localDecls.size()) {
+			tupleInitNode.addError(String.format("Argument mismatch on the right side. (required: %s found: %s)", localDecls.size(), numberOfArguments));
+			return false;
+		}
+		int index = 0;
+		for (LocalDeclaration localDecl : localDecls) {
+			localDecl.initialization = initTupleCall.arguments[index++];
+		}
+		return true;
+	}
+	
 	public boolean handle(EclipseNode tupleAssignNode, MessageSend leftTupleCall, MessageSend rightTupleCall) {
-		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments)) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments for the tuple assignment to work.");
+		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments) && (rightTupleCall.arguments.length != 1)) {
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or must have one array-type argument for the tuple assignment to work.");
 			return false;
 		}
 		if (!containsOnlyNames(leftTupleCall.arguments)) {
@@ -120,26 +161,37 @@ public class HandleTuple extends EclipseASTAdapter {
 		List<Statement> assignments = new ArrayList<Statement>();
 
 		List<String> varnames = collectVarnames(leftTupleCall.arguments);
-		Iterator<String> varnameIter = varnames.listIterator();
 		EclipseASTMaker builder = new EclipseASTMaker(tupleAssignNode, leftTupleCall);
-
-		final Set<String> blacklistedNames = new HashSet<String>();
-		if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
-			String varname = varnameIter.next();
-			final boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg);
-			blacklistedNames.add(varname);
-			if (!canUseSimpleAssignment) {
-				final TypeReference vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get());
-				if (vartype != null) {
-					String tempVarname = "$tuple" + withVarCounter++;
-					tempVarAssignments.add(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), Statement.class));
-					assignments.add(builder.build(Assign(Name(varname), Name(tempVarname)), Statement.class));
+		if (sameSize(leftTupleCall.arguments, rightTupleCall.arguments)) {
+			Iterator<String> varnameIter = varnames.listIterator();
+			final Set<String> blacklistedNames = new HashSet<String>();
+			if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
+				String varname = varnameIter.next();
+				final boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg);
+				blacklistedNames.add(varname);
+				if (!canUseSimpleAssignment) {
+					final TypeReference vartype = new VarTypeFinder(varname, tupleAssignNode.get()).scan(tupleAssignNode.top().get());
+					if (vartype != null) {
+						String tempVarname = "$tuple" + withVarCounter++;
+						tempVarAssignments.add(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(arg)), Statement.class));
+						assignments.add(builder.build(Assign(Name(varname), Name(tempVarname)), Statement.class));
+					} else {
+						tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
+						return false;
+					}
 				} else {
-					tupleAssignNode.addError("Lombok-pg Bug. Unable to find vartype.");
-					return false;
+					assignments.add(builder.build(Assign(Name(varname), Expr(arg)), Statement.class));
 				}
-			} else {
-				assignments.add(builder.build(Assign(Name(varname), Expr(arg)), Statement.class));
+			}
+		} else {
+			final TypeReference vartype = new VarTypeFinder(varnames.get(0), tupleAssignNode.get()).scan(tupleAssignNode.top().get());
+			if (vartype != null) {
+				String tempVarname = "$tuple" + withVarCounter++;
+				tempVarAssignments.add(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.arguments[0])), Statement.class));
+				int arrayIndex = 0;
+				for (String varname : varnames) {
+					assignments.add(builder.build(Assign(Name(varname), ArrayRef(Name(tempVarname), Number(arrayIndex++))), Statement.class));
+				}
 			}
 		}
 		tempVarAssignments.addAll(assignments);

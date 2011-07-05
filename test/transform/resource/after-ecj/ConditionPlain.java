@@ -26,7 +26,7 @@ class ConditionPlain {
       }
   }
   
-  @lombok.Await(value = "canResume",conditionMethod = "isPaused") @java.lang.SuppressWarnings("all") void pause() throws java.lang.InterruptedException {
+  @lombok.Await(conditionName = "canResume",conditionMethod = "isPaused") @java.lang.SuppressWarnings("all") void pause() throws java.lang.InterruptedException {
     this.$canResumeLock.lock();
     try 
       {

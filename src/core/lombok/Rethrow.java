@@ -52,9 +52,18 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Rethrow {
+	/**
+	 * Specifies the exception types that should be caught and rethrown, default is {@code Exception.class}.
+	 */
 	Class<? extends Exception>[] value() default {};
 
+	/**
+	 * Specifies the exception type that wraps the caught exceptions, default is {@code RuntimeException.class}.
+	 */
 	Class<? extends Exception> as() default RuntimeException.class;
 
+	/**
+	 * Specifies the message used for the new exception, default is no message.
+	 */
 	String message() default "";
 }

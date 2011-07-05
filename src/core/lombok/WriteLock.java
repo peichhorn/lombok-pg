@@ -26,14 +26,30 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * <pre>
+ * void methodAnnotatedWithWriteLock() {
+ *   this.&lt;LOCK_NAME&gt;.writeLock().lock();
+ *   try {
+ *
+ *     // method body
+ *
+ *   } finally {
+ *     this.&lt;LOCK_NAME&gt;.writeLock().unlock();
+ *   }
+ * }
+ * <pre>
+ *
+ * @author Philipp Eichhorn
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface WriteLock {
 	/**
 	 * Name of the lock.
 	 * <p>
-	 * If no lock with this name exists a new {@link java.util.concurrent.locks.ReadWriteLock ReadWriteLock}
-	 * will be created for this name.
+	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.ReadWriteLock ReadWriteLock}
+	 * will be created, using this name.
 	 */
 	String value();
 }

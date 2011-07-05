@@ -12,7 +12,7 @@ class ConditionExample {
 		paused = false;
 	}
 	
-	@Await(value = "canResume", conditionMethod="isPaused")
+	@Await(conditionName = "canResume", conditionMethod="isPaused")
 	void pause() {
 	}
 }

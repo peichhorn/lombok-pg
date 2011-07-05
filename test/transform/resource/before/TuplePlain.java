@@ -2,9 +2,11 @@ import static lombok.Tuple.tuple;
 
 public class TuplePlain {
 	public void tuple1() {
-		int a = 1;
-		int b = 2;
+		int a, b, c = tuple(1, 2, 3);
+		int[] d = new int[]{4, 5, 6};
 		tuple(a, b) = tuple(b, a);
+		tuple(c, b, a) = tuple(d);
+		tuple(a) = tuple(b);
 	}
 	
 	private static class Shadowing {

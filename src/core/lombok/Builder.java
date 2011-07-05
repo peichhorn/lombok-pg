@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Put on any type to make lombok create a builder for that type.
+ * Put on any type to make lombok create a builder for it.
  * <p>
  * Before:
  * <pre>
@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  *   private final String a;
  *   private final int b;
  *   private String optionalC = "default";
- *   private java.util.List<java.lang.Long> optionalD;
+ *   private java.util.List&lt;java.lang.Long&gt; optionalD;
  * }
  * </pre>
  * After:
@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  *   private final String a;
  *   private final int b;
  *   private String optionalC;
- *   private java.util.List<java.lang.Long> optionalD;
+ *   private java.util.List&lt;java.lang.Long&gt; optionalD;
  *
  *   private Foo(final $Builder builder) {
  *     super();
@@ -66,7 +66,7 @@ import java.lang.annotation.Target;
  *   public static interface $OptionalDef {
  *     public $OptionalDef optionalC(final String optionalC);
  *
- *     public $OptionalDef optionalD(final java.util.List<java.lang.Long> optionalD);
+ *     public $OptionalDef optionalD(final java.util.List&lt;java.lang.Long&gt; optionalD);
  *
  *     public Foo build();
  *   }
@@ -75,7 +75,7 @@ import java.lang.annotation.Target;
  *     private String a;
  *     private int b;
  *     private String optionalC = "default";
- *     private java.util.List<java.lang.Long> optionalD;
+ *     private java.util.List&lt;java.lang.Long&gt; optionalD;
  *
  *     public $BDef a(final String a) {
  *       this.a = a;
@@ -92,7 +92,7 @@ import java.lang.annotation.Target;
  *       return this;
  *     }
  *
- *     public $OptionalDef optionalD(final java.util.List<java.lang.Long> optionalD) {
+ *     public $OptionalDef optionalD(final java.util.List&lt;java.lang.Long&gt; optionalD) {
  *       this.optionalD = optionalD;
  *       return this;
  *     }
@@ -108,14 +108,14 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
- * <b>Note:</b> For fields that are initialized collections or maps instead of a fluent-set method, the methods add/addAll or put/putAll will be generated.
+ * <b>Note:</b> For each field that is a initialized collection( or map), the methods add/addAll( or put/putAll) will be generated instead of the fluent-set method.
  * This behavior can be disabled via {@link #convenientMethods() convenientMethods = false}.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Builder {
 	/**
-	 * If you want the {@code create()} method to be non-public, you can specify an alternate access level here.
+	 * If you want the create-method to be non-public, you can specify an alternate access level here.
 	 */
 	lombok.AccessLevel value() default lombok.AccessLevel.PUBLIC;
 
@@ -140,9 +140,11 @@ public @interface Builder {
 	/**
 	 * For each method listed here a method will appear in the builder.
 	 * <p>
-	 * A common example would be {@code @Builder(callMethods={"execute", "toString"})} which would allow something like:<br>
-	 * {@code Java.create().jarOrMainClass("test.jar").Xbootclasspatha("libs/asm.jar").execute()} or <br>
-	 * {@code Java.create().jarOrMainClass("test.jar").Xbootclasspatha("libs/asm.jar").toString()} .
+	 * A common example would be <code>@Builder(callMethods={"execute", "toString"})</code> which would allow something like:
+	 * <pre>
+	 * Java.java().jar("test.jar").Xbootclasspatha("libs/asm.jar").execute()}
+	 * Java.java().jar("test.jar").Xbootclasspatha("libs/asm.jar").toString()}
+	 * </pre>
 	 */
 	String[] callMethods() default {};
 

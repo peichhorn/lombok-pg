@@ -57,5 +57,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Rethrows {
+	/** @see Rethrow */
 	Rethrow[] value();
 }

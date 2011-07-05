@@ -24,13 +24,13 @@ package lombok;
 public class Yield {
 
 	/**
-	 * Usage:
+	 *  A simplified (incomplete) take on yield return;
 	 * <pre>
 	 * public Iterable&lt;T&gt; doSomething(Collection&lt;T&gt; entries) {
 	 *   for (T entry : entries) {
-	 *     if (isMeet(cond))
+	 *     if (isMet(cond))
 	 *       yield(entry);
-	 *     if (isMeet(otherCond))
+	 *     if (isMet(otherCond))
 	 *       break;
 	 *     yield(transform(entry));
 	 *   }
@@ -49,6 +49,10 @@ public class Yield {
 	 *   }
 	 * }
 	 * </pre>
+	 * <p>
+	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
+	 *
+	 * @author Philipp Eichhorn
 	 */
 	public static <T> void yield(T value) {
 		return; // yup, that's about all we need

@@ -131,6 +131,10 @@ public final class AST {
 		return new InstanceOf(expression, type);
 	}
 
+	public static ArrayRef ArrayRef(final Expression indexed, final Expression index) {
+		return new ArrayRef(indexed, index);
+	}
+
 	public static ClassDecl InterfaceDecl(final String name) {
 		return new ClassDecl(name).makeInterface();
 	}

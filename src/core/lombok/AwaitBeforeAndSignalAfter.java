@@ -26,40 +26,59 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * <pre>
+ * void methodAnnotatedWithAwait() throws java.lang.InterruptedException {
+ *   this.&lt;LOCK_NAME&gt;.lock();
+ *   try {
+ *     while (this.&lt;AWAIT_CONDITION_METHOD&gt;()) {
+ *       this.&lt;AWAIT_CONDITION_NAME&gt;.await();
+ *     }
+ *
+ *     // method body
+ *
+ *     this.&lt;SIGNAL_CONDITION_NAME&gt;.signal();
+ *   } finally {
+ *     this.&lt;LOCK_NAME&gt;.unlock();
+ *   }
+ * }
+ * <pre>
+ *
+ * @author Philipp Eichhorn
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface AwaitBeforeAndSignalAfter {
 
 	/**
-	 * Name of the lock.
+	 * Name of the lock, default is {@code $<AWAIT_CONDITION_NAME><SIGNAL_CONDITION_NAME>Lock}.
 	 * <p>
-	 * If no lock with this name exists a new {@link java.util.concurrent.locks.Lock Lock}
-	 * will be created for this name.
+	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock}
+	 * will be created, using this name.
 	 */
 	String lockName() default "";
 
 	/**
-	 * Name of the condition.
+	 * Name of the signal-condition.
 	 * <p>
-	 * If no condition with this name exists a new Lock and
-	 * a Condition will be created for this name.
+	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition}
+	 * will be created, using this name.
 	 */
 	String signalConditionName();
 
 	/**
-	 * Name of the condition.
+	 * Name of the await-condition.
 	 * <p>
-	 * If no condition with this name exists a new Lock and
-	 * a Condition will be created for this name.
+	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition}
+	 * will be created, using this name.
 	 */
 	String awaitConditionName();
 
 	/**
-	 * Method to verify if the condition is met.
+	 * Method to verify if the await-condition is met.
 	 * <p>
 	 * The method must return a {@code boolean} and may
 	 * not require any parameters.
 	 */
-	// TODO find a better fitting name
 	String awaitConditionMethod();
 }
