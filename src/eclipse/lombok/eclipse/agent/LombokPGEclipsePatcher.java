@@ -27,10 +27,28 @@ import lombok.core.Agent;
 import lombok.patcher.ScriptManager;
 import lombok.patcher.equinox.EquinoxClassLoader;
 
-public class LombokPGEclipsePatcher extends Agent {
+public final class LombokPGEclipsePatcher extends Agent {
 	@Override
 	public void runAgent(String agentArgs, Instrumentation instrumentation, boolean injected) throws Exception {
-		registerPatchScripts(instrumentation, injected, injected);
+		String[] args = agentArgs == null ? new String[0] : agentArgs.split(":");
+		boolean forceEcj = false;
+		boolean forceEclipse = false;
+		for (String arg : args) {
+			if (arg.trim().equalsIgnoreCase("ECJ")) forceEcj = true;
+			if (arg.trim().equalsIgnoreCase("ECLIPSE")) forceEclipse = true;
+		}
+		if (forceEcj && forceEclipse) {
+			forceEcj = false;
+			forceEclipse = false;
+		}
+
+		boolean ecj;
+
+		if (forceEcj) ecj = true;
+		else if (forceEclipse) ecj = false;
+		else ecj = injected;
+		
+		registerPatchScripts(instrumentation, injected, ecj);
 	}
 
 	private void registerPatchScripts(Instrumentation instrumentation, boolean reloadExistingClasses, boolean ecjOnly) {
@@ -41,12 +59,14 @@ public class LombokPGEclipsePatcher extends Agent {
 			EquinoxClassLoader.registerScripts(sm);
 		}
 		patchEcjTransformers(sm, ecjOnly);
+
 		if (reloadExistingClasses) sm.reloadClasses(instrumentation);
 	}
 
 	private void patchEcjTransformers(ScriptManager sm, boolean ecj) {
-		PatchListenerSupport.addPatches(sm, ecj);
 		PatchAutoGenMethodStub.addPatches(sm, ecj);
+		PatchExtensionMethod.addPatches(sm, ecj);
+		PatchListenerSupport.addPatches(sm, ecj);
 		PatchVisibleForTesting.addPatches(sm, ecj);
 	}
 }

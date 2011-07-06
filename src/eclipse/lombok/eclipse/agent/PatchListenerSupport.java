@@ -22,34 +22,29 @@
 package lombok.eclipse.agent;
 
 import static lombok.eclipse.agent.Patches.*;
-import static lombok.patcher.scripts.ScriptBuilder.exitEarly;
+import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
-import lombok.AccessLevel;
-import lombok.ListenerSupport;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleListenerSupport;
-import lombok.patcher.Hook;
-import lombok.patcher.MethodTarget;
-import lombok.patcher.ScriptManager;
-import lombok.patcher.StackRequest;
+import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchListenerSupport {
 	static void addPatches(ScriptManager sm, boolean ecj) {
 		sm.addScript(exitEarly()
-				.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
-				.request(StackRequest.THIS)
-				.decisionMethod(new Hook(PatchListenerSupport.class.getName(), "onBuildFieldsAndMethods", "boolean", CLASSSCOPE))
-				.build());
+			.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
+			.request(StackRequest.THIS)
+			.decisionMethod(new Hook(PatchListenerSupport.class.getName(), "onClassScope_buildFieldsAndMethods", "boolean", CLASSSCOPE))
+			.build());
 	}
 
-	public static boolean onBuildFieldsAndMethods(ClassScope scope) {
+	public static boolean onClassScope_buildFieldsAndMethods(ClassScope scope) {
 		TypeDeclaration decl = scope.referenceContext;
 		Annotation ann = getAnnotation(ListenerSupport.class, decl);
 		if (ann != null) {

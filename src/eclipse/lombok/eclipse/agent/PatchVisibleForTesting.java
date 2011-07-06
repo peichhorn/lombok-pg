@@ -21,13 +21,8 @@
  */
 package lombok.eclipse.agent;
 
-import static lombok.eclipse.agent.Patches.SCOPE;
-import static lombok.eclipse.agent.Patches.METHODBINDING;
-import static lombok.eclipse.agent.Patches.REFERENCEBINDING;
-import static lombok.eclipse.agent.Patches.CHARS;
-import static lombok.eclipse.agent.Patches.TYPEBINDING;
-import static lombok.eclipse.agent.Patches.TYPEBINDINGS;
-import static lombok.eclipse.agent.Patches.INVOCATIONSITE;
+import static lombok.eclipse.agent.Patches.*;
+import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
@@ -40,26 +35,22 @@ import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.patcher.Hook;
-import lombok.patcher.MethodTarget;
-import lombok.patcher.ScriptManager;
-import lombok.patcher.scripts.ScriptBuilder;
+import lombok.*;
+import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class PatchVisibleForTesting {
+public final class PatchVisibleForTesting {
 	static void addPatches(ScriptManager sm, boolean ecj) {
-		sm.addScript(ScriptBuilder.replaceMethodCall()
-				.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.methodToReplace(new Hook(SCOPE, "findMethod", METHODBINDING, REFERENCEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.build());
-		sm.addScript(ScriptBuilder.replaceMethodCall()
-				.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.methodToReplace(new Hook(SCOPE, "findExactMethod", METHODBINDING, REFERENCEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, CHARS, TYPEBINDINGS, INVOCATIONSITE))
-				.build());
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.methodToReplace(new Hook(SCOPE, "findMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.build());
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.methodToReplace(new Hook(SCOPE, "findExactMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.build());
 	}
 
 	public static MethodBinding onFindMethod(Scope scope, ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {

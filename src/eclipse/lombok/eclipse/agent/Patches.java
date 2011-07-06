@@ -22,8 +22,8 @@
 package lombok.eclipse.agent;
 
 import static lombok.eclipse.handlers.Eclipse.hasAnnotations;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
@@ -35,20 +35,27 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Patches {
-	public static final String CLASSSCOPE = "org.eclipse.jdt.internal.compiler.lookup.ClassScope";
-	public static final String METHODVERIFIER = "org.eclipse.jdt.internal.compiler.lookup.MethodVerifier";
-	public static final String METHODBINDING= "org.eclipse.jdt.internal.compiler.lookup.MethodBinding";
-	public static final String METHODBINDINGS = "org.eclipse.jdt.internal.compiler.lookup.MethodBinding[]";
-	public static final String SOURCETYPEBINDING = "org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding";
-	public static final String TYPEDECLARATION = "org.eclipse.jdt.internal.compiler.ast.TypeDeclaration";
-	public static final String METHODDECLARATION = "org.eclipse.jdt.internal.compiler.ast.MethodDeclaration";
-	public static final String PROBLEMREPORTER = "org.eclipse.jdt.internal.compiler.problem.ProblemReporter";
-	public static final String SCOPE = "org.eclipse.jdt.internal.compiler.lookup.Scope";
-	public static final String REFERENCEBINDING = "org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding";
-	public static final String CHARS = "char[]";
-	public static final String TYPEBINDING = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding";
-	public static final String TYPEBINDINGS = "org.eclipse.jdt.internal.compiler.lookup.TypeBinding[]";
-	public static final String INVOCATIONSITE = "org.eclipse.jdt.internal.compiler.lookup.InvocationSite";
+	private static final String AST_PACKAGE = "org.eclipse.jdt.internal.compiler.ast";
+	private static final String LOOKUP_PACKAGE = "org.eclipse.jdt.internal.compiler.lookup";
+	private static final String PROBLEM_PACKAGE = "org.eclipse.jdt.internal.compiler.problem";
+	private static final String TEXT_JAVA_PACKAGE = "org.eclipse.jdt.ui.text.java";
+	public static final String BINDING = LOOKUP_PACKAGE + ".Binding";
+	public static final String BINDINGS = BINDING + "[]";
+	public static final String CLASSSCOPE = LOOKUP_PACKAGE + ".ClassScope";
+	public static final String COMPLETIONPROPOSALCOLLECTOR = TEXT_JAVA_PACKAGE + ".CompletionProposalCollector";
+	public static final String IJAVACOMPLETIONPROPOSALS = TEXT_JAVA_PACKAGE + ".IJavaCompletionProposal[]";
+	public static final String INVOCATIONSITE = LOOKUP_PACKAGE + ".InvocationSite";
+	public static final String METHODBINDING= LOOKUP_PACKAGE + ".MethodBinding";
+	public static final String METHODBINDINGS = METHODBINDING + "[]";
+	public static final String METHODDECLARATION = AST_PACKAGE + ".MethodDeclaration";
+	public static final String METHODVERIFIER = LOOKUP_PACKAGE + ".MethodVerifier";
+	public static final String PROBLEMREPORTER = PROBLEM_PACKAGE + ".ProblemReporter";
+	public static final String REFERENCEBINDING = LOOKUP_PACKAGE + ".ReferenceBinding";
+	public static final String SCOPE = LOOKUP_PACKAGE + ".Scope";
+	public static final String SOURCETYPEBINDING = LOOKUP_PACKAGE + ".SourceTypeBinding";
+	public static final String TYPEBINDING = LOOKUP_PACKAGE + ".TypeBinding";
+	public static final String TYPEBINDINGS = TYPEBINDING + "[]";
+	public static final String TYPEDECLARATION = AST_PACKAGE + ".TypeDeclaration";
 
 	public static Annotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, TypeDeclaration decl) {
 		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
