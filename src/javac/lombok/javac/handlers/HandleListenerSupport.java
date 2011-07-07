@@ -53,17 +53,18 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
 
 	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
-		deleteAnnotationIfNeccessary(annotationNode, ListenerSupport.class);
+		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
+		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 
 		JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
 			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
-			annotationNode.addError("@ListenerSupport has no effect with if no interface classes was specified.");
+			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
 			return;
 		}
 		List<Type> resolvedInterfaces = new ArrayList<Type>();
@@ -76,7 +77,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 					if (interfaceType.isInterface()) {
 						resolvedInterfaces.add(interfaceType);
 					} else {
-						annotationNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", listenerInterface));
+						annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), listenerInterface));
 					}
 				}
 			}

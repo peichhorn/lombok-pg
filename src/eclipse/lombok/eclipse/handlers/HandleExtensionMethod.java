@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
+import java.util.List;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -30,20 +31,26 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.mangosdk.spi.ProviderFor;
 
 /**
  * Handles the {@link ExtensionMethod} annotation for eclipse using the {@link PatchExtensionMethod}.
  */
-// @ProviderFor(EclipseResolutionBasedHandler.class) // TODO
+@ProviderFor(EclipseAnnotationHandler.class)
 public class HandleExtensionMethod extends EclipseAnnotationHandler<ExtensionMethod> {
 
 	@Override public void handle(AnnotationValues<ExtensionMethod> annotation, Annotation source, EclipseNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ExtensionMethod.class));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
 			return;
 		}
-		
-		
+
+		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
+		if (listenerInterfaces.isEmpty()) {
+			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", annotationType.getName()));
+			return;
+		}
 	}
 }

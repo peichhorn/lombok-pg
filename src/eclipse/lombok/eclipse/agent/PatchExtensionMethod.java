@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.agent;
 
+import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
@@ -30,7 +31,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -46,20 +50,26 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
+import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
+import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+import org.eclipse.jdt.internal.core.SearchableEnvironment;
 import org.eclipse.jdt.internal.ui.text.java.AbstractJavaCompletionProposal;
-import org.eclipse.jdt.internal.ui.text.java.MemberProposalInfo;
 import org.eclipse.jdt.ui.text.java.CompletionProposalCollector;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 
@@ -68,37 +78,90 @@ import lombok.core.AnnotationValues;
 import lombok.core.util.Types;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.HandleExtensionMethod;
+import lombok.eclipse.handlers.ast.EclipseType;
 import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchExtensionMethod {
 	static void addPatches(ScriptManager sm, boolean ecj) {
-		sm.addScript(exitEarly()
-			.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
-			.request(StackRequest.THIS)
-			.decisionMethod(new Hook(PatchExtensionMethod.class.getName(), "onClassScope_buildFieldsAndMethods", "boolean", CLASSSCOPE))
-			.build());
-		
 		sm.addScript(wrapReturnValue()
-			.target(new MethodTarget(COMPLETIONPROPOSALCOLLECTOR, "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS))
+			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
 			.request(StackRequest.RETURN_VALUE)
 			.request(StackRequest.THIS)
-			.wrapMethod(new Hook(PatchExtensionMethod.class.getName(), "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS, IJAVACOMPLETIONPROPOSALS, COMPLETIONPROPOSALCOLLECTOR))
+			.request(StackRequest.PARAM1)
+			.wrapMethod(new Hook(PatchExtensionMethod.class.getName(), "resolveType", TYPEBINDING, TYPEBINDING, MESSAGESEND, BLOCKSCOPE))
 			.build());
+
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
+			.methodToReplace(new Hook(PROBLEMREPORTER, "errorNoMethodFor", "void", MESSAGESEND, TYPEBINDING, TYPEBINDINGS))
+			.replacementMethod(new Hook(PatchExtensionMethod.class.getName(), "errorNoMethodFor", "void", PROBLEMREPORTER, MESSAGESEND, TYPEBINDING, TYPEBINDINGS))
+			.build());
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
+			.methodToReplace(new Hook(PROBLEMREPORTER, "invalidMethod", "void", MESSAGESEND, METHODBINDING))
+			.replacementMethod(new Hook(PatchExtensionMethod.class.getName(), "invalidMethod", "void", PROBLEMREPORTER, MESSAGESEND, METHODBINDING))
+			.build());
+
+		if (!ecj) {
+			sm.addScript(wrapReturnValue()
+				.target(new MethodTarget(COMPLETIONPROPOSALCOLLECTOR, "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS))
+				.request(StackRequest.RETURN_VALUE)
+				.request(StackRequest.THIS)
+				.wrapMethod(new Hook(PatchExtensionMethod.class.getName(), "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS, IJAVACOMPLETIONPROPOSALS, COMPLETIONPROPOSALCOLLECTOR))
+				.build());
+		}
 	}
 
-	public static boolean onClassScope_buildFieldsAndMethods(ClassScope scope) {
-		TypeDeclaration decl = scope.referenceContext;
-		Annotation ann = getAnnotation(ExtensionMethod.class, decl);
-		if (ann != null) {
+	private static Map<MessageSend, PostponedError> errors = new HashMap<MessageSend, PostponedError>();
+
+	public static void errorNoMethodFor(ProblemReporter problemReporter, MessageSend messageSend, TypeBinding recType, TypeBinding[] params) {
+		errors.put(messageSend, new PostponedNoMethodError(problemReporter, messageSend, recType, params));
+	}
+
+	public static void invalidMethod(ProblemReporter problemReporter, MessageSend messageSend, MethodBinding method) {
+		errors.put(messageSend, new PostponedInvalidMethodError(problemReporter, messageSend, method));
+	}
+
+	public static TypeBinding resolveType(TypeBinding resolvedType, MessageSend methodCall, BlockScope scope) {
+		if (methodCall.binding instanceof ProblemMethodBinding) {
+			TypeDeclaration decl = scope.classScope().referenceContext;
 			EclipseNode typeNode = getTypeNode(decl);
-			if (typeNode != null) {
-				EclipseNode annotationNode = typeNode.getNodeFor(ann);
-				new HandleExtensionMethod().handle(Eclipse.createAnnotation(ExtensionMethod.class, annotationNode), ann, annotationNode);
+			Annotation ann = getAnnotation(ExtensionMethod.class, decl);
+			List<MethodBinding> extensionMethods = getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType);
+			if (!extensionMethods.isEmpty()) {
+				EclipseType type = EclipseType.typeOf(typeNode, ann);
+				List<TypeBinding> argumentBindingList = new ArrayList<TypeBinding>();
+				argumentBindingList.add(methodCall.receiver.resolvedType);
+				Collections.addAll(argumentBindingList, methodCall.binding.parameters);
+				TypeBinding[] argumentBindings = argumentBindingList.toArray(new TypeBinding[0]);
+				for (MethodBinding extensionMethod : extensionMethods) {
+					if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
+					if (!Arrays.equals(argumentBindings, extensionMethod.parameters)) continue;
+					if (methodCall.receiver instanceof ThisReference) {
+						if ((methodCall.receiver.bits & ASTNode.IsImplicitThis) != 0) {
+							methodCall.receiver.bits &= ~ASTNode.IsImplicitThis;
+						}
+					}
+					List<Expression> arguments = new ArrayList<Expression>();
+					arguments.add(methodCall.receiver);
+					if (isNotEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
+					methodCall.arguments = arguments.toArray(new Expression[0]);
+					methodCall.receiver = type.build(Name(Eclipse.toQualifiedName(extensionMethod.declaringClass.compoundName)));
+					methodCall.binding = extensionMethod;
+					methodCall.resolvedType = extensionMethod.returnType;
+					methodCall.actualReceiverType = extensionMethod.declaringClass;
+					errors.remove(methodCall);
+					return methodCall.resolvedType;
+				}
 			}
 		}
-		return false;
+		PostponedError error = errors.get(methodCall);
+		if (error != null) {
+			error.fire();
+		}
+		errors.remove(methodCall);
+		return resolvedType;
 	}
 	
 	public static IJavaCompletionProposal[] getJavaCompletionProposals(IJavaCompletionProposal[] javaCompletionProposals, CompletionProposalCollector completionProposalCollector) {
@@ -107,8 +170,9 @@ public final class PatchExtensionMethod {
 			IJavaCompletionProposal firstProposal = proposals.get(0);
 			int replacementOffset = getReplacementOffset(firstProposal);
 			for (MethodBinding method : getExtensionMethods(completionProposalCollector)) {
-				ExtensionMethodCompletionProposal newProposal = new ExtensionMethodCompletionProposal(method, replacementOffset);
-				copyNameLookupAndCompletionEngine(firstProposal, newProposal);
+				ExtensionMethodCompletionProposal newProposal = new ExtensionMethodCompletionProposal(replacementOffset);
+				copyNameLookupAndCompletionEngine(completionProposalCollector, firstProposal, newProposal);
+				newProposal.setMethodBinding(method);
 				createAndAddJavaCompletionProposal(completionProposalCollector, newProposal, proposals);
 			}
 		}
@@ -122,45 +186,46 @@ public final class PatchExtensionMethod {
 			TypeDeclaration decl = classScope.referenceContext;
 			EclipseNode typeNode = getTypeNode(decl);
 			Annotation ann = getAnnotation(ExtensionMethod.class, decl);
-			TypeBinding firstParameterType = getFirstParameterType(completionProposalCollector);
-			extensionMethods.addAll(getExtensionMethodsDefinedViaAnnotation(typeNode, ann, firstParameterType));
+			TypeBinding firstParameterType = getFirstParameterType(decl, completionProposalCollector);
+			extensionMethods.addAll(getApplicableExtensionMethods(typeNode, ann, firstParameterType));
 		}
 		return extensionMethods;
 	}
 	
-	private static List<MethodBinding> getExtensionMethodsDefinedViaAnnotation(EclipseNode typeNode, Annotation ann, TypeBinding firstParameterType) {
+	private static List<MethodBinding> getApplicableExtensionMethods(EclipseNode typeNode, Annotation ann, TypeBinding receiverType) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
-		if ((typeNode != null) && (ann != null) && (firstParameterType != null)) {
+		if ((typeNode != null) && (ann != null) && (receiverType != null)) {
 			BlockScope blockScope = ((TypeDeclaration) typeNode.get()).initializerScope;
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
 			AnnotationValues<ExtensionMethod> annotation = Eclipse.createAnnotation(ExtensionMethod.class, annotationNode);
 			for (Object extensionMethodProvider : annotation.getActualExpressions("value")) {
 				if (extensionMethodProvider instanceof ClassLiteralAccess) {
 					TypeBinding binding = ((ClassLiteralAccess)extensionMethodProvider).type.resolveType(blockScope);
-					if (!(binding instanceof ReferenceBinding)) continue;
-					extensionMethods.addAll(getExtensionMethodsDefinedInProvider(typeNode, (ReferenceBinding) binding, firstParameterType));
+					if (binding == null) continue;
+					if (!binding.isClass() && !binding.isEnum()) continue;
+					extensionMethods.addAll(getApplicableExtensionMethodsDefinedInProvider(typeNode, (ReferenceBinding) binding, receiverType));
 				}
 			}
 		}
 		return extensionMethods;
 	}
 	
-	private static List<MethodBinding> getExtensionMethodsDefinedInProvider(EclipseNode typeNode, ReferenceBinding extensionMethodProviderBinding, TypeBinding firstParameterType) {
+	private static List<MethodBinding> getApplicableExtensionMethodsDefinedInProvider(EclipseNode typeNode, ReferenceBinding extensionMethodProviderBinding, TypeBinding receiverType) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 		CompilationUnitScope cuScope = ((CompilationUnitDeclaration) typeNode.top().get()).scope;
 		for (MethodBinding method : extensionMethodProviderBinding.methods()) {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
 			if (isEmpty(method.parameters)) continue;
-			if (!method.parameters[0].equals(firstParameterType)) continue;
+			if (!method.parameters[0].equals(receiverType)) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
-			if ((firstParameterType instanceof ReferenceBinding) && ((ReferenceBinding) firstParameterType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
+			if ((receiverType instanceof ReferenceBinding) && ((ReferenceBinding) receiverType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
 			extensionMethods.add(method);
 		}
 		return extensionMethods;
 	}
 	
-	private static TypeBinding getFirstParameterType(CompletionProposalCollector completionProposalCollector) {
+	private static TypeBinding getFirstParameterType(TypeDeclaration decl, CompletionProposalCollector completionProposalCollector) {
 		TypeBinding firstParameterType = null;
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
@@ -178,7 +243,10 @@ public final class PatchExtensionMethod {
 				}
 			} else if (node instanceof FieldReference) {
 				firstParameterType = ((FieldReference)node).actualReceiverType;
-			} 
+			}
+			if (firstParameterType == null) {
+				firstParameterType = decl.binding;
+			}
 		} catch (Exception ignore) {
 			// ignore
 		}
@@ -186,27 +254,26 @@ public final class PatchExtensionMethod {
 	}
 	
 	private static ClassScope getClassScope(CompletionProposalCollector completionProposalCollector) {
-		Scope scope = null;
+		ClassScope scope = null;
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			if (extendedContext != null) {
-				scope = (Scope) Reflection.assistScopeField.get(extendedContext);
-				while((scope != null) && !(scope instanceof ClassScope)) {
-					scope = scope.parent;
-				}
+				scope = ((Scope) Reflection.assistScopeField.get(extendedContext)).classScope();
 			}
 		} catch (Exception ignore) {
 			// ignore
 		}
-		return (ClassScope) scope;
+		return scope;
 	}
 	
-	private static void copyNameLookupAndCompletionEngine(IJavaCompletionProposal proposal, InternalCompletionProposal newProposal) {
+	private static void copyNameLookupAndCompletionEngine(CompletionProposalCollector completionProposalCollector, IJavaCompletionProposal proposal, InternalCompletionProposal newProposal) {
 		try {
-			InternalCompletionProposal internalCompletionProposal = (InternalCompletionProposal) Reflection.proposal.get(Reflection.proposalInfoField.get(proposal));
-			Reflection.nameLookup.set(newProposal, Reflection.nameLookup.get(internalCompletionProposal));
-			Reflection.completionEngine.set(newProposal, Reflection.completionEngine.get(internalCompletionProposal));
+			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
+			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
+			LookupEnvironment lookupEnvironment = (LookupEnvironment) Reflection.lookupEnvironmentField.get(extendedContext);
+			Reflection.nameLookup.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
+			Reflection.completionEngine.set(newProposal, lookupEnvironment.typeRequestor);
 		} catch (Exception ignore) {
 			// ignore
 		}
@@ -233,9 +300,14 @@ public final class PatchExtensionMethod {
 	}
 	
 	private static class ExtensionMethodCompletionProposal extends InternalCompletionProposal {
+		private final int replacementOffset;
 
-		public ExtensionMethodCompletionProposal(MethodBinding method, int replacementOffset) {
+		public ExtensionMethodCompletionProposal(int replacementOffset) {
 			super(CompletionProposal.METHOD_REF, replacementOffset - 1);
+			this.replacementOffset = replacementOffset; 
+		}
+		
+		public void setMethodBinding(MethodBinding method) {
 			MethodBinding original = method.original();
 			TypeBinding[] parameters = Arrays.copyOf(method.parameters, method.parameters.length);
 			method.parameters = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
@@ -245,7 +317,7 @@ public final class PatchExtensionMethod {
 				method.original().parameters = Arrays.copyOfRange(method.original().parameters, 1, method.original().parameters.length);
 			}
 			
-			int length = method.parameters.length;
+			int length = isEmpty(method.parameters) ? 0 : method.parameters.length;
 			char[][] parameterPackageNames = new char[length][];
 			char[][] parameterTypeNames = new char[length][];
 
@@ -254,7 +326,6 @@ public final class PatchExtensionMethod {
 				parameterPackageNames[i] = type.qualifiedPackageName();
 				parameterTypeNames[i] = type.qualifiedSourceName();
 			}
-			
 			char[] completion = CharOperation.concat(method.selector, new char[] { '(', ')' });
 			setDeclarationSignature(CompletionEngine.getSignature(method.declaringClass));
 			setSignature(CompletionEngine.getSignature(method));
@@ -281,6 +352,34 @@ public final class PatchExtensionMethod {
 			}
 		}
 	}
+	
+
+	@RequiredArgsConstructor
+	private static class PostponedNoMethodError implements PostponedError {
+		private final ProblemReporter problemReporter;
+		private final MessageSend messageSend;
+		private final TypeBinding recType;
+		private final TypeBinding[] params;
+		
+		public void fire() {
+			problemReporter.errorNoMethodFor(messageSend, recType, params);
+		}
+	}
+
+	@RequiredArgsConstructor
+	private static class PostponedInvalidMethodError implements PostponedError {
+		private final ProblemReporter problemReporter;
+		private final MessageSend messageSend;
+		private final MethodBinding method;
+		
+		public void fire() {
+			problemReporter.invalidMethod(messageSend, method);
+		}
+	}
+
+	private static interface PostponedError {
+		public void fire();
+	}
 
 	private static class Reflection {
 		public static final Field replacementOffsetField;
@@ -288,8 +387,7 @@ public final class PatchExtensionMethod {
 		public static final Field extendedContextField;
 		public static final Field assistNodeField;
 		public static final Field assistScopeField;
-		public static final Field proposalInfoField;
-		public static final Field proposal;
+		public static final Field lookupEnvironmentField;
 		public static final Field completionEngine;
 		public static final Field nameLookup;
 		public static final Method createJavaCompletionProposalMethod;
@@ -302,8 +400,7 @@ public final class PatchExtensionMethod {
 			extendedContextField = accessField(InternalCompletionContext.class, "extendedContext", available);
 			assistNodeField = accessField(InternalExtendedCompletionContext.class, "assistNode", available);
 			assistScopeField = accessField(InternalExtendedCompletionContext.class, "assistScope", available);
-			proposalInfoField = accessField(AbstractJavaCompletionProposal.class, "fProposalInfo", available);
-			proposal = accessField(MemberProposalInfo.class, "fProposal", available);
+			lookupEnvironmentField = accessField(InternalExtendedCompletionContext.class, "lookupEnvironment", available);
 			completionEngine = accessField(InternalCompletionProposal.class, "completionEngine", available);
 			nameLookup = accessField(InternalCompletionProposal.class, "nameLookup", available);
 			createJavaCompletionProposalMethod = accessMethod(CompletionProposalCollector.class, "createJavaCompletionProposal", CompletionProposal.class, available);

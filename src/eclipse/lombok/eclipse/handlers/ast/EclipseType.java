@@ -21,17 +21,15 @@
  */
 package lombok.eclipse.handlers.ast;
 
+import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
 import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
 import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccInterface;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccEnum;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccAnnotation;
-import static lombok.ast.AST.Type;
-import static lombok.core.util.Arrays.isNotEmpty;
-import static lombok.core.util.Arrays.resize;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.fieldExists;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.methodExists;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -166,7 +164,7 @@ public class EclipseType {
 				}
 			}
 			if (!aboutToBeResolved) {
-				MethodScope scope = new MethodScope(type.scope, method, false);
+				MethodScope scope = new MethodScope(type.scope, method, methodDecl.getModifiers().contains(lombok.ast.Modifier.STATIC));
 				MethodBinding methodBinding = null;
 				try {
 					methodBinding = (MethodBinding) Reflection.methodScopeCreateMethodMethod.invoke(scope, method);

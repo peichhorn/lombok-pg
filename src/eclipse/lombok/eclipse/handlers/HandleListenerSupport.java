@@ -50,26 +50,27 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 /**
  * Handles the {@link ListenerSupport} annotation for eclipse using the {@link PatchListenerSupport}.
  */
-// @ProviderFor(EclipseResolutionBasedHandler.class) // TODO
+// @ProviderFor(EclipseAnnotationHandler.class) // TODO
 public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupport> {
 
 	@Override public void handle(AnnotationValues<ListenerSupport> annotation, Annotation source, EclipseNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
 			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
-			annotationNode.addError("@ListenerSupport has no effect with if no interface classes was specified.");
+			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
 			return;
 		}
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof ClassLiteralAccess) {
 				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
 				if (!binding.isInterface()) {
-					annotationNode.addWarning(String.format("@ListenerSupport works only with interfaces. %s was skipped", new String(binding.readableName())));
+					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), new String(binding.readableName())));
 					continue;
 				}
 				addListenerField(type, binding);

@@ -49,6 +49,7 @@ import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 import lombok.ast.TypeRef;
 import lombok.core.util.Arrays;
@@ -132,6 +133,10 @@ public class EclipseMethod {
 
 	public boolean isSynchronized() {
 		return !isConstructor() && (get().bits & IsSynchronized) != 0;
+	}
+	
+	public boolean isStatic() {
+		return !isConstructor() && (get().modifiers & ClassFileConstants.AccStatic) != 0;
 	}
 
 	public boolean isConstructor() {
