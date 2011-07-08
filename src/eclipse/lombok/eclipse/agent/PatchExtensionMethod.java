@@ -32,9 +32,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -113,7 +113,7 @@ public final class PatchExtensionMethod {
 		}
 	}
 
-	private static Map<MessageSend, PostponedError> errors = new HashMap<MessageSend, PostponedError>();
+	private static Map<MessageSend, PostponedError> errors = new WeakHashMap<MessageSend, PostponedError>();
 
 	public static void errorNoMethodFor(ProblemReporter problemReporter, MessageSend messageSend, TypeBinding recType, TypeBinding[] params) {
 		errors.put(messageSend, new PostponedNoMethodError(problemReporter, messageSend, recType, params));
