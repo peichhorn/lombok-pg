@@ -43,7 +43,9 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.code.Type.ErrorType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -51,7 +53,6 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.util.ListBuffer;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -130,7 +131,8 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 	private static Type resolveMethodMember(JavacNode node, JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
-			type = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr)).type;
+			JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr));
+			if (resolvedExpression != null) type = resolvedExpression.type;
 		}
 		return type;
 	}
@@ -171,20 +173,16 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 				}
 				
 				if (isOneOf(methodName, "this", "super")) return;
-				
-				ListBuffer<Type> argtypes = ListBuffer.lb();
+				Type resolvedMethodCall = resolveMethodMember(statementNode, methodCall);
+				if (!(resolvedMethodCall instanceof ErrorType)) return;
 				Type receiverType = resolveMethodMember(statementNode, receiver);
-				argtypes.append(receiverType);
-				for (JCExpression arg : methodCall.args) {
-					argtypes.append(resolveMethodMember(statementNode, arg));
-				}
-				
+				Types types = Types.instance(type.node().getContext());
 				for (Extension extension : extensions) {
 					for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
 						if (!(extensionMethod.type instanceof MethodType)) continue;
 						MethodType method = (MethodType) extensionMethod.type;
 						if (!methodName.equals(extensionMethod.name.toString())) continue;
-						if (method.argtypes.get(0).equals(argtypes.toList().get(0))) continue;
+						if (!types.isAssignable(receiverType, method.argtypes.get(0))) continue;
 						methodCall.args = methodCall.args.prepend(receiver);
 						methodCall.meth = type.build(Call(Name(extension.getExtensionProvider().toString()), methodName), JCMethodInvocation.class).meth;
 						return;
