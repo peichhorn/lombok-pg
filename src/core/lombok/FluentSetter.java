@@ -21,10 +21,7 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /** Does pretty much the same as {@link Setter}. */
 @Target({ElementType.FIELD, ElementType.TYPE})

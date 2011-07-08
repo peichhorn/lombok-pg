@@ -72,7 +72,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			if (listenerInterface instanceof JCFieldAccess) {
 				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
 				if (interfaze.name.toString().equals("class")) {
-					Type interfaceType = getType(interfaze.selected, annotationNode);
+					Type interfaceType = resolveClassMember(annotationNode, interfaze.selected);
 					if (interfaceType == null) continue;
 					if (interfaceType.isInterface()) {
 						resolvedInterfaces.add(interfaceType);
@@ -97,10 +97,10 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		return true;
 	}
 
-	private static Type getType(JCExpression expr, JavacNode annotationNode) {
+	private static Type resolveClassMember(JavacNode node, JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
-			new JavacResolution(annotationNode.getContext()).resolveClassMember(annotationNode);
+			new JavacResolution(node.getContext()).resolveClassMember(node);
 			type = expr.type;
 		}
 		return type;

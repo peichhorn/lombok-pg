@@ -21,10 +21,7 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Put on any type to make lombok create default implementations for all methods you forgot to implement.

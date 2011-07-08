@@ -9,6 +9,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@AutoGenMethodStub`
 - `@Builder` and `@Builder.Extension`
 - `@DoPrivileged`
+- `@ExtensionMethod`
 - `@FluentSetter`
 - `@ListenerSupport`
 - `@WriteLock` and `@ReadLock`
@@ -24,7 +25,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 
 #### Methods:
 
-- `tuple(var1, var2, ...) = tuple(expr1, expr2, ...)`
+- `tuple(var1, var2, ...) = tuple(expr1, expr2, ...)`, `tuple(var1, var2, ...) = tuple(array)` and `int var1, var2, ... = tuple(expr1, expr2, ...)`
 - `with(object, expr1, expr2, ...)`
 - `yield(object)`
 

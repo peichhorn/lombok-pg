@@ -36,7 +36,6 @@ import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.eclipse.Eclipse;
-import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
@@ -51,7 +50,6 @@ import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
@@ -528,29 +526,6 @@ public class HandleBuilderAndExtension {
 					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method.sourceStart, method.sourceEnd);
 				}
 			}
-		}
-	}
-
-	@RequiredArgsConstructor
-	private static class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
-		private final int maxTypeDepth;
-		private int typeDepth;
-
-		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
-			typeDepth++;
-		}
-
-		@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
-			typeDepth--;
-		}
-
-		public boolean isOfInterest() {
-			return typeDepth <= maxTypeDepth;
-		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return false;
 		}
 	}
 

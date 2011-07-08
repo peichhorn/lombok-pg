@@ -9,6 +9,7 @@ class BuilderPlain {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderPlain(final $Builder builder) {
+		super();
 		this.optionalVal1 = builder.optionalVal1;
 		this.optionalVal2 = builder.optionalVal2;
 		this.optionalVal3 = builder.optionalVal3;

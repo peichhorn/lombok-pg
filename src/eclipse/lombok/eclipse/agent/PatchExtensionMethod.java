@@ -131,13 +131,8 @@ public final class PatchExtensionMethod {
 			List<MethodBinding> extensionMethods = getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType);
 			if (!extensionMethods.isEmpty()) {
 				EclipseType type = EclipseType.typeOf(typeNode, ann);
-				List<TypeBinding> argumentBindingList = new ArrayList<TypeBinding>();
-				argumentBindingList.add(methodCall.receiver.resolvedType);
-				Collections.addAll(argumentBindingList, methodCall.binding.parameters);
-				TypeBinding[] argumentBindings = argumentBindingList.toArray(new TypeBinding[0]);
 				for (MethodBinding extensionMethod : extensionMethods) {
 					if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
-					if (!Arrays.equals(argumentBindings, extensionMethod.parameters)) continue;
 					if (methodCall.receiver instanceof ThisReference) {
 						if ((methodCall.receiver.bits & ASTNode.IsImplicitThis) != 0) {
 							methodCall.receiver.bits &= ~ASTNode.IsImplicitThis;
@@ -217,7 +212,7 @@ public final class PatchExtensionMethod {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
 			if (isEmpty(method.parameters)) continue;
-			if (!method.parameters[0].equals(receiverType)) continue;
+			if (!receiverType.isCompatibleWith(method.parameters[0])) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
 			if ((receiverType instanceof ReferenceBinding) && ((ReferenceBinding) receiverType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
 			extensionMethods.add(method);

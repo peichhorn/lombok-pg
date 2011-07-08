@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2011 Philipp Eichhorn
+ * Copyright © 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,34 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok;
+package lombok.eclipse.handlers;
 
-import java.lang.annotation.*;
+import lombok.RequiredArgsConstructor;
+import lombok.eclipse.EclipseASTAdapter;
+import lombok.eclipse.EclipseNode;
 
-/**
- * <pre>
- * void methodAnnotatedWithWriteLock() {
- *   this.&lt;LOCK_NAME&gt;.writeLock().lock();
- *   try {
- *
- *     // method body
- *
- *   } finally {
- *     this.&lt;LOCK_NAME&gt;.writeLock().unlock();
- *   }
- * }
- * <pre>
- *
- * @author Philipp Eichhorn
- */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
-public @interface WriteLock {
-	/**
-	 * Name of the lock.
-	 * <p>
-	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.ReadWriteLock ReadWriteLock}
-	 * will be created, using this name.
-	 */
-	String value();
+import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+
+@RequiredArgsConstructor
+public class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
+	private final int maxTypeDepth;
+	private int typeDepth;
+
+	@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
+		typeDepth++;
+	}
+
+	@Override public void endVisitType(EclipseNode typeNode, TypeDeclaration type) {
+		typeDepth--;
+	}
+
+	public boolean isOfInterest() {
+		return typeDepth <= maxTypeDepth;
+	}
+
+	@Override
+	public boolean deferUntilPostDiet() {
+		return false;
+	}
 }

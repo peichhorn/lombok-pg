@@ -257,7 +257,11 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	@Override
 	public JCTree visitConstructorDecl(lombok.ast.ConstructorDecl node, Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
-		final JCBlock body = setGeneratedBy(M.Block(0, build(node.getStatements(), JCStatement.class)), source);
+		List<JCStatement> statements = build(node.getStatements(), JCStatement.class);
+		if (node.implicitSuper()) {
+			statements = statements.prepend(build(Call("super"), JCStatement.class));
+		}
+		final JCBlock body = setGeneratedBy(M.Block(0, statements), source);
 		final JCMethodDecl constructor = setGeneratedBy(M.MethodDef(mods, name("<init>"), null, build(node.getTypeParameters(), JCTypeParameter.class), build(node.getArguments(), JCVariableDecl.class), build(node.getThrownExceptions(), JCExpression.class), body, null), source);
 		return constructor;
 	}

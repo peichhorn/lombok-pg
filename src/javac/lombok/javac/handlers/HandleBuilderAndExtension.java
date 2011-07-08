@@ -36,7 +36,6 @@ import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.javac.Javac;
-import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
@@ -47,7 +46,6 @@ import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.mangosdk.spi.ProviderFor;
@@ -507,24 +505,6 @@ public class HandleBuilderAndExtension {
 					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
 				}
 			}
-		}
-	}
-
-	@RequiredArgsConstructor
-	private static class JavacASTAdapterWithTypeDepth extends JavacASTAdapter {
-		private final int maxTypeDepth;
-		private int typeDepth;
-
-		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
-			typeDepth++;
-		}
-
-		@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
-			typeDepth--;
-		}
-
-		public boolean isOfInterest() {
-			return typeDepth <= maxTypeDepth;
 		}
 	}
 

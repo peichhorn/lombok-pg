@@ -21,11 +21,30 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
+/**
+ * <p>
+ * Before:
+ * <pre>
+ * &#64;ExtensionMethod({java.util.Arrays.class})
+ * class Example {
+ *   private void example() {
+ *     long[] values = new long[] { 2, 5, 7, 9 };
+ *     values.copyOf(3).sort();
+ *   }
+ * }
+ * </pre>
+ * After:
+ * <pre>
+ * class Example {
+ *   private void example() {
+ *     long[] values = new long[] { 2, 5, 7, 9 };
+ *     java.util.Arrays.sort(java.util.Arrays.copyOf(values, 3));
+ *   }
+ * }
+ * </pre>
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface ExtensionMethod {
