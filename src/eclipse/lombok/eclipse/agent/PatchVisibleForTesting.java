@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.agent;
 
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
@@ -66,16 +67,13 @@ public final class PatchVisibleForTesting {
 			return null;
 		}
 		final AnnotationBinding[] annotations = methodBinding.getAnnotations();
-		if (annotations != null) for (AnnotationBinding annotation : annotations) {
-			if ("@VisibleForTesting".equals(annotation.toString())) {
-				ClassScope classScope = scope.classScope();
-				if (classScope != null) {
-					TypeDeclaration decl = classScope.referenceContext;
-					if ((methodBinding.declaringClass != decl.binding) && !new String(decl.name).contains("Test")) {
-						return new ProblemMethodBinding(methodBinding, methodBinding.selector, methodBinding.parameters, ProblemReasons.NotVisible);
-					}
-				}
-			}
+		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
+			if (!"@VisibleForTesting".equals(annotation.toString())) continue;
+			ClassScope classScope = scope.classScope();
+			if (classScope == null) continue;
+			TypeDeclaration decl = classScope.referenceContext;
+			if ((methodBinding.declaringClass == decl.binding) || new String(decl.name).contains("Test")) continue;
+			return new ProblemMethodBinding(methodBinding, methodBinding.selector, methodBinding.parameters, ProblemReasons.NotVisible);
 		}
 		return methodBinding;
 	}

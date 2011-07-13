@@ -21,7 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseNode;
 

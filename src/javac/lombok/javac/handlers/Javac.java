@@ -23,11 +23,9 @@ package lombok.javac.handlers;
 
 import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
+import java.util.*;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
 
@@ -142,7 +140,7 @@ public final class Javac {
 		return typeDecl;
 	}
 
-	public static JCAnnotation getAnnotation(Class<? extends Annotation> expectedType, JCVariableDecl decl) {
+	public static JCAnnotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, JCVariableDecl decl) {
 		for (JCAnnotation ann : decl.mods.annotations) {
 			if (matchesType(ann, expectedType)) {
 				return ann;

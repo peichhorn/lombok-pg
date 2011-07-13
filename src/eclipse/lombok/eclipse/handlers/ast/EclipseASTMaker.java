@@ -609,7 +609,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 
 	@Override
 	public ASTNode visitThrow(lombok.ast.Throw node, Void p) {
-		final ThrowStatement throwStatement = new ThrowStatement(build(node.getInit(), Expression.class), 0, 0);
+		final ThrowStatement throwStatement = new ThrowStatement(build(node.getExpression(), Expression.class), 0, 0);
 		setGeneratedByAndCopyPos(throwStatement, source);
 		return throwStatement;
 	}

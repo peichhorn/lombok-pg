@@ -26,9 +26,7 @@ import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
@@ -79,7 +77,7 @@ public class HandleRethrowAndRethrows {
 		return this;
 	}
 
-	public void handle(Class<? extends Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
+	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 
 		if (rethrows.isEmpty()) {

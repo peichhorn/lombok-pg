@@ -26,8 +26,7 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;

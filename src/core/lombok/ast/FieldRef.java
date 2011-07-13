@@ -21,7 +21,7 @@
  */
 package lombok.ast;
 
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 public final class FieldRef extends Expression {

@@ -23,11 +23,9 @@ package lombok.ast;
 
 import static lombok.ast.Modifier.*;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
-import lombok.Getter;
+import lombok.*;
 import lombok.core.util.Cast;
 
 public abstract class AbstractVariableDecl<SELF_TYPE> extends Statement {

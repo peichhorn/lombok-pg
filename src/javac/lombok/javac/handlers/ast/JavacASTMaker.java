@@ -437,7 +437,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 
 	@Override
 	public JCTree visitThrow(lombok.ast.Throw node, Void p) {
-		final JCThrow throwStatement = setGeneratedBy(M.Throw(build(node.getInit(), JCExpression.class)), source);
+		final JCThrow throwStatement = setGeneratedBy(M.Throw(build(node.getExpression(), JCExpression.class)), source);
 		return throwStatement;
 	}
 

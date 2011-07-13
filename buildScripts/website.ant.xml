@@ -36,7 +36,16 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="Builder" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Condition" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="DoPrivileged" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Entrypoint" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="ExtensionMethod" />
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="FluentSetter" />
@@ -45,22 +54,16 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="ListenerSupport" />
 		</antcall>
 		<antcall target="-integrateSnippet">
-			<param name="transformationName" value="Singleton" />
-		</antcall>
-		<antcall target="-integrateSnippet">
-			<param name="transformationName" value="SwingInvoke" />
-		</antcall>
-		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Lock" />
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Rethrow" />
 		</antcall>
 		<antcall target="-integrateSnippet">
-			<param name="transformationName" value="Condition" />
+			<param name="transformationName" value="Singleton" />
 		</antcall>
 		<antcall target="-integrateSnippet">
-			<param name="transformationName" value="Entrypoint" />
+			<param name="transformationName" value="SwingInvoke" />
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Tuple" />

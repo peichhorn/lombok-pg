@@ -23,8 +23,8 @@ package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import lombok.AutoGenMethodStub;
-import lombok.ast.Statement;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;

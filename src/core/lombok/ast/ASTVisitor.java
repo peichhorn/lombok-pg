@@ -22,6 +22,7 @@
 package lombok.ast;
 
 public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
+
 	RETURN_TYPE visitAnnotation(Annotation node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitArgument(Argument node, PARAMETER_TYPE p);

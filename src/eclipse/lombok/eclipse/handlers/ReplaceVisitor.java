@@ -21,9 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import static lombok.core.util.Arrays.*;
+import lombok.*;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;

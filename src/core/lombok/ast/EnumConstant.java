@@ -21,10 +21,8 @@
  */
 package lombok.ast;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Getter;
+import java.util.*;
+import lombok.*;
 
 @Getter
 public final class EnumConstant extends AbstractVariableDecl<EnumConstant> {

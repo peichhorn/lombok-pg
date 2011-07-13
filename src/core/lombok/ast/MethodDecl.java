@@ -21,7 +21,7 @@
  */
 package lombok.ast;
 
-import lombok.Getter;
+import lombok.*;
 
 public class MethodDecl extends AbstractMethodDecl<MethodDecl> {
 	@Getter

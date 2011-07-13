@@ -27,8 +27,7 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.lang.model.element.ElementKind;
 

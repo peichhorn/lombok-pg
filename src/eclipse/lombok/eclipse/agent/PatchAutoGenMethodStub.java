@@ -37,8 +37,6 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleAutoGenMethodStub;
 import lombok.patcher.*;
 
-// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
-// should be the last annotation to avoid major issues, once again.. curve ball
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchAutoGenMethodStub {
 
@@ -66,14 +64,12 @@ public final class PatchAutoGenMethodStub {
 
 	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
-		if (ann != null) {
-			EclipseNode typeNode = getTypeNode(decl);
-			if (typeNode != null) {
-				EclipseNode annotationNode = typeNode.getNodeFor(ann);
-				MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, Eclipse.createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
-				issueWasFixed.set(true);
-				return method;
-			}
+		EclipseNode typeNode = getTypeNode(decl);
+		if ((ann != null) && (typeNode != null)) {
+			EclipseNode annotationNode = typeNode.getNodeFor(ann);
+			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, Eclipse.createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
+			issueWasFixed.set(true);
+			return method;
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}

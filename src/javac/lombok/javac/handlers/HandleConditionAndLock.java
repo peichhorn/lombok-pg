@@ -26,9 +26,7 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -112,7 +110,7 @@ public class HandleConditionAndLock {
 		return this;
 	}
 
-	public void handle(String lockName, Class<? extends Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
+	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		deleteImportFromCompilationUnit(annotationNode, Position.class.getName());
 		final JavacType type = JavacType.typeOf(annotationNode, source);

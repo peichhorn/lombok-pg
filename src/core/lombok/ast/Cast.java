@@ -21,7 +21,7 @@
  */
 package lombok.ast;
 
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 public class Cast extends Expression {

@@ -26,11 +26,7 @@ import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;

@@ -21,11 +21,8 @@
  */
 package lombok.ast;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.*;
+import lombok.*;
 
 @RequiredArgsConstructor
 @Getter

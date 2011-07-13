@@ -21,8 +21,7 @@
  */
 package lombok.javac.handlers;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.tree.JCTree;

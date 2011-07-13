@@ -21,17 +21,16 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.ErrorMessages.canBeUsedOnMethodOnly;
+import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
+import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
-import lombok.VisibleForTesting;
 
 import org.mangosdk.spi.ProviderFor;
 

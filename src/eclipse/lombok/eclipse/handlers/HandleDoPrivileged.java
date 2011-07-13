@@ -22,12 +22,11 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.isNotEmpty;
+import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;

@@ -26,8 +26,7 @@ import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;

@@ -22,7 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacASTMaker;
 

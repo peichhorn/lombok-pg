@@ -21,11 +21,9 @@
  */
 package lombok.ast;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @RequiredArgsConstructor
 @Getter

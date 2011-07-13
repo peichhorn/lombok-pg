@@ -21,14 +21,14 @@
  */
 package lombok.ast;
 
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 public final class Throw extends Statement {
-	private final Expression init;
+	private final Expression expression;
 
-	public Throw(final Expression init) {
-		this.init = child(init);
+	public Throw(final Expression expression) {
+		this.expression = child(expression);
 	}
 
 	@Override

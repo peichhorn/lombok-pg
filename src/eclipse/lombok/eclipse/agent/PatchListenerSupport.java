@@ -47,12 +47,10 @@ public final class PatchListenerSupport {
 	public static boolean onClassScope_buildFieldsAndMethods(ClassScope scope) {
 		TypeDeclaration decl = scope.referenceContext;
 		Annotation ann = getAnnotation(ListenerSupport.class, decl);
-		if (ann != null) {
-			EclipseNode typeNode = getTypeNode(decl);
-			if (typeNode != null) {
-				EclipseNode annotationNode = typeNode.getNodeFor(ann);
-				new HandleListenerSupport().handle(Eclipse.createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
-			}
+		EclipseNode typeNode = getTypeNode(decl);
+		if ((ann != null) && (typeNode != null)) {
+			EclipseNode annotationNode = typeNode.getNodeFor(ann);
+			new HandleListenerSupport().handle(Eclipse.createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
 		}
 		return false;
 	}

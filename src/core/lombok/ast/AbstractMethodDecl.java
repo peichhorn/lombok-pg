@@ -23,14 +23,12 @@ package lombok.ast;
 
 import static lombok.ast.Modifier.*;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
-import lombok.AccessLevel;
-import lombok.Getter;
+import lombok.*;
 import lombok.core.util.Cast;
 
+@RequiredArgsConstructor
 @Getter
 public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
 	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
@@ -40,10 +38,6 @@ public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
 	protected final List<TypeRef> thrownExceptions = new ArrayList<TypeRef>();
 	protected final List<Statement> statements = new ArrayList<Statement>();
 	protected final String name;
-
-	public AbstractMethodDecl(final String name) {
-		this.name = name;
-	}
 
 	protected final SELF_TYPE self() {
 		return Cast.<SELF_TYPE>uncheckedCast(this);

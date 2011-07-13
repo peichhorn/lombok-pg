@@ -23,11 +23,8 @@ package lombok.ast;
 
 import static lombok.ast.Modifier.*;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
-import lombok.Getter;
+import java.util.*;
+import lombok.*;
 
 @Getter
 public class ClassDecl extends Statement {

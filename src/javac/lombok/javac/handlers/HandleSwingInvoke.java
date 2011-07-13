@@ -23,11 +23,10 @@ package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.camelCase;
+import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;

@@ -22,7 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.eclipse.handlers.ast.EclipseASTMaker;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;

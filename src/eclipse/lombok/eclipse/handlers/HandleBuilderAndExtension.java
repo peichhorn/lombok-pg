@@ -400,33 +400,24 @@ public class HandleBuilderAndExtension {
 		return type.endsWith("Map");
 	}
 
+	@Getter
 	private static class BuilderDataCollector extends EclipseASTAdapterWithTypeDepth implements IBuilderData {
-		@Getter
-		private final EclipseType type;
-		@Getter
-		private final String prefix;
-		@Getter
-		private final List<String> callMethods;
-		@Getter
 		private final List<FieldDeclaration> requiredFields = new ArrayList<FieldDeclaration>();
-		@Getter
 		private final List<FieldDeclaration> optionalFields = new ArrayList<FieldDeclaration>();
-		@Getter
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
-		@Getter
 		private final List<String> allRequiredFieldNames = new ArrayList<String>();
-		@Getter
 		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();
-		@Getter
+		private final EclipseType type;
+		private final String prefix;
+		private final List<String> callMethods;
 		private final boolean generateConvenientMethodsEnabled;
-		@Getter
 		private final AccessLevel level;
-		private final Set<String> exclude;
+		private final Set<String> excludes;
 
 		public BuilderDataCollector(EclipseType type, Builder builder) {
 			super(1);
 			this.type = type;
-			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
 			generateConvenientMethodsEnabled = builder.convenientMethods();
 			prefix = builder.prefix();
 			callMethods = Arrays.asList(builder.callMethods());
@@ -449,7 +440,7 @@ public class HandleBuilderAndExtension {
 			if (isOfInterest()) {
 				if ((field.modifiers & STATIC) != 0) return;
 				String fieldName = new String(field.name);
-				if (exclude.contains(fieldName)) return;
+				if (excludes.contains(fieldName)) return;
 				if ((field.initialization == null) && ((field.modifiers & FINAL) != 0)) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
@@ -465,12 +456,12 @@ public class HandleBuilderAndExtension {
 	}
 
 	private static class ExtensionCollector extends EclipseASTAdapterWithTypeDepth {
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final Set<String> requiredFieldNames = new HashSet<String>();
 		@Getter
 		private boolean isRequiredFieldsExtension;
 		@Getter
 		private boolean isExtension;
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
 		private boolean containsRequiredFields;
 
 		public ExtensionCollector() {

@@ -22,7 +22,7 @@
 package lombok.ast;
 
 import static lombok.ast.Modifier.*;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {

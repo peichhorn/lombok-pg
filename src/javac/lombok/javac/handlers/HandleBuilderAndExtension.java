@@ -380,26 +380,17 @@ public class HandleBuilderAndExtension {
 		}
 	}
 
+	@Getter
 	private static class BuilderDataCollector extends JavacASTAdapterWithTypeDepth implements IBuilderData {
-		@Getter
 		private final JavacType type;
-		@Getter
 		private final String prefix;
-		@Getter
 		private final List<String> callMethods;
-		@Getter
 		private final List<JCVariableDecl> requiredFields = new ArrayList<JCVariableDecl>();
-		@Getter
 		private final List<JCVariableDecl> optionalFields = new ArrayList<JCVariableDecl>();
-		@Getter
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
-		@Getter
 		private final List<String> allRequiredFieldNames = new ArrayList<String>();
-		@Getter
 		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
-		@Getter
 		private final boolean generateConvenientMethodsEnabled;
-		@Getter
 		private final AccessLevel level;
 		private final Set<String> exclude;
 

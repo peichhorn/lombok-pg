@@ -21,9 +21,7 @@
  */
 package lombok.ast;
 
-import lombok.Getter;
-
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @RequiredArgsConstructor
 @Getter

@@ -26,10 +26,7 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Arrays.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -52,7 +49,7 @@ import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.mangosdk.spi.ProviderFor;
 
-import lombok.With;
+import lombok.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;

@@ -21,13 +21,15 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
+import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.Eclipse.setGeneratedBy;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.createSuppressWarningsAll;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import lombok.*;
+import lombok.core.AST.*;
+import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
@@ -39,11 +41,6 @@ import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.core.AST.Kind;
-import lombok.eclipse.EclipseNode;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {

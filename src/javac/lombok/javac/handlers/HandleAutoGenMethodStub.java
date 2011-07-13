@@ -31,15 +31,10 @@ import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.ast.AST.*;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
-import lombok.AccessLevel;
-import lombok.AutoGenMethodStub;
-import lombok.RequiredArgsConstructor;
-import lombok.ast.Statement;
+import lombok.*;
+import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;

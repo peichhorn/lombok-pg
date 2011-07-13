@@ -35,7 +35,6 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
  */
 public class InitializableEclipseNode extends EclipseNode {
 
-	// that's all we need
 	public InitializableEclipseNode(EclipseAST ast, ASTNode node, List<EclipseNode> children, Kind kind) {
 		super(ast, node, children, kind);
 	}

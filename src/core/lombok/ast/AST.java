@@ -21,9 +21,7 @@
  */
 package lombok.ast;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.ast.Wildcard.Bound;
+import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AST {
@@ -255,7 +253,7 @@ public final class AST {
 		return new Wildcard();
 	}
 
-	public static Wildcard Wildcard(Bound bound, TypeRef type) {
+	public static Wildcard Wildcard(Wildcard.Bound bound, TypeRef type) {
 		return new Wildcard(bound, type);
 	}
 }

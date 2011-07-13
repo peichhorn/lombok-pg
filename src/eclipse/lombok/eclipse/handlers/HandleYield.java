@@ -27,14 +27,7 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCase;
 import static lombok.core.util.Types.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -71,10 +64,8 @@ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
 
-import lombok.Getter;
-import lombok.Yield;
-import lombok.ast.ClassDecl;
-import lombok.ast.FieldDecl;
+import lombok.*;
+import lombok.ast.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;

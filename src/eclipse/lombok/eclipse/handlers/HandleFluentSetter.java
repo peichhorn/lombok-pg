@@ -29,9 +29,7 @@ import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.Eclipse.typeDeclFiltering;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import lombok.*;
