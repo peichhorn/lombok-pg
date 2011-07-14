@@ -45,7 +45,6 @@ import org.mangosdk.spi.ProviderFor;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree;
 
@@ -108,14 +107,10 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 
 		JavacNode node = annotationNode.up();
 		if (node == null) return;
-		List<JCExpression> onMethod = getAndRemoveAnnotationParameter(source, "onMethod");
-		List<JCExpression> onParam = getAndRemoveAnnotationParameter(source, "onParam");
 		if (node.getKind() == Kind.FIELD) {
 			createSetterForFields(level, fields, annotationNode, source, true);
 		}
 		if (node.getKind() == Kind.TYPE) {
-			if (!onMethod.isEmpty()) annotationNode.addError("'onMethod' is not supported for @Setter on a type.");
-			if (!onParam.isEmpty()) annotationNode.addError("'onParam' is not supported for @Setter on a type.");
 			generateSetterForType(node, annotationNode, level, false);
 		}
 	}
