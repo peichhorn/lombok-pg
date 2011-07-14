@@ -93,6 +93,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
 	private static class UndefiniedMethods implements Iterator<MethodSymbol>, Iterable<MethodSymbol> {
 		private final Set<String> handledMethods = new HashSet<String>();
+		private final JavacNode typeNode;
 		private final ClassSymbol classSymbol;
 		private final Types types;
 		private boolean hasNext;
@@ -139,7 +140,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 
 		public static UndefiniedMethods of(JavacNode node) {
 			JavacNode typeNode = typeNodeOf(node);
-			return new UndefiniedMethods(((JCClassDecl)typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
+			return new UndefiniedMethods(typeNode, ((JCClassDecl)typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
 		}
 
 		private MethodSymbol createMethodStubFor(MethodSymbol methodSym) {
@@ -149,7 +150,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 			ListBuffer<VarSymbol> paramSyms = new ListBuffer<VarSymbol>();
 			int i = 1;
 			if (type.argtypes != null) for (Type argType : type.argtypes) {
-				paramSyms.append(new VarSymbol(Flags.PARAMETER, Name.fromString(name.table, "arg" + i++), argType, methodStubSym));
+				paramSyms.append(new VarSymbol(Flags.PARAMETER, typeNode.toName("arg" + i++), argType, methodStubSym));
 			}
 			methodStubSym.params = paramSyms.toList();
 			return methodStubSym;

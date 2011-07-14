@@ -739,10 +739,11 @@ public class HandleYield extends JavacASTAdapter {
 
 			@Override
 			public void visitIdent(JCIdent tree) {
-				if (tree.name == tree.name.table._this) {
+				
+				if ("this".equals(tree.name.toString())) {
 					methodNode.addError("No unqualified 'this' expression is permitted.");
 				}
-				if (tree.name == tree.name.table._super) {
+				if ("super".equals(tree.name.toString())) {
 					methodNode.addError("No unqualified 'super' expression is permitted.");
 				}
 				names.add(tree.name.toString());
