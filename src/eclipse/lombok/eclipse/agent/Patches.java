@@ -72,7 +72,11 @@ final class Patches {
 		if (ann.type == null) return false;
 		TypeBinding tb = ann.resolvedType;
 		if ((tb == null) && (ann.type != null)) {
-			tb = ann.type.resolveType(decl.initializerScope);
+			try {
+				tb = ann.type.resolveType(decl.initializerScope);
+			} catch (Exception ignore) {
+				// completion nodes may throw an exception here
+			}
 		}
 		if (tb == null) return false;
 		return new String(tb.readableName()).equals(expectedType.getName());
