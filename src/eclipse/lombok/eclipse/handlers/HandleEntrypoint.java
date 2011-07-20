@@ -21,21 +21,16 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.eclipse.handlers.Eclipse.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
-
-import java.util.*;
 
 import lombok.*;
+import lombok.core.handlers.EntrypointHandler;
+import lombok.core.handlers.EntrypointHandler.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
@@ -51,23 +46,7 @@ public class HandleEntrypoint {
 		}
 
 		@Override protected void handle(EclipseType type) {
-			createEntrypoint(type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
-		}
-
-		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<lombok.ast.Expression> getArgs(String name) {
-				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-				args.add(Name("args"));
-				return args;
-			}
-		}
-
-		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<lombok.ast.Argument> getParams(String name) {
-				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-				params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
-				return params;
-			}
+			new EntrypointHandler().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
 	}
 
@@ -81,29 +60,10 @@ public class HandleEntrypoint {
 		}
 
 		@Override protected void handle(EclipseType type) {
-			IArgumentProvider argumentProvider = new ArgumentProvider();
-			IParameterProvider parameterProvider = new ParameterProvider();
-			createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
-		}
-
-		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<lombok.ast.Expression> getArgs(String name) {
-				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-				args.add(("agentmain".equals(name) ? True() : False()));
-				args.add(Name("params"));
-				args.add(Name("instrumentation"));
-				return args;
-			}
-		}
-
-		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<lombok.ast.Argument> getParams(String name) {
-				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-				params.add(Arg(Type("java.lang.String"), "params"));
-				params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
-				return params;
-			}
+			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
+			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
+			new EntrypointHandler().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 		}
 	}
 
@@ -136,64 +96,5 @@ public class HandleEntrypoint {
 		public boolean deferUntilPostDiet() {
 			return false;
 		}
-	}
-
-	/**
-	 * Checks if there is an entry point with the provided name.
-	 *
-	 * @param methodName the entry point name to check for.
-	 * @param node Any node that represents the Type (TypeDeclaration) to look in, or any child node thereof.
-	 */
-	public static boolean entrypointExists(String methodName, EclipseNode node) {
-		EclipseNode typeNode = typeNodeOf(node);
-		TypeDeclaration typeDecl = (TypeDeclaration)typeNode.get();
-		if (isNotEmpty(typeDecl.methods)) for (AbstractMethodDeclaration def : typeDecl.methods) {
-			if (def instanceof MethodDeclaration) {
-				char[] mName = def.selector;
-				if (mName == null) continue;
-				boolean nameEquals = methodName.equals(new String(mName));
-				boolean returnTypeVoid = "void".equals(((MethodDeclaration)def).returnType.toString());
-				boolean publicStatic = ((def.modifiers & (PUBLIC | STATIC)) != 0);
-				if (nameEquals && returnTypeVoid && publicStatic) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Creates an entrypoint like this:
-	 * <pre>
-	 * public static void &lt;NAME&gt;(&lt;PARAMETER&gt;) throws java.lang.Throwable {
-	 *   new &lt;TYPENAME&gt;().&lt;METHODNAME&gt;(&lt;ARGUMENTS&gt;);
-	 * }
-	 * </pre>
-	 * @param type Type (TypeDeclaration)
-	 * @param name name of the entrypoint ("main", "premain, "agentmain")
-	 * @param methodName name of method that should be called in the entrypoint
-	 * @param paramProvider parameter provider used for the entrypoint
-	 * @param argsProvider argument provider used for the constructor
-	 */
-	public static void createEntrypoint(EclipseType type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
-		if (!type.hasMethod(methodName)) {
-			return;
-		}
-
-		if (entrypointExists(name, type.node())) {
-			return;
-		}
-
-		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-				.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
-	}
-
-	public static interface IArgumentProvider {
-		public List<lombok.ast.Expression> getArgs(String name);
-	}
-
-	public static interface IParameterProvider {
-		public List<lombok.ast.Argument> getParams(String name);
 	}
 }

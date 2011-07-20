@@ -102,16 +102,16 @@ public final class ConditionAndLockHandler {
 		String annotationTypeName = annotationType.getSimpleName();
 		String completeLockName = createCompleteLockName(lockName, isReadWriteLock);
 
-		List<lombok.ast.Statement> beforeMethodBlock = new ArrayList<lombok.ast.Statement>();
-		List<lombok.ast.Statement> afterMethodBlock = new ArrayList<lombok.ast.Statement>();
+		List<Statement> beforeMethodBlock = new ArrayList<Statement>();
+		List<Statement> afterMethodBlock = new ArrayList<Statement>();
 
 		if (!isReadWriteLock) {
 			if (!getConditionStatements(await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
 			if (!getConditionStatements(signal, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
 		}
 
-		final lombok.ast.Call lockCall;
-		final lombok.ast.Call unLockCall;
+		final Call lockCall;
+		final Call unLockCall;
 		if (isReadWriteLock) {
 			lockCall = Call(Call(Field(This(), completeLockName), lockMethod), "lock");
 			unLockCall = Call(Call(Field(This(), completeLockName), lockMethod), "unlock");
@@ -144,7 +144,7 @@ public final class ConditionAndLockHandler {
 		return completeLockName;
 	}
 	
-	private boolean getConditionStatements(ConditionData condition, String lockName, String annotationTypeName, List<lombok.ast.Statement> before, List<lombok.ast.Statement> after) {
+	private boolean getConditionStatements(ConditionData condition, String lockName, String annotationTypeName, List<Statement> before, List<Statement> after) {
 		if (condition == null) {
 			return true;
 		}
@@ -213,7 +213,7 @@ public final class ConditionAndLockHandler {
 		}
 
 		@Override
-		public lombok.ast.Statement toStatement() {
+		public Statement toStatement() {
 			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(This(), condition), "await")))) //
 				.Catch(Arg(Type("java.lang.InterruptedException"), "e"), Block().withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("e")))));
 		}
@@ -225,7 +225,7 @@ public final class ConditionAndLockHandler {
 		}
 
 		@Override
-		public lombok.ast.Statement toStatement() {
+		public Statement toStatement() {
 			return Call(Field(This(), condition), "signal");
 		}
 	}
@@ -235,6 +235,6 @@ public final class ConditionAndLockHandler {
 		public final String condition;
 		public final Position pos;
 
-		public abstract lombok.ast.Statement toStatement();
+		public abstract Statement toStatement();
 	}
 }

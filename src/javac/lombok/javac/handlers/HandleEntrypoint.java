@@ -21,24 +21,19 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.javac.handlers.Javac.typeNodeOf;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static com.sun.tools.javac.code.Flags.*;
-
-import java.util.*;
 
 import lombok.*;
+import lombok.core.handlers.EntrypointHandler;
+import lombok.core.handlers.EntrypointHandler.*;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacType;
 
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.ListBuffer;
 import org.mangosdk.spi.ProviderFor;
 
@@ -54,23 +49,7 @@ public class HandleEntrypoint {
 
 		@Override protected void handle(JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
-			createEntrypoint(type, "main", "runApp", new ParameterProvider(), new ArgumentProvider());
-		}
-
-		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<lombok.ast.Expression> getArgs(String name) {
-				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-				args.add(Name("args"));
-				return args;
-			}
-		}
-
-		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<lombok.ast.Argument> getParams(String name) {
-				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-				params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
-				return params;
-			}
+			new EntrypointHandler().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
 	}
 
@@ -85,29 +64,10 @@ public class HandleEntrypoint {
 
 		@Override protected void handle(JavacType type) {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
-			IArgumentProvider argumentProvider = new ArgumentProvider();
-			IParameterProvider parameterProvider = new ParameterProvider();
-			createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
-		}
-
-		private static class ArgumentProvider implements IArgumentProvider {
-			@Override public List<lombok.ast.Expression> getArgs(String name) {
-				List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-				args.add(("agentmain".equals(name) ? True() : False()));
-				args.add(Name("params"));
-				args.add(Name("instrumentation"));
-				return args;
-			}
-		}
-
-		private static class ParameterProvider implements IParameterProvider {
-			@Override public List<lombok.ast.Argument> getParams(String name) {
-				List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-				params.add(Arg(Type("java.lang.String"), "params"));
-				params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
-				return params;
-			}
+			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
+			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
+			new EntrypointHandler().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 		}
 	}
 
@@ -155,63 +115,5 @@ public class HandleEntrypoint {
 			}
 			typeDecl.implementing = newImplementing.toList();
 		}
-	}
-
-	/**
-	 * Checks if there is an entry point with the provided name.
-	 *
-	 * @param methodName the entry point name to check for.
-	 * @param node Any node that represents the Type (JCClassDecl) to look in, or any child node thereof.
-	 */
-	public static boolean entrypointExists(String methodName, JavacNode node) {
-		JavacNode typeNode = typeNodeOf(node);
-		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
-		for (JCTree def : typeDecl.defs) {
-			if (def instanceof JCMethodDecl) {
-				JCMethodDecl method = (JCMethodDecl)def;
-				boolean nameMatches = method.name.toString().equals(methodName);
-				boolean returnTypeIsVoid = (method.restype != null) && "void".equals(method.restype.toString());
-				boolean isPublicStatic = (method.mods != null) && ((method.mods.flags & (PUBLIC | STATIC)) != 0);
-				if (nameMatches && returnTypeIsVoid && isPublicStatic) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Creates an entrypoint like this:
-	 * <pre>
-	 * public static void &lt;NAME&gt;(&lt;PARAMETER&gt;) throws java.lang.Throwable {
-	 *   new &lt;TYPENAME&gt;().&lt;METHODNAME&gt;(&lt;ARGUMENTS&gt;);
-	 * }
-	 * </pre>
-	 * @param type Type (JCClassDecl)
-	 * @param name name of the entrypoint ("main", "premain, "agentmain")
-	 * @param methodName name of method that should be called in the entrypoint
-	 * @param paramProvider parameter provider used for the entrypoint
-	 * @param argsProvider argument provider used for the constructor
-	 */
-	public static void createEntrypoint(JavacType type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
-		if (!type.hasMethod(methodName)) {
-			return;
-		}
-
-		if (entrypointExists(name, type.node())) {
-			return;
-		}
-
-		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-				.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
-	}
-
-	public static interface IArgumentProvider {
-		public List<lombok.ast.Expression> getArgs(String name);
-	}
-
-	public static interface IParameterProvider {
-		public List<lombok.ast.Argument> getParams(String name);
 	}
 }
