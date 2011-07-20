@@ -105,7 +105,7 @@ public class JavacMethod implements IMethod<JavacType, JavacNode, JCTree, JCMeth
 		if (returnType instanceof JCTypeApply) {
 			type = ((JCTypeApply)returnType).clazz.type.toString();
 		} else {
-			type = returnType.type.toString();
+			type = returnType.toString();
 		}
 		return type.equals(typeName);
 	}
