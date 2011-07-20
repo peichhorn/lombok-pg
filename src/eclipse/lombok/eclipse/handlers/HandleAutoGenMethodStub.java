@@ -57,7 +57,7 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 		} else {
 			statement = ReturnDefault();
 		}
-		MethodDeclaration method = type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(statement));
+		MethodDeclaration method = (MethodDeclaration) type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(statement));
 		
 		type.rebuild();
 

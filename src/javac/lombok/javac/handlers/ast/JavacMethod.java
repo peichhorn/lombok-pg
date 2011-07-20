@@ -27,6 +27,9 @@ import static lombok.core.util.Lists.list;
 import static lombok.core.util.Names.capitalize;
 import static lombok.javac.handlers.Javac.addSuppressWarningsAll;
 
+import java.util.List;
+
+import lombok.ast.IMethod;
 import lombok.ast.TypeRef;
 import lombok.javac.JavacNode;
 
@@ -38,9 +41,8 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.util.ListBuffer;
 
-public class JavacMethod {
+public class JavacMethod implements IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
 	private final JavacNode methodNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;
@@ -62,11 +64,11 @@ public class JavacMethod {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends JCTree> java.util.List<T> build(java.util.List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends JCTree> java.util.List<T> build(java.util.List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -117,6 +119,10 @@ public class JavacMethod {
 		return (get().mods != null) && ((get().mods.flags & SYNCHRONIZED) != 0);
 	}
 
+	public boolean isStatic() {
+		return (get().mods.flags & STATIC) != 0;
+	}
+
 	public boolean isConstructor() {
 		return "<init>".equals(methodNode.getName());
 	}
@@ -137,7 +143,7 @@ public class JavacMethod {
 		return methodNode;
 	}
 
-	public boolean hasNonFinalParameter() {
+	public boolean hasNonFinalArgument() {
 		for(JCVariableDecl param: get().params) {
 			if ((param.mods == null) || (param.mods.flags & FINAL) == 0) {
 				return true;
@@ -233,13 +239,6 @@ public class JavacMethod {
 			thrownExceptions.add(Type(thrownException));
 		}
 		return thrownExceptions;
-	}
-
-	public void withException(final lombok.ast.TypeRef exception) {
-		ListBuffer<JCExpression> newThrown = ListBuffer.lb();
-		newThrown.appendList(get().thrown);
-		newThrown.append(builder.build(exception, JCExpression.class));
-		get().thrown = newThrown.toList();
 	}
 
 	@Override

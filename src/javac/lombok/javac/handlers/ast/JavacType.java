@@ -38,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
+import lombok.ast.IType;
 import lombok.ast.WrappedMethodDecl;
 import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
@@ -45,7 +46,7 @@ import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.JavacHandlerUtil;
 import lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult;
 
-public class JavacType {
+public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassDecl, JCMethodDecl> {
 	private final JavacNode typeNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;

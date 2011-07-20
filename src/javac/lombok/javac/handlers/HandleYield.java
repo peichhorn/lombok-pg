@@ -104,7 +104,7 @@ public class HandleYield extends JavacASTAdapter {
 			method.node().addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable.");
 			return true;
 		}
-		if (method.hasNonFinalParameter()) {
+		if (method.hasNonFinalArgument()) {
 			method.node().addError("Parameters should be final.");
 			return true;
 		}

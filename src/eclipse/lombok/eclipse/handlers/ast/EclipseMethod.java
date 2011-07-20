@@ -51,11 +51,12 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
+import lombok.ast.IMethod;
 import lombok.ast.TypeRef;
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
 
-public class EclipseMethod {
+public class EclipseMethod implements IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
 	private final EclipseNode methodNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -264,17 +265,6 @@ public class EclipseMethod {
 			thrownExceptions.add(Type(thrownException));
 		}
 		return thrownExceptions;
-	}
-
-	public void withException(final lombok.ast.TypeRef exception) {
-		TypeReference[] originalThrownExceptionsArray = get().thrownExceptions;
-		TypeReference thrown = builder.build(exception);
-		if (originalThrownExceptionsArray == null) {
-			get().thrownExceptions = array(thrown);
-			return;
-		}
-		get().thrownExceptions = resize(originalThrownExceptionsArray, originalThrownExceptionsArray.length + 1);
-		get().thrownExceptions[originalThrownExceptionsArray.length] = thrown;
 	}
 
 	@Override

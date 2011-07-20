@@ -13,10 +13,14 @@ class ConditionPlain {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	void pause() throws java.lang.InterruptedException {
+	void pause() {
 		this.$canResumeLock.lock();
 		try {
-			while (this.isPaused()) this.canResume.await();
+			try {
+				while (this.isPaused()) this.canResume.await();
+			} catch (final java.lang.InterruptedException e) {
+				throw new java.lang.RuntimeException(e);
+			}
 		} finally {
 			this.$canResumeLock.unlock();
 		}

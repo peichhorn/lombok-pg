@@ -46,13 +46,14 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
+import lombok.ast.IType;
 import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 
-public class EclipseType {
+public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, TypeDeclaration, AbstractMethodDeclaration> {
 	private final EclipseNode typeNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -142,11 +143,11 @@ public class EclipseType {
 		EclipseHandlerUtil.injectField(typeNode, field);
 	}
 
-	public MethodDeclaration injectMethod(lombok.ast.MethodDecl methodDecl) {
+	public AbstractMethodDeclaration injectMethod(lombok.ast.MethodDecl methodDecl) {
 		return (MethodDeclaration) injectMethodImpl(methodDecl);
 	}
 
-	public ConstructorDeclaration injectConstructor(lombok.ast.ConstructorDecl constructorDecl) {
+	public AbstractMethodDeclaration injectConstructor(lombok.ast.ConstructorDecl constructorDecl) {
 		return (ConstructorDeclaration) injectMethodImpl(constructorDecl);
 	}
 
