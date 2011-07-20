@@ -71,6 +71,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 	public boolean hasField(String fieldName);
 
 	public boolean hasMethod(String methodName);
+	
+	public void makeEnum();
 
 	public void makePrivate();
 

@@ -222,6 +222,10 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return (methodExists(methodName, typeNode, false) != MemberExistsResult.NOT_EXISTS);
 	}
 
+	public void makeEnum() {
+		get().modifiers |= AccEnum;
+	}
+
 	public void makePrivate() {
 		makePackagePrivate();
 		get().modifiers |= PRIVATE;

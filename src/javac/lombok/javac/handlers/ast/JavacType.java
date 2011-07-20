@@ -196,6 +196,11 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 	public boolean hasMethod(String methodName) {
 		return (methodExists(methodName, typeNode, false) != MemberExistsResult.NOT_EXISTS);
 	}
+
+	public void makeEnum() {
+		get().mods.flags |= ENUM;
+	}
+
 	public void makePrivate() {
 		makePackagePrivate();
 		get().mods.flags |= PRIVATE;
