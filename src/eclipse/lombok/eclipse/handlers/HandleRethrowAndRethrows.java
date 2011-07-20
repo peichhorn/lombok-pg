@@ -21,23 +21,19 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.handlers.RethrowAndRethrowsHandler.*;
 
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
-import lombok.core.util.Lists;
+import lombok.core.handlers.RethrowAndRethrowsHandler;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.InitializableEclipseNode;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.handlers.ast.EclipseMethod;
-
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
@@ -49,9 +45,9 @@ public class HandleRethrowAndRethrows {
 		@Override
 		public void handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
-			new HandleRethrowAndRethrows() //
+			prepareRethrowAndRethrowsHandler(annotationNode, ast) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(Rethrow.class, ast, annotationNode);
+				.handle(Rethrow.class);
 		}
 
 		@Override
@@ -64,13 +60,13 @@ public class HandleRethrowAndRethrows {
 	public static class HandleRethrows extends EclipseAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
-			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();
+			RethrowAndRethrowsHandler handler = prepareRethrowAndRethrowsHandler(annotationNode, ast);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
 				Rethrow ann = Eclipse.createAnnotation(Rethrow.class, rethrowNode).getInstance();
-				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
+				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
-			handle.handle(Rethrow.class, ast, annotationNode);
+			handler.handle(Rethrow.class);
 		}
 
 		@Override
@@ -78,62 +74,8 @@ public class HandleRethrowAndRethrows {
 			return true;
 		}
 	}
-
-	private List<RethrowData> rethrows = new ArrayList<RethrowData>();
-
-	public HandleRethrowAndRethrows withRethrow(final RethrowData rethrowData) {
-		rethrows.add(rethrowData);
-		return this;
-	}
-
-	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, Annotation source, EclipseNode annotationNode) {
-
-		if (rethrows.isEmpty()) {
-			return;
-		}
-
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		Try tryBuilder = Try(Block().withStatements(method.statements()));
-		int counter = 1;
-		for (RethrowData rethrow : rethrows) {
-			for (Class<?> thrown : rethrow.thrown) {
-				String varname = "$e" + counter++;
-				if (RethrowData.class == thrown) {
-					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
-				} else if (rethrow.message.isEmpty()) {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(Name(varname)))));
-				} else {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
-				}
-			}
-		}
-		method.body(Block().withStatement(tryBuilder));
-
-		method.rebuild();
-	}
-
-	private static List<Class<?>> classNames(final Class<?>[] classes) {
-		if (isEmpty(classes)) {
-			return Lists.<Class<?>>list(RethrowData.class, Exception.class);
-		}
-		return Lists.list(classes);
-	}
-
-	@RequiredArgsConstructor
-	private static class RethrowData {
-		public final List<Class<?>> thrown;
-		public final Class<?> as;
-		public final String message;
+	
+	private static RethrowAndRethrowsHandler prepareRethrowAndRethrowsHandler(EclipseNode node, Annotation source) {
+		return new RethrowAndRethrowsHandler(EclipseMethod.methodOf(node, source), node);
 	}
 }

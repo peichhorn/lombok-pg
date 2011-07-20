@@ -91,7 +91,6 @@ public class HandleConditionAndLock {
 	private static ConditionAndLockHandler prepareConditionAndLockHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
 		deleteAnnotationIfNeccessary(node, annotationType);
 		deleteImportFromCompilationUnit(node, Position.class.getName());
-		return new ConditionAndLockHandler().withDiagnosticsReceiver(node)
-			.withTypeAndMethod(JavacType.typeOf(node, source), JavacMethod.methodOf(node, source));
+		return new ConditionAndLockHandler(JavacType.typeOf(node, source), JavacMethod.methodOf(node, source), node);
 	}
 }

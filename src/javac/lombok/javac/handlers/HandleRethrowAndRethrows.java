@@ -21,18 +21,15 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.ErrorMessages.*;
-import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
+import static lombok.core.handlers.RethrowAndRethrowsHandler.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
-import lombok.core.util.Lists;
+import lombok.core.handlers.RethrowAndRethrowsHandler;
 import lombok.javac.Javac;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
@@ -50,9 +47,9 @@ public class HandleRethrowAndRethrows {
 		@Override
 		public void handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
-			new HandleRethrowAndRethrows() //
+			prepareRethrowAndRethrowsHandler(annotationNode, ast, ann.getClass()) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(Rethrow.class, ast, annotationNode);
+				.handle(Rethrow.class);
 		}
 	}
 
@@ -60,72 +57,19 @@ public class HandleRethrowAndRethrows {
 	public static class HandleRethrows extends JavacAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
-			HandleRethrowAndRethrows handle = new HandleRethrowAndRethrows();
+			RethrowAndRethrowsHandler handler = prepareRethrowAndRethrowsHandler(annotationNode, ast, Rethrow.class);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
 				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
-				handle.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
+				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
-			handle.handle(Rethrow.class, ast, annotationNode);
+			handler.handle(Rethrow.class);
 		}
 	}
-
-	private List<RethrowData> rethrows = new ArrayList<RethrowData>();
-
-	public HandleRethrowAndRethrows withRethrow(final RethrowData rethrowData) {
-		rethrows.add(rethrowData);
-		return this;
-	}
-
-	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, JCAnnotation source, JavacNode annotationNode) {
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-
-		if (rethrows.isEmpty()) {
-			return;
-		}
-
-		JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		Try tryBuilder = Try(Block().withStatements(method.statements()));
-		int counter = 1;
-		for (RethrowData rethrow : rethrows) {
-			for (Class<?> thrown : rethrow.thrown) {
-				String varname = "$e" + counter++;
-				if (RethrowData.class == thrown) {
-					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
-				} else if (rethrow.message.isEmpty()) {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(Name(varname)))));
-				} else {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
-				}
-			}
-		}
-		method.body(Block().withStatement(tryBuilder));
-
-		method.rebuild();
-	}
-
-	private static List<Class<?>> classNames(final Class<?>[] classes) {
-		if (isEmpty(classes)) {
-			return Lists.<Class<?>>list(RethrowData.class, Exception.class);
-		}
-		return Lists.list(classes);
-	}
-
-	@RequiredArgsConstructor
-	private static class RethrowData {
-		public final List<Class<?>> thrown;
-		public final Class<?> as;
-		public final String message;
+	
+	private static RethrowAndRethrowsHandler prepareRethrowAndRethrowsHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
+		deleteAnnotationIfNeccessary(node, annotationType);
+		deleteImportFromCompilationUnit(node, Rethrow.class.getName());
+		return new RethrowAndRethrowsHandler(JavacMethod.methodOf(node, source), node);
 	}
 }
