@@ -23,14 +23,13 @@ package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.core.util.ErrorMessages.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.DoPrivilegedHandler;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -54,87 +53,42 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 
 	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-
-		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		replaceWithQualifiedThisReference(method);
-
-		final TypeRef innerReturnType = method.boxedReturns();
-		if (method.returns("void")) {
-			replaceReturns(method);
-			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
-						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()) //
-							.withStatement(Return(Null()))))))) //
-				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
-					.withStatement(LocalDecl(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
-		} else {
-			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Return(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
-						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()))))))) //
-				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
-					.withStatement(LocalDecl(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
-		}
-
-		method.rebuild();
+		new EclipseDoPrivilegedHandler(annotationNode, source).handle(annotationType);
 	}
+	
+	private static class EclipseDoPrivilegedHandler extends DoPrivilegedHandler<EclipseMethod> {
+		public EclipseDoPrivilegedHandler(EclipseNode node, Annotation source) {
+			super(EclipseMethod.methodOf(node, source), node);
+		}
 
-	private List<lombok.ast.Statement> sanitizeParameter(final EclipseMethod method) {
-		final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
-		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
-			final Annotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, argument);
-			if (ann != null) {
-				final EclipseNode annotationNode = method.node().getNodeFor(ann);
-				String sanatizeMethodName = Eclipse.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
-				final String argumentName = new String(argument.name);
-				final String newArgumentName = "$" + argumentName;
-				sanitizeStatements.add(LocalDecl(Type(argument.type), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
-				argument.name = newArgumentName.toCharArray();
-				argument.modifiers |= Modifier.FINAL;
+		@Override protected List<lombok.ast.Statement> sanitizeParameter(final EclipseMethod method) {
+			final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
+			if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
+				final Annotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, argument);
+				if (ann != null) {
+					final EclipseNode annotationNode = method.node().getNodeFor(ann);
+					String sanatizeMethodName = Eclipse.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
+					final String argumentName = new String(argument.name);
+					final String newArgumentName = "$" + argumentName;
+					sanitizeStatements.add(LocalDecl(Type(argument.type), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
+					argument.name = newArgumentName.toCharArray();
+					argument.modifiers |= Modifier.FINAL;
+				}
 			}
+			return sanitizeStatements;
 		}
-		return sanitizeStatements;
-	}
-
-	private List<lombok.ast.Statement> rethrowStatements(final EclipseMethod method) {
-		final List<lombok.ast.Statement> rethrowStatements = new ArrayList<lombok.ast.Statement>();
-		for (lombok.ast.TypeRef thrownException : method.thrownExceptions()) {
-			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
-				.Then(Throw(Cast(thrownException, Name("$cause")))));
+	
+		@Override protected void replaceReturns(final EclipseMethod method) {
+			final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(method);
+			new ReturnStatementReplaceVisitor(replacement).visit(method.get());
 		}
-		return rethrowStatements;
+	
+		@Override protected void replaceWithQualifiedThisReference(final EclipseMethod method) {
+			final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
+			new ThisReferenceReplaceVisitor(replacement).visit(method.get());
+		}
 	}
-
-	private void replaceReturns(final EclipseMethod method) {
-		final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(method);
-		new ReturnStatementReplaceVisitor(replacement).visit(method.get());
-	}
-
-	private void replaceWithQualifiedThisReference(final EclipseMethod method) {
-		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
-		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
-	}
+	
 
 	@RequiredArgsConstructor
 	private static class ReturnNullReplacementProvider implements IReplacementProvider<Statement> {

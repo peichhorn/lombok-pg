@@ -22,7 +22,6 @@
 package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
@@ -35,8 +34,8 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.DoPrivilegedHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.Javac;
@@ -53,87 +52,41 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 	@Override public void handle(AnnotationValues<DoPrivileged> annotation, JCAnnotation source, JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-
-		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		replaceWithQualifiedThisReference(method);
-
-		final TypeRef innerReturnType = method.boxedReturns();
-		if (method.returns("void")) {
-			replaceReturns(method);
-			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
-						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()) //
-							.withStatement(Return(Null()))))))) //
-				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
-					.withStatement(LocalDecl(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
-		} else {
-			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Return(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
-						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()))))))) //
-				.Catch(Arg(Type("java.security.PrivilegedActionException"), "$ex"), Block() //
-					.withStatement(LocalDecl(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
-		}
-
-		method.rebuild();
+		new JavacDoPrivilegedHandler(annotationNode, source).handle(annotationType);
 	}
+	
+	private static class JavacDoPrivilegedHandler extends DoPrivilegedHandler<JavacMethod> {
+		public JavacDoPrivilegedHandler(JavacNode node, JCAnnotation source) {
+			super(JavacMethod.methodOf(node, source), node);
+		}
 
-	private List<lombok.ast.Statement> sanitizeParameter(final JavacMethod method) {
-		final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
-		for (JCVariableDecl param : method.get().params) {
-			final JCAnnotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, param);
-			if (ann != null) {
-				final JavacNode annotationNode = method.node().getNodeFor(ann);
-				String sanatizeMethodName = Javac.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
-				final String argumentName = param.name.toString();
-				final String newArgumentName = "$" + argumentName;
-				sanitizeStatements.add(LocalDecl(Type(param.vartype), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
-				param.name = method.node().toName(newArgumentName);
-				param.mods.flags |= Flags.FINAL;
-				param.mods.annotations = remove(param.mods.annotations, ann);
+		@Override protected List<lombok.ast.Statement> sanitizeParameter(JavacMethod method) {
+			final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
+			for (JCVariableDecl param : method.get().params) {
+				final JCAnnotation ann = getAnnotation(DoPrivileged.SanitizeWith.class, param);
+				if (ann != null) {
+					final JavacNode annotationNode = method.node().getNodeFor(ann);
+					String sanatizeMethodName = Javac.createAnnotation(DoPrivileged.SanitizeWith.class, annotationNode).getInstance().value();
+					final String argumentName = param.name.toString();
+					final String newArgumentName = "$" + argumentName;
+					sanitizeStatements.add(LocalDecl(Type(param.vartype), argumentName).withInitialization(Call(sanatizeMethodName).withArgument(Name(newArgumentName))));
+					param.name = method.node().toName(newArgumentName);
+					param.mods.flags |= Flags.FINAL;
+					param.mods.annotations = remove(param.mods.annotations, ann);
+				}
 			}
+			return sanitizeStatements;
 		}
-		return sanitizeStatements;
-	}
 
-	private List<lombok.ast.Statement> rethrowStatements(final JavacMethod method) {
-		final List<lombok.ast.Statement> rethrowStatements = new ArrayList<lombok.ast.Statement>();
-		for (lombok.ast.TypeRef thrownException : method.thrownExceptions()) {
-			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
-				.Then(Throw(Cast(thrownException, Name("$cause")))));
+		@Override protected void replaceReturns(JavacMethod method) {
+			final IReplacementProvider<JCStatement> replacement = new ReturnNullReplacementProvider(method);
+			new ReturnStatementReplaceVisitor(replacement).visit(method.get());
 		}
-		return rethrowStatements;
-	}
 
-	private void replaceReturns(final JavacMethod method) {
-		final IReplacementProvider<JCStatement> replacement = new ReturnNullReplacementProvider(method);
-		new ReturnStatementReplaceVisitor(replacement).visit(method.get());
-	}
-
-	private void replaceWithQualifiedThisReference(final JavacMethod method) {
-		final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
-		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
+		@Override protected void replaceWithQualifiedThisReference(JavacMethod method) {
+			final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
+			new ThisReferenceReplaceVisitor(replacement).visit(method.get());
+		}
 	}
 
 	@RequiredArgsConstructor
