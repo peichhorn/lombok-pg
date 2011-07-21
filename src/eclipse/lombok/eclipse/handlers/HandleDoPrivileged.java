@@ -38,8 +38,6 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -76,26 +74,6 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 				}
 			}
 			return sanitizeStatements;
-		}
-	
-		@Override protected void replaceReturns(final EclipseMethod method) {
-			final IReplacementProvider<Statement> replacement = new ReturnNullReplacementProvider(method);
-			new ReturnStatementReplaceVisitor(replacement).visit(method.get());
-		}
-	
-		@Override protected void replaceWithQualifiedThisReference(final EclipseMethod method) {
-			final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
-			new ThisReferenceReplaceVisitor(replacement).visit(method.get());
-		}
-	}
-	
-
-	@RequiredArgsConstructor
-	private static class ReturnNullReplacementProvider implements IReplacementProvider<Statement> {
-		private final EclipseMethod method;
-
-		@Override public Statement getReplacement() {
-			return method.build(Return(Null()));
 		}
 	}
 }

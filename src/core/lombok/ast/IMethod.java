@@ -42,6 +42,10 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public boolean returns(final String typeName);
 
+	public void replaceReturns(Statement replacement);
+
+	public void forceQualifiedThis();
+
 	public boolean isSynchronized();
 
 	public boolean isStatic();

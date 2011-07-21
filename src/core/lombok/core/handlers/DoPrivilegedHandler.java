@@ -46,11 +46,11 @@ public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?
 			return;
 		}
 
-		replaceWithQualifiedThisReference(method);
+		method.forceQualifiedThis();
 
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
-			replaceReturns(method);
+			method.replaceReturns(Return(Null()));
 			method.body(Block() //
 				.withStatements(sanitizeParameter(method)) //
 				.withStatement(Try(Block() //
@@ -90,8 +90,4 @@ public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?
 	}
 	
 	protected abstract List<Statement> sanitizeParameter(final METHOD_TYPE method);
-
-	protected abstract void replaceReturns(final METHOD_TYPE method);
-
-	protected abstract void replaceWithQualifiedThisReference(final METHOD_TYPE method);
 }

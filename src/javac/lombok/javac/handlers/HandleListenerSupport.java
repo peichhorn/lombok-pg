@@ -66,26 +66,27 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
 			return;
 		}
-		List<Type> resolvedInterfaces = new ArrayList<Type>();
+		List<TypeSymbol> resolvedInterfaces = new ArrayList<TypeSymbol>();
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof JCFieldAccess) {
 				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
-				if (interfaze.name.toString().equals("class")) {
+				if ("class".equals(string(interfaze.name))) {
 					Type interfaceType = resolveClassMember(annotationNode, interfaze.selected);
 					if (interfaceType == null) continue;
 					if (interfaceType.isInterface()) {
-						resolvedInterfaces.add(interfaceType);
+						TypeSymbol interfaceSymbol = interfaceType.asElement();
+						if (interfaceSymbol != null) resolvedInterfaces.add(interfaceSymbol);
 					} else {
 						annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), listenerInterface));
 					}
 				}
 			}
 		}
-		for (Type interfaze : resolvedInterfaces) {
-			addListenerField(type, (ClassType) interfaze);
-			addAddListenerMethod(type, (ClassType) interfaze);
-			addRemoveListenerMethod(type, (ClassType) interfaze);
-			addFireListenerMethod(type, (ClassType) interfaze);
+		for (TypeSymbol interfaze : resolvedInterfaces) {
+			addListenerField(type, interfaze);
+			addAddListenerMethod(type, interfaze);
+			addRemoveListenerMethod(type, interfaze);
+			addFireListenerMethods(type, interfaze);
 		}
 
 		type.rebuild();
@@ -112,12 +113,10 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	 *   new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
 	 * </pre>
 	 */
-	private void addListenerField(JavacType type, ClassType ct) {
-		TypeSymbol tsym = ct.asElement();
-		if (tsym == null) return;
-		String interfaceName = interfaceName(tsym.name.toString());
-		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(tsym.type)), "$registered" + interfaceName).makePrivate().makeFinal() //
-			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(tsym.type)))));
+	private void addListenerField(JavacType type, TypeSymbol interfaze) {
+		String interfaceName = interfaceName(string(interfaze.name));
+		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(interfaze.type)), "$registered" + interfaceName).makePrivate().makeFinal() //
+			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(interfaze.type)))));
 	}
 
 	/**
@@ -129,11 +128,9 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	 * }
 	 * </pre>
 	 */
-	private void addAddListenerMethod(JavacType type, ClassType ct) {
-		TypeSymbol tsym = ct.asElement();
-		if (tsym == null) return;
-		String interfaceName = interfaceName(tsym.name.toString());
-		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(tsym.type), "l")) //
+	private void addAddListenerMethod(JavacType type, TypeSymbol interfaze) {
+		String interfaceName = interfaceName(string(interfaze.name));
+		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(interfaze.type), "l")) //
 			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
 				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
@@ -146,11 +143,9 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	 * }
 	 * </pre>
 	 */
-	private void addRemoveListenerMethod(JavacType type, ClassType ct) {
-		TypeSymbol tsym = ct.asElement();
-		if (tsym == null) return;
-		String interfaceName = interfaceName(tsym.name.toString());
-		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(tsym.type), "l")) //
+	private void addRemoveListenerMethod(JavacType type, TypeSymbol interfaze) {
+		String interfaceName = interfaceName(string(interfaze.name));
+		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(interfaze.type), "l")) //
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
@@ -163,27 +158,29 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	 * }
 	 * </pre>
 	 */
-	private void addFireListenerMethod(JavacType type, ClassType interfazeType) {
-		addFireListenerMethodAll(type, interfazeType, interfazeType);
+	private void addFireListenerMethod(JavacType type, TypeSymbol interfaze, MethodSymbol method) {
+		List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+		List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
+		createParamsAndArgs((MethodType)method.type, params, args);
+		String interfaceName = interfaceName(string(interfaze.name));
+		String methodName = string(method.name);
+		type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
+			.withStatement(Foreach(LocalDecl(Type(interfaze.type), "l")).In(Name("$registered" + interfaceName)) //
+				.Do(Call(Name("l"), methodName).withArguments(args))));
+	}
+	
+	private void addFireListenerMethods(JavacType type, TypeSymbol interfaze) {
+		addAllFireListenerMethods(type, interfaze, interfaze);
 	}
 
-	private void addFireListenerMethodAll(JavacType type, ClassType interfazeType, ClassType superInterfazeType) {
-		TypeSymbol isym = interfazeType.asElement();
-		String interfaceName = interfaceName(isym.name.toString());
-		TypeSymbol tsym = superInterfazeType.asElement();
-		if (tsym == null) return;
-		for (Symbol member : tsym.getEnclosedElements()) {
+	private void addAllFireListenerMethods(JavacType type, TypeSymbol interfaze, TypeSymbol superInterfaze) {
+		for (Symbol member : superInterfaze.getEnclosedElements()) {
 			if (member.getKind() != ElementKind.METHOD) continue;
-			String methodName = member.name.toString();
-			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-			createParamsAndArgs((MethodType)((MethodSymbol)member).type, params, args);
-			type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-				.withStatement(Foreach(LocalDecl(Type(isym.type), "l")).In(Name("$registered" + interfaceName)) //
-					.Do(Call(Name("l"), methodName).withArguments(args))));
+			addFireListenerMethod(type, interfaze, (MethodSymbol)member);
 		}
+		ClassType superInterfazeType = (ClassType) superInterfaze.type;
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
-			if (iface instanceof ClassType) addFireListenerMethodAll(type, interfazeType, (ClassType) iface);
+			addAllFireListenerMethods(type, interfaze, iface.asElement());
 		}
 	}
 

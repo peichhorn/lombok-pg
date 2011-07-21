@@ -22,6 +22,7 @@
 package lombok.javac.handlers;
 
 import lombok.*;
+import lombok.javac.handlers.ast.JavacMethod;
 
 import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.tree.JCTree;
@@ -30,7 +31,8 @@ import com.sun.tools.javac.util.ListBuffer;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScanner<Void, Void> {
-	private final IReplacementProvider<NODE_TYPE> replacement;
+	private final JavacMethod method;
+	private final lombok.ast.Statement replacement;
 
 	public void visit(JCTree node) {
 		node.accept(this, null);
@@ -40,7 +42,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
 		for (NODE_TYPE node : nodes) {
 			if (needsReplacing(node)) {
-				node = replacement.getReplacement();
+				node = method.<NODE_TYPE>build(replacement);
 			}
 			newNodes.append(node);
 		}
@@ -49,7 +51,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 
 	protected final NODE_TYPE replace(NODE_TYPE node) {
 		if (needsReplacing(node)) {
-			return replacement.getReplacement();
+			return method.<NODE_TYPE>build(replacement);
 		}
 		return node;
 	}

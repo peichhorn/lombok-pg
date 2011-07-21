@@ -23,6 +23,7 @@ package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.*;
 import lombok.*;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -31,7 +32,8 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisitor {
-	private final IReplacementProvider<NODE_TYPE> replacement;
+	private final EclipseMethod method;
+	private final lombok.ast.Statement replacement;;
 
 	public void visit(ASTNode astNode) {
 		if (astNode instanceof MethodDeclaration) {
@@ -44,14 +46,14 @@ public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisit
 	protected final void replace(NODE_TYPE[] nodes) {
 		if (isNotEmpty(nodes)) for (int i = 0, iend = nodes.length; i < iend; i++) {
 			if (needsReplacing(nodes[i])) {
-				nodes[i] = replacement.getReplacement();
+				nodes[i] = method.<NODE_TYPE>build(replacement);
 			}
 		}
 	}
 
 	protected final NODE_TYPE replace(NODE_TYPE node) {
 		if (needsReplacing(node)) {
-			return replacement.getReplacement();
+			return method.<NODE_TYPE>build(replacement);
 		}
 		return node;
 	}

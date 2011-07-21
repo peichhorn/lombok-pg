@@ -33,7 +33,7 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public abstract class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
+public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	
@@ -48,7 +48,7 @@ public abstract class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>
 			return;
 		}
 
-		replaceWithQualifiedThisReference(method);
+		method.forceQualifiedThis();
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
@@ -91,6 +91,4 @@ public abstract class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>
 		}
 		return rethrowStatements;
 	}
-
-	protected abstract void replaceWithQualifiedThisReference(final METHOD_TYPE methode);
 }

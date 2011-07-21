@@ -30,8 +30,6 @@ import java.util.*;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -76,25 +74,6 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 				}
 			}
 			return sanitizeStatements;
-		}
-
-		@Override protected void replaceReturns(JavacMethod method) {
-			final IReplacementProvider<JCStatement> replacement = new ReturnNullReplacementProvider(method);
-			new ReturnStatementReplaceVisitor(replacement).visit(method.get());
-		}
-
-		@Override protected void replaceWithQualifiedThisReference(JavacMethod method) {
-			final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
-			new ThisReferenceReplaceVisitor(replacement).visit(method.get());
-		}
-	}
-
-	@RequiredArgsConstructor
-	private static class ReturnNullReplacementProvider implements IReplacementProvider<JCStatement> {
-		private final JavacMethod method;
-
-		@Override public JCStatement getReplacement() {
-			return method.build(Return(Null()));
 		}
 	}
 }

@@ -21,6 +21,8 @@
  */
 package lombok.javac.handlers;
 
+import lombok.javac.handlers.ast.JavacMethod;
+
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.DoWhileLoopTree;
@@ -40,8 +42,8 @@ import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 
 public class ReturnStatementReplaceVisitor extends ReplaceVisitor<JCStatement> {
 
-	public ReturnStatementReplaceVisitor(IReplacementProvider<JCStatement> replacement) {
-		super(replacement);
+	public ReturnStatementReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+		super(method, replacement);
 	}
 
 	@Override public Void visitBlock(BlockTree tree, Void p) {

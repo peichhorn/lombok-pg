@@ -29,9 +29,9 @@ import static lombok.javac.handlers.Javac.addSuppressWarningsAll;
 
 import java.util.List;
 
-import lombok.ast.IMethod;
-import lombok.ast.TypeRef;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ReturnStatementReplaceVisitor;
+import lombok.javac.handlers.ThisReferenceReplaceVisitor;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -42,7 +42,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
-public class JavacMethod implements IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
+public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
 	private final JavacNode methodNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;
@@ -72,12 +72,12 @@ public class JavacMethod implements IMethod<JavacType, JavacNode, JCTree, JCMeth
 		return builder.build(nodes, extectedType);
 	}
 
-	public TypeRef returns() {
+	public lombok.ast.TypeRef returns() {
 		if (isConstructor()) return null;
 		return Type(returnType());
 	}
 
-	public TypeRef boxedReturns() {
+	public lombok.ast.TypeRef boxedReturns() {
 		if (isConstructor()) return null;
 		JCExpression type = returnType();
 		lombok.ast.TypeRef objectReturnType = Type(type);
@@ -113,6 +113,14 @@ public class JavacMethod implements IMethod<JavacType, JavacNode, JCTree, JCMeth
 	private JCExpression returnType() {
 		if (isConstructor()) return null;
 		return get().restype;
+	}
+	
+	public void replaceReturns(lombok.ast.Statement replacement) {
+		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
+	}
+
+	public void forceQualifiedThis() {
+		new ThisReferenceReplaceVisitor(this, This(Type(surroundingType().name()))).visit(get());
 	}
 
 	public boolean isSynchronized() {

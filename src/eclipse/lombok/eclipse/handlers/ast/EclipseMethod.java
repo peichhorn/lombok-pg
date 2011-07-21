@@ -51,12 +51,12 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
-import lombok.ast.IMethod;
-import lombok.ast.TypeRef;
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ReturnStatementReplaceVisitor;
+import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
 
-public class EclipseMethod implements IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
+public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
 	private final EclipseNode methodNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -86,12 +86,12 @@ public class EclipseMethod implements IMethod<EclipseType, EclipseNode, ASTNode,
 		return builder.build(nodes, extectedType);
 	}
 
-	public TypeRef returns() {
+	public lombok.ast.TypeRef returns() {
 		if (isConstructor()) return null;
 		return Type(returnType());
 	}
 
-	public TypeRef boxedReturns() {
+	public lombok.ast.TypeRef boxedReturns() {
 		if (isConstructor()) return null;
 		TypeReference type = returnType();
 		lombok.ast.TypeRef objectReturnType = Type(type);
@@ -132,6 +132,14 @@ public class EclipseMethod implements IMethod<EclipseType, EclipseNode, ASTNode,
 		return methodDecl.returnType;
 	}
 
+	public void replaceReturns(lombok.ast.Statement replacement) {
+		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
+	}
+
+	public void forceQualifiedThis() {
+		new ThisReferenceReplaceVisitor(this, This(Type(surroundingType().name()))).visit(get());
+	}
+	
 	public boolean isSynchronized() {
 		return !isConstructor() && (get().bits & IsSynchronized) != 0;
 	}

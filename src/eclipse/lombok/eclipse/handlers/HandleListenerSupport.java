@@ -67,13 +67,13 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			if (listenerInterface instanceof ClassLiteralAccess) {
 				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
 				if (!binding.isInterface()) {
-					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), new String(binding.readableName())));
+					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), string(binding.readableName())));
 					continue;
 				}
 				addListenerField(type, binding);
 				addAddListenerMethod(type, binding);
 				addRemoveListenerMethod(type, binding);
-				addFireListenerMethod(type, binding);
+				addFireListenerMethods(type, binding);
 			}
 		}
 
@@ -88,7 +88,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * </pre>
 	 */
 	private void addListenerField(EclipseType type, TypeBinding binding) {
-		String interfaceName = interfaceName(new String(binding.shortReadableName()));
+		String interfaceName = interfaceName(string(binding.shortReadableName()));
 		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(binding)), "$registered" + interfaceName).makePrivate().makeFinal() //
 			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(binding)))));
 	}
@@ -103,7 +103,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * </pre>
 	 */
 	private void addAddListenerMethod(EclipseType type, TypeBinding binding) {
-		String interfaceName = interfaceName(new String(binding.shortReadableName()));
+		String interfaceName = interfaceName(string(binding.shortReadableName()));
 		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(binding), "l")) //
 			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
 				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
@@ -118,7 +118,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * </pre>
 	 */
 	private void addRemoveListenerMethod(EclipseType type, TypeBinding binding) {
-		String interfaceName = interfaceName(new String(binding.shortReadableName()));
+		String interfaceName = interfaceName(string(binding.shortReadableName()));
 		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(binding), "l")) //
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
@@ -132,17 +132,21 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	 * }
 	 * </pre>
 	 */
-	private void addFireListenerMethod(EclipseType type, TypeBinding binding) {
-		String interfaceName = interfaceName(new String(binding.shortReadableName()));
-		List<MethodBinding> methods = getInterfaceMethods(binding);
-		for (MethodBinding methodBinding : methods) {
-			String methodName = new String(methodBinding.selector);
-			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-			createParamsAndArgs(methodBinding, params, args);
-			type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-				.withStatement(Foreach(LocalDecl(Type(binding), "l")).In(Name("$registered" + interfaceName)) //
-					.Do(Call(Name("l"), methodName).withArguments(args))));
+	private void addFireListenerMethod(EclipseType type, TypeBinding interfaze, MethodBinding method) {
+		List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+		List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
+		createParamsAndArgs(method, params, args);
+		String interfaceName = interfaceName(string(interfaze.shortReadableName()));
+		String methodName = string(method.selector);
+		type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
+			.withStatement(Foreach(LocalDecl(Type(interfaze), "l")).In(Name("$registered" + interfaceName)) //
+				.Do(Call(Name("l"), methodName).withArguments(args))));
+	}
+	
+	private void addFireListenerMethods(EclipseType type, TypeBinding interfaze) {
+		List<MethodBinding> methods = getInterfaceMethods(interfaze);
+		for (MethodBinding method : methods) {
+			addFireListenerMethod(type, interfaze, method);
 		}
 	}
 
@@ -169,7 +173,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		if (binding instanceof ReferenceBinding) {
 			ReferenceBinding rb = (ReferenceBinding) binding;
 			for (MethodBinding mb : rb.availableMethods()) {
-				String sig = new String(mb.readableName());
+				String sig = string(mb.readableName());
 				if (!banList.add(sig)) continue;
 				methods.add(mb);
 			}

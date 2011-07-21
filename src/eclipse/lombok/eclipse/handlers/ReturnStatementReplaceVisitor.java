@@ -21,6 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
+import lombok.eclipse.handlers.ast.EclipseMethod;
+
 import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.DoStatement;
 import org.eclipse.jdt.internal.compiler.ast.ForStatement;
@@ -35,8 +37,8 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 public class ReturnStatementReplaceVisitor extends ReplaceVisitor<Statement> {
 
-	public ReturnStatementReplaceVisitor(IReplacementProvider<Statement> replacement) {
-		super(replacement);
+	public ReturnStatementReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+		super(method, replacement);
 	}
 
 	@Override public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {

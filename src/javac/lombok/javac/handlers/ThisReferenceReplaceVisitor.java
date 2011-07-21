@@ -21,6 +21,8 @@
  */
 package lombok.javac.handlers;
 
+import lombok.javac.handlers.ast.JavacMethod;
+
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -34,8 +36,8 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 //TODO incomplete, but works for the current use-case
 public class ThisReferenceReplaceVisitor extends ReplaceVisitor<JCExpression> {
 
-	public ThisReferenceReplaceVisitor(IReplacementProvider<JCExpression> replacement) {
-		super(replacement);
+	public ThisReferenceReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+		super(method, replacement);
 	}
 
 	@Override

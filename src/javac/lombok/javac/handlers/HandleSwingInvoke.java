@@ -30,7 +30,6 @@ import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
 
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import org.mangosdk.spi.ProviderFor;
 
@@ -43,7 +42,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeLater extends JavacAnnotationHandler<SwingInvokeLater> {
 		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation source, JavacNode annotationNode) {
 			deleteAnnotationIfNeccessary(annotationNode, SwingInvokeLater.class);
-			new JavacSwingInvokeHandler(annotationNode, source).generateSwingInvoke("invokeLater", SwingInvokeLater.class);
+			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).generateSwingInvoke("invokeLater", SwingInvokeLater.class);
 		}
 	}
 
@@ -51,18 +50,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeAndWait extends JavacAnnotationHandler<SwingInvokeAndWait> {
 		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation source, JavacNode annotationNode) {
 			deleteAnnotationIfNeccessary(annotationNode, SwingInvokeAndWait.class);
-			new JavacSwingInvokeHandler(annotationNode, source).generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class);
-		}
-	}
-
-	private static class JavacSwingInvokeHandler extends SwingInvokeHandler<JavacMethod> {
-		public JavacSwingInvokeHandler(JavacNode node, JCAnnotation source) {
-			super(JavacMethod.methodOf(node, source), node);
-		}
-
-		protected void replaceWithQualifiedThisReference(final JavacMethod method) {
-			final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
-			new ThisReferenceReplaceVisitor(replacement).visit(method.get());
+			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class);
 		}
 	}
 }

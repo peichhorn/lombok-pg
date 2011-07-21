@@ -32,6 +32,14 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Names {
+	
+	public static String string(final char[] s) {
+		return new String(s);
+	}
+	
+	public static String string(final Object s) {
+		return s.toString();
+	}
 	/**
 	 * <pre>
 	 * null        -> null

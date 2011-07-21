@@ -21,6 +21,8 @@
  */
 package lombok.eclipse.handlers;
 
+import lombok.eclipse.handlers.ast.EclipseMethod;
+
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
@@ -33,8 +35,8 @@ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 // TODO incomplete, but works for the current use-case
 public class ThisReferenceReplaceVisitor extends ReplaceVisitor<Expression> {
 
-	public ThisReferenceReplaceVisitor(IReplacementProvider<Expression> replacement) {
-		super(replacement);
+	public ThisReferenceReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+		super(method, replacement);
 	}
 
 	@Override
