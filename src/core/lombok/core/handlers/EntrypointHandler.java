@@ -28,7 +28,7 @@ import java.util.List;
 
 import lombok.ast.*;
 
-public final class EntrypointHandler {
+public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 
 	/**
 	 * Checks if there is an entry point with the provided name.
@@ -36,8 +36,8 @@ public final class EntrypointHandler {
 	 * @param methodName the entry point name to check for.
 	 * @param node Any node that represents the Type to look in, or any child node thereof.
 	 */
-	public boolean entrypointExists(String methodName, IType<?, ?, ?, ?, ?> type) {
-		for (IMethod<?, ?, ?, ?> method : type.methods()) {
+	public boolean entrypointExists(String methodName, TYPE_TYPE type) {
+		for (METHOD_TYPE method : type.methods()) {
 			if (method.isStatic() && method.returns("void") && method.name().equals(methodName)) {
 				return true;
 			}
@@ -58,7 +58,7 @@ public final class EntrypointHandler {
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public void createEntrypoint(IType<?, ?, ?, ?, ?> type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
+	public void createEntrypoint(TYPE_TYPE type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
 		if (!type.hasMethod(methodName)) {
 			return;
 		}

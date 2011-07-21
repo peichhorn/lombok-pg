@@ -239,7 +239,7 @@ public class HandleBuilderAndExtension {
 	private void createCollectionMethods(IBuilderData builderData, JCVariableDecl field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef elementType = Type("java.lang.Object");
 		TypeRef collectionType = Type("java.util.Collection");
-		JCExpression[] typeArguments = getTypeArguments(field.vartype);
+		Object[] typeArguments = getTypeArguments(field.vartype);
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
 			collectionType.withTypeArgument(Wildcard(EXTENDS, elementType));
@@ -269,7 +269,7 @@ public class HandleBuilderAndExtension {
 		TypeRef keyType = Type("java.lang.Object");
 		TypeRef valueType = Type("java.lang.Object");
 		TypeRef mapType = Type("java.util.Map");
-		JCExpression[] typeArguments = getTypeArguments(field.vartype);
+		Object[] typeArguments = getTypeArguments(field.vartype);
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
 			valueType = Type(typeArguments[1]);
@@ -341,6 +341,7 @@ public class HandleBuilderAndExtension {
 
 	private void createBuilder(IBuilderData builderData, List<TypeRef> interfaceTypes, List<AbstractMethodDecl<?>> builderMethods) {
 		JavacType type = builderData.getType();
+		builderMethods.add(ConstructorDecl(BUILDER).makePrivate().withImplicitSuper());
 		type.injectType(ClassDecl(BUILDER).makePrivate().makeStatic().implementing(interfaceTypes) //
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods));
 	}
@@ -382,22 +383,22 @@ public class HandleBuilderAndExtension {
 
 	@Getter
 	private static class BuilderDataCollector extends JavacASTAdapterWithTypeDepth implements IBuilderData {
-		private final JavacType type;
-		private final String prefix;
-		private final List<String> callMethods;
 		private final List<JCVariableDecl> requiredFields = new ArrayList<JCVariableDecl>();
 		private final List<JCVariableDecl> optionalFields = new ArrayList<JCVariableDecl>();
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
 		private final List<String> allRequiredFieldNames = new ArrayList<String>();
 		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
+		private final JavacType type;
+		private final String prefix;
+		private final List<String> callMethods;
 		private final boolean generateConvenientMethodsEnabled;
 		private final AccessLevel level;
-		private final Set<String> exclude;
+		private final Set<String> excludes;
 
 		public BuilderDataCollector(JavacType type, Builder builder) {
 			super(1);
 			this.type = type;
-			exclude = new HashSet<String>(Arrays.asList(builder.exclude()));
+			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
 			generateConvenientMethodsEnabled = builder.convenientMethods();
 			prefix = builder.prefix();
 			callMethods = Arrays.asList(builder.callMethods());
@@ -420,7 +421,7 @@ public class HandleBuilderAndExtension {
 			if (isOfInterest()) {
 				if ((field.mods.flags & STATIC) != 0) return;
 				String fieldName = field.name.toString();
-				if (exclude.contains(fieldName)) return;
+				if (excludes.contains(fieldName)) return;
 				if ((field.init == null) && ((field.mods.flags & FINAL) != 0)) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
@@ -436,12 +437,12 @@ public class HandleBuilderAndExtension {
 	}
 
 	private static class ExtensionCollector extends JavacASTAdapterWithTypeDepth {
+		private final Set<String> allRequiredFieldNames = new HashSet<String>();
+		private final Set<String> requiredFieldNames = new HashSet<String>();
 		@Getter
 		private boolean isRequiredFieldsExtension;
 		@Getter
 		private boolean isExtension;
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
 		private boolean containsRequiredFields;
 
 		public ExtensionCollector() {
@@ -487,13 +488,13 @@ public class HandleBuilderAndExtension {
 							isRequiredFieldsExtension = true;
 							isExtension = true;
 						} else {
-							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method);
+							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.");
 						}
 					} else {
 						isExtension = true;
 					}
 				} else {
-					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method);
+					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.");
 				}
 			}
 		}

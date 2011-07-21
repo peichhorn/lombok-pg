@@ -23,17 +23,15 @@ package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
 import lombok.*;
-import lombok.eclipse.handlers.ast.EclipseASTMaker;
+import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 
 @RequiredArgsConstructor
 public class QualifiedThisReplacementProvider implements IReplacementProvider<Expression> {
-	private final String typeName;
-	private final ASTNode source;
+	private final EclipseType type;
 
 	@Override public Expression getReplacement() {
-		return new EclipseASTMaker(null, source).build(This(Type(typeName)));
+		return type.build(This(Type(type.name())));
 	}
 }

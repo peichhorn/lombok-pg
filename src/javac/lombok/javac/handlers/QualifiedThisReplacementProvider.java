@@ -23,19 +23,15 @@ package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
 import lombok.*;
-import lombok.javac.JavacNode;
-import lombok.javac.handlers.ast.JavacASTMaker;
+import lombok.javac.handlers.ast.JavacType;
 
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
 @RequiredArgsConstructor
 public class QualifiedThisReplacementProvider implements IReplacementProvider<JCExpression> {
-	private final String typeName;
-	private final JavacNode node;
-	private final JCTree source;
+	private final JavacType type;
 
 	@Override public JCExpression getReplacement() {
-		return new JavacASTMaker(node, source).build(This(Type(typeName)));
+		return type.build(This(Type(type.name())));
 	}
 }

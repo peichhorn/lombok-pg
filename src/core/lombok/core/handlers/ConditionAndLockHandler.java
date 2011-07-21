@@ -33,25 +33,25 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public final class ConditionAndLockHandler {
-	private final IType<?, ?, ?, ?, ?> type;
-	private final IMethod<?, ?, ?, ?> method;
+public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
+	private final TYPE_TYPE type;
+	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	private AwaitData await;
 	private SignalData signal;
 	private String lockMethod;
 	
-	public ConditionAndLockHandler withAwait(final AwaitData await) {
+	public ConditionAndLockHandler<TYPE_TYPE, METHOD_TYPE> withAwait(final AwaitData await) {
 		this.await = await;
 		return this;
 	}
 
-	public ConditionAndLockHandler withSignal(final SignalData signal) {
+	public ConditionAndLockHandler<TYPE_TYPE, METHOD_TYPE> withSignal(final SignalData signal) {
 		this.signal = signal;
 		return this;
 	}
 	
-	public ConditionAndLockHandler withLockMethod(final String lockMethod) {
+	public ConditionAndLockHandler<TYPE_TYPE, METHOD_TYPE> withLockMethod(final String lockMethod) {
 		this.lockMethod = lockMethod;
 		return this;
 	}

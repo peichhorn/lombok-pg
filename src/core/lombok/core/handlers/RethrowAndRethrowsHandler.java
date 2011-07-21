@@ -34,12 +34,12 @@ import lombok.core.DiagnosticsReceiver;
 import lombok.core.util.Lists;
 
 @RequiredArgsConstructor
-public final class RethrowAndRethrowsHandler {
+public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final List<RethrowData> rethrows = new ArrayList<RethrowData>();
-	private final IMethod<?, ?, ?, ?> method;
+	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	
-	public RethrowAndRethrowsHandler withRethrow(final RethrowData rethrowData) {
+	public RethrowAndRethrowsHandler<METHOD_TYPE> withRethrow(final RethrowData rethrowData) {
 		rethrows.add(rethrowData);
 		return this;
 	}

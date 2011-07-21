@@ -78,6 +78,10 @@ class BuilderExtensions {
 			return new BuilderExtensions(this);
 		}
 		
+		private $Builder() {
+			super();
+		}
+		
 		@java.lang.SuppressWarnings("all")
 		public $OptionalDef idAndText(final String id, final String text) {
 			this.id = java.lang.Integer.valueOf(id);

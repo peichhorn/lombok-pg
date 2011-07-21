@@ -146,7 +146,7 @@ public class HandleConditionAndLock {
 		}
 	}
 	
-	private static ConditionAndLockHandler prepareConditionAndLockHandler(EclipseNode node, Annotation source) {
-		return new ConditionAndLockHandler(EclipseType.typeOf(node, source), EclipseMethod.methodOf(node, source), node);
+	private static ConditionAndLockHandler<EclipseType, EclipseMethod> prepareConditionAndLockHandler(EclipseNode node, Annotation source) {
+		return new ConditionAndLockHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(node, source), EclipseMethod.methodOf(node, source), node);
 	}
 }

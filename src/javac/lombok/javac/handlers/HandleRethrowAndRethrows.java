@@ -57,7 +57,7 @@ public class HandleRethrowAndRethrows {
 	public static class HandleRethrows extends JavacAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
-			RethrowAndRethrowsHandler handler = prepareRethrowAndRethrowsHandler(annotationNode, ast, Rethrow.class);
+			RethrowAndRethrowsHandler<JavacMethod> handler = prepareRethrowAndRethrowsHandler(annotationNode, ast, Rethrow.class);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
 				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
@@ -67,9 +67,9 @@ public class HandleRethrowAndRethrows {
 		}
 	}
 	
-	private static RethrowAndRethrowsHandler prepareRethrowAndRethrowsHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	private static RethrowAndRethrowsHandler<JavacMethod> prepareRethrowAndRethrowsHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
 		deleteAnnotationIfNeccessary(node, annotationType);
 		deleteImportFromCompilationUnit(node, Rethrow.class.getName());
-		return new RethrowAndRethrowsHandler(JavacMethod.methodOf(node, source), node);
+		return new RethrowAndRethrowsHandler<JavacMethod>(JavacMethod.methodOf(node, source), node);
 	}
 }

@@ -69,5 +69,9 @@ class BuilderPlain {
 		public BuilderPlain build() {
 			return new BuilderPlain(this);
 		}
+		
+		private $Builder() {
+			super();
+		}
 	}
 }

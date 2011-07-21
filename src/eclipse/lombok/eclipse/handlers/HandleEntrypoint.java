@@ -29,6 +29,7 @@ import lombok.core.handlers.EntrypointHandler.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -46,7 +47,7 @@ public class HandleEntrypoint {
 		}
 
 		@Override protected void handle(EclipseType type) {
-			new EntrypointHandler().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
 	}
 
@@ -62,8 +63,8 @@ public class HandleEntrypoint {
 		@Override protected void handle(EclipseType type) {
 			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
 			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
-			new EntrypointHandler().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			new EntrypointHandler().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 		}
 	}
 

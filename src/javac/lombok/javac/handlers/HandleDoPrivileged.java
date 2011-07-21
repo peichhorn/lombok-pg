@@ -29,7 +29,6 @@ import static lombok.javac.handlers.JavacHandlerUtil.*;
 import java.util.*;
 
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -66,7 +65,7 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 			return;
 		}
 
-		replaceWithQualifiedThisReference(method, source);
+		replaceWithQualifiedThisReference(method);
 
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
@@ -132,8 +131,8 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 		new ReturnStatementReplaceVisitor(replacement).visit(method.get());
 	}
 
-	private void replaceWithQualifiedThisReference(final JavacMethod method, final JCTree source) {
-		final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType().name(), method.node(), source);
+	private void replaceWithQualifiedThisReference(final JavacMethod method) {
+		final IReplacementProvider<JCExpression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 

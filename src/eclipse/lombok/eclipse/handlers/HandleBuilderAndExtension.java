@@ -215,7 +215,7 @@ public class HandleBuilderAndExtension {
 					if (isCollection(field)) {
 						createCollectionMethods(builderData, field, interfaceMethods, builderMethods);
 					}  else if (isMap(field)) {
-						createMapSignaturesAndMethods(builderData, field, interfaceMethods, builderMethods);
+						createMapMethods(builderData, field, interfaceMethods, builderMethods);
 					}
 				}
 			} else {
@@ -245,7 +245,7 @@ public class HandleBuilderAndExtension {
 	private void createCollectionMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef elementType = Type("java.lang.Object");
 		TypeRef collectionType = Type("java.util.Collection");
-		TypeReference[] typeArguments = getTypeArguments(field.type);
+		Object[] typeArguments = getTypeArguments(field.type);
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
 			collectionType.withTypeArgument(Wildcard(EXTENDS, elementType));
@@ -271,11 +271,11 @@ public class HandleBuilderAndExtension {
 		}
 	}
 
-	private void createMapSignaturesAndMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
+	private void createMapMethods(IBuilderData builderData, FieldDeclaration field, List<AbstractMethodDecl<?>> interfaceMethods, List<AbstractMethodDecl<?>> builderMethods) {
 		TypeRef keyType = Type("java.lang.Object");
 		TypeRef valueType = Type("java.lang.Object");
 		TypeRef mapType = Type("java.util.Map");
-		TypeReference[] typeArguments = getTypeArguments(field.type);
+		Object[] typeArguments = getTypeArguments(field.type);
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
 			valueType = Type(typeArguments[1]);
@@ -508,13 +508,13 @@ public class HandleBuilderAndExtension {
 							isRequiredFieldsExtension = true;
 							isExtension = true;
 						} else {
-							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.", method.sourceStart, method.sourceEnd);
+							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.");
 						}
 					} else {
 						isExtension = true;
 					}
 				} else {
-					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.", method.sourceStart, method.sourceEnd);
+					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.");
 				}
 			}
 		}

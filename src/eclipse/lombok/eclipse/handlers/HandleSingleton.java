@@ -26,6 +26,7 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.SingletonHandler;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -35,6 +36,6 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 
 	@Override public void handle(AnnotationValues<Singleton> annotation, Annotation source, EclipseNode annotationNode) {
-		new SingletonHandler(EclipseType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
+		new SingletonHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
 	}
 }

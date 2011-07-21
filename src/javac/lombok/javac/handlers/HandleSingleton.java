@@ -30,6 +30,7 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.SingletonHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
@@ -39,6 +40,6 @@ public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
 
 	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);
-		new SingletonHandler(JavacType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
+		new SingletonHandler<JavacType, JavacMethod>(JavacType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
 	}
 }

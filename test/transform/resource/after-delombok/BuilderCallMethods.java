@@ -66,5 +66,9 @@ class BuilderCallMethods {
 		public void bar() throws Exception {
 			build().bar();
 		}
+		
+		private $Builder() {
+			super();
+		}
 	}
 }

@@ -55,5 +55,9 @@ class BuilderBrokenExtension {
 		public BuilderBrokenExtension build() {
 			return new BuilderBrokenExtension(this);
 		}
+		
+		private $Builder() {
+			super();
+		}
 	}
 }

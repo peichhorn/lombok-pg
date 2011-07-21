@@ -60,7 +60,7 @@ public class HandleRethrowAndRethrows {
 	public static class HandleRethrows extends EclipseAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
-			RethrowAndRethrowsHandler handler = prepareRethrowAndRethrowsHandler(annotationNode, ast);
+			RethrowAndRethrowsHandler<EclipseMethod> handler = prepareRethrowAndRethrowsHandler(annotationNode, ast);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
 				Rethrow ann = Eclipse.createAnnotation(Rethrow.class, rethrowNode).getInstance();
@@ -75,7 +75,7 @@ public class HandleRethrowAndRethrows {
 		}
 	}
 	
-	private static RethrowAndRethrowsHandler prepareRethrowAndRethrowsHandler(EclipseNode node, Annotation source) {
-		return new RethrowAndRethrowsHandler(EclipseMethod.methodOf(node, source), node);
+	private static RethrowAndRethrowsHandler<EclipseMethod> prepareRethrowAndRethrowsHandler(EclipseNode node, Annotation source) {
+		return new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(node, source), node);
 	}
 }

@@ -37,7 +37,6 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
@@ -67,7 +66,7 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 			return;
 		}
 
-		replaceWithQualifiedThisReference(method, source);
+		replaceWithQualifiedThisReference(method);
 
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
@@ -132,8 +131,8 @@ public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 		new ReturnStatementReplaceVisitor(replacement).visit(method.get());
 	}
 
-	private void replaceWithQualifiedThisReference(final EclipseMethod method, final ASTNode source) {
-		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType().name(), source);
+	private void replaceWithQualifiedThisReference(final EclipseMethod method) {
+		final IReplacementProvider<Expression> replacement = new QualifiedThisReplacementProvider(method.surroundingType());
 		new ThisReferenceReplaceVisitor(replacement).visit(method.get());
 	}
 

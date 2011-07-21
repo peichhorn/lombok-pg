@@ -29,6 +29,7 @@ import lombok.core.handlers.EntrypointHandler.*;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -49,7 +50,7 @@ public class HandleEntrypoint {
 
 		@Override protected void handle(JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
-			new EntrypointHandler().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
 	}
 
@@ -66,8 +67,8 @@ public class HandleEntrypoint {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
 			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
 			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
-			new EntrypointHandler().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			new EntrypointHandler().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
 		}
 	}
 
