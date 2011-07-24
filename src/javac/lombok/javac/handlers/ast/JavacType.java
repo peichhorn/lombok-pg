@@ -92,11 +92,12 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return get().extending != null;
 	}
 
-	public JavacType memberType(String typeName) {
+	@SuppressWarnings("unchecked")
+	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return JavacType.typeOf(child, source);
+				return (T) JavacType.typeOf(child, source);
 			}
 		}
 		throw new IllegalArgumentException();

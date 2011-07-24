@@ -30,7 +30,10 @@ import java.util.*;
 
 import javax.lang.model.element.ElementKind;
 import lombok.*;
+import lombok.ast.Argument;
+import lombok.ast.Expression;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.ListenerSupportHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
@@ -50,6 +53,7 @@ import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
+	private final JavacListenerSupportHandler handler = new JavacListenerSupportHandler();
 
 	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
@@ -83,9 +87,9 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			}
 		}
 		for (TypeSymbol interfaze : resolvedInterfaces) {
-			addListenerField(type, interfaze);
-			addAddListenerMethod(type, interfaze);
-			addRemoveListenerMethod(type, interfaze);
+			handler.addListenerField(type, interfaze);
+			handler.addAddListenerMethod(type, interfaze);
+			handler.addRemoveListenerMethod(type, interfaze);
 			addFireListenerMethods(type, interfaze);
 		}
 
@@ -106,69 +110,6 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		return type;
 	}
 
-	/**
-	 * creates:
-	 * <pre>
-	 * private final java.util.List<LISTENER_FULLTYPE> $registeredLISTENER_TYPE =
-	 *   new java.util.concurrent.CopyOnWriteArrayList<LISTENER_FULLTYPE>();
-	 * </pre>
-	 */
-	private void addListenerField(JavacType type, TypeSymbol interfaze) {
-		String interfaceName = interfaceName(string(interfaze.name));
-		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(interfaze.type)), "$registered" + interfaceName).makePrivate().makeFinal() //
-			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(interfaze.type)))));
-	}
-
-	/**
-	 * creates:
-	 * <pre>
-	 * public void addLISTENER_TYPE(final LISTENER_FULLTYPE l) {
-	 *  if (!$registeredLISTENER_TYPE.contains(l))
-	 *    $registeredLISTENER_TYPE.add(l);
-	 * }
-	 * </pre>
-	 */
-	private void addAddListenerMethod(JavacType type, TypeSymbol interfaze) {
-		String interfaceName = interfaceName(string(interfaze.name));
-		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(interfaze.type), "l")) //
-			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
-				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
-	}
-
-	/**
-	 * creates:
-	 * <pre>
-	 * public void removeLISTENER_TYPE(final LISTENER_FULLTYPE l) {
-	 *   $registeredLISTENER_TYPE.remove(l);
-	 * }
-	 * </pre>
-	 */
-	private void addRemoveListenerMethod(JavacType type, TypeSymbol interfaze) {
-		String interfaceName = interfaceName(string(interfaze.name));
-		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(interfaze.type), "l")) //
-			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
-	}
-
-	/**
-	 * creates:
-	 * <pre>
-	 * protected void fireMETHOD_NAME(METHOD_PARAMETER) {
-	 *   for (LISTENER_FULLTYPE l :  $registeredLISTENER_TYPE)
-	 *     l.METHOD_NAME(METHOD_ARGUMENTS);
-	 * }
-	 * </pre>
-	 */
-	private void addFireListenerMethod(JavacType type, TypeSymbol interfaze, MethodSymbol method) {
-		List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
-		List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-		createParamsAndArgs((MethodType)method.type, params, args);
-		String interfaceName = interfaceName(string(interfaze.name));
-		String methodName = string(method.name);
-		type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-			.withStatement(Foreach(LocalDecl(Type(interfaze.type), "l")).In(Name("$registered" + interfaceName)) //
-				.Do(Call(Name("l"), methodName).withArguments(args))));
-	}
-	
 	private void addFireListenerMethods(JavacType type, TypeSymbol interfaze) {
 		addAllFireListenerMethods(type, interfaze, interfaze);
 	}
@@ -176,7 +117,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	private void addAllFireListenerMethods(JavacType type, TypeSymbol interfaze, TypeSymbol superInterfaze) {
 		for (Symbol member : superInterfaze.getEnclosedElements()) {
 			if (member.getKind() != ElementKind.METHOD) continue;
-			addFireListenerMethod(type, interfaze, (MethodSymbol)member);
+			handler.addFireListenerMethod(type, interfaze, (MethodSymbol)member);
 		}
 		ClassType superInterfazeType = (ClassType) superInterfaze.type;
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
@@ -184,14 +125,29 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		}
 	}
 
-	private void createParamsAndArgs(MethodType mtype, List<lombok.ast.Argument> params, List<lombok.ast.Expression> args) {
-		if (mtype.argtypes.isEmpty()) return;
-		int argCounter = 0;
-		String arg;
-		for (Type parameter : mtype.argtypes) {
-			arg = "arg" + argCounter++;
-			params.add(Arg(Type(parameter), arg));
-			args.add(Name(arg));
+	private static class JavacListenerSupportHandler extends ListenerSupportHandler<JavacType> {
+
+		@Override
+		protected void createParamsAndArgs(Object method, List<Argument> params, List<Expression> args) {
+			MethodType mtype = (MethodType) type(method);
+			if (mtype.argtypes.isEmpty()) return;
+			int argCounter = 0;
+			String arg;
+			for (Type parameter : mtype.argtypes) {
+				arg = "arg" + argCounter++;
+				params.add(Arg(Type(parameter), arg));
+				args.add(Name(arg));
+			}
+		}
+
+		@Override
+		protected String name(Object object) {
+			return string(((Symbol)object).name);
+		}
+
+		@Override
+		protected Object type(Object object) {
+			return ((Symbol)object).type;
 		}
 	}
 }

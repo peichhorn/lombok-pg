@@ -42,7 +42,7 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public boolean hasSuperClass();
 
-	public IType<METHOD_TYPE, LOMBOK_NODE_TYPE, NATIVE_AST_BASE_TYPE, NATIVE_AST_TYPE_DECL_TYPE, NATIVE_AST_METHOD_DECL_TYPE> memberType(String typeName);
+	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName);
 
 	public List<METHOD_TYPE> methods();
 

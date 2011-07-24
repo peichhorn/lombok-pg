@@ -99,11 +99,12 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return get().superclass != null;
 	}
 
-	public EclipseType memberType(String typeName) {
+	@SuppressWarnings("unchecked")
+	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return EclipseType.typeOf(child, source);
+				return (T) EclipseType.typeOf(child, source);
 			}
 		}
 		throw new IllegalArgumentException();
