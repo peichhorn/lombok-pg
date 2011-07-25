@@ -92,10 +92,5 @@ public class HandleEntrypoint {
 		 * @param type
 		 */
 		protected abstract void handle(EclipseType type);
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return false;
-		}
 	}
 }

@@ -37,6 +37,7 @@ import lombok.core.AST.Kind;
 import lombok.core.handlers.BuilderAndExtensionHandler;
 import lombok.core.handlers.BuilderAndExtensionHandler.IBuilderData;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
+import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseAnnotationHandler;
@@ -58,7 +59,7 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleBuilderAndExtension {
-	
+
 	/**
 	 * Handles the {@code lombok.Builder} annotation for eclipse.
 	 */
@@ -92,6 +93,7 @@ public class HandleBuilderAndExtension {
 	 * Handles the {@code lombok.Builder.Extension} annotation for eclipse.
 	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleBuilderExtension extends EclipseAnnotationHandler<Builder.Extension> {
 
 		@Override public void handle(AnnotationValues<Builder.Extension> annotation, Annotation source, EclipseNode annotationNode) {
@@ -128,11 +130,6 @@ public class HandleBuilderAndExtension {
 			}
 
 			new EclispeBuilderAndExtensionHandler().handleExtension(new BuilderDataCollector(EclipseType.typeOf(typeNode, source), builderAnnotation.getInstance()).collect(), method);
-		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
 		}
 	}
 	

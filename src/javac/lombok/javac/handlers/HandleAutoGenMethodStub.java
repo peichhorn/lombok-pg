@@ -38,6 +38,7 @@ import lombok.ast.*;
 import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
@@ -60,6 +61,7 @@ import com.sun.tools.javac.util.Name;
  * Handles the {@code lombok.AutoGenMethodStub} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
+@ResolutionBased
 public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
 	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
 	// should be the last annotation to avoid major issues, once again.. curve ball
@@ -83,11 +85,6 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 		}
 		
 		type.rebuild();
-	}
-
-	@Override
-	public boolean isResolutionBased() {
-		return true;
 	}
 
 	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)

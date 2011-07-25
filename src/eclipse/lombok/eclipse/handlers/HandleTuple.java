@@ -329,9 +329,4 @@ public class HandleTuple extends EclipseASTAdapter {
 			return true;
 		}
 	}
-
-	@Override
-	public boolean deferUntilPostDiet() {
-		return false;
-	}
 }

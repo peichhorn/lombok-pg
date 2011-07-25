@@ -43,9 +43,4 @@ public class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
 	public boolean isOfInterest() {
 		return typeDepth <= maxTypeDepth;
 	}
-
-	@Override
-	public boolean deferUntilPostDiet() {
-		return false;
-	}
 }

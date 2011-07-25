@@ -30,6 +30,7 @@ import java.util.*;
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.DoPrivilegedHandler;
+import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -44,10 +45,8 @@ import org.mangosdk.spi.ProviderFor;
  * Handles the {@code lombok.DoPrivileged} annotation for eclipse.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
+@DeferUntilPostDiet
 public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
-	@Override public boolean deferUntilPostDiet() {
-		return true;
-	}
 
 	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;

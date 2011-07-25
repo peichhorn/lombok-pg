@@ -24,6 +24,7 @@ package lombok.eclipse.handlers;
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.SwingInvokeHandler;
+import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -37,28 +38,20 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSwingInvoke {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleSwingInvokeLater extends EclipseAnnotationHandler<SwingInvokeLater> {
 		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, Annotation source, EclipseNode annotationNode) {
 			new SwingInvokeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
 				.generateSwingInvoke("invokeLater", SwingInvokeLater.class);
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleSwingInvokeAndWait extends EclipseAnnotationHandler<SwingInvokeAndWait> {
 		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, Annotation source, EclipseNode annotationNode) {
 			new SwingInvokeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
 				.generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class);
-		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
 		}
 	}
 }

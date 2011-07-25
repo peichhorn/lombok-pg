@@ -250,9 +250,4 @@ public class HandleWith extends EclipseASTAdapter {
 			return expr;
 		}
 	}
-
-	@Override
-	public boolean deferUntilPostDiet() {
-		return false;
-	}
 }

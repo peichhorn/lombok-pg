@@ -874,9 +874,4 @@ public class HandleYield extends EclipseASTAdapter {
 
 		public abstract void refactor();
 	}
-
-	@Override
-	public boolean deferUntilPostDiet() {
-		return false;
-	}
 }

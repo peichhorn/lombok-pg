@@ -29,6 +29,7 @@ import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.handlers.RethrowAndRethrowsHandler;
+import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.InitializableEclipseNode;
@@ -41,6 +42,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleRethrowAndRethrows {
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleRethrow extends EclipseAnnotationHandler<Rethrow> {
 		@Override
 		public void handle(AnnotationValues<Rethrow> annotation, Annotation ast, EclipseNode annotationNode) {
@@ -49,14 +51,10 @@ public class HandleRethrowAndRethrows {
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
 				.handle(Rethrow.class);
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleRethrows extends EclipseAnnotationHandler<Rethrows> {
 		@Override
 		public void handle(AnnotationValues<Rethrows> annotation, Annotation ast, EclipseNode annotationNode) {
@@ -67,11 +65,6 @@ public class HandleRethrowAndRethrows {
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
 			handler.handle(Rethrow.class);
-		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
 		}
 	}
 	

@@ -25,6 +25,7 @@ import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.ConditionAndLockHandler;
 import lombok.core.handlers.ConditionAndLockHandler.*;
+import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -35,6 +36,7 @@ import org.mangosdk.spi.ProviderFor;
 
 public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleReadLock extends EclipseAnnotationHandler<ReadLock> {
 		@Override public void preHandle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
@@ -49,14 +51,10 @@ public class HandleConditionAndLock {
 				.withLockMethod("readLock")
 				.handle(ann.value(), ann.getClass());
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleWriteLock extends EclipseAnnotationHandler<WriteLock> {
 		@Override public void preHandle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
@@ -71,14 +69,10 @@ public class HandleConditionAndLock {
 				.withLockMethod("writeLock")
 				.handle(ann.value(), ann.getClass());
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleSignal extends EclipseAnnotationHandler<Signal> {
 		@Override public void preHandle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
@@ -93,14 +87,10 @@ public class HandleConditionAndLock {
 				.withSignal(new SignalData(ann.value(), ann.pos()))
 				.handle(ann.lockName(), ann.getClass());
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleAwait extends EclipseAnnotationHandler<Await> {
 		@Override public void preHandle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
@@ -115,14 +105,10 @@ public class HandleConditionAndLock {
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
 				.handle(ann.lockName(), ann.getClass());
 		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
-		}
 	}
 
 	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilPostDiet
 	public static class HandleAwaitBeforeAndSignalAfter extends EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
 		@Override public void preHandle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
@@ -138,11 +124,6 @@ public class HandleConditionAndLock {
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
 				.handle(ann.lockName(), ann.getClass());
-		}
-
-		@Override
-		public boolean deferUntilPostDiet() {
-			return true;
 		}
 	}
 	

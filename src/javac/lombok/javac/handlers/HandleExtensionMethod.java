@@ -36,6 +36,7 @@ import lombok.core.AnnotationValues;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
+import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -59,6 +60,7 @@ import org.mangosdk.spi.ProviderFor;
  * Handles the {@link ExtensionMethod} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
+@ResolutionBased
 public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMethod> {
 
 	@Override public void handle(AnnotationValues<ExtensionMethod> annotation, JCAnnotation source, JavacNode annotationNode) {
@@ -82,11 +84,6 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		new ExtensionMethodReplaceVisitor(type, extensions).replace();
 		
 		type.rebuild();
-	}
-
-	@Override
-	public boolean isResolutionBased() {
-		return true;
 	}
 	
 	private List<Extension> getExtensions(JavacNode typeNode, AnnotationValues<ExtensionMethod> annotation) {

@@ -37,6 +37,7 @@ import lombok.core.handlers.ListenerSupportHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
+import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.code.Symbol;
@@ -52,6 +53,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
+@ResolutionBased
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
 	private final JavacListenerSupportHandler handler = new JavacListenerSupportHandler();
 
@@ -94,11 +96,6 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		}
 
 		type.rebuild();
-	}
-
-	@Override
-	public boolean isResolutionBased() {
-		return true;
 	}
 
 	private static Type resolveClassMember(JavacNode node, JCExpression expr) {
