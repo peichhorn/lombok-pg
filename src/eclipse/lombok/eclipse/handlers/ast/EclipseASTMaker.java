@@ -278,9 +278,20 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 
 	@Override
 	public ASTNode visitCast(lombok.ast.Cast node, Void p) {
-		final CastExpression castExpression = new CastExpression(build(node.getExpression(), Expression.class), build(node.getType(), TypeReference.class));
+		final CastExpression castExpression = createCastExpression(build(node.getExpression(), Expression.class), build(node.getType(), TypeReference.class));
 		setGeneratedByAndCopyPos(castExpression, source);
 		return castExpression;
+	}
+
+	// to support both:
+	//   eclipse 3.6 - CastExpression(Expression, Expression)
+	//   and eclipse 3.7 - CastExpression(Expression, TypeReference)
+	private CastExpression createCastExpression(Expression expression, Expression typeRef) {
+		try {
+			return (CastExpression) CastExpression.class.getConstructors()[0].newInstance(expression, typeRef);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
