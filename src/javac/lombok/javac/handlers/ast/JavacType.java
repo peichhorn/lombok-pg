@@ -89,7 +89,7 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 	}
 
 	public boolean hasSuperClass() {
-		return get().extending != null;
+		return get().getExtendsClause() != null;
 	}
 
 	@SuppressWarnings("unchecked")
