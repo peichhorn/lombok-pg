@@ -290,7 +290,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		try {
 			return (CastExpression) CastExpression.class.getConstructors()[0].newInstance(expression, typeRef);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new IllegalStateException(e);
 		}
 	}
 

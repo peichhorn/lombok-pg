@@ -98,9 +98,9 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
   </path>
   
   <target name="unpackLibs" depends="ensureBuildDeps">
-    <unjar dest="build/lombok-pg">
+    <ivy:cachedunjar dest="build/lombok-pg" marker="build/unpackDeps.marker">
       <fileset file="lib/build/lombok.jar" />
-    </unjar>
+    </ivy:cachedunjar>
   </target>
   
   <target name="compile" depends="ensureBuildDeps, unpackLibs" description="Compiles the code.">

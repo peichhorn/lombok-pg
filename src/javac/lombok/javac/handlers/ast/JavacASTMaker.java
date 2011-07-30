@@ -27,6 +27,7 @@ import static lombok.javac.handlers.Javac.methodNodeOf;
 import static lombok.javac.handlers.Javac.typeNodeOf;
 import static com.sun.tools.javac.code.Flags.*;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -250,8 +251,26 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		defs.appendList(build(node.getFields()));
 		defs.appendList(build(node.getMethods()));
 		defs.appendList(build(node.getMemberTypes()));
-		final JCClassDecl classDecl = setGeneratedBy(M.ClassDef(mods, name(node.getName()), build(node.getTypeParameters(), JCTypeParameter.class), build(node.getSuperclass(), JCExpression.class), build(node.getSuperInterfaces(), JCExpression.class), defs.toList()), source);
+		final JCClassDecl classDecl = setGeneratedBy(createClassDef(mods, name(node.getName()), build(node.getTypeParameters(), JCTypeParameter.class), build(node.getSuperclass(), JCExpression.class), build(node.getSuperInterfaces(), JCExpression.class), defs.toList()), source);
 		return classDecl;
+	}
+
+	// to support both:
+	//   javac 1.6 - M.ClassDef(JCModifiers, Name, List<JCTypeParameter>, JCTree, List<JCExpression>, List<JCTree>)
+	//   and javac 1.7 - M.ClassDef(JCModifiers, Name, List<JCTypeParameter>, JCExpression, List<JCExpression>, List<JCTree>)
+	private JCClassDecl createClassDef(JCModifiers mods, Name name, List<JCTypeParameter> typarams, JCExpression extending, List<JCExpression> implementing, List<JCTree> defs) {
+		try {
+			Method classDefMethod = null;
+			for (Method method : TreeMaker.class.getMethods()) {
+				if ("ClassDef".equals(method.getName())) {
+					classDefMethod = method;
+					break;
+				}
+			}
+			return (JCClassDecl) classDefMethod.invoke(M, mods, name, typarams, extending, implementing, defs);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
