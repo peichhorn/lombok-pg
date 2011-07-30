@@ -22,9 +22,8 @@
 package lombok.javac.handlers.ast;
 
 import static lombok.ast.AST.*;
-import static lombok.javac.Javac.setGeneratedBy;
-import static lombok.javac.handlers.Javac.methodNodeOf;
-import static lombok.javac.handlers.Javac.typeNodeOf;
+import static lombok.javac.Javac.*;
+import static lombok.javac.handlers.Javac.*;
 import static com.sun.tools.javac.code.Flags.*;
 
 import java.lang.reflect.Method;
@@ -187,13 +186,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		final String operator = node.getOperator();
 		final int opcode;
 		if ("+".equals(operator)) {
-			opcode = JCTree.PLUS;
+			opcode = getCTCint(JCTree.class, "PLUS");
 		} else if ("-".equals(operator)) {
-			opcode = JCTree.MINUS;
+			opcode = getCTCint(JCTree.class, "MINUS");
 		} else if ("*".equals(operator)) {
-			opcode = JCTree.MUL;
+			opcode = getCTCint(JCTree.class, "MUL");
 		} else if ("/".equals(operator)) {
-			opcode = JCTree.DIV;
+			opcode = getCTCint(JCTree.class, "DIV");
 		} else {
 			opcode = 0;
 		}
@@ -315,7 +314,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 
 	@Override
 	public JCTree visitEqual(lombok.ast.Equal node, Void p) {
-		final JCBinary equal = setGeneratedBy(M.Binary(node.isNotEqual() ? JCTree.NE : JCTree.EQ, build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
+		final JCBinary equal = setGeneratedBy(M.Binary(getCTCint(JCTree.class, node.isNotEqual() ? "NE": "EQ"), build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
 		return equal;
 	}
 
@@ -518,9 +517,9 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	public JCTree visitUnary(lombok.ast.Unary node, Void p) {
 		final int opcode;
 		if ("!".equals(node.getOperator())) {
-			opcode = JCTree.NOT;
+			opcode = getCTCint(JCTree.class, "NOT");
 		} else if ("+".equals(node.getOperator())) {
-			opcode = JCTree.PLUS;
+			opcode = getCTCint(JCTree.class, "PLUS");
 		} else {
 			opcode = 0;
 		}
