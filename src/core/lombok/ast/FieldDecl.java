@@ -48,6 +48,10 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 		return withModifier(STATIC);
 	}
 
+	public FieldDecl makeVolatile() {
+		return withModifier(VOLATILE);
+	}
+
 	public FieldDecl withInitialization(final Expression initialization) {
 		this.initialization = child(initialization);
 		return this;

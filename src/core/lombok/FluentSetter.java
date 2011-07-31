@@ -23,7 +23,7 @@ package lombok;
 
 import java.lang.annotation.*;
 
-/** Does pretty much the same as {@link Setter}. */
+/** Does pretty much the same as {@link Setter @Setter}. */
 @Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
 public @interface FluentSetter {

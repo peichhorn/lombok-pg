@@ -19,15 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.ast;
+package lombok;
 
-public enum Modifier {
-	FINAL,
-	PACKAGE,
-	PRIVATE,
-	PROTECTED,
-	PUBLIC,
-	STATIC,
-	TRANSIENT,
-	VOLATILE;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/** Does pretty much the same as {@link Getter @Getter(lazy=true)}. */
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.SOURCE)
+public @interface LazyGetter {
+	/**
+	 * If you want your getter to be non-public, you can specify an alternate access level here.
+	 */
+	AccessLevel value() default AccessLevel.PUBLIC;
 }

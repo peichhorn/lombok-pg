@@ -11,6 +11,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@DoPrivileged`
 - `@ExtensionMethod`
 - `@FluentSetter`
+- `@LazyGetter`
 - `@ListenerSupport`
 - `@WriteLock` and `@ReadLock`
 - `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter`

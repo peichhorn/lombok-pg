@@ -63,6 +63,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
 import com.sun.tools.javac.tree.JCTree.JCThrow;
 import com.sun.tools.javac.tree.JCTree.JCTry;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
@@ -144,11 +145,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 
 	private long flagsFor(Set<lombok.ast.Modifier> modifiers) {
 		long flags = 0;
+		flags |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? PRIVATE : 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? PROTECTED : 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.PUBLIC) ? PUBLIC : 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.STATIC) ? STATIC : 0;
-		flags |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
+		flags |= modifiers.contains(lombok.ast.Modifier.TRANSIENT) ? TRANSIENT : 0;
+		flags |= modifiers.contains(lombok.ast.Modifier.VOLATILE) ? VOLATILE : 0;
 		return flags;
 	}
 
@@ -387,11 +390,8 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	public JCTree visitNewArray(lombok.ast.NewArray node, Void p) {
 		final ListBuffer<JCExpression> dims = ListBuffer.lb();
 		dims.appendList(build(node.getDimensionExpressions(), JCExpression.class));
-		final int numberOfEmptyDims = node.getDimensions() - node.getDimensionExpressions().size();
-		for (int i = 0; i < numberOfEmptyDims; i++) {
-			dims.append(setGeneratedBy(M.Ident(name("")), source));
-		}
-		JCNewArray newClass = setGeneratedBy(M.NewArray(build(node.getType(), JCExpression.class), dims.toList(), build(node.getInitializerExpressions(), JCExpression.class)), source);
+		final List<JCExpression> initializerExpressions = build(node.getInitializerExpressions(), JCExpression.class);
+		JCNewArray newClass = setGeneratedBy(M.NewArray(build(node.getType(), JCExpression.class), dims.toList(), initializerExpressions.isEmpty() ? null : initializerExpressions), source);
 		return newClass;
 	}
 
@@ -442,6 +442,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	public JCTree visitSwitch(lombok.ast.Switch node, Void p) {
 		final JCSwitch switchStatement = setGeneratedBy(M.Switch(build(node.getExpression(), JCExpression.class), build(node.getCases(), JCCase.class)), source);
 		return switchStatement;
+	}
+
+	@Override
+	public JCTree visitSynchronized(lombok.ast.Synchronized node, Void p) {
+		final JCBlock block = setGeneratedBy(M.Block(0, build(node.getStatements(), JCStatement.class)), source);
+		final JCSynchronized synchronizedStatemenet = setGeneratedBy(M.Synchronized(build(node.getLock(), JCExpression.class), block), source);
+		return synchronizedStatemenet;
 	}
 
 	@Override

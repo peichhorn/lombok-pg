@@ -1,4 +1,4 @@
-class SetterFluent {
+class FluentSetterPlain {
   @lombok.Setter int nonfluent;
   @lombok.FluentSetter int fluent;
   @lombok.Setter(value = lombok.AccessLevel.PRIVATE) int nonfluent_accessLevel;
@@ -6,18 +6,18 @@ class SetterFluent {
   public @java.lang.SuppressWarnings("all") void setNonfluent(final int nonfluent) {
     this.nonfluent = nonfluent;
   }
-  public @java.lang.SuppressWarnings("all") SetterFluent fluent(final int fluent) {
+  public @java.lang.SuppressWarnings("all") FluentSetterPlain fluent(final int fluent) {
     this.fluent = fluent;
     return this;
   }
   private @java.lang.SuppressWarnings("all") void setNonfluent_accessLevel(final int nonfluent_accessLevel) {
     this.nonfluent_accessLevel = nonfluent_accessLevel;
   }
-  private @java.lang.SuppressWarnings("all") SetterFluent fluent_accessLevel(final int fluent_accessLevel) {
+  private @java.lang.SuppressWarnings("all") FluentSetterPlain fluent_accessLevel(final int fluent_accessLevel) {
     this.fluent_accessLevel = fluent_accessLevel;
     return this;
   }
-  SetterFluent() {
+  FluentSetterPlain() {
     super();
   }
 }

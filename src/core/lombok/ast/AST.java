@@ -225,6 +225,10 @@ public final class AST {
 		return new BooleanLiteral(true);
 	}
 
+	public static Synchronized Synchronized(final Expression lock) {
+		return new Synchronized(lock);
+	}
+
 	public static Try Try(final Block tryBlock) {
 		return new Try(tryBlock);
 	}

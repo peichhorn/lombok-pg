@@ -1,4 +1,4 @@
-class SetterFluent {
+class FluentSetterPlain {
 	int nonfluent;
 	int fluent;
 	int nonfluent_accessLevel;
@@ -10,7 +10,7 @@ class SetterFluent {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public SetterFluent fluent(final int fluent) {
+	public FluentSetterPlain fluent(final int fluent) {
 		this.fluent = fluent;
 		return this;
 	}
@@ -21,7 +21,7 @@ class SetterFluent {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	private SetterFluent fluent_accessLevel(final int fluent_accessLevel) {
+	private FluentSetterPlain fluent_accessLevel(final int fluent_accessLevel) {
 		this.fluent_accessLevel = fluent_accessLevel;
 		return this;
 	}

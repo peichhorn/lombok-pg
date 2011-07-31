@@ -52,6 +52,14 @@ public final class ErrorMessages {
 		return errorMessage("@%s can be used on fields only", annotationType);
 	}
 
+	public static String canBeUsedOnPrivateFinalFieldOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on private final fields only", annotationType);
+	}
+
+	public static String canBeUsedOnInitializedFieldOnly(Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on initialized fields only", annotationType);
+	}
+
 	public static String canBeUsedOnMethodOnly(Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on methods only", annotationType);
 	}

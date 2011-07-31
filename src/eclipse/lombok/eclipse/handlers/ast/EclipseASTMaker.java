@@ -104,6 +104,7 @@ import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
 import org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
+import org.eclipse.jdt.internal.compiler.ast.SynchronizedStatement;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
@@ -153,11 +154,13 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 
 	private int modifiersFor(Set<lombok.ast.Modifier> modifiers) {
 		int mods = 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? PRIVATE : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? PROTECTED : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PUBLIC) ? PUBLIC : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.STATIC) ? STATIC : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.TRANSIENT) ? TRANSIENT : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.VOLATILE) ? VOLATILE : 0;
 		return mods;
 	}
 
@@ -506,12 +509,15 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		setGeneratedByAndCopyPos(allocationExpression, source);
 		allocationExpression.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		allocationExpression.type = build(node.getType());
-		allocationExpression.dimensions = resize(toArray(build(node.getDimensionExpressions()), new Expression[0]), node.getDimensions() - node.getDimensionExpressions().size());
-		if (!node.getInitializerExpressions().isEmpty()) {
+		final List<Expression> dims = new ArrayList<Expression>();
+		dims.addAll(build(node.getDimensionExpressions(), Expression.class));
+		allocationExpression.dimensions = toArray(dims, new Expression[0]);
+		final List<Expression> initializerExpressions = build(node.getInitializerExpressions(), Expression.class);
+		if (!initializerExpressions.isEmpty()) {
 			ArrayInitializer initializer = new ArrayInitializer();
 			setGeneratedByAndCopyPos(initializer, source);
 			initializer.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-			initializer.expressions = toArray(build(node.getInitializerExpressions()), new Expression[0]);
+			initializer.expressions = initializerExpressions.isEmpty() ? null : toArray(initializerExpressions, new Expression[0]);
 			allocationExpression.initializer = initializer;
 		}
 		return allocationExpression;
@@ -601,6 +607,16 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		}
 		switchStatement.statements = caseStatements.toArray(new Statement[caseStatements.size()]);
 		return switchStatement;
+	}
+
+	@Override
+	public ASTNode visitSynchronized(lombok.ast.Synchronized node, Void p) {
+		final Block block = new Block(0);
+		setGeneratedByAndCopyPos(block, source);
+		block.statements = toArray(build(node.getStatements()), new Statement[0]);
+		final SynchronizedStatement synchronizedStatemenet = new SynchronizedStatement(build(node.getLock(), Expression.class), block, 0, 0);
+		setGeneratedByAndCopyPos(synchronizedStatemenet, source);
+		return synchronizedStatemenet;
 	}
 
 	@Override

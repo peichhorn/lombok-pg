@@ -41,7 +41,7 @@ public final class NewArray extends Expression {
 		this(type, 1);
 	}
 
-	public NewArray addDimensionExpression(final Expression dimensionExpression) {
+	public NewArray withDimensionExpression(final Expression dimensionExpression) {
 		dimensionExpressions.add(child(dimensionExpression));
 		return this;
 	}
