@@ -165,14 +165,14 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 
-		MethodDecl methodDecl = MethodDecl(Type(new String(type.name())).withTypeArguments(type.typeParameters()), fieldName).withAccessLevel(level) //
+		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldName).withAccessLevel(level) //
 			.withArgument(Arg(Type(field.vartype), fieldName).withAnnotations(nonNulls));
 
 		if ((field.mods.flags & STATIC) != 0) methodDecl.makeStatic();
 		if (!nonNulls.isEmpty() && !isPrimitive(field.vartype)) {
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
 		}
-		methodDecl.withStatement(Assign(Expr(createFieldAccessor(fieldNode.getTreeMaker(), fieldNode, FieldAccess.ALWAYS_FIELD)), Name(new String(fieldName)))) //
+		methodDecl.withStatement(Assign(Expr(createFieldAccessor(fieldNode.getTreeMaker(), fieldNode, FieldAccess.ALWAYS_FIELD)), Name(fieldName))) //
 			.withStatement(Return(This()));
 		type.injectMethod(methodDecl);
 	}

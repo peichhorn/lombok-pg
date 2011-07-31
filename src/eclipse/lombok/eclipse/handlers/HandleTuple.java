@@ -298,8 +298,7 @@ public class HandleTuple extends EclipseASTAdapter {
 	}
 
 	/**
-	 * Look for variable names that would break a simple assignment after transforming the tuple.<br>
-	 * So look for the use of already changed values (caused the tuple assignment) in the given expression.
+	 * Look for variable names that would break a simple assignment after transforming the tuple.
 	 * <p>
 	 * If {@link SimpleAssignmentAnalyser#scan(com.sun.source.tree.Tree, Void) AssignmentAnalyser.scan(Tree, Void)}
 	 * return {@code null} or {@code true} everything is fine, otherwise a temporary assignment is needed.

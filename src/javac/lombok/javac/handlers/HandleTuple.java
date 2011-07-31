@@ -276,8 +276,7 @@ public class HandleTuple extends JavacASTAdapter {
 	}
 
 	/**
-	 * Look for variable names that would break a simple assignment after transforming the tuple.<br>
-	 * So look for the use of already changed values (caused the tuple assignment) in the given expression.
+	 * Look for variable names that would break a simple assignment after transforming the tuple.
 	 * <p>
 	 * If {@link SimpleAssignmentAnalyser#scan(com.sun.source.tree.Tree, Void) AssignmentAnalyser.scan(Tree, Void)}
 	 * return {@code null} or {@code true} everything is fine, otherwise a temporary assignment is needed.
@@ -287,7 +286,7 @@ public class HandleTuple extends JavacASTAdapter {
 		private final Set<String> blacklistedVarnames;
 
 		@Override public Boolean visitMemberSelect(MemberSelectTree node, Void p) {
-			return Boolean.TRUE;
+			return true;
 		}
 
 		@Override public Boolean visitIdentifier(IdentifierTree node, Void p) {
@@ -295,10 +294,7 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 
 		@Override public Boolean reduce(Boolean r1, Boolean r2) {
-			if ((r1 == Boolean.FALSE) || (r2 == Boolean.FALSE)) {
-				return Boolean.FALSE;
-			}
-			return Boolean.TRUE;
+			return !r1 && r2;
 		}
 	}
 }

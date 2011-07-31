@@ -256,7 +256,7 @@ public final class PatchExtensionMethod {
 			if (extendedContext != null) {
 				scope = ((Scope) Reflection.assistScopeField.get(extendedContext)).classScope();
 			}
-		} catch (Exception ignore) {
+		} catch (IllegalAccessException ignore) {
 			// ignore
 		}
 		return scope;
@@ -269,7 +269,7 @@ public final class PatchExtensionMethod {
 			LookupEnvironment lookupEnvironment = (LookupEnvironment) Reflection.lookupEnvironmentField.get(extendedContext);
 			Reflection.nameLookup.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
 			Reflection.completionEngine.set(newProposal, lookupEnvironment.typeRequestor);
-		} catch (Exception ignore) {
+		} catch (IllegalAccessException ignore) {
 			// ignore
 		}
 	}

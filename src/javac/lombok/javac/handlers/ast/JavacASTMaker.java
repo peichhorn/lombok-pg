@@ -266,6 +266,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 					break;
 				}
 			}
+			if (classDefMethod == null) throw new IllegalStateException();
 			return (JCClassDecl) classDefMethod.invoke(M, mods, name, typarams, extending, implementing, defs);
 		} catch (Exception e) {
 			throw new IllegalStateException(e);

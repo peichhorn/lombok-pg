@@ -83,7 +83,7 @@ public class HandleYield extends JavacASTAdapter {
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
 				final JavacMethod method = JavacMethod.methodOf(statementNode, statement);
 				if ((method == null) || method.isConstructor()) {
-					method.node().addError(canBeUsedInBodyOfMethodsOnly("yield"));
+					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
 				} else if (handle(method)) {
 					methodNames.add(methodName);
 				}
