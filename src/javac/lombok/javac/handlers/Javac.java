@@ -84,16 +84,21 @@ public final class Javac {
 		if (methodName.equals(method)) {
 			deleteImport(node, clazz.getName() + "." + method, true);
 		} else if (methodName.equals(clazz.getSimpleName() + "." + method)) {
-			deleteImport(node, clazz.getName(), false);
+			deleteImport(node, clazz);
 		}
 	}
 
-	public static void deleteImport(JavacNode node, String name) {
+	public static void deleteImport(final JavacNode node, final Class<?> clazz) {
+		deleteImport(node, clazz.getName());
+	}
+
+	public static void deleteImport(final JavacNode node, final String name) {
 		deleteImport(node, name, false);
 	}
 
 	public static void deleteImport(JavacNode node, String name, boolean deleteStatic) {
 		if (!node.shouldDeleteLombokAnnotations()) return;
+		String adjustedName = name.replace("$", ".");
 		ListBuffer<JCTree> newDefs = ListBuffer.lb();
 
 		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();
@@ -102,7 +107,7 @@ public final class Javac {
 			boolean delete = false;
 			if (def instanceof JCImport) {
 				JCImport imp0rt = (JCImport)def;
-				delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.qualid.toString().equals(name));
+				delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.qualid.toString().equals(adjustedName));
 			}
 			if (!delete) newDefs.append(def);
 		}

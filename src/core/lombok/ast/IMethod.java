@@ -44,6 +44,8 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public void replaceReturns(Statement replacement);
 
+	public void replaceVariableName(String oldName, String newName);
+
 	public void forceQualifiedThis();
 
 	public boolean isSynchronized();
@@ -89,6 +91,8 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 	public List<Annotation> annotations();
 
 	public List<Argument> arguments();
+	
+	public List<Argument> arguments(boolean includeAnnotations);
 
 	public List<TypeRef> thrownExceptions();
 }

@@ -19,29 +19,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.javac.handlers.replace;
 
-import lombok.*;
-import lombok.core.AnnotationValues;
-import lombok.core.handlers.DoPrivilegedHandler;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import static lombok.ast.AST.*;
 
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.mangosdk.spi.ProviderFor;
+import lombok.javac.handlers.ast.JavacMethod;
 
-/**
- * Handles the {@code lombok.DoPrivileged} annotation for eclipse.
- */
-@ProviderFor(EclipseAnnotationHandler.class)
-@DeferUntilPostDiet
-public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
+import com.sun.tools.javac.tree.JCTree.*;
 
-	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		new DoPrivilegedHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+public class VariableNameReplaceVisitor extends ExpressionReplaceVisitor {
+	private final String oldName;
+	
+	public VariableNameReplaceVisitor(JavacMethod method, String oldName, String newName) {
+		super(method, Name(newName));
+		this.oldName = oldName;
+	}
+
+	@Override
+	protected boolean needsReplacing(JCExpression node) {
+		return (node instanceof JCIdent) && oldName.equals(node.toString());
 	}
 }

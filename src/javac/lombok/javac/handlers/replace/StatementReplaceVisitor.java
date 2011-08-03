@@ -19,77 +19,59 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.javac.handlers;
+package lombok.javac.handlers.replace;
 
 import lombok.javac.handlers.ast.JavacMethod;
 
-import com.sun.source.tree.BlockTree;
-import com.sun.source.tree.CaseTree;
-import com.sun.source.tree.DoWhileLoopTree;
-import com.sun.source.tree.EnhancedForLoopTree;
-import com.sun.source.tree.ForLoopTree;
-import com.sun.source.tree.IfTree;
-import com.sun.source.tree.WhileLoopTree;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCCase;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCIf;
-import com.sun.tools.javac.tree.JCTree.JCReturn;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.source.tree.*;
+import com.sun.tools.javac.tree.JCTree.*;
 
-public class ReturnStatementReplaceVisitor extends ReplaceVisitor<JCStatement> {
+public abstract class StatementReplaceVisitor extends ReplaceVisitor<JCStatement> {
 
-	public ReturnStatementReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+	protected StatementReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
 	@Override public Void visitBlock(BlockTree tree, Void p) {
 		JCBlock block = (JCBlock) tree;
 		block.stats = replace(block.stats);
-		return super.visitBlock(block, p);
-	}
-
-	@Override public Void visitDoWhileLoop(DoWhileLoopTree tree, Void p) {
-		JCDoWhileLoop doWhileLoop = (JCDoWhileLoop) tree;
-		doWhileLoop.body = replace(doWhileLoop.body);
-		return super.visitDoWhileLoop(doWhileLoop, p);
-	}
-
-	@Override public Void visitWhileLoop(WhileLoopTree tree, Void p) {
-		JCWhileLoop whileLoop = (JCWhileLoop) tree;
-		whileLoop.body = replace(whileLoop.body);
-		return super.visitWhileLoop(whileLoop, p);
-	}
-
-	@Override public Void visitForLoop(ForLoopTree tree, Void p) {
-		JCForLoop forLoop = (JCForLoop) tree;
-		forLoop.body = replace(forLoop.body);
-		return super.visitForLoop(forLoop, p);
-	}
-
-	@Override public Void visitEnhancedForLoop(EnhancedForLoopTree tree, Void p) {
-		JCEnhancedForLoop enhancedForLoop = (JCEnhancedForLoop) tree;
-		enhancedForLoop.body = replace(enhancedForLoop.body);
-		return super.visitEnhancedForLoop(enhancedForLoop, p);
+		return super.visitBlock(tree, p);
 	}
 
 	@Override public Void visitCase(CaseTree tree, Void p) {
 		JCCase caseTree = (JCCase) tree;
 		caseTree.stats = replace(caseTree.stats);
-		return super.visitCase(caseTree, p);
+		return super.visitCase(tree, p);
+	}
+
+	@Override public Void visitDoWhileLoop(DoWhileLoopTree tree, Void p) {
+		JCDoWhileLoop doWhileLoop = (JCDoWhileLoop) tree;
+		doWhileLoop.body = replace(doWhileLoop.body);
+		return super.visitDoWhileLoop(tree, p);
+	}
+
+	@Override public Void visitEnhancedForLoop(EnhancedForLoopTree tree, Void p) {
+		JCEnhancedForLoop enhancedForLoop = (JCEnhancedForLoop) tree;
+		enhancedForLoop.body = replace(enhancedForLoop.body);
+		return super.visitEnhancedForLoop(tree, p);
+	}
+
+	@Override public Void visitForLoop(ForLoopTree tree, Void p) {
+		JCForLoop forLoop = (JCForLoop) tree;
+		forLoop.body = replace(forLoop.body);
+		return super.visitForLoop(tree, p);
 	}
 
 	@Override public Void visitIf(IfTree tree, Void p) {
 		JCIf ifTree = (JCIf) tree;
 		ifTree.thenpart = replace(ifTree.thenpart);
 		ifTree.elsepart = replace(ifTree.elsepart);
-		return super.visitIf(ifTree, p);
+		return super.visitIf(tree, p);
 	}
 
-	@Override protected boolean needsReplacing(JCStatement node) {
-		return node instanceof JCReturn;
+	@Override public Void visitWhileLoop(WhileLoopTree tree, Void p) {
+		JCWhileLoop whileLoop = (JCWhileLoop) tree;
+		whileLoop.body = replace(whileLoop.body);
+		return super.visitWhileLoop(tree, p);
 	}
 }

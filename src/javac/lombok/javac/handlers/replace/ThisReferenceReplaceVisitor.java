@@ -19,40 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.javac.handlers.replace;
 
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.javac.handlers.ast.JavacMethod;
 
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
-import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import com.sun.tools.javac.tree.JCTree.*;
 
 /**
  * Replaces all implicit and explicit occurrences of 'this' with a specified expression.
  */
-// TODO incomplete, but works for the current use-case
-public class ThisReferenceReplaceVisitor extends ReplaceVisitor<Expression> {
+public class ThisReferenceReplaceVisitor extends ExpressionReplaceVisitor {
 
-	public ThisReferenceReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+	public ThisReferenceReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
 	@Override
-	public boolean visit(MessageSend messageSend, BlockScope scope) {
-		replace(messageSend.arguments);
-		return true;
-	}
-
-	@Override
-	public boolean visit(AllocationExpression allocationExpression, BlockScope scope) {
-		replace(allocationExpression.arguments);
-		return true;
-	}
-
-	@Override
-	protected boolean needsReplacing(Expression node) {
-		return node instanceof ThisReference;
+	protected boolean needsReplacing(JCExpression node) {
+		return (node instanceof JCIdent) && "this".equals(node.toString());
 	}
 }

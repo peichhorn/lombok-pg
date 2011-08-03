@@ -19,42 +19,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.javac.handlers;
+package lombok;
 
-import lombok.*;
-import lombok.javac.handlers.ast.JavacMethod;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import com.sun.source.util.TreeScanner;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
-
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScanner<Void, Void> {
-	private final JavacMethod method;
-	private final lombok.ast.Statement replacement;
-
-	public void visit(JCTree node) {
-		node.accept(this, null);
+/**
+ * Explicitly turns on validation for all method
+ * parameter annotated with {@code @Validate.With("methodname")},
+ * {@code @Validate.NotNull()} and {@code @Validate.NotEmpty()}.
+ * <p>
+ * <b>Note:</b> All lombok-pg method-level annotations automatically
+ * trigger a parameter validation.
+ */
+public @interface Validate {
+	/**
+	 * Method that should be used to validate the parameter.
+	 * <p>
+	 * <b>Note:</b> This works with all types, but the parameter type
+	 * has to match the method signature.
+	 */
+	@Target(ElementType.PARAMETER)
+	@Retention(RetentionPolicy.SOURCE)
+	public static @interface With {
+		String value();
+	}
+	
+	@Target(ElementType.PARAMETER)
+	@Retention(RetentionPolicy.SOURCE)
+	public static @interface NotNull {
 	}
 
-	protected final List<NODE_TYPE> replace(List<NODE_TYPE> nodes) {
-		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
-		for (NODE_TYPE node : nodes) {
-			if (needsReplacing(node)) {
-				node = method.<NODE_TYPE>build(replacement);
-			}
-			newNodes.append(node);
-		}
-		return newNodes.toList();
+	@Target(ElementType.PARAMETER)
+	@Retention(RetentionPolicy.SOURCE)
+	public static @interface NotEmpty {
 	}
-
-	protected final NODE_TYPE replace(NODE_TYPE node) {
-		if (needsReplacing(node)) {
-			return method.<NODE_TYPE>build(replacement);
-		}
-		return node;
-	}
-
-	protected abstract boolean needsReplacing(NODE_TYPE node);
 }

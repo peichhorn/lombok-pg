@@ -65,12 +65,6 @@ public class Names {
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
 	}
 
-	public static String removeCurlyBrackets(String s) {
-		String trimmed = trim(s);
-		if (isEmpty(trimmed)) return s;
-		return (trimmed.startsWith("{") && trimmed.endsWith("}")) ? trimmed.substring(1, trimmed.length() - 1) : s;
-	}
-
 	public static boolean isEmpty(String s) {
 		return trim(s).isEmpty();
 	}

@@ -49,7 +49,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		createBuilder(builderData, interfaceTypes, builderMethods);
 	}
 
-	public void handleExtension(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final METHOD_TYPE method) {
+	public void handleExtension(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final METHOD_TYPE method, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		TYPE_TYPE type = builderData.getType();
 		IExtensionCollector extensionCollector = builderData.getExtensionCollector().withRequiredFieldNames(builderData.getAllRequiredFieldNames());
 		collectExtensions(method, extensionCollector);
@@ -62,10 +62,10 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				interfaceType = type.<TYPE_TYPE>memberType(OPTIONAL_DEF);
 			}
 			String methodName = method.name();
-			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), methodName).makePublic().implementing().withArguments(method.arguments()).withAnnotations(method.annotations()) //
+			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), methodName).makePublic().implementing().withArguments(method.arguments(true)) //
 					.withStatements(method.statements()) //
 					.withStatement(Return(This())));
-			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), method.name()).makePublic().withNoBody().withArguments(method.arguments()));
+			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), method.name()).makePublic().withNoBody().withArguments(method.arguments(true)));
 			type.removeMethod(method);
 		}
 	}

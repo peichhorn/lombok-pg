@@ -2,7 +2,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import lombok.DoPrivileged;
-import lombok.DoPrivileged.SanitizeWith;
+import lombok.Sanitize;
 
 class DoPrivilegedPlain {
   private boolean b = true;
@@ -56,13 +56,38 @@ class DoPrivilegedPlain {
     return filename;
   }
 
-  @DoPrivileged @java.lang.SuppressWarnings("all") int test3(final @SanitizeWith("cleanFilename") String $filename) throws FileNotFoundException {
-    String filename = cleanFilename($filename);
+  @DoPrivileged @java.lang.SuppressWarnings("all") int test3(final @lombok.Validate.NotEmpty @Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {
+    if (((filename == null) || filename.isEmpty()))
+        {
+          throw new java.lang.IllegalArgumentException("The validated object is empty");
+        }
+    final String sanitizedFilename = cleanFilename(filename);
     try 
       {
         return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>() {
   public java.lang.Integer run() throws FileNotFoundException {
-    FileInputStream fis = new FileInputStream(filename);
+    FileInputStream fis = new FileInputStream(sanitizedFilename);
+    int i = fis.read();
+    fis.close();
+    return i;
+  }
+});
+      }
+    catch (final java.security.PrivilegedActionException $ex)       {
+        final java.lang.Throwable $cause = $ex.getCause();
+        if (($cause instanceof FileNotFoundException))
+            throw (FileNotFoundException) $cause;
+        throw new java.lang.RuntimeException($cause);
+      }
+  }
+
+  @DoPrivileged @Sanitize @java.lang.SuppressWarnings("all") int test4(final @Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {
+    final String sanitizedFilename = cleanFilename(filename);
+    try 
+      {
+        return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>() {
+  public java.lang.Integer run() throws FileNotFoundException {
+    FileInputStream fis = new FileInputStream(sanitizedFilename);
     int i = fis.read();
     fis.close();
     return i;

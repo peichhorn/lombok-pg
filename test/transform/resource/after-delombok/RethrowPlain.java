@@ -21,6 +21,9 @@ class RethrowPlain {
 	@java.lang.SuppressWarnings("all")
 	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
 		try {
+			if (arg == null || arg.isEmpty()) {
+				throw new java.lang.IllegalArgumentException("The validated object is empty");
+			}
 			System.out.println("code throws all kinds of Exceptions");
 		} catch (final java.lang.RuntimeException $e1) {
 			throw $e1;
@@ -38,5 +41,21 @@ class RethrowPlain {
 		} catch (final java.io.IOException $e2) {
 			throw new java.lang.RuntimeException($e2);
 		}
+	}
+
+	@java.lang.SuppressWarnings("all")
+	void testExceptionsInSanitizeAlsoGetRethrown(final String arg) {
+		try {
+			final String sanitizedArg = filterArg(arg);
+			System.out.println("code throws all kinds of Exceptions");
+		} catch (final java.lang.RuntimeException $e1) {
+			throw $e1;
+		} catch (final java.lang.Exception $e2) {
+			throw new java.lang.IllegalArgumentException("meh.", $e2);
+		}
+	}
+	
+	String filterArg(final String arg) throws Exception {
+		throw new Exception();
 	}
 }

@@ -37,7 +37,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	
-	public void generateSwingInvoke(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
@@ -62,6 +62,8 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		}
 
 		method.body(Block() //
+			.withStatements(validation.validateParameterOf(method)) //
+			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatement(LocalDecl(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable")) //
 				.withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
 					.withMethod(MethodDecl(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //

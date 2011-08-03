@@ -49,7 +49,7 @@ public class HandleConditionAndLock {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("readLock")
-				.handle(ann.value(), ann.getClass());
+				.handle(ann.value(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -67,7 +67,7 @@ public class HandleConditionAndLock {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("writeLock")
-				.handle(ann.value(), ann.getClass());
+				.handle(ann.value(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -85,7 +85,7 @@ public class HandleConditionAndLock {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -103,7 +103,7 @@ public class HandleConditionAndLock {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -123,7 +123,7 @@ public class HandleConditionAndLock {
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 	

@@ -53,10 +53,10 @@ public class HandleLazyGetter extends EclipseAnnotationHandler<LazyGetter> {
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
 		Class<? extends java.lang.annotation.Annotation> annotationType = LazyGetter.class;
 		LazyGetter annotationInstance = annotation.getInstance();
-		createGetterForField(type, annotationInstance.value(), annotationNode.up(), annotationNode, annotationType);
+		createLazyGetterForField(type, annotationInstance.value(), annotationNode.up(), annotationNode, annotationType);
 	}
 
-	private void createGetterForField(EclipseType type, AccessLevel level, EclipseNode fieldNode, DiagnosticsReceiver diagnosticsReceiver, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	private void createLazyGetterForField(EclipseType type, AccessLevel level, EclipseNode fieldNode, DiagnosticsReceiver diagnosticsReceiver, Class<? extends java.lang.annotation.Annotation> annotationType) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(annotationType));
 			return;

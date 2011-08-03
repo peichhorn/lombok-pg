@@ -2,7 +2,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import lombok.DoPrivileged;
-import lombok.DoPrivileged.SanitizeWith;
+import lombok.Sanitize;
 
 class DoPrivilegedPlain {
 	private boolean b = true;
@@ -28,9 +28,18 @@ class DoPrivilegedPlain {
 		}
 		return filename;
 	}
+	
+	@DoPrivileged
+	int test3(@lombok.Validate.NotEmpty @Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {
+		FileInputStream fis = new FileInputStream(filename);
+		int i = fis.read();
+		fis.close();
+		return i;
+	}
 
 	@DoPrivileged
-	int test3(@SanitizeWith("cleanFilename") String filename) throws FileNotFoundException {
+	@Sanitize
+	int test4(@Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {
 		FileInputStream fis = new FileInputStream(filename);
 		int i = fis.read();
 		fis.close();

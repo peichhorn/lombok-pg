@@ -30,14 +30,14 @@ import static lombok.javac.handlers.Javac.addSuppressWarningsAll;
 import java.util.List;
 
 import lombok.javac.JavacNode;
-import lombok.javac.handlers.ReturnStatementReplaceVisitor;
-import lombok.javac.handlers.ThisReferenceReplaceVisitor;
+import lombok.javac.handlers.replace.*;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -117,6 +117,10 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 	
 	public void replaceReturns(lombok.ast.Statement replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
+	}
+
+	public void replaceVariableName(String oldName, String newName) {
+		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
 	}
 
 	public void forceQualifiedThis() {
@@ -217,8 +221,12 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 	}
 
 	public java.util.List<lombok.ast.Annotation> annotations() {
+		return annotations(get().mods);
+	}
+
+	private java.util.List<lombok.ast.Annotation> annotations(JCModifiers mods) {
 		final java.util.List<lombok.ast.Annotation> annotations = new java.util.ArrayList<lombok.ast.Annotation>();
-		for (JCAnnotation annotation : get().mods.annotations) {
+		for (JCAnnotation annotation : mods.annotations) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.annotationType));
 			for (JCExpression arg : annotation.args) {
 				if (arg instanceof JCAssign) {
@@ -231,11 +239,17 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 			annotations.add(ann);
 		}
 		return annotations;
-	}
+	}	
 
 	public java.util.List<lombok.ast.Argument> arguments() {
+		return arguments(false);
+	}
+
+	public java.util.List<lombok.ast.Argument> arguments(boolean includeAnnotations) {
 		final java.util.List<lombok.ast.Argument> methodArguments = new java.util.ArrayList<lombok.ast.Argument>();
-		for (JCVariableDecl param : get().params) {
+		if (includeAnnotations) for (JCVariableDecl param : get().params) {
+			methodArguments.add(Arg(Type(param.vartype), param.name.toString()).withAnnotations(annotations(param.mods)));
+		} else for (JCVariableDecl param : get().params) {
 			methodArguments.add(Arg(Type(param.vartype), param.name.toString()));
 		}
 		return methodArguments;

@@ -19,43 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.javac.handlers;
+package lombok.eclipse.handlers.replace;
 
-import lombok.javac.handlers.ast.JavacMethod;
+import lombok.eclipse.handlers.ast.EclipseMethod;
 
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import org.eclipse.jdt.internal.compiler.ast.*;
 
 /**
  * Replaces all implicit and explicit occurrences of 'this' with a specified expression.
  */
-//TODO incomplete, but works for the current use-case
-public class ThisReferenceReplaceVisitor extends ReplaceVisitor<JCExpression> {
+public class ThisReferenceReplaceVisitor extends ExpressionReplaceVisitor {
 
-	public ThisReferenceReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+	public ThisReferenceReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
 	@Override
-	public Void visitMethodInvocation(MethodInvocationTree tree, Void p) {
-		JCMethodInvocation methodInvocation = (JCMethodInvocation)tree;
-		methodInvocation.args = replace(methodInvocation.args);
-		return super.visitMethodInvocation(tree, p);
-	}
-
-	@Override
-	public Void visitNewClass(NewClassTree tree, Void p) {
-		JCNewClass newClass = (JCNewClass)tree;
-		newClass.args = replace(newClass.args);
-		return super.visitNewClass(tree, p);
-	}
-
-	@Override
-	protected boolean needsReplacing(JCExpression node) {
-		return (node instanceof JCIdent) && "this".equals(node.toString());
+	protected boolean needsReplacing(Expression node) {
+		return (node instanceof ThisReference) && !((ThisReference) node).isImplicitThis();
 	}
 }

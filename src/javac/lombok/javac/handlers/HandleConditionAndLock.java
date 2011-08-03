@@ -21,7 +21,8 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
+import static lombok.javac.handlers.Javac.deleteImport;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -43,7 +44,7 @@ public class HandleConditionAndLock {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withLockMethod("readLock") //
-				.handle(ann.value(), ann.getClass());
+				.handle(ann.value(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -53,7 +54,7 @@ public class HandleConditionAndLock {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withLockMethod("writeLock") //
-				.handle(ann.value(), ann.getClass());
+				.handle(ann.value(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -63,7 +64,7 @@ public class HandleConditionAndLock {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -73,7 +74,7 @@ public class HandleConditionAndLock {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -84,13 +85,13 @@ public class HandleConditionAndLock {
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-				.handle(ann.lockName(), ann.getClass());
+				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 	
 	private static ConditionAndLockHandler<JavacType, JavacMethod> prepareConditionAndLockHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
 		deleteAnnotationIfNeccessary(node, annotationType);
-		deleteImportFromCompilationUnit(node, Position.class.getName());
+		deleteImport(node, Position.class);
 		return new ConditionAndLockHandler<JavacType, JavacMethod>(JavacType.typeOf(node, source), JavacMethod.methodOf(node, source), node);
 	}
 }

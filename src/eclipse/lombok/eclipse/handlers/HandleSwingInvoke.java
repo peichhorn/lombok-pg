@@ -42,7 +42,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeLater extends EclipseAnnotationHandler<SwingInvokeLater> {
 		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, Annotation source, EclipseNode annotationNode) {
 			new SwingInvokeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-				.generateSwingInvoke("invokeLater", SwingInvokeLater.class);
+				.handle("invokeLater", SwingInvokeLater.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -51,7 +51,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeAndWait extends EclipseAnnotationHandler<SwingInvokeAndWait> {
 		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, Annotation source, EclipseNode annotationNode) {
 			new SwingInvokeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-				.generateSwingInvoke("invokeAndWait", SwingInvokeAndWait.class);
+				.handle("invokeAndWait", SwingInvokeAndWait.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 }

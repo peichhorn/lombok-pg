@@ -60,13 +60,4 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.SOURCE)
 public @interface DoPrivileged {
 
-	/**
-	 * Method that should be used to sanitize the parameter.
-	 * Any Exception thrown by this method might throw an exception.
-	 */
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
-	public static @interface SanitizeWith {
-		String value();
-	}
 }

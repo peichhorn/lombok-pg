@@ -16,7 +16,7 @@ class BuilderExtensions {
 	}
 	
 	@lombok.Builder.Extension
-	private void optionalVal1(Class<?> clazz) {
+	private void optionalVal1(final Class<?> clazz) {
 		this.optionalVal1 = clazz.getSimpleName();
 	}
 }

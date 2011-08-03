@@ -84,7 +84,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return true;
 	}
 
-	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (!preHandle(lockName, annotationType)) return;
 
 		boolean isReadWriteLock = lockMethod != null;
@@ -111,7 +111,9 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 
 		method.body(Block() //
-			.withStatement(lockCall)
+			.withStatements(validation.validateParameterOf(method)) //
+			.withStatements(sanitizer.sanitizeParameterOf(method)) //
+			.withStatement(lockCall) //
 			.withStatement(Try(Block() //
 				.withStatements(beforeMethodBlock) //
 				.withStatements(method.statements()) //

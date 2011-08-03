@@ -19,26 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.eclipse.handlers.replace;
 
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
-import org.eclipse.jdt.internal.compiler.ast.Block;
-import org.eclipse.jdt.internal.compiler.ast.DoStatement;
-import org.eclipse.jdt.internal.compiler.ast.ForStatement;
-import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
-import org.eclipse.jdt.internal.compiler.ast.IfStatement;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
-import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.eclipse.jdt.internal.compiler.lookup.*;
 
-public class ReturnStatementReplaceVisitor extends ReplaceVisitor<Statement> {
+public abstract class StatementReplaceVisitor extends ReplaceVisitor<Statement> {
 
-	public ReturnStatementReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+	protected StatementReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
 		super(method, replacement);
+	}
+
+	@Override public boolean visit(ConstructorDeclaration constructorDeclaration, ClassScope scope) {
+		replace(constructorDeclaration.statements);
+		return true;
 	}
 
 	@Override public boolean visit(MethodDeclaration methodDeclaration, ClassScope scope) {
@@ -53,11 +49,6 @@ public class ReturnStatementReplaceVisitor extends ReplaceVisitor<Statement> {
 
 	@Override public boolean visit(DoStatement doStatement, BlockScope scope) {
 		doStatement.action = replace(doStatement.action);
-		return true;
-	}
-
-	@Override public boolean visit(WhileStatement whileStatement, BlockScope scope) {
-		whileStatement.action = replace(whileStatement.action);
 		return true;
 	}
 
@@ -77,7 +68,13 @@ public class ReturnStatementReplaceVisitor extends ReplaceVisitor<Statement> {
 		return true;
 	}
 
-	@Override protected boolean needsReplacing(Statement node) {
-		return node instanceof ReturnStatement;
+	@Override public boolean visit(SwitchStatement switchStatement, BlockScope scope) {
+		replace(switchStatement.statements);
+		return true;
+	}
+
+	@Override public boolean visit(WhileStatement whileStatement, BlockScope scope) {
+		whileStatement.action = replace(whileStatement.action);
+		return true;
 	}
 }

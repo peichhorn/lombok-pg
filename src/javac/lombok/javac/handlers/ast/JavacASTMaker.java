@@ -196,6 +196,10 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 			opcode = getCTCint(JCTree.class, "MUL");
 		} else if ("/".equals(operator)) {
 			opcode = getCTCint(JCTree.class, "DIV");
+		} else if ("||".equals(operator)) {
+			opcode = getCTCint(JCTree.class, "OR");
+		} else if ("&&".equals(operator)) {
+			opcode = getCTCint(JCTree.class, "AND");
 		} else {
 			opcode = 0;
 		}

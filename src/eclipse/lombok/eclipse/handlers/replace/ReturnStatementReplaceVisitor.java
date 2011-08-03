@@ -19,29 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.eclipse.handlers.replace;
 
-import lombok.*;
-import lombok.core.AnnotationValues;
-import lombok.core.handlers.DoPrivilegedHandler;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.mangosdk.spi.ProviderFor;
+import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
+import org.eclipse.jdt.internal.compiler.ast.Statement;
 
-/**
- * Handles the {@code lombok.DoPrivileged} annotation for eclipse.
- */
-@ProviderFor(EclipseAnnotationHandler.class)
-@DeferUntilPostDiet
-public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
+public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 
-	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		new DoPrivilegedHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+	public ReturnStatementReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+		super(method, replacement);
+	}
+
+	@Override protected boolean needsReplacing(Statement node) {
+		return node instanceof ReturnStatement;
 	}
 }

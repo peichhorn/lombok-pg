@@ -6,12 +6,18 @@ class SwingInvokeLaterPlain {
 	void test1() throws Exception {
 		frame.setTitle("test1");
 		frame.setVisible(true);
-		test2(this);
+		test3(this);
 		JDialog dialog = new JDialog(this);
 		System.out.println("test1");
 	}
 
-	private static void test2(SwingInvokeLaterPlain o) {
+	@lombok.SwingInvokeLater
+	void test2(final @lombok.Validate.NotNull @lombok.Sanitize.Normalize String title) throws Exception {
+		frame.setTitle(title);
+		frame.setVisible(true);
+	}
+
+	private static void test3(SwingInvokeLaterPlain o) {
 		System.out.println(o);
 	}
 }

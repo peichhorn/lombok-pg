@@ -125,7 +125,8 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
 			}
 
-			new JavacBuilderAndExtensionHandler().handleExtension(new BuilderDataCollector(JavacType.typeOf(typeNode, source), builderAnnotation.getInstance()).collect(), method);
+			final BuilderDataCollector collector = new BuilderDataCollector(JavacType.typeOf(typeNode, source), builderAnnotation.getInstance());
+			new JavacBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new JavacParameterSanitizer());
 		}
 	}
 

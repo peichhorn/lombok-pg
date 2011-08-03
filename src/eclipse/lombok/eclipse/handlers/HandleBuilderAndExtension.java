@@ -129,7 +129,8 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
 			}
 
-			new EclispeBuilderAndExtensionHandler().handleExtension(new BuilderDataCollector(EclipseType.typeOf(typeNode, source), builderAnnotation.getInstance()).collect(), method);
+			final BuilderDataCollector collector = new BuilderDataCollector(EclipseType.typeOf(typeNode, source), builderAnnotation.getInstance());
+			new EclispeBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new EclipseParameterSanitizer());
 		}
 	}
 	

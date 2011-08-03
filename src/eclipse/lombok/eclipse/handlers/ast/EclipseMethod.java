@@ -53,8 +53,9 @@ import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ReturnStatementReplaceVisitor;
-import lombok.eclipse.handlers.ThisReferenceReplaceVisitor;
+import lombok.eclipse.handlers.replace.ReturnStatementReplaceVisitor;
+import lombok.eclipse.handlers.replace.ThisReferenceReplaceVisitor;
+import lombok.eclipse.handlers.replace.VariableNameReplaceVisitor;
 
 public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
 	private final EclipseNode methodNode;
@@ -134,6 +135,11 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 
 	public void replaceReturns(lombok.ast.Statement replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
+	}
+
+	@Override
+	public void replaceVariableName(String oldName, String newName) {
+		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
 	}
 
 	public void forceQualifiedThis() {
@@ -244,8 +250,12 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 	}
 
 	public List<lombok.ast.Annotation> annotations() {
+		return annotations(get().annotations);
+	}
+	
+	private List<lombok.ast.Annotation> annotations(Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(get().annotations)) for (Annotation annotation : get().annotations) {
+		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
@@ -259,10 +269,18 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		return annotations;
 	}
 
-	public List<lombok.ast.Argument> arguments() {
+	public java.util.List<lombok.ast.Argument> arguments() {
+		return arguments(false);
+	}
+
+	public java.util.List<lombok.ast.Argument> arguments(boolean includeAnnotations) {
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
-		if (isNotEmpty(get().arguments)) for (Argument argument : get().arguments) {
-			methodArguments.add(Arg(Type(argument.type), new String(argument.name)));
+		if (isNotEmpty(get().arguments)) {
+			if (includeAnnotations) for (Argument argument : get().arguments) {
+				methodArguments.add(Arg(Type(argument.type), new String(argument.name)).withAnnotations(annotations(argument.annotations)));
+			} else for (Argument argument : get().arguments) {
+				methodArguments.add(Arg(Type(argument.type), new String(argument.name)));
+			}
 		}
 		return methodArguments;
 	}

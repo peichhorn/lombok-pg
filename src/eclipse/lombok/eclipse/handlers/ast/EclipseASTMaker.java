@@ -46,6 +46,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.AND_AND_Expression;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
@@ -90,6 +91,7 @@ import org.eclipse.jdt.internal.compiler.ast.NameReference;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
 import org.eclipse.jdt.internal.compiler.ast.NumberLiteral;
+import org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
 import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
@@ -236,10 +238,21 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 			opCode = OperatorIds.MULTIPLY;
 		} else if ("/".equals(operator)) {
 			opCode = OperatorIds.DIVIDE;
+		} else if ("||".equals(operator)) {
+			opCode = OperatorIds.OR_OR;
+		} else if ("&&".equals(operator)) {
+			opCode = OperatorIds.AND_AND;
 		} else {
 			opCode = 0;
 		}
-		BinaryExpression binaryExpression = new BinaryExpression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
+		final BinaryExpression binaryExpression;
+		if ("||".equals(operator)) {
+			binaryExpression = new OR_OR_Expression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
+		} else if ("&&".equals(operator)) {
+			binaryExpression = new AND_AND_Expression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
+		} else {
+			binaryExpression = new BinaryExpression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
+		}
 		setGeneratedByAndCopyPos(binaryExpression, source);
 		return binaryExpression;
 	}

@@ -19,29 +19,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.javac.handlers.replace;
 
 import lombok.*;
-import lombok.core.AnnotationValues;
-import lombok.core.handlers.DoPrivilegedHandler;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.javac.handlers.ast.JavacMethod;
 
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.mangosdk.spi.ProviderFor;
+import com.sun.source.util.TreeScanner;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 
-/**
- * Handles the {@code lombok.DoPrivileged} annotation for eclipse.
- */
-@ProviderFor(EclipseAnnotationHandler.class)
-@DeferUntilPostDiet
-public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScanner<Void, Void> {
+	private final JavacMethod method;
+	private final lombok.ast.Statement replacement;
 
-	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		new DoPrivilegedHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+	public void visit(JCTree node) {
+		node.accept(this, null);
 	}
+
+	protected final List<NODE_TYPE> replace(List<NODE_TYPE> nodes) {
+		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
+		for (NODE_TYPE node : nodes) {
+			if (needsReplacing(node)) {
+				node = method.<NODE_TYPE>build(replacement);
+			}
+			newNodes.append(node);
+		}
+		return newNodes.toList();
+	}
+
+	protected final NODE_TYPE replace(NODE_TYPE node) {
+		if ((node != null) && needsReplacing(node)) {
+			return method.<NODE_TYPE>build(replacement);
+		}
+		return node;
+	}
+
+	protected abstract boolean needsReplacing(NODE_TYPE node);
 }

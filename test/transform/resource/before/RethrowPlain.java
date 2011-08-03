@@ -11,7 +11,7 @@ class RethrowPlain {
 	}
 	
 	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "meh.")
-	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
+	void testRethrowEveryExceptionAsSpecifiedException(final @lombok.Validate.NotEmpty String arg) {
 		System.out.println("code throws all kinds of Exceptions");
 	}
 
@@ -21,5 +21,14 @@ class RethrowPlain {
 	})
 	void testFullyCustomizedRethrow() {
 		System.out.println("code that throws FileNotFoundException and IOException");
+	}
+	
+	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "meh.")
+	void testExceptionsInSanitizeAlsoGetRethrown(final @lombok.Sanitize.With("filterArg") String arg) {
+		System.out.println("code throws all kinds of Exceptions");
+	}
+	
+	String filterArg(final String arg) throws Exception {
+		throw new Exception();
 	}
 }

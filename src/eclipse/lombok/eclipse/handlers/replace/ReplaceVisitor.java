@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.eclipse.handlers.replace;
 
 import static lombok.core.util.Arrays.*;
 import lombok.*;
@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisitor {
 	private final EclipseMethod method;
-	private final lombok.ast.Statement replacement;;
+	private final lombok.ast.Statement replacement;
 
 	public void visit(ASTNode astNode) {
 		if (astNode instanceof MethodDeclaration) {
@@ -52,7 +52,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisit
 	}
 
 	protected final NODE_TYPE replace(NODE_TYPE node) {
-		if (needsReplacing(node)) {
+		if ((node != null) && needsReplacing(node)) {
 			return method.<NODE_TYPE>build(replacement);
 		}
 		return node;

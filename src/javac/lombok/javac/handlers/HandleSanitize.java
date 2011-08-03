@@ -21,13 +21,13 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.core.util.ErrorMessages.*;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.DoPrivilegedHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
@@ -35,15 +35,28 @@ import lombok.javac.handlers.ast.JavacMethod;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@code lombok.DoPrivileged} annotation for javac.
+ * Handles the {@code lombok.Sanitize} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
+public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 
-	@Override public void handle(AnnotationValues<DoPrivileged> annotation, JCAnnotation source, JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
+	@Override
+	public void handle(AnnotationValues<Sanitize> annotation, JCAnnotation source, JavacNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-		new DoPrivilegedHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new JavacParameterValidator(), new JavacParameterSanitizer());
+		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
+		if (method == null) {
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
+			return;
+		}
+
+		if (method.isAbstract() || method.isEmpty()) {
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return;
+		}
+
+		final JavacParameterSanitizer sanitizer = new JavacParameterSanitizer();
+		sanitizer.sanitizeParameterOf(method);
 	}
 }
+

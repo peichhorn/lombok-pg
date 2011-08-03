@@ -56,13 +56,13 @@ import java.util.HashMap;
       super();
     }
     
-    public @lombok.Builder.Extension @java.lang.SuppressWarnings("all") $OptionalDef idAndText(final String id, final String text) {
+    public @java.lang.SuppressWarnings("all") $OptionalDef idAndText(final String id, final String text) {
       this.id = java.lang.Integer.valueOf(id);
       this.text = text;
       return this;
     }
     
-    public @lombok.Builder.Extension @java.lang.SuppressWarnings("all") $OptionalDef optionalVal1(final Class<?> clazz) {
+    public @java.lang.SuppressWarnings("all") $OptionalDef optionalVal1(final Class<?> clazz) {
       this.optionalVal1 = clazz.getSimpleName();
       return this;
     }

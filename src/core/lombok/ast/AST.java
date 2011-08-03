@@ -29,6 +29,10 @@ public final class AST {
 		return new Binary(left, "+", right);
 	}
 
+	public static Binary And(final Expression left, final Expression right) {
+		return new Binary(left, "&&", right);
+	}
+
 	public static Annotation Annotation(final TypeRef type) {
 		return new Annotation(type);
 	}
@@ -63,6 +67,10 @@ public final class AST {
 
 	public static Case Case() {
 		return new Case();
+	}
+
+	public static CharLiteral Char(final String character) {
+		return new CharLiteral(character);
 	}
 
 	public static ClassDecl ClassDecl(final String name) {
@@ -181,8 +189,8 @@ public final class AST {
 		return new NumberLiteral(number);
 	}
 
-	public static CharLiteral Char(final String character) {
-		return new CharLiteral(character);
+	public static Binary Or(final Expression left, final Expression right) {
+		return new Binary(left, "||", right);
 	}
 
 	public static Return Return() {

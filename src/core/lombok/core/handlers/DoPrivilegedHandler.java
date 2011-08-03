@@ -32,11 +32,11 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
+public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
@@ -52,7 +52,8 @@ public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?
 		if (method.returns("void")) {
 			method.replaceReturns(Return(Null()));
 			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(Try(Block() //
 					.withStatement(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
 						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
@@ -65,7 +66,8 @@ public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?
 					.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))))));
 		} else {
 			method.body(Block() //
-				.withStatements(sanitizeParameter(method)) //
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(Try(Block() //
 					.withStatement(Return(Call(Name("java.security.AccessController"), "doPrivileged").withArgument( //
 						New(Type("java.security.PrivilegedExceptionAction").withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
@@ -88,6 +90,4 @@ public abstract class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?
 		}
 		return rethrowStatements;
 	}
-	
-	protected abstract List<Statement> sanitizeParameter(final METHOD_TYPE method);
 }

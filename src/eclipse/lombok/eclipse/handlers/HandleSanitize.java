@@ -21,9 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.DoPrivilegedHandler;
 import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -33,15 +33,27 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@code lombok.DoPrivileged} annotation for eclipse.
+ * Handles the {@code lombok.Sanitize} annotation for eclipse.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 @DeferUntilPostDiet
-public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
+public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 
-	@Override public void handle(AnnotationValues<DoPrivileged> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		new DoPrivilegedHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+	@Override
+	public void handle(AnnotationValues<Sanitize> annotation, Annotation source, EclipseNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
+		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
+		if (method == null) {
+			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
+			return;
+		}
+
+		if (method.isAbstract() || method.isEmpty()) {
+			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return;
+		}
+
+		final EclipseParameterSanitizer sanitizer = new EclipseParameterSanitizer();
+		sanitizer.sanitizeParameterOf(method);
 	}
 }

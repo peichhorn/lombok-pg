@@ -44,7 +44,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 		return this;
 	}
 	
-	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 
 		if (rethrows.isEmpty()) {
 			return;
@@ -60,7 +60,10 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 			return;
 		}
 
-		Try tryBuilder = Try(Block().withStatements(method.statements()));
+		Try tryBuilder = Try(Block() //
+			.withStatements(validation.validateParameterOf(method)) //
+			.withStatements(sanitizer.sanitizeParameterOf(method)) //
+			.withStatements(method.statements()));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
 			for (Class<?> thrown : rethrow.thrown) {
