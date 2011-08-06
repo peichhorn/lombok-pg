@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.ast.AST.Block;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
@@ -55,7 +56,9 @@ public class HandleValidate extends JavacAnnotationHandler<Validate> {
 			return;
 		}
 
-		new JavacParameterValidator().validateParameterOf(method);
+		method.body(Block() //
+				.withStatements(new JavacParameterValidator().validateParameterOf(method)) //
+				.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

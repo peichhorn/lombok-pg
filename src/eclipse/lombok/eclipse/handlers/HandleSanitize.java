@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.ast.AST.Block;
 import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -53,7 +54,9 @@ public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		new EclipseParameterSanitizer().sanitizeParameterOf(method);
+		method.body(Block() //
+			.withStatements(new EclipseParameterSanitizer().sanitizeParameterOf(method)) //
+			.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

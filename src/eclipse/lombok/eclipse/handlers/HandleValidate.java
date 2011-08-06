@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static lombok.ast.AST.Block;
 import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -53,7 +54,9 @@ public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 			return;
 		}
 
-		new EclipseParameterValidator().validateParameterOf(method);
+		method.body(Block() //
+				.withStatements(new EclipseParameterValidator().validateParameterOf(method)) //
+				.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

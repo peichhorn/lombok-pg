@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.ast.AST.Block;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
@@ -55,7 +56,9 @@ public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		new JavacParameterSanitizer().sanitizeParameterOf(method);
+		method.body(Block() //
+				.withStatements(new JavacParameterSanitizer().sanitizeParameterOf(method)) //
+				.withStatements(method.statements()));
 		method.rebuild();
 	}
 }
