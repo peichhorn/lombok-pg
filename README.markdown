@@ -16,8 +16,10 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@WriteLock` and `@ReadLock`
 - `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter`
 - `@Rethrow` and `@Rethrows`
+- `@Sanitize.Normalize` and `@Sanitize.With`
 - `@Singleton`
 - `@SwingInvokeLater` and `@SwingInvokeAndWait`
+- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With`
 - `@VisibleForTesting`
 
 #### Interfaces:

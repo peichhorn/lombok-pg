@@ -7,6 +7,12 @@ class LockExample {
 	
 	@java.lang.SuppressWarnings("all")
 	public void put(String key, String value) {
+		if (key == null || key.isEmpty()) {
+			throw new java.lang.IllegalArgumentException("The validated object is empty");
+		}
+		if (value == null) {
+			throw new java.lang.IllegalArgumentException("The validated object is null");
+		}
 		this.dictionaryLock.writeLock().lock();
 		try {
 			dictionary.put(key, value);
@@ -17,6 +23,9 @@ class LockExample {
 	
 	@java.lang.SuppressWarnings("all")
 	public String get(String key) {
+		if (key == null || key.isEmpty()) {
+			throw new java.lang.IllegalArgumentException("The validated object is empty");
+		}
 		this.dictionaryLock.readLock().lock();
 		try {
 			return dictionary.get(key);
