@@ -55,13 +55,14 @@ public final class Javac {
 		TreeMaker maker = node.getTreeMaker();
 		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings").setPos(pos);
 		JCExpression allLiteral = maker.Literal("all").setPos(pos);
+		ListBuffer<JCAnnotation> newAnnotations = ListBuffer.lb();
 		for (JCAnnotation annotation : mods.annotations) {
-			if (annotation.annotationType.toString().endsWith("SuppressWarnings")) {
-				mods.annotations.remove(annotation);
-				break;
+			if (!annotation.annotationType.toString().endsWith("SuppressWarnings")) {
+				newAnnotations.append(annotation);
 			}
 		}
-		mods.annotations = mods.annotations.append((JCAnnotation) maker.Annotation(suppressWarningsType, List.of(allLiteral)).setPos(pos));
+		newAnnotations.append((JCAnnotation) maker.Annotation(suppressWarningsType, List.of(allLiteral)).setPos(pos));
+		mods.annotations = newAnnotations.toList();
 	}
 
 	public static boolean isMethodCallValid(JavacNode node, String methodName, Class<?> clazz, String method) {
@@ -99,10 +100,8 @@ public final class Javac {
 	public static void deleteImport(JavacNode node, String name, boolean deleteStatic) {
 		if (!node.shouldDeleteLombokAnnotations()) return;
 		String adjustedName = name.replace("$", ".");
-		ListBuffer<JCTree> newDefs = ListBuffer.lb();
-
 		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();
-
+		ListBuffer<JCTree> newDefs = ListBuffer.lb();
 		for (JCTree def : unit.defs) {
 			boolean delete = false;
 			if (def instanceof JCImport) {

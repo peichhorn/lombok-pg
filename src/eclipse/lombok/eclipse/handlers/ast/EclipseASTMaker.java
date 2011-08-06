@@ -40,6 +40,8 @@ import static lombok.eclipse.Eclipse.poss;
 import static lombok.eclipse.Eclipse.setGeneratedBy;
 import static lombok.eclipse.handlers.Eclipse.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -299,12 +301,9 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		return castExpression;
 	}
 
-	// to support both:
-	//   eclipse 3.6 - CastExpression(Expression, Expression)
-	//   and eclipse 3.7 - CastExpression(Expression, TypeReference)
 	private CastExpression createCastExpression(Expression expression, Expression typeRef) {
 		try {
-			return (CastExpression) CastExpression.class.getConstructors()[0].newInstance(expression, typeRef);
+			return Reflection.castExpressionConstructor.newInstance(expression, typeRef);
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
@@ -548,9 +547,9 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		final NumberLiteral literal;
 		final Number number = node.getNumber();
 		if (number instanceof Integer) {
-			literal = new IntLiteral(Integer.toString(number.intValue()).toCharArray(), 0, 0);
+			literal = createIntLiteral(Integer.toString(number.intValue()).toCharArray());
 		} else if (number instanceof Long) {
-			literal = new LongLiteral((Long.toString(number.longValue()) + "L").toCharArray(), 0, 0);
+			literal = createLongLiteral((Long.toString(number.longValue()) + "L").toCharArray());
 		} else if (number instanceof Float) {
 			literal = new FloatLiteral((Float.toString(number.floatValue()) + "f").toCharArray(), 0, 0);
 		} else {
@@ -558,6 +557,34 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		}
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
+	}
+
+	private IntLiteral createIntLiteral(char[] token) {
+		IntLiteral result;
+		try {
+			if (Reflection.intLiteralConstructor != null) {
+				result = Reflection.intLiteralConstructor.newInstance(token, 0, 0);
+			} else {
+				result = (IntLiteral) Reflection.intLiteralFactoryMethod.invoke(null, token, 0, 0);
+			}
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		return result;
+	}
+
+	private LongLiteral createLongLiteral(char[] token) {
+		LongLiteral result;
+		try {
+			if (Reflection.longLiteralConstructor != null) {
+				result = Reflection.longLiteralConstructor.newInstance(token, 0, 0);
+			} else {
+				result = (LongLiteral) Reflection.longLiteralFactoryMethod.invoke(null, token, 0, 0);
+			}
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		return result;
 	}
 
 	@Override
@@ -830,5 +857,41 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		setGeneratedBy(typeReference, source);
 		if (node.isSuperType()) typeReference.bits |= IsSuperType;
 		return typeReference;
+	}
+
+	// to support both eclipse 3.6 and eclipse 3.7+
+	private static final class Reflection {
+		public static final Constructor<CastExpression> castExpressionConstructor;
+		public static final Constructor<IntLiteral> intLiteralConstructor;
+		public static final Constructor<LongLiteral> longLiteralConstructor;
+		public static final Method intLiteralFactoryMethod;
+		public static final Method longLiteralFactoryMethod;
+		
+		static {
+			Class<?>[] parameterTypes = {char[].class, int.class, int.class};
+			Constructor<IntLiteral> intLiteralConstructor_ = null;
+			Constructor<LongLiteral> longLiteralConstructor_ = null;
+			Method intLiteralFactoryMethod_ = null;
+			Method longLiteralFactoryMethod_ = null;
+			try { 
+				intLiteralConstructor_ = IntLiteral.class.getConstructor(parameterTypes);
+				longLiteralConstructor_ = LongLiteral.class.getConstructor(parameterTypes);
+			} catch (Exception ignore) {
+				// probably eclipse 3.7+
+			}
+			try { 
+				intLiteralFactoryMethod_ = IntLiteral.class.getMethod("buildIntLiteral", parameterTypes);
+				longLiteralFactoryMethod_ = LongLiteral.class.getMethod("buildLongLiteral", parameterTypes);
+			} catch (Exception ignore) {
+				// probably eclipse versions before 3.7
+			}
+			@SuppressWarnings("unchecked")
+			Constructor<CastExpression> castExpressionConstructor_ = (Constructor<CastExpression>) CastExpression.class.getConstructors()[0];
+			castExpressionConstructor = castExpressionConstructor_;
+			intLiteralConstructor = intLiteralConstructor_;
+			longLiteralConstructor = longLiteralConstructor_;
+			intLiteralFactoryMethod = intLiteralFactoryMethod_;
+			longLiteralFactoryMethod = longLiteralFactoryMethod_;
+		}
 	}
 }
