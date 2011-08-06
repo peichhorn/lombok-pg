@@ -55,8 +55,8 @@ public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		final JavacParameterSanitizer sanitizer = new JavacParameterSanitizer();
-		sanitizer.sanitizeParameterOf(method);
+		new JavacParameterSanitizer().sanitizeParameterOf(method);
+		method.rebuild();
 	}
 }
 

@@ -33,15 +33,15 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@code lombok.Sanitize} annotation for eclipse.
+ * Handles the {@code lombok.Validate} annotation for eclipse.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 @DeferUntilPostDiet
-public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
+public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 
 	@Override
-	public void handle(AnnotationValues<Sanitize> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
+	public void handle(AnnotationValues<Validate> annotation, Annotation source, EclipseNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
@@ -53,7 +53,7 @@ public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		new EclipseParameterSanitizer().sanitizeParameterOf(method);
+		new EclipseParameterValidator().validateParameterOf(method);
 		method.rebuild();
 	}
 }

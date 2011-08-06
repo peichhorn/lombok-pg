@@ -19,30 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.javac.handlers;
 
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
+
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.javac.JavacAnnotationHandler;
+import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacMethod;
 
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@code lombok.Sanitize} annotation for eclipse.
+ * Handles the {@code lombok.Validate} annotation for javac.
  */
-@ProviderFor(EclipseAnnotationHandler.class)
-@DeferUntilPostDiet
-public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
+@ProviderFor(JavacAnnotationHandler.class)
+public class HandleValidate extends JavacAnnotationHandler<Validate> {
 
 	@Override
-	public void handle(AnnotationValues<Sanitize> annotation, Annotation source, EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
-		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
+	public void handle(AnnotationValues<Validate> annotation, JCAnnotation source, JavacNode annotationNode) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
+		deleteAnnotationIfNeccessary(annotationNode, annotationType);
+		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method == null) {
 			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
@@ -53,7 +55,8 @@ public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		new EclipseParameterSanitizer().sanitizeParameterOf(method);
+		new JavacParameterValidator().validateParameterOf(method);
 		method.rebuild();
 	}
 }
+
