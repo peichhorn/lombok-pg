@@ -41,6 +41,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import lombok.ast.IType;
 import lombok.ast.WrappedMethodDecl;
 import lombok.core.AST.Kind;
+import lombok.core.util.Cast;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.JavacHandlerUtil;
@@ -92,12 +93,11 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return get().getExtendsClause() != null;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return (T) JavacType.typeOf(child, source);
+				return Cast.<T>uncheckedCast(JavacType.typeOf(child, source));
 			}
 		}
 		throw new IllegalArgumentException();

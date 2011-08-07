@@ -33,13 +33,12 @@ public abstract class Node {
 		return parent;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends Node> T upTo(Class<T> type) {
 		Node node = this;
 		while ((node != null) && !type.isInstance(node)) {
 			node = node.up();
 		}
-		return (T)node;
+		return lombok.core.util.Cast.<T>uncheckedCast(node);
 	}
 
 	public abstract <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p);

@@ -48,6 +48,7 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
 import lombok.ast.IType;
 import lombok.core.AST.Kind;
+import lombok.core.util.Cast;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
@@ -99,12 +100,11 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return get().superclass != null;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return (T) EclipseType.typeOf(child, source);
+				return Cast.<T>uncheckedCast(EclipseType.typeOf(child, source));
 			}
 		}
 		throw new IllegalArgumentException();

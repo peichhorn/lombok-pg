@@ -36,4 +36,8 @@ public final class Lists {
 		Collections.addAll(results, a);
 		return results;
 	}
+	
+	public static <T> List<T> unmodifiableList(T... a) {
+		return Collections.unmodifiableList(list(a));
+	}
 }

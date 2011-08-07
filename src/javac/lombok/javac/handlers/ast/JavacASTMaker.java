@@ -79,6 +79,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
+import lombok.core.util.Cast;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.JavacHandlerUtil;
 
@@ -97,14 +98,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		return this.<T>build(node, null);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends JCTree> T build(lombok.ast.Node node, Class<T> extectedType) {
 		if (node == null) return null;
 		JCTree tree = node.accept(this, null);
 		if ((JCStatement.class == extectedType ) && (tree instanceof JCExpression)) {
 			tree = M.Exec((JCExpression) tree);
 		}
-		return (T) tree;
+		return Cast.<T>uncheckedCast(tree);
 	}
 
 	public <T extends JCTree> List<T> build(java.util.List<? extends lombok.ast.Node> nodes) {
@@ -201,7 +201,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		} else if ("&&".equals(operator)) {
 			opcode = getCTCint(JCTree.class, "AND");
 		} else {
-			opcode = 0;
+			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
 		JCBinary binary = setGeneratedBy(M.Binary(opcode, build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
 		return binary;
@@ -527,13 +527,16 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 
 	@Override
 	public JCTree visitUnary(lombok.ast.Unary node, Void p) {
+		final String operator = node.getOperator();
 		final int opcode;
-		if ("!".equals(node.getOperator())) {
+		if ("!".equals(operator)) {
 			opcode = getCTCint(JCTree.class, "NOT");
-		} else if ("+".equals(node.getOperator())) {
+		} else if ("+".equals(operator)) {
 			opcode = getCTCint(JCTree.class, "PLUS");
+		} else if ("-".equals(operator)) {
+			opcode = getCTCint(JCTree.class, "MINUS");
 		} else {
-			opcode = 0;
+			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
 		JCUnary unary = setGeneratedBy(M.Unary(opcode, build(node.getExpression(), JCExpression.class)), source);
 		return unary;

@@ -22,6 +22,7 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
+import static lombok.core.util.Lists.unmodifiableList;
 
 import java.text.Normalizer;
 import java.util.List;
@@ -50,7 +51,7 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			}
 		};
 
-		public static SanitizerStrategy[] IN_ORDER = new SanitizerStrategy[] { WITH, NORMALIZE };
+		public final static Iterable<SanitizerStrategy> IN_ORDER = unmodifiableList(WITH, NORMALIZE);
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 

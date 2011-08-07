@@ -125,6 +125,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 import lombok.RequiredArgsConstructor;
+import lombok.core.util.Cast;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 
@@ -137,10 +138,9 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		return this.<T>build(node, null);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends ASTNode> T build(lombok.ast.Node node, Class<T> extectedType) {
-		 if (node == null) return null;
-		return (T) node.accept(this, null);
+		if (node == null) return null;
+		return Cast.<T>uncheckedCast(node.accept(this, null));
 	}
 
 	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes) {
@@ -245,7 +245,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 		} else if ("&&".equals(operator)) {
 			opCode = OperatorIds.AND_AND;
 		} else {
-			opCode = 0;
+			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
 		final BinaryExpression binaryExpression;
 		if ("||".equals(operator)) {
@@ -746,13 +746,16 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 
 	@Override
 	public ASTNode visitUnary(lombok.ast.Unary node, Void p) {
+		final String operator = node.getOperator();
 		final int opCode;
-		if ("!".equals(node.getOperator())) {
+		if ("!".equals(operator)) {
 			opCode = OperatorIds.NOT;
-		} else if ("+".equals(node.getOperator())) {
+		} else if ("+".equals(operator)) {
 			opCode = OperatorIds.PLUS;
+		} else if ("-".equals(operator)) {
+			opCode = OperatorIds.MINUS;
 		} else {
-			opCode = 0;
+			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
 		final UnaryExpression unaryExpression = new UnaryExpression(build(node.getExpression(), Expression.class), opCode);
 		setGeneratedByAndCopyPos(unaryExpression, source);
@@ -885,9 +888,7 @@ public class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
 			} catch (Exception ignore) {
 				// probably eclipse versions before 3.7
 			}
-			@SuppressWarnings("unchecked")
-			Constructor<CastExpression> castExpressionConstructor_ = (Constructor<CastExpression>) CastExpression.class.getConstructors()[0];
-			castExpressionConstructor = castExpressionConstructor_;
+			castExpressionConstructor = Cast.uncheckedCast(CastExpression.class.getConstructors()[0]);
 			intLiteralConstructor = intLiteralConstructor_;
 			longLiteralConstructor = longLiteralConstructor_;
 			intLiteralFactoryMethod = intLiteralFactoryMethod_;
