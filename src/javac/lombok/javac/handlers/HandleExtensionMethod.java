@@ -63,7 +63,7 @@ import org.mangosdk.spi.ProviderFor;
 @ResolutionBased
 public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMethod> {
 
-	@Override public void handle(AnnotationValues<ExtensionMethod> annotation, JCAnnotation source, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<ExtensionMethod> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		JavacType type = JavacType.typeOf(annotationNode, source);
@@ -86,7 +86,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		type.rebuild();
 	}
 	
-	private List<Extension> getExtensions(JavacNode typeNode, AnnotationValues<ExtensionMethod> annotation) {
+	private List<Extension> getExtensions(final JavacNode typeNode, final AnnotationValues<ExtensionMethod> annotation) {
 		List<Extension> extensions = new ArrayList<Extension>();
 		for (Object extensionProvider : annotation.getActualExpressions("value")) {
 			if (extensionProvider instanceof JCFieldAccess) {
@@ -102,7 +102,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		return extensions;
 	}
 	
-	private Extension getExtension(JavacNode typeNode, ClassType extensionMethodProviderType) {
+	private Extension getExtension(final JavacNode typeNode, final ClassType extensionMethodProviderType) {
 		List<MethodSymbol> extensionMethods = new ArrayList<MethodSymbol>();
 		TypeSymbol tsym = extensionMethodProviderType.asElement();
 		if (tsym != null) for (Symbol member : tsym.getEnclosedElements()) {
@@ -115,7 +115,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		return new Extension(extensionMethods, tsym);
 	}
 
-	private static Type resolveClassMember(JavacNode node, JCExpression expr) {
+	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
 			new JavacResolution(node.getContext()).resolveClassMember(node);
@@ -124,7 +124,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		return type;
 	}
 	
-	private static Type resolveMethodMember(JavacNode node, JCExpression expr) {
+	private static Type resolveMethodMember(final JavacNode node, final JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
 			JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr));
@@ -154,7 +154,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			type.node().traverse(this);
 		}
 
-		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
+		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 			if (isOfInterest() && (statement instanceof JCMethodInvocation)) {
 				JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 				JCExpression receiver;

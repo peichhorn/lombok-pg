@@ -57,7 +57,7 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			}
 		};
 
-		public final static Iterable<ValidationStrategy> IN_ORDER = unmodifiableList(WITH, NOT_NULL, NOT_EMPTY);
+		public static final Iterable<ValidationStrategy> IN_ORDER = unmodifiableList(WITH, NOT_NULL, NOT_EMPTY);
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 

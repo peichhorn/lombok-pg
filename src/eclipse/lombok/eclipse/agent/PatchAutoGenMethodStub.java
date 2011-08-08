@@ -40,7 +40,7 @@ import lombok.patcher.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchAutoGenMethodStub {
 
-	static void addPatches(ScriptManager sm, boolean ecj) {
+	static void addPatches(final ScriptManager sm, final boolean ecj) {
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
 			.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
@@ -56,27 +56,27 @@ public final class PatchAutoGenMethodStub {
 			.build());
 	}
 
-	private static ThreadLocal<Boolean> issueWasFixed = new ThreadLocal<Boolean>() {
+	private static final ThreadLocal<Boolean> ISSUE_WAS_FIXED = new ThreadLocal<Boolean>() {
 		@Override protected Boolean initialValue() {
 			return Boolean.FALSE;
 		}
 	};
 
-	public static MethodDeclaration addMissingAbstractMethodFor(TypeDeclaration decl, MethodBinding abstractMethod) {
+	public static MethodDeclaration addMissingAbstractMethodFor(final TypeDeclaration decl, final MethodBinding abstractMethod) {
 		Annotation ann = getAnnotation(AutoGenMethodStub.class, decl);
 		EclipseNode typeNode = getTypeNode(decl);
 		if ((ann != null) && (typeNode != null)) {
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
 			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, Eclipse.createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
-			issueWasFixed.set(true);
+			ISSUE_WAS_FIXED.set(true);
 			return method;
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}
 
-	public static void abstractMethodMustBeImplemented(ProblemReporter problemReporter, SourceTypeBinding type, MethodBinding abstractMethod) {
-		if (issueWasFixed.get()) {
-			issueWasFixed.set(false);
+	public static void abstractMethodMustBeImplemented(final ProblemReporter problemReporter, final SourceTypeBinding type, final MethodBinding abstractMethod) {
+		if (ISSUE_WAS_FIXED.get()) {
+			ISSUE_WAS_FIXED.set(false);
 		} else {
 			problemReporter.abstractMethodMustBeImplemented(type, abstractMethod);
 		}

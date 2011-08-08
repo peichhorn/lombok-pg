@@ -24,7 +24,7 @@ package lombok.ast;
 public abstract class Node {
 	private Node parent;
 
-	public <T extends Node> T child(T node) {
+	public <T extends Node> T child(final T node) {
 		if (node != null) node.parent = this;
 		return node;
 	}
@@ -33,7 +33,7 @@ public abstract class Node {
 		return parent;
 	}
 
-	public <T extends Node> T upTo(Class<T> type) {
+	public <T extends Node> T upTo(final Class<T> type) {
 		Node node = this;
 		while ((node != null) && !type.isInstance(node)) {
 			node = node.up();

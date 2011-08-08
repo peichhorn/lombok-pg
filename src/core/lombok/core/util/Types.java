@@ -27,14 +27,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Types {
 
-	public static boolean isOneOf(Object o, Class<?>... clazzes) {
+	public static boolean isOneOf(final Object o, final Class<?>... clazzes) {
 		if (clazzes != null) for (Class<?> clazz : clazzes) {
 			if (clazz.isInstance(o)) return true;
 		}
 		return false;
 	}
 
-	public static boolean isNoneOf(Object o, Class<?>... clazzes) {
+	public static boolean isNoneOf(final Object o, final Class<?>... clazzes) {
 		if (clazzes != null) for (Class<?> clazz : clazzes) {
 			if (clazz.isInstance(o)) return false;
 		}

@@ -72,11 +72,11 @@ import com.sun.tools.javac.util.Name;
 public class HandleYield extends JavacASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 
-	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
+	@Override public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		methodNames.clear();
 	}
 
-	@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
+	@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			String methodName = methodCall.meth.toString();
@@ -91,7 +91,7 @@ public class HandleYield extends JavacASTAdapter {
 		}
 	}
 
-	@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
+	@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
@@ -149,7 +149,7 @@ public class HandleYield extends JavacASTAdapter {
 		return true;
 	}
 
-	private String yielderName(JavacNode methodNode) {
+	private String yielderName(final JavacNode methodNode) {
 		String[] parts = methodNode.getName().split("_");
 		String[] newParts = new String[parts.length + 1];
 		newParts[0] = "yielder";
@@ -157,7 +157,7 @@ public class HandleYield extends JavacASTAdapter {
 		return camelCase("$", newParts);
 	}
 
-	private String elementType(JavacNode methodNode) {
+	private String elementType(final JavacNode methodNode) {
 		JCMethodDecl methodDecl = (JCMethodDecl)methodNode.get();
 		JCExpression type = methodDecl.restype;
 		if (type instanceof JCTypeApply) {
@@ -202,7 +202,7 @@ public class HandleYield extends JavacASTAdapter {
 				if (scan()) {
 					refactor();
 				}
-			} catch (Exception ignore) {
+			} catch (final Exception ignore) {
 			}
 		}
 
@@ -210,7 +210,7 @@ public class HandleYield extends JavacASTAdapter {
 			try {
 				new YieldQuickScanner().scan(methodTree.body);
 				return false;
-			} catch (IllegalStateException ignore) {
+			} catch (final IllegalStateException ignore) {
 				// this means there are unhandled yields left
 			}
 
@@ -276,7 +276,7 @@ public class HandleYield extends JavacASTAdapter {
 			synchronizeLiteralsAndLabels();
 		}
 
-		private JCExpression getYieldExpression(JCExpression expr) {
+		private JCExpression getYieldExpression(final JCExpression expr) {
 			if (expr instanceof JCMethodInvocation) {
 				JCMethodInvocation methodCall = (JCMethodInvocation) expr;
 				if (methodCall.meth.toString().endsWith("yield") && (methodCall.args.length() == 1)) {
@@ -286,7 +286,7 @@ public class HandleYield extends JavacASTAdapter {
 			return null;
 		}
 
-		private boolean isTrueLiteral(JCExpression expression) {
+		private boolean isTrueLiteral(final JCExpression expression) {
 			if (expression instanceof JCLiteral) {
 				return "true".equals(expression.toString());
 			} else if(expression instanceof JCParens) {
@@ -309,17 +309,17 @@ public class HandleYield extends JavacASTAdapter {
 			}
 		}
 
-		private void addStatement(Case label) {
+		private void addStatement(final Case label) {
 			endCase();
 			label.withPattern(Number(cases.size()));
 			cases.add(label);
 		}
 
-		private void addStatement(Statement statement) {
+		private void addStatement(final Statement statement) {
 			statements.add(statement);
 		}
 
-		private Case getBreakLabel(Scope scope) {
+		private Case getBreakLabel(final Scope scope) {
 			Case label = scope.breakLabel;
 			if (label == null) {
 				label = label();
@@ -328,7 +328,7 @@ public class HandleYield extends JavacASTAdapter {
 			return label;
 		}
 
-		private Case getIterationLabel(Scope scope) {
+		private Case getIterationLabel(final Scope scope) {
 			Case label = scope.iterationLabel;
 			if (label == null) {
 				label = label();
@@ -337,18 +337,18 @@ public class HandleYield extends JavacASTAdapter {
 			return label;
 		}
 
-		private Expression literal(Case label) {
+		private Expression literal(final Case label) {
 			NumberLiteral pattern = (NumberLiteral) label.getPattern();
 			NumberLiteral literal = Number(pattern == null ? -1 : pattern.getNumber());
 			labelLiterals.put(literal, label);
 			return literal;
 		}
 
-		private Statement setState(Expression expression) {
+		private Statement setState(final Expression expression) {
 			return Assign(Name(state), expression);
 		}
 
-		private void refactorStatement(JCStatement statement) {
+		private void refactorStatement(final JCStatement statement) {
 			if (statement == null) {
 				return;
 			}
@@ -396,7 +396,7 @@ public class HandleYield extends JavacASTAdapter {
 
 		private class YieldQuickScanner extends TreeScanner {
 			@Override
-			public void visitExec(JCExpressionStatement tree) {
+			public void visitExec(final JCExpressionStatement tree) {
 				final JCExpression expression = getYieldExpression(tree.expr);
 				if (expression != null) {
 					throw new IllegalStateException();
@@ -704,7 +704,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 
 			@Override
-			public void visitApply(JCMethodInvocation tree) {
+			public void visitApply(final JCMethodInvocation tree) {
 				if (tree.meth instanceof JCIdent) {
 					String name = tree.meth.toString();
 					if (Names.isOneOf(name, "hasNext", "next", "remove")) {
@@ -716,7 +716,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 
 			@Override
-			public void visitExec(JCExpressionStatement tree) {
+			public void visitExec(final JCExpressionStatement tree) {
 				final JCExpression expression = getYieldExpression(tree.expr);
 				if (expression != null) {
 					current = new Scope(current, tree) {
@@ -738,7 +738,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 
 			@Override
-			public void visitIdent(JCIdent tree) {
+			public void visitIdent(final JCIdent tree) {
 				
 				if ("this".equals(tree.name.toString())) {
 					methodNode.addError("No unqualified 'this' expression is permitted.");
@@ -751,7 +751,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 
 			@Override
-			public void visitNewClass(JCNewClass tree) {
+			public void visitNewClass(final JCNewClass tree) {
 				scan(tree.encl);
 				scan(tree.clazz);
 				scan(tree.args);
@@ -759,14 +759,14 @@ public class HandleYield extends JavacASTAdapter {
 		}
 	}
 
-	public static abstract class Scope {
+	public abstract static class Scope {
 		public JCTree node;
 		public Scope parent;
 		public Scope target;
 		public Case iterationLabel;
 		public Case breakLabel;
 
-		public Scope(Scope parent, JCTree node) {
+		public Scope(final Scope parent, final JCTree node) {
 			this.parent = parent;
 			this.node = node;
 		}

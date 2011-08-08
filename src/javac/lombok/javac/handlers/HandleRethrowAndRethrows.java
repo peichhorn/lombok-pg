@@ -42,10 +42,17 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 public class HandleRethrowAndRethrows {
 
+	private static RethrowAndRethrowsHandler<JavacMethod> prepareRethrowAndRethrowsHandler(final JavacNode node, final JCAnnotation source,
+			final Class<? extends java.lang.annotation.Annotation> annotationType) {
+		deleteAnnotationIfNeccessary(node, annotationType);
+		deleteImportFromCompilationUnit(node, Rethrow.class.getName());
+		return new RethrowAndRethrowsHandler<JavacMethod>(JavacMethod.methodOf(node, source), node);
+	}
+
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleRethrow extends JavacAnnotationHandler<Rethrow> {
 		@Override
-		public void handle(AnnotationValues<Rethrow> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		public void handle(final AnnotationValues<Rethrow> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
 			prepareRethrowAndRethrowsHandler(annotationNode, ast, ann.getClass()) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
@@ -56,7 +63,7 @@ public class HandleRethrowAndRethrows {
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleRethrows extends JavacAnnotationHandler<Rethrows> {
 		@Override
-		public void handle(AnnotationValues<Rethrows> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		public void handle(final AnnotationValues<Rethrows> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 			RethrowAndRethrowsHandler<JavacMethod> handler = prepareRethrowAndRethrowsHandler(annotationNode, ast, Rethrow.class);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
@@ -65,11 +72,5 @@ public class HandleRethrowAndRethrows {
 			}
 			handler.handle(Rethrow.class, new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
-	}
-	
-	private static RethrowAndRethrowsHandler<JavacMethod> prepareRethrowAndRethrowsHandler(JavacNode node, JCAnnotation source, Class<? extends java.lang.annotation.Annotation> annotationType) {
-		deleteAnnotationIfNeccessary(node, annotationType);
-		deleteImportFromCompilationUnit(node, Rethrow.class.getName());
-		return new RethrowAndRethrowsHandler<JavacMethod>(JavacMethod.methodOf(node, source), node);
 	}
 }

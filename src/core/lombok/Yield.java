@@ -21,6 +21,7 @@
  */
 package lombok;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Yield {
 
 	/**
@@ -54,7 +55,7 @@ public class Yield {
 	 *
 	 * @author Philipp Eichhorn
 	 */
-	public static <T> void yield(T value) {
+	public static <T> void yield(final T value) {
 		return; // yup, that's about all we need
 	}
 }

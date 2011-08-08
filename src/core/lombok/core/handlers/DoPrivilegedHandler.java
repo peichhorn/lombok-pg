@@ -36,7 +36,8 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
+			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
 			return;

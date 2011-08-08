@@ -161,7 +161,7 @@ public final class AST {
 		return new NewArray(type);
 	}
 
-	public static NewArray NewArray(final TypeRef type, int dimensions) {
+	public static NewArray NewArray(final TypeRef type, final int dimensions) {
 		return new NewArray(type, dimensions);
 	}
 
@@ -265,7 +265,7 @@ public final class AST {
 		return new Wildcard();
 	}
 
-	public static Wildcard Wildcard(Wildcard.Bound bound, TypeRef type) {
+	public static Wildcard Wildcard(final Wildcard.Bound bound, final TypeRef type) {
 		return new Wildcard(bound, type);
 	}
 }

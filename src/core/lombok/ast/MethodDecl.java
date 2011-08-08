@@ -30,12 +30,12 @@ public class MethodDecl extends AbstractMethodDecl<MethodDecl> {
 	private boolean implementing;
 	private boolean noBody;
 
-	public MethodDecl(TypeRef returnType, String name) {
+	public MethodDecl(final TypeRef returnType, final String name) {
 		super(name);
 		this.returnType = child(returnType);
 	}
 
-	public MethodDecl withReturnType(TypeRef returnType) {
+	public MethodDecl withReturnType(final TypeRef returnType) {
 		this.returnType = child(returnType);
 		return self();
 	}
@@ -55,7 +55,7 @@ public class MethodDecl extends AbstractMethodDecl<MethodDecl> {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitMethodDecl(this, p);
 	}
 }

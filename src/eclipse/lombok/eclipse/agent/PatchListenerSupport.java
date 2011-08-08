@@ -36,7 +36,7 @@ import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchListenerSupport {
-	static void addPatches(ScriptManager sm, boolean ecj) {
+	static void addPatches(final ScriptManager sm, final boolean ecj) {
 		sm.addScript(exitEarly()
 			.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
 			.request(StackRequest.THIS)
@@ -44,7 +44,7 @@ public final class PatchListenerSupport {
 			.build());
 	}
 
-	public static boolean onClassScope_buildFieldsAndMethods(ClassScope scope) {
+	public static boolean onClassScope_buildFieldsAndMethods(final ClassScope scope) {
 		TypeDeclaration decl = scope.referenceContext;
 		Annotation ann = getAnnotation(ListenerSupport.class, decl);
 		EclipseNode typeNode = getTypeNode(decl);

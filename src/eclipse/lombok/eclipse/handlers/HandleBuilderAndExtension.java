@@ -66,7 +66,7 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleBuilder extends EclipseAnnotationHandler<Builder> {
 
-		@Override public void handle(AnnotationValues<Builder> annotation, Annotation source, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Builder> annotation, final Annotation source, final EclipseNode annotationNode) {
 			final EclipseType type = EclipseType.typeOf(annotationNode, source);
 
 			if (type.isInterface() || type.isEnum() || type.isAnnotation()) {
@@ -78,7 +78,8 @@ public class HandleBuilderAndExtension {
 			case EXISTS_BY_LOMBOK:
 				return;
 			case EXISTS_BY_USER:
-				annotationNode.addWarning(String.format("Not generating 'public static %s %s()' A method with that name already exists", BuilderAndExtensionHandler.BUILDER, decapitalize(type.name())));
+				final String message = "Not generating 'public static %s %s()' A method with that name already exists";
+				annotationNode.addWarning(String.format(message, BuilderAndExtensionHandler.BUILDER, decapitalize(type.name())));
 				return;
 			default:
 			case NOT_EXISTS:
@@ -96,7 +97,7 @@ public class HandleBuilderAndExtension {
 	@DeferUntilPostDiet
 	public static class HandleBuilderExtension extends EclipseAnnotationHandler<Builder.Extension> {
 
-		@Override public void handle(AnnotationValues<Builder.Extension> annotation, Annotation source, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Builder.Extension> annotation, final Annotation source, final EclipseNode annotationNode) {
 			final Class<? extends java.lang.annotation.Annotation> annotationType = Builder.Extension.class;
 
 			final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
@@ -137,12 +138,12 @@ public class HandleBuilderAndExtension {
 	private static class EclispeBuilderAndExtensionHandler extends BuilderAndExtensionHandler<EclipseType, EclipseMethod, FieldDeclaration> {
 
 		@Override
-		protected void collectExtensions(EclipseMethod method, IExtensionCollector collector) {
+		protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
 			method.node().traverse((EclipseASTVisitor) collector);
 		}
 
 		@Override
-		protected Object[] getTypeArguments(Object type) {
+		protected Object[] getTypeArguments(final Object type) {
 			if (type instanceof ParameterizedQualifiedTypeReference) {
 				ParameterizedQualifiedTypeReference typeRef = (ParameterizedQualifiedTypeReference)type;
 				if (typeRef.typeArguments != null) {
@@ -157,7 +158,7 @@ public class HandleBuilderAndExtension {
 		}
 
 		@Override
-		protected String name(Object object) {
+		protected String name(final Object object) {
 			if (object instanceof AbstractMethodDeclaration) {
 				return string(((AbstractMethodDeclaration)object).selector);
 			} else if (object instanceof AbstractVariableDeclaration) {
@@ -167,12 +168,12 @@ public class HandleBuilderAndExtension {
 		}
 
 		@Override
-		protected Object type(FieldDeclaration field) {
+		protected Object type(final FieldDeclaration field) {
 			return field.type;
 		}
 
 		@Override
-		protected String typeStringOf(FieldDeclaration field) {
+		protected String typeStringOf(final FieldDeclaration field) {
 			StringBuilder sb = new StringBuilder();
 			boolean first = true;
 			for (char[] elem : field.type.getTypeName()) {
@@ -184,12 +185,12 @@ public class HandleBuilderAndExtension {
 		}
 
 		@Override
-		protected Object getFieldInitialization(FieldDeclaration field) {
+		protected Object getFieldInitialization(final FieldDeclaration field) {
 			return field.initialization;
 		}
 
 		@Override
-		protected void setFieldInitialization(FieldDeclaration field, Object init) {
+		protected void setFieldInitialization(final FieldDeclaration field, final Object init) {
 			field.initialization = (Expression) init;
 		}
 	}
@@ -208,11 +209,7 @@ public class HandleBuilderAndExtension {
 		private final AccessLevel level;
 		private final Set<String> excludes;
 
-		@Override public IExtensionCollector getExtensionCollector() {
-			return new ExtensionCollector();
-		}
-
-		public BuilderDataCollector(EclipseType type, Builder builder) {
+		public BuilderDataCollector(final EclipseType type, final Builder builder) {
 			super(1);
 			this.type = type;
 			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
@@ -220,6 +217,10 @@ public class HandleBuilderAndExtension {
 			prefix = builder.prefix();
 			callMethods = Arrays.asList(builder.callMethods());
 			level = builder.value();
+		}
+
+		@Override public IExtensionCollector getExtensionCollector() {
+			return new ExtensionCollector();
 		}
 
 		public IBuilderData<EclipseType, EclipseMethod, FieldDeclaration> collect() {
@@ -234,7 +235,7 @@ public class HandleBuilderAndExtension {
 			return allFields;
 		}
 
-		@Override public void visitField(EclipseNode fieldNode, FieldDeclaration field) {
+		@Override public void visitField(final EclipseNode fieldNode, final FieldDeclaration field) {
 			if (isOfInterest()) {
 				if ((field.modifiers & STATIC) != 0) return;
 				String fieldName = new String(field.name);
@@ -272,7 +273,7 @@ public class HandleBuilderAndExtension {
 			return this;
 		}
 
-		@Override public void visitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
+		@Override public void visitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
 			if (isOfInterest() && (method instanceof MethodDeclaration)) {
 				containsRequiredFields = false;
 				isRequiredFieldsExtension = false;
@@ -282,7 +283,7 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
+		@Override public void visitStatement(final EclipseNode statementNode, final Statement statement) {
 			if (isOfInterest()) {
 				if (statement instanceof Assignment) {
 					Assignment assign = (Assignment) statement;
@@ -297,7 +298,7 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void endVisitMethod(EclipseNode methodNode, AbstractMethodDeclaration method) {
+		@Override public void endVisitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
 			if (isOfInterest() && (method instanceof MethodDeclaration)) {
 				MethodDeclaration meth = (MethodDeclaration) method;
 				if (((meth.modifiers & PRIVATE) != 0) && "void".equals(meth.returnType.toString())) {

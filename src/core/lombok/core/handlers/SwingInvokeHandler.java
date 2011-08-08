@@ -37,7 +37,8 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	
-	public void handle(String methodName, Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handle(final String methodName, final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
+			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
 			return;
@@ -75,7 +76,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		method.rebuild();
 	}
 
-	private Try generateTryCatchBlock(Call elseStatementRun, final METHOD_TYPE method) {
+	private Try generateTryCatchBlock(final Call elseStatementRun, final METHOD_TYPE method) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
 			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //

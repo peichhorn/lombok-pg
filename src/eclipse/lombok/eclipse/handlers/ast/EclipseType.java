@@ -54,7 +54,7 @@ import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 
-public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, TypeDeclaration, AbstractMethodDeclaration> {
+public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, TypeDeclaration, AbstractMethodDeclaration> {
 	private final EclipseNode typeNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -68,19 +68,19 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		builder = new EclipseASTMaker(typeNode, source);
 	}
 
-	public <T extends ASTNode> T build(lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends ASTNode> T build(lombok.ast.Node node, Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -100,7 +100,7 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return get().superclass != null;
 	}
 
-	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
+	public <T extends IType<?, ?, ?, ?, ?>> T memberType(final String typeName) {
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
@@ -134,25 +134,25 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return typeNode;
 	}
 
-	public void injectField(lombok.ast.FieldDecl fieldDecl) {
+	public void injectField(final lombok.ast.FieldDecl fieldDecl) {
 		final FieldDeclaration field = builder.build(fieldDecl);
 		EclipseHandlerUtil.injectField(typeNode, field);
 	}
 
-	public void injectField(lombok.ast.EnumConstant enumConstant) {
+	public void injectField(final lombok.ast.EnumConstant enumConstant) {
 		final FieldDeclaration field = builder.build(enumConstant);
 		EclipseHandlerUtil.injectField(typeNode, field);
 	}
 
-	public AbstractMethodDeclaration injectMethod(lombok.ast.MethodDecl methodDecl) {
+	public AbstractMethodDeclaration injectMethod(final lombok.ast.MethodDecl methodDecl) {
 		return (MethodDeclaration) injectMethodImpl(methodDecl);
 	}
 
-	public AbstractMethodDeclaration injectConstructor(lombok.ast.ConstructorDecl constructorDecl) {
+	public AbstractMethodDeclaration injectConstructor(final lombok.ast.ConstructorDecl constructorDecl) {
 		return (ConstructorDeclaration) injectMethodImpl(constructorDecl);
 	}
 
-	private AbstractMethodDeclaration injectMethodImpl(lombok.ast.AbstractMethodDecl<?> methodDecl) {
+	private AbstractMethodDeclaration injectMethodImpl(final lombok.ast.AbstractMethodDecl<?> methodDecl) {
 		final AbstractMethodDeclaration method = builder.build(methodDecl, MethodDeclaration.class);
 		EclipseHandlerUtil.injectMethod(typeNode, method);
 
@@ -170,7 +170,7 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 				MethodBinding methodBinding = null;
 				try {
 					methodBinding = (MethodBinding) Reflection.methodScopeCreateMethodMethod.invoke(scope, method);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					// See 'Reflection' class for why we ignore this exception.
 				}
 				if (methodBinding != null) {
@@ -186,12 +186,12 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return method;
 	}
 
-	public void injectType(lombok.ast.ClassDecl typeDecl) {
+	public void injectType(final lombok.ast.ClassDecl typeDecl) {
 		final TypeDeclaration type = builder.build(typeDecl);
 		Eclipse.injectType(typeNode, type);
 	}
 
-	public void removeMethod(EclipseMethod method) {
+	public void removeMethod(final EclipseMethod method) {
 		TypeDeclaration type = (TypeDeclaration) typeNode.get();
 		List<AbstractMethodDeclaration> methods = new ArrayList<AbstractMethodDeclaration>();
 		for (AbstractMethodDeclaration decl : type.methods) {
@@ -215,11 +215,11 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 		return typeParameters;
 	}
 
-	public boolean hasField(String fieldName) {
+	public boolean hasField(final String fieldName) {
 		return (fieldExists(fieldName, typeNode) != MemberExistsResult.NOT_EXISTS);
 	}
 
-	public boolean hasMethod(String methodName) {
+	public boolean hasMethod(final String methodName) {
 		return (methodExists(methodName, typeNode, false) != MemberExistsResult.NOT_EXISTS);
 	}
 
@@ -267,7 +267,7 @@ public class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, T
 			try {
 				m = MethodScope.class.getDeclaredMethod("createMethod", AbstractMethodDeclaration.class);
 				m.setAccessible(true);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				// well can't do anything about it then
 			}
 			methodScopeCreateMethodMethod = m;

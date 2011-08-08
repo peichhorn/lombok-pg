@@ -41,7 +41,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 
 	@Override
-	public void handle(AnnotationValues<Validate> annotation, Annotation source, EclipseNode annotationNode) {
+	public void handle(final AnnotationValues<Validate> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method == null) {
@@ -55,8 +55,8 @@ public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 		}
 
 		method.body(Block() //
-				.withStatements(new EclipseParameterValidator().validateParameterOf(method)) //
-				.withStatements(method.statements()));
+			.withStatements(new EclipseParameterValidator().validateParameterOf(method)) //
+			.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

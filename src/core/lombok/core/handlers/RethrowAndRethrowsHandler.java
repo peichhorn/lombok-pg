@@ -22,7 +22,7 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.isEmpty;
+import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 
 import java.util.ArrayList;
@@ -38,14 +38,14 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 	private final List<RethrowData> rethrows = new ArrayList<RethrowData>();
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
-	
+
 	public RethrowAndRethrowsHandler<METHOD_TYPE> withRethrow(final RethrowData rethrowData) {
 		rethrows.add(rethrowData);
 		return this;
 	}
-	
-	public void handle(Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 
+	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
+			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (rethrows.isEmpty()) {
 			return;
 		}
@@ -71,9 +71,11 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 				if (RethrowData.class == thrown) {
 					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
 				} else if (rethrow.message.isEmpty()) {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(Name(varname)))));
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
+						.withArgument(Name(varname)))));
 				} else {
-					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())).withArgument(String(rethrow.message)).withArgument(Name(varname)))));
+					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
+						.withArgument(String(rethrow.message)).withArgument(Name(varname)))));
 				}
 			}
 		}
@@ -84,7 +86,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 
 	public static List<Class<?>> classNames(final Class<?>[] classes) {
 		if (isEmpty(classes)) {
-			return Lists.<Class<?>>list(RethrowData.class, Exception.class);
+			return Lists.<Class<?>> list(RethrowData.class, Exception.class);
 		}
 		return Lists.list(classes);
 	}

@@ -34,11 +34,11 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 	private final JavacMethod method;
 	private final lombok.ast.Statement replacement;
 
-	public void visit(JCTree node) {
+	public void visit(final JCTree node) {
 		node.accept(this, null);
 	}
 
-	protected final List<NODE_TYPE> replace(List<NODE_TYPE> nodes) {
+	protected final List<NODE_TYPE> replace(final List<NODE_TYPE> nodes) {
 		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
 		for (NODE_TYPE node : nodes) {
 			if (needsReplacing(node)) {
@@ -49,7 +49,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 		return newNodes.toList();
 	}
 
-	protected final NODE_TYPE replace(NODE_TYPE node) {
+	protected final NODE_TYPE replace(final NODE_TYPE node) {
 		if ((node != null) && needsReplacing(node)) {
 			return method.<NODE_TYPE>build(replacement);
 		}

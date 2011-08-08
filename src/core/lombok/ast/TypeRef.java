@@ -32,7 +32,7 @@ public class TypeRef extends Expression {
 	private boolean superType;
 	private int dims;
 
-	public TypeRef(Class<?> clazz) {
+	public TypeRef(final Class<?> clazz) {
 		this(clazz.getName());
 	}
 
@@ -57,7 +57,7 @@ public class TypeRef extends Expression {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitTypeRef(this, p);
 	}
 }

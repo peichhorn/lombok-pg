@@ -28,11 +28,11 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 
-	public ReturnStatementReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+	public ReturnStatementReplaceVisitor(final JavacMethod method, final lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
-	@Override protected boolean needsReplacing(JCStatement node) {
+	@Override protected boolean needsReplacing(final JCStatement node) {
 		return node instanceof JCReturn;
 	}
 }

@@ -31,13 +31,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Lists {
 
-	public static <T> List<T> list(T... a) {
+	public static <T> List<T> list(final T... a) {
 		List<T> results = new ArrayList<T>();
 		Collections.addAll(results, a);
 		return results;
 	}
 	
-	public static <T> List<T> unmodifiableList(T... a) {
+	public static <T> List<T> unmodifiableList(final T... a) {
 		return Collections.unmodifiableList(list(a));
 	}
 }

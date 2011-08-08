@@ -41,28 +41,30 @@ import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchVisibleForTesting {
-	static void addPatches(ScriptManager sm, boolean ecj) {
+	static void addPatches(final ScriptManager sm, final boolean ecj) {
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.methodToReplace(new Hook(SCOPE, "findMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
-			.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook(PatchVisibleForTesting.class.getName(), "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.build());
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.methodToReplace(new Hook(SCOPE, "findExactMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
-			.replacementMethod(new Hook("lombok.eclipse.agent.PatchVisibleForTesting", "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook(PatchVisibleForTesting.class.getName(), "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.build());
 	}
 
-	public static MethodBinding onFindMethod(Scope scope, ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
+	public static MethodBinding onFindMethod(final Scope scope, final ReferenceBinding receiverType, final char[] selector, final TypeBinding[] argumentTypes,
+			final InvocationSite invocationSite) {
 		return handleVisibleForTesting(scope, scope.findMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
 
-	public static MethodBinding onFindExactMethod(Scope scope, ReferenceBinding receiverType, char[] selector, TypeBinding[] argumentTypes, InvocationSite invocationSite) {
+	public static MethodBinding onFindExactMethod(final Scope scope, final ReferenceBinding receiverType, final char[] selector, final TypeBinding[] argumentTypes,
+			final InvocationSite invocationSite) {
 		return handleVisibleForTesting(scope, scope.findExactMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
 
-	private static MethodBinding handleVisibleForTesting(Scope scope, MethodBinding methodBinding) {
+	private static MethodBinding handleVisibleForTesting(final Scope scope, final MethodBinding methodBinding) {
 		if (methodBinding == null) {
 			return null;
 		}

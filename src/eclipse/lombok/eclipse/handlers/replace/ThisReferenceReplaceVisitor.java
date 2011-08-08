@@ -30,12 +30,12 @@ import org.eclipse.jdt.internal.compiler.ast.*;
  */
 public class ThisReferenceReplaceVisitor extends ExpressionReplaceVisitor {
 
-	public ThisReferenceReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+	public ThisReferenceReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
 	@Override
-	protected boolean needsReplacing(Expression node) {
+	protected boolean needsReplacing(final Expression node) {
 		return (node instanceof ThisReference) && !((ThisReference) node).isImplicitThis();
 	}
 }

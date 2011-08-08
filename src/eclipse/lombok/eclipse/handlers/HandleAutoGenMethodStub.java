@@ -49,7 +49,8 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 	}
 
 	// real meat
-	public MethodDeclaration handle(final MethodBinding abstractMethod, final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
+	public MethodDeclaration handle(final MethodBinding abstractMethod, final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source,
+			final EclipseNode annotationNode) {
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
 		final Statement statement;
 		if (annotation.getInstance().throwException()) {

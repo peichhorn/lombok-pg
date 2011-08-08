@@ -36,7 +36,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	 * @param methodName the entry point name to check for.
 	 * @param node Any node that represents the Type to look in, or any child node thereof.
 	 */
-	public boolean entrypointExists(String methodName, TYPE_TYPE type) {
+	public boolean entrypointExists(final String methodName, final TYPE_TYPE type) {
 		for (METHOD_TYPE method : type.methods()) {
 			if (method.isStatic() && method.returns("void") && method.name().equals(methodName)) {
 				return true;
@@ -58,7 +58,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public void createEntrypoint(TYPE_TYPE type, String name, String methodName, IParameterProvider paramProvider, IArgumentProvider argsProvider) {
+	public void createEntrypoint(final TYPE_TYPE type, final String name, final String methodName, final IParameterProvider paramProvider, final IArgumentProvider argsProvider) {
 		if (!type.hasMethod(methodName)) {
 			return;
 		}
@@ -80,7 +80,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 	
 	public static class ApplicationArgumentProvider implements IArgumentProvider {
-		@Override public List<Expression> getArgs(String name) {
+		@Override public List<Expression> getArgs(final String name) {
 			List<Expression> args = new ArrayList<Expression>();
 			args.add(Name("args"));
 			return args;
@@ -88,7 +88,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 
 	public static class ApplicationParameterProvider implements IParameterProvider {
-		@Override public List<Argument> getParams(String name) {
+		@Override public List<Argument> getParams(final String name) {
 			List<Argument> params = new ArrayList<Argument>();
 			params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
 			return params;
@@ -96,7 +96,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 	
 	public static class JvmAgentArgumentProvider implements IArgumentProvider {
-		@Override public List<lombok.ast.Expression> getArgs(String name) {
+		@Override public List<lombok.ast.Expression> getArgs(final String name) {
 			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
 			args.add(("agentmain".equals(name) ? True() : False()));
 			args.add(Name("params"));
@@ -106,7 +106,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 
 	public static class JvmAgentParameterProvider implements IParameterProvider {
-		@Override public List<lombok.ast.Argument> getParams(String name) {
+		@Override public List<lombok.ast.Argument> getParams(final String name) {
 			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
 			params.add(Arg(Type("java.lang.String"), "params"));
 			params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));

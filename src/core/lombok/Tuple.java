@@ -21,6 +21,7 @@
  */
 package lombok;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Tuple {
 	/**
 	 * A simplified (incomplete) take on tuple assignments.
@@ -37,7 +38,7 @@ public class Tuple {
 	 *
 	 * @author Philipp Eichhorn
 	 */
-	public static Tuple tuple(Object... objects) {
+	public static Tuple tuple(final Object... objects) {
 		return null;
 	}
 }

@@ -65,15 +65,15 @@ public class Names {
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
 	}
 
-	public static boolean isEmpty(String s) {
+	public static boolean isEmpty(final String s) {
 		return trim(s).isEmpty();
 	}
 
-	public static boolean isNotEmpty(String s) {
+	public static boolean isNotEmpty(final String s) {
 		return !isEmpty(s);
 	}
 
-	public static boolean isOneOf(String s, String... candidates) {
+	public static boolean isOneOf(final String s, final String... candidates) {
 		if (candidates != null) for (String candidate : candidates) {
 			if (candidate.equals(s)) return true;
 		}
@@ -87,16 +87,16 @@ public class Names {
 	 *   s   -> s
 	 * </pre>
 	 */
-	public static String trim(String s) {
+	public static String trim(final String s) {
 		if (s == null) return "";
 		else return s.trim();
 	}
 
-	public static String singular(String s) {
+	public static String singular(final String s) {
 		return s.endsWith("s") ? s.substring(0, s.length() - 1) : s;
 	}
 
-	public static String camelCase(String first, String... rest) {
+	public static String camelCase(final String first, final String... rest) {
 		List<String> nonEmptyStrings = new ArrayList<String>();
 		if (isNotEmpty(first)) nonEmptyStrings.add(first);
 		if (Arrays.isNotEmpty(rest)) for (String s : rest) {
@@ -105,7 +105,7 @@ public class Names {
 		return camelCase0(nonEmptyStrings.toArray(new String[nonEmptyStrings.size()]));
 	}
 
-	private static String camelCase0(String[] s) {
+	private static String camelCase0(final String[] s) {
 		if (Arrays.isEmpty(s)) return "";
 		StringBuilder builder = new StringBuilder();
 		builder.append(s[0]);

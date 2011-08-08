@@ -42,7 +42,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleValidate extends JavacAnnotationHandler<Validate> {
 
 	@Override
-	public void handle(AnnotationValues<Validate> annotation, JCAnnotation source, JavacNode annotationNode) {
+	public void handle(final AnnotationValues<Validate> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);

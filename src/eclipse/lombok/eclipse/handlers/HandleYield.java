@@ -75,11 +75,11 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 public class HandleYield extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 
-	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+	@Override public void visitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		methodNames.clear();
 	}
 
-	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
+	@Override public void visitStatement(final EclipseNode statementNode, final Statement statement) {
 		if (statement instanceof MessageSend) {
 			String methodName = getMethodName((MessageSend) statement);
 			if (isMethodCallValid(statementNode, methodName, Yield.class, "yield")) {
@@ -93,7 +93,7 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 	}
 
-	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+	@Override public void endVisitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
@@ -154,7 +154,7 @@ public class HandleYield extends EclipseASTAdapter {
 		return true;
 	}
 
-	private String yielderName(EclipseNode methodNode) {
+	private String yielderName(final EclipseNode methodNode) {
 		String[] parts = methodNode.getName().split("_");
 		String[] newParts = new String[parts.length + 1];
 		newParts[0] = "yielder";
@@ -162,7 +162,7 @@ public class HandleYield extends EclipseASTAdapter {
 		return camelCase("$", newParts);
 	}
 
-	private String elementType(EclipseNode methodNode) {
+	private String elementType(final EclipseNode methodNode) {
 		MethodDeclaration methodDecl = (MethodDeclaration)methodNode.get();
 		TypeReference type = methodDecl.returnType;
 		if (type instanceof ParameterizedSingleTypeReference) {
@@ -214,7 +214,7 @@ public class HandleYield extends EclipseASTAdapter {
 				if (scan()) {
 					refactor();
 				}
-			} catch (Exception ignore) {
+			} catch (final Exception ignore) {
 			}
 		}
 
@@ -222,7 +222,7 @@ public class HandleYield extends EclipseASTAdapter {
 			try {
 				declaration.traverse(new YieldQuickScanner(), (ClassScope)null);
 				return false;
-			} catch (IllegalStateException ignore) {
+			} catch (final IllegalStateException ignore) {
 				// this means there are unhandled yields left
 			}
 
@@ -281,7 +281,7 @@ public class HandleYield extends EclipseASTAdapter {
 			synchronizeLiteralsAndLabels();
 		}
 
-		private Expression getYieldExpression(MessageSend invoke) {
+		private Expression getYieldExpression(final MessageSend invoke) {
 			if ("yield".equals(new String(invoke.selector)) && (invoke.arguments != null) && (invoke.arguments.length == 1)) {
 				return invoke.arguments[0];
 			}
@@ -292,24 +292,24 @@ public class HandleYield extends EclipseASTAdapter {
 			return new Label();
 		}
 
-		private void addStatement(Label label) {
+		private void addStatement(final Label label) {
 			if (label != null) {
 				label.id = statements.size();
 				statements.add(label);
 			}
 		}
 
-		private void addStatement(lombok.ast.Statement statement) {
+		private void addStatement(final lombok.ast.Statement statement) {
 			statements.add(method.build(statement, Statement.class));
 		}
 
-		private Expression labelLiteral(Label label) {
+		private Expression labelLiteral(final Label label) {
 			Expression literal = new UnaryExpression(label.constantExpression != null ? label.constantExpression : method.build(Number(Integer.valueOf(-1)), Expression.class), OperatorIds.PLUS);
 			labelLiterals.put(literal, label);
 			return literal;
 		}
 
-		public Label getBreakLabel(Scope scope) {
+		public Label getBreakLabel(final Scope scope) {
 			Label label = scope.breakLabel;
 			if (label == null) {
 				label = label();
@@ -318,7 +318,7 @@ public class HandleYield extends EclipseASTAdapter {
 			return label;
 		}
 
-		public Label getIterationLabel(Scope scope) {
+		public Label getIterationLabel(final Scope scope) {
 			Label label = scope.iterationLabel;
 			if (label == null) {
 				label = label();
@@ -327,11 +327,11 @@ public class HandleYield extends EclipseASTAdapter {
 			return label;
 		}
 
-		private lombok.ast.Statement setStateId(Expression expression) {
+		private lombok.ast.Statement setStateId(final Expression expression) {
 			return Assign(Name(stateName), Expr(expression));
 		}
 
-		private void refactorStatement(Statement statement) {
+		private void refactorStatement(final Statement statement) {
 			if (statement == null) {
 				return;
 			}
@@ -404,7 +404,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(MethodDeclaration methodDeclaration, ClassScope scope) {
+			public void endVisit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
 				current = current.parent;
 			}
 
@@ -426,7 +426,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(Block block, BlockScope scope) {
+			public void endVisit(final Block block, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -443,7 +443,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(LabeledStatement labeledStatement, BlockScope scope) {
+			public void endVisit(final LabeledStatement labeledStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -483,7 +483,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(ForStatement forStatement, BlockScope scope) {
+			public void endVisit(final ForStatement forStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -512,7 +512,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(ForeachStatement forStatement, BlockScope scope) {
+			public void endVisit(final ForeachStatement forStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -535,7 +535,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(DoStatement doStatement, BlockScope scope) {
+			public void endVisit(final DoStatement doStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -562,7 +562,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(WhileStatement whileStatement, BlockScope scope) {
+			public void endVisit(final WhileStatement whileStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -594,7 +594,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(IfStatement ifStatement, BlockScope scope) {
+			public void endVisit(final IfStatement ifStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -640,7 +640,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(SwitchStatement switchStatement, BlockScope scope) {
+			public void endVisit(final SwitchStatement switchStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -682,7 +682,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(Argument argument, BlockScope scope) {
+			public void endVisit(final Argument argument, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -693,7 +693,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(ReturnStatement returnStatement, BlockScope scope) {
+			public void endVisit(final ReturnStatement returnStatement, final BlockScope scope) {
 			}
 
 			@Override
@@ -744,7 +744,7 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(BreakStatement breakStatement, BlockScope scope) {
+			public void endVisit(final BreakStatement breakStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
@@ -799,12 +799,12 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(ContinueStatement continueStatement, BlockScope scope) {
+			public void endVisit(final ContinueStatement continueStatement, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(ThisReference thisReference, BlockScope scope) {
+			public boolean visit(final ThisReference thisReference, final BlockScope scope) {
 				if (!thisReference.isImplicitThis()) {
 					method.node().addError("No unqualified 'this' expression is permitted.");
 				}
@@ -812,13 +812,13 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public boolean visit(SuperReference thisReference, BlockScope scope) {
+			public boolean visit(final SuperReference thisReference, final BlockScope scope) {
 				method.node().addError("No unqualified 'super' expression is permitted.");
 				return false;
 			}
 
 			@Override
-			public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
+			public boolean visit(final SingleNameReference singleNameReference, final BlockScope scope) {
 				names.add(new String(singleNameReference.token));
 				return super.visit(singleNameReference, scope);
 			}
@@ -860,14 +860,14 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 	}
 
-	private static abstract class Scope {
+	private abstract static class Scope {
 		public ASTNode node;
 		public Scope parent;
 		public Scope target;
 		public Label iterationLabel;
 		public Label breakLabel;
 
-		public Scope(Scope parent, ASTNode node) {
+		public Scope(final Scope parent, final ASTNode node) {
 			this.parent = parent;
 			this.node = node;
 		}

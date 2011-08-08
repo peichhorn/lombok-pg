@@ -32,11 +32,11 @@ public class JavacASTAdapterWithTypeDepth extends JavacASTAdapter {
 	private final int maxTypeDepth;
 	private int typeDepth;
 
-	@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
+	@Override public void visitType(final JavacNode typeNode, final JCClassDecl type) {
 		typeDepth++;
 	}
 
-	@Override public void endVisitType(JavacNode typeNode, JCClassDecl type) {
+	@Override public void endVisitType(final JavacNode typeNode, final JCClassDecl type) {
 		typeDepth--;
 	}
 

@@ -44,14 +44,14 @@ import com.sun.tools.javac.util.ListBuffer;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Javac {
-	public static void injectType(JavacNode typeNode, JCClassDecl type) {
+	public static void injectType(final JavacNode typeNode, final JCClassDecl type) {
 		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
 		addSuppressWarningsAll(type.mods, typeNode, type.pos);
 		typeDecl.defs = typeDecl.defs.append(type);
 		typeNode.add(type, Kind.TYPE);
 	}
 
-	public static void addSuppressWarningsAll(JCModifiers mods, JavacNode node, int pos) {
+	public static void addSuppressWarningsAll(final JCModifiers mods, final JavacNode node, final int pos) {
 		TreeMaker maker = node.getTreeMaker();
 		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings").setPos(pos);
 		JCExpression allLiteral = maker.Literal("all").setPos(pos);
@@ -65,7 +65,7 @@ public final class Javac {
 		mods.annotations = newAnnotations.toList();
 	}
 
-	public static boolean isMethodCallValid(JavacNode node, String methodName, Class<?> clazz, String method) {
+	public static boolean isMethodCallValid(final JavacNode node, final String methodName, final Class<?> clazz, final String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
 		wasImported |= methodName.equals(clazz.getSimpleName() + "." + method) && importedStatements.contains(clazz.getName());
@@ -73,7 +73,7 @@ public final class Javac {
 		return wasImported;
 	}
 
-	public static <T> List<T> remove(List<T> list, T elementToRemove) {
+	public static <T> List<T> remove(final List<T> list, final T elementToRemove) {
 		ListBuffer<T> newList = ListBuffer.lb();
 		for (T element : list) {
 			if (elementToRemove != element) newList.append(element);
@@ -81,7 +81,23 @@ public final class Javac {
 		return newList.toList();
 	}
 
-	public static void deleteMethodCallImports(JavacNode node, String methodName, Class<?> clazz, String method) {
+	/**
+	 * Removes the interface from javac's AST (it remains in lombok's AST),
+	 * then removes any import statement that imports this exact interface (not star imports).
+	 */
+	public static void markInterfaceAsProcessed(final JavacNode typeNode, final Class<?> interfazeType) {
+		JCClassDecl typeDecl = null;
+		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
+		if (typeDecl != null) {
+			ListBuffer<JCExpression> newImplementing = ListBuffer.lb();
+			for (JCExpression exp : typeDecl.implementing) {
+				if (!(exp.toString().equals(interfazeType.getName()) || exp.toString().equals(interfazeType.getSimpleName()))) newImplementing.append(exp);
+			}
+			typeDecl.implementing = newImplementing.toList();
+		}
+	}
+
+	public static void deleteMethodCallImports(final JavacNode node, final String methodName, final Class<?> clazz, final String method) {
 		if (methodName.equals(method)) {
 			deleteImport(node, clazz.getName() + "." + method, true);
 		} else if (methodName.equals(clazz.getSimpleName() + "." + method)) {
@@ -97,7 +113,7 @@ public final class Javac {
 		deleteImport(node, name, false);
 	}
 
-	public static void deleteImport(JavacNode node, String name, boolean deleteStatic) {
+	public static void deleteImport(final JavacNode node, final String name, final boolean deleteStatic) {
 		if (!node.shouldDeleteLombokAnnotations()) return;
 		String adjustedName = name.replace("$", ".");
 		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();
@@ -135,7 +151,7 @@ public final class Javac {
 		return typeNode;
 	}
 
-	public static JCClassDecl typeDeclFiltering(JavacNode typeNode, long filterFlags) {
+	public static JCClassDecl typeDeclFiltering(final JavacNode typeNode, final long filterFlags) {
 		JCClassDecl typeDecl = null;
 		if ((typeNode != null) && (typeNode.get() instanceof JCClassDecl)) typeDecl = (JCClassDecl)typeNode.get();
 		if ((typeDecl != null) && ((typeDecl.mods.flags & filterFlags) != 0)) {
@@ -144,7 +160,7 @@ public final class Javac {
 		return typeDecl;
 	}
 
-	public static JCAnnotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, JCVariableDecl decl) {
+	public static JCAnnotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final JCVariableDecl decl) {
 		for (JCAnnotation ann : decl.mods.annotations) {
 			if (matchesType(ann, expectedType)) {
 				return ann;
@@ -153,7 +169,7 @@ public final class Javac {
 		return null;
 	}
 
-	private static boolean matchesType(JCAnnotation ann, Class<?> expectedType) {
+	private static boolean matchesType(final JCAnnotation ann, final Class<?> expectedType) {
 		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
 	}
 }

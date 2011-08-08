@@ -30,13 +30,13 @@ import com.sun.tools.javac.tree.JCTree.*;
 public class VariableNameReplaceVisitor extends ExpressionReplaceVisitor {
 	private final String oldName;
 	
-	public VariableNameReplaceVisitor(JavacMethod method, String oldName, String newName) {
+	public VariableNameReplaceVisitor(final JavacMethod method, final String oldName, final String newName) {
 		super(method, Name(newName));
 		this.oldName = oldName;
 	}
 
 	@Override
-	protected boolean needsReplacing(JCExpression node) {
+	protected boolean needsReplacing(final JCExpression node) {
 		return (node instanceof JCIdent) && oldName.equals(node.toString());
 	}
 }

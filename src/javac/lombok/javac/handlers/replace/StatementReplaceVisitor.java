@@ -28,48 +28,48 @@ import com.sun.tools.javac.tree.JCTree.*;
 
 public abstract class StatementReplaceVisitor extends ReplaceVisitor<JCStatement> {
 
-	protected StatementReplaceVisitor(JavacMethod method, lombok.ast.Statement replacement) {
+	protected StatementReplaceVisitor(final JavacMethod method, final lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
-	@Override public Void visitBlock(BlockTree tree, Void p) {
+	@Override public Void visitBlock(final BlockTree tree, final Void p) {
 		JCBlock block = (JCBlock) tree;
 		block.stats = replace(block.stats);
 		return super.visitBlock(tree, p);
 	}
 
-	@Override public Void visitCase(CaseTree tree, Void p) {
+	@Override public Void visitCase(final CaseTree tree, final Void p) {
 		JCCase caseTree = (JCCase) tree;
 		caseTree.stats = replace(caseTree.stats);
 		return super.visitCase(tree, p);
 	}
 
-	@Override public Void visitDoWhileLoop(DoWhileLoopTree tree, Void p) {
+	@Override public Void visitDoWhileLoop(final DoWhileLoopTree tree, final Void p) {
 		JCDoWhileLoop doWhileLoop = (JCDoWhileLoop) tree;
 		doWhileLoop.body = replace(doWhileLoop.body);
 		return super.visitDoWhileLoop(tree, p);
 	}
 
-	@Override public Void visitEnhancedForLoop(EnhancedForLoopTree tree, Void p) {
+	@Override public Void visitEnhancedForLoop(final EnhancedForLoopTree tree, final Void p) {
 		JCEnhancedForLoop enhancedForLoop = (JCEnhancedForLoop) tree;
 		enhancedForLoop.body = replace(enhancedForLoop.body);
 		return super.visitEnhancedForLoop(tree, p);
 	}
 
-	@Override public Void visitForLoop(ForLoopTree tree, Void p) {
+	@Override public Void visitForLoop(final ForLoopTree tree, final Void p) {
 		JCForLoop forLoop = (JCForLoop) tree;
 		forLoop.body = replace(forLoop.body);
 		return super.visitForLoop(tree, p);
 	}
 
-	@Override public Void visitIf(IfTree tree, Void p) {
+	@Override public Void visitIf(final IfTree tree, final Void p) {
 		JCIf ifTree = (JCIf) tree;
 		ifTree.thenpart = replace(ifTree.thenpart);
 		ifTree.elsepart = replace(ifTree.elsepart);
 		return super.visitIf(tree, p);
 	}
 
-	@Override public Void visitWhileLoop(WhileLoopTree tree, Void p) {
+	@Override public Void visitWhileLoop(final WhileLoopTree tree, final Void p) {
 		JCWhileLoop whileLoop = (JCWhileLoop) tree;
 		whileLoop.body = replace(whileLoop.body);
 		return super.visitWhileLoop(tree, p);

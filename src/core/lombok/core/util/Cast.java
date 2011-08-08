@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Cast {
 	@SuppressWarnings("unchecked")
-	public static <T> T uncheckedCast(Object o) {
+	public static <T> T uncheckedCast(final Object o) {
 		return (T) o;
 	}
 }

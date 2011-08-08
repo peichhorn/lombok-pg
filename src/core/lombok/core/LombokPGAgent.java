@@ -26,32 +26,32 @@ import java.lang.instrument.Instrumentation;
 import lombok.core.Agent;
 
 public abstract class LombokPGAgent extends Agent {
-	public static void agentmain(String agentArgs, Instrumentation instrumentation) throws Throwable {
+	public static void agentmain(final String agentArgs, final Instrumentation instrumentation) throws Throwable {
 		Agent.agentmain(agentArgs, instrumentation);
 		runMoreAgents(agentArgs, instrumentation, true);
 	}
 
-	public static void premain(String agentArgs, Instrumentation instrumentation) throws Throwable {
+	public static void premain(final String agentArgs, final Instrumentation instrumentation) throws Throwable {
 		Agent.premain(agentArgs, instrumentation);
 		runMoreAgents(agentArgs, instrumentation, false);
 	}
 
-	private static void runMoreAgents(String agentArgs, Instrumentation instrumentation, boolean injected) throws Throwable {
+	private static void runMoreAgents(final String agentArgs, final Instrumentation instrumentation, final boolean injected) throws Throwable {
 		AgentInfo info = new LombokPGEclipsePatcherInfo();
 		try {
 			Class<?> agentClass = Class.forName(info.className());
 			Agent agent = (Agent) agentClass.newInstance();
 			agent.runAgent(agentArgs, instrumentation, injected);
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 			info.problem(t, instrumentation);
 		}
 	}
 
 	// copy of Agent.AgentInfo, which is private
-	private static abstract class AgentInfo {
+	private abstract static class AgentInfo {
 		abstract String className();
 
-		void problem(Throwable t, Instrumentation instrumentation) throws Throwable {
+		void problem(final Throwable t, final Instrumentation instrumentation) throws Throwable {
 			if (t instanceof ClassNotFoundException) {
 				//That's okay - this lombok-pg evidently is a version with support for something stripped out.
 				return;

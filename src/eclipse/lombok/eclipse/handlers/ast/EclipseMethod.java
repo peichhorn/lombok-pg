@@ -57,7 +57,7 @@ import lombok.eclipse.handlers.replace.ReturnStatementReplaceVisitor;
 import lombok.eclipse.handlers.replace.ThisReferenceReplaceVisitor;
 import lombok.eclipse.handlers.replace.VariableNameReplaceVisitor;
 
-public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
+public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
 	private final EclipseNode methodNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -71,19 +71,19 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		builder = new EclipseASTMaker(methodNode, source);
 	}
 
-	public <T extends ASTNode> T build(lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends ASTNode> T build(lombok.ast.Node node, Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends ASTNode> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -109,7 +109,7 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		return objectReturnType;
 	}
 
-	public boolean returns(Class<?> clazz) {
+	public boolean returns(final Class<?> clazz) {
 		return returns(clazz.getSimpleName());
 	}
 
@@ -133,12 +133,12 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		return methodDecl.returnType;
 	}
 
-	public void replaceReturns(lombok.ast.Statement replacement) {
+	public void replaceReturns(final lombok.ast.Statement replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
 	}
 
 	@Override
-	public void replaceVariableName(String oldName, String newName) {
+	public void replaceVariableName(final String oldName, final String newName) {
 		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
 	}
 
@@ -210,11 +210,11 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		get().modifiers |= PUBLIC;
 	}
 
-	public void body(lombok.ast.Statement... statements) {
+	public void body(final lombok.ast.Statement... statements) {
 		body(list(statements));
 	}
 
-	public void body(List<lombok.ast.Statement> statements) {
+	public void body(final List<lombok.ast.Statement> statements) {
 		setGeneratedByAndCopyPos(get(), source);
 		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		get().statements = builder.build(statements).toArray(new Statement[0]);
@@ -253,7 +253,7 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		return annotations(get().annotations);
 	}
 	
-	private List<lombok.ast.Annotation> annotations(Annotation[] anns) {
+	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
@@ -273,7 +273,7 @@ public class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNod
 		return arguments(false);
 	}
 
-	public java.util.List<lombok.ast.Argument> arguments(boolean includeAnnotations) {
+	public java.util.List<lombok.ast.Argument> arguments(final boolean includeAnnotations) {
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
 		if (isNotEmpty(get().arguments)) {
 			if (includeAnnotations) for (Argument argument : get().arguments) {

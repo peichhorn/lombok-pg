@@ -62,12 +62,12 @@ public class HandleTuple extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 
-	@Override public void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+	@Override public void visitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
 	
-	@Override public void visitLocal(EclipseNode localNode, LocalDeclaration local) {
+	@Override public void visitLocal(final EclipseNode localNode, final LocalDeclaration local) {
 		MessageSend initTupleCall = getTupelCall(localNode, local.initialization);
 		if (initTupleCall != null) {
 			final EclipseMethod method = EclipseMethod.methodOf(localNode, local);
@@ -79,7 +79,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 	}
 
-	@Override public void visitStatement(EclipseNode statementNode, Statement statement) {
+	@Override public void visitStatement(final EclipseNode statementNode, final Statement statement) {
 		if (statement instanceof Assignment) {
 			final Assignment assignment = (Assignment) statement;
 			final MessageSend leftTupleCall = getTupelCall(statementNode, assignment.lhs);
@@ -96,7 +96,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		}
 	}
 
-	private MessageSend getTupelCall(EclipseNode node, Expression expression) {
+	private MessageSend getTupelCall(final EclipseNode node, final Expression expression) {
 		if (expression instanceof MessageSend) {
 			final MessageSend tupleCall = (MessageSend) expression ;
 			final String methodName = getMethodName(tupleCall);
@@ -107,13 +107,13 @@ public class HandleTuple extends EclipseASTAdapter {
 		return null;
 	}
 
-	@Override public void endVisitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit) {
+	@Override public void endVisitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
 		}
 	}
 
-	public boolean handle(EclipseNode tupleInitNode, MessageSend initTupleCall) {
+	public boolean handle(final EclipseNode tupleInitNode, final MessageSend initTupleCall) {
 		if (isEmpty(initTupleCall.arguments)) {
 			return true;
 		}
@@ -143,9 +143,10 @@ public class HandleTuple extends EclipseASTAdapter {
 		return true;
 	}
 	
-	public boolean handle(EclipseNode tupleAssignNode, MessageSend leftTupleCall, MessageSend rightTupleCall) {
+	public boolean handle(final EclipseNode tupleAssignNode, final MessageSend leftTupleCall, final MessageSend rightTupleCall) {
 		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments) && (rightTupleCall.arguments.length != 1)) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or must have one array-type argument for the tuple assignment to work.");
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
+					" must have one array-type argument for the tuple assignment to work.");
 			return false;
 		}
 		if (!containsOnlyNames(leftTupleCall.arguments)) {
@@ -196,7 +197,9 @@ public class HandleTuple extends EclipseASTAdapter {
 		return true;
 	}
 
-	private void tryToInjectStatements(EclipseNode parent, ASTNode statementThatUsesTupel, List<Statement> statementsToInject) {
+	private void tryToInjectStatements(final EclipseNode node, final ASTNode nodeThatUsesTupel, final List<Statement> statementsToInject) {
+		EclipseNode parent = node;
+		ASTNode statementThatUsesTupel = nodeThatUsesTupel;
 		while ((!(parent.directUp().get() instanceof AbstractMethodDeclaration)) && (!(parent.directUp().get() instanceof Block))) {
 			parent = parent.directUp();
 			statementThatUsesTupel = parent.get();
@@ -215,7 +218,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		grandParent.rebuild();
 	}
 
-	private static Statement[] injectStatements(Statement[] statements, Statement statement, List<Statement> withCallStatements) {
+	private static Statement[] injectStatements(final Statement[] statements, final Statement statement, final List<Statement> withCallStatements) {
 		final List<Statement> newStatements = new ArrayList<Statement>();
 		for (Statement stat : statements) {
 			if (stat == statement) {
@@ -225,7 +228,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		return newStatements.toArray(new Statement[newStatements.size()]);
 	}
 
-	private List<String> collectVarnames(Expression[] expressions) {
+	private List<String> collectVarnames(final Expression[] expressions) {
 		List<String> varnames = new ArrayList<String>();
 		if (expressions != null) for (Expression expression : expressions) {
 				varnames.add(new String(((SingleNameReference)expression).token));
@@ -233,7 +236,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		return varnames;
 	}
 
-	private boolean containsOnlyNames(Expression[] expressions) {
+	private boolean containsOnlyNames(final Expression[] expressions) {
 		if (expressions != null) for (Expression expression : expressions) {
 			if (!(expression instanceof SingleNameReference)) {
 				return false;
@@ -255,7 +258,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		private boolean lockVarname;
 		private TypeReference vartype;
 
-		public TypeReference scan(ASTNode astNode) {
+		public TypeReference scan(final ASTNode astNode) {
 			if (astNode instanceof CompilationUnitDeclaration) {
 				((CompilationUnitDeclaration)astNode).traverse(this, (CompilationUnitScope)null);
 			} else if (astNode instanceof MethodDeclaration) {
@@ -266,30 +269,30 @@ public class HandleTuple extends EclipseASTAdapter {
 			return vartype;
 		}
 
-		@Override public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
+		@Override public boolean visit(final LocalDeclaration localDeclaration, final BlockScope scope) {
 			return visit(localDeclaration);
 		}
 
-		@Override public boolean visit(FieldDeclaration fieldDeclaration, MethodScope scope) {
+		@Override public boolean visit(final FieldDeclaration fieldDeclaration, final MethodScope scope) {
 			return visit(fieldDeclaration);
 		}
 
-		@Override public boolean visit(Argument argument, BlockScope scope) {
+		@Override public boolean visit(final Argument argument, final BlockScope scope) {
 			return visit(argument);
 		}
 
-		@Override public boolean visit(Argument argument, ClassScope scope) {
+		@Override public boolean visit(final Argument argument, final ClassScope scope) {
 			return visit(argument);
 		}
 
-		@Override public boolean visit(Assignment assignment, BlockScope scope) {
+		@Override public boolean visit(final Assignment assignment, final BlockScope scope) {
 			if ((expr != null) && (expr.equals(assignment))) {
 				lockVarname = true;
 			}
 			return true;
 		}
 
-		public boolean visit(AbstractVariableDeclaration variableDeclaration) {
+		public boolean visit(final AbstractVariableDeclaration variableDeclaration) {
 			if (!lockVarname && varname.equals(new String(variableDeclaration.name))) {
 				vartype = variableDeclaration.type;
 			}
@@ -308,7 +311,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		private final Set<String> blacklistedVarnames;
 		private boolean canUseSimpleAssignment;
 
-		public boolean scan(ASTNode astNode) {
+		public boolean scan(final ASTNode astNode) {
 			canUseSimpleAssignment = true;
 			if (astNode instanceof CompilationUnitDeclaration) {
 				((CompilationUnitDeclaration)astNode).traverse(this, (CompilationUnitScope)null);
@@ -320,7 +323,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			return canUseSimpleAssignment;
 		}
 
-		@Override public boolean visit(SingleNameReference singleNameReference, BlockScope scope) {
+		@Override public boolean visit(final SingleNameReference singleNameReference, final BlockScope scope) {
 			if (blacklistedVarnames.contains(new String(singleNameReference.token))) {
 				canUseSimpleAssignment = false;
 				return false;

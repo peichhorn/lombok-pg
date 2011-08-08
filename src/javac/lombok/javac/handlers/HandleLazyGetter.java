@@ -47,7 +47,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 
-	@Override public void handle(AnnotationValues<LazyGetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<LazyGetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, LazyGetter.class);
 		deleteImportFromCompilationUnit(annotationNode, "lombok.AccessLevel");
 		JavacType type = JavacType.typeOf(annotationNode, ast);
@@ -56,7 +56,8 @@ public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 		createLazyGetterForField(type, annotationInstance.value(), annotationNode.up(), annotationNode, annotationType);
 	}
 
-	private void createLazyGetterForField(JavacType type, AccessLevel level, JavacNode fieldNode, DiagnosticsReceiver diagnosticsReceiver, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	private void createLazyGetterForField(final JavacType type, final AccessLevel level, final JavacNode fieldNode, final DiagnosticsReceiver diagnosticsReceiver,
+			final Class<? extends java.lang.annotation.Annotation> annotationType) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(annotationType));
 			return;
@@ -93,7 +94,7 @@ public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 		createGetter(type, level, fieldDecl, methodName);
 	}
 
-	private void createGetter(JavacType type, AccessLevel level, JCVariableDecl field, String methodName) {
+	private void createGetter(final JavacType type, final AccessLevel level, final JCVariableDecl field, final String methodName) {
 		String fieldName = string(field.name);
 		String initializedFieldName = "$" + fieldName + "Initialized";
 		String lockFieldName = "$" + fieldName + "Lock";

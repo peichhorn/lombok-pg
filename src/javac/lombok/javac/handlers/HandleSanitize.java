@@ -42,7 +42,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 
 	@Override
-	public void handle(AnnotationValues<Sanitize> annotation, JCAnnotation source, JavacNode annotationNode) {
+	public void handle(final AnnotationValues<Sanitize> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);

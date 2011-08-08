@@ -57,7 +57,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
 	private final JavacListenerSupportHandler handler = new JavacListenerSupportHandler();
 
-	@Override public void handle(AnnotationValues<ListenerSupport> annotation, JCAnnotation source, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<ListenerSupport> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 
@@ -98,7 +98,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		type.rebuild();
 	}
 
-	private static Type resolveClassMember(JavacNode node, JCExpression expr) {
+	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
 			new JavacResolution(node.getContext()).resolveClassMember(node);
@@ -107,11 +107,11 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		return type;
 	}
 
-	private void addFireListenerMethods(JavacType type, TypeSymbol interfaze) {
+	private void addFireListenerMethods(final JavacType type, final TypeSymbol interfaze) {
 		addAllFireListenerMethods(type, interfaze, interfaze);
 	}
 
-	private void addAllFireListenerMethods(JavacType type, TypeSymbol interfaze, TypeSymbol superInterfaze) {
+	private void addAllFireListenerMethods(final JavacType type, final TypeSymbol interfaze, final TypeSymbol superInterfaze) {
 		for (Symbol member : superInterfaze.getEnclosedElements()) {
 			if (member.getKind() != ElementKind.METHOD) continue;
 			handler.addFireListenerMethod(type, interfaze, (MethodSymbol)member);
@@ -125,7 +125,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	private static class JavacListenerSupportHandler extends ListenerSupportHandler<JavacType> {
 
 		@Override
-		protected void createParamsAndArgs(Object method, List<Argument> params, List<Expression> args) {
+		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression> args) {
 			MethodType mtype = (MethodType) type(method);
 			if (mtype.argtypes.isEmpty()) return;
 			int argCounter = 0;
@@ -138,12 +138,12 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		}
 
 		@Override
-		protected String name(Object object) {
+		protected String name(final Object object) {
 			return string(((Symbol)object).name);
 		}
 
 		@Override
-		protected Object type(Object object) {
+		protected Object type(final Object object) {
 			return ((Symbol)object).type;
 		}
 	}

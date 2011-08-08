@@ -41,7 +41,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 
 	@Override
-	public void handle(AnnotationValues<Sanitize> annotation, Annotation source, EclipseNode annotationNode) {
+	public void handle(final AnnotationValues<Sanitize> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method == null) {

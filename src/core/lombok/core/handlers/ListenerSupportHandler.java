@@ -31,26 +31,26 @@ import lombok.ast.*;
 
 public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends IMethod<?, ?, ? , ?>, ?, ?, ?, ?>> {
 
-	public void addListenerField(TYPE_TYPE type, Object interfaze) {
+	public void addListenerField(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(type(interfaze))), "$registered" + interfaceName).makePrivate().makeFinal() //
 			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(type(interfaze))))));
 	}
 
-	public void addAddListenerMethod(TYPE_TYPE type, Object interfaze) {
+	public void addAddListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
 			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
 				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
 
-	public void addRemoveListenerMethod(TYPE_TYPE type, Object interfaze) {
+	public void addRemoveListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
 			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
-	public void addFireListenerMethod(TYPE_TYPE type, Object interfaze, Object method) {
+	public void addFireListenerMethod(final TYPE_TYPE type, final Object interfaze, final Object method) {
 		List<Expression> args = new ArrayList<Expression>();
 		List<Argument> params = new ArrayList<Argument>();
 		createParamsAndArgs(method, params, args);

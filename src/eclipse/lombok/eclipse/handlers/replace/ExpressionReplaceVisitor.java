@@ -28,69 +28,69 @@ import org.eclipse.jdt.internal.compiler.lookup.*;
 
 public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression> {
 
-	protected ExpressionReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+	protected ExpressionReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
 	@Override
-	public boolean visit(AllocationExpression allocationExpression, BlockScope scope) {
+	public boolean visit(final AllocationExpression allocationExpression, final BlockScope scope) {
 		replace(allocationExpression.arguments);
 		return true;
 	}
 
 	@Override
-	public boolean visit(AND_AND_Expression and_and_Expression, BlockScope scope) {
+	public boolean visit(final AND_AND_Expression and_and_Expression, final BlockScope scope) {
 		return visit((BinaryExpression)and_and_Expression, scope);
 	}
 
 	@Override
-	public boolean visit(ArrayAllocationExpression arrayAllocationExpression, BlockScope scope) {
+	public boolean visit(final ArrayAllocationExpression arrayAllocationExpression, final BlockScope scope) {
 		replace(arrayAllocationExpression.dimensions);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ArrayInitializer arrayInitializer, BlockScope scope) {
+	public boolean visit(final ArrayInitializer arrayInitializer, final BlockScope scope) {
 		replace(arrayInitializer.expressions);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ArrayReference arrayReference, BlockScope scope) {
+	public boolean visit(final ArrayReference arrayReference, final BlockScope scope) {
 		arrayReference.receiver = replace(arrayReference.receiver);
 		arrayReference.position = replace(arrayReference.position);
 		return true;
 	}
 
 	@Override
-	public boolean visit(Assignment assignment, BlockScope scope) {
+	public boolean visit(final Assignment assignment, final BlockScope scope) {
 		assignment.lhs = replace(assignment.lhs);
 		assignment.expression = replace(assignment.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(BinaryExpression binaryExpression, BlockScope scope) {
+	public boolean visit(final BinaryExpression binaryExpression, final BlockScope scope) {
 		binaryExpression.left = replace(binaryExpression.left);
 		binaryExpression.right = replace(binaryExpression.right);
 		return true;
 	}
 
 	@Override
-	public boolean visit(CastExpression castExpression, BlockScope scope) {
+	public boolean visit(final CastExpression castExpression, final BlockScope scope) {
 		castExpression.expression = replace(castExpression.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(CompoundAssignment compoundAssignment, BlockScope scope) {
+	public boolean visit(final CompoundAssignment compoundAssignment, final BlockScope scope) {
 		compoundAssignment.lhs = replace(compoundAssignment.lhs);
 		compoundAssignment.expression = replace(compoundAssignment.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ConditionalExpression conditionalExpression, BlockScope scope) {
+	public boolean visit(final ConditionalExpression conditionalExpression, final BlockScope scope) {
 		conditionalExpression.condition = replace(conditionalExpression.condition);
 		conditionalExpression.valueIfTrue = replace(conditionalExpression.valueIfTrue);
 		conditionalExpression.valueIfFalse = replace(conditionalExpression.valueIfFalse);
@@ -98,111 +98,111 @@ public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression
 	}
 
 	@Override
-	public boolean visit(DoStatement doStatement, BlockScope scope) {
+	public boolean visit(final DoStatement doStatement, final BlockScope scope) {
 		doStatement.condition = replace(doStatement.condition);
 		return true;
 	}
 
 	@Override
-	public boolean visit(EqualExpression equalExpression, BlockScope scope) {
+	public boolean visit(final EqualExpression equalExpression, final BlockScope scope) {
 		return visit((BinaryExpression)equalExpression, scope);
 	}
 
 	@Override
-	public boolean visit(ExplicitConstructorCall explicitConstructor, BlockScope scope) {
+	public boolean visit(final ExplicitConstructorCall explicitConstructor, final BlockScope scope) {
 		replace(explicitConstructor.arguments);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ForeachStatement forStatement, BlockScope scope) {
+	public boolean visit(final ForeachStatement forStatement, final BlockScope scope) {
 		forStatement.collection = replace(forStatement.collection);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ForStatement forStatement, BlockScope scope) {
+	public boolean visit(final ForStatement forStatement, final BlockScope scope) {
 		forStatement.condition = replace(forStatement.condition);
 		return true;
 	}
 
 	@Override
-	public boolean visit(IfStatement ifStatement, BlockScope scope) {
+	public boolean visit(final IfStatement ifStatement, final BlockScope scope) {
 		ifStatement.condition = replace(ifStatement.condition);
 		return true;
 	}
 
 	@Override
-	public boolean visit(InstanceOfExpression instanceOfExpression, BlockScope scope) {
+	public boolean visit(final InstanceOfExpression instanceOfExpression, final BlockScope scope) {
 		instanceOfExpression.expression = replace(instanceOfExpression.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(LocalDeclaration localDeclaration, BlockScope scope) {
+	public boolean visit(final LocalDeclaration localDeclaration, final BlockScope scope) {
 		localDeclaration.initialization = replace(localDeclaration.initialization);
 		return true;
 	}
 
 	@Override
-	public boolean visit(MessageSend messageSend, BlockScope scope) {
+	public boolean visit(final MessageSend messageSend, final BlockScope scope) {
 		messageSend.receiver = replace(messageSend.receiver);
 		replace(messageSend.arguments);
 		return true;
 	}
 
 	@Override
-	public boolean visit(OR_OR_Expression or_or_Expression, BlockScope scope) {
+	public boolean visit(final OR_OR_Expression or_or_Expression, final BlockScope scope) {
 		return visit((BinaryExpression)or_or_Expression, scope);
 	}
 
 	@Override
-	public boolean visit(PostfixExpression postfixExpression, BlockScope scope) {
+	public boolean visit(final PostfixExpression postfixExpression, final BlockScope scope) {
 		return visit((CompoundAssignment)postfixExpression, scope);
 	}
 
 	@Override
-	public boolean visit(PrefixExpression prefixExpression, BlockScope scope) {
+	public boolean visit(final PrefixExpression prefixExpression, final BlockScope scope) {
 		return visit((CompoundAssignment)prefixExpression, scope);
 	}
 
 	@Override
-	public boolean visit(QualifiedAllocationExpression qualifiedAllocationExpression, BlockScope scope) {
+	public boolean visit(final QualifiedAllocationExpression qualifiedAllocationExpression, final BlockScope scope) {
 		return visit((AllocationExpression)qualifiedAllocationExpression, scope);
 	}
 
 	@Override
-	public boolean visit(ReturnStatement returnStatement, BlockScope scope) {
+	public boolean visit(final ReturnStatement returnStatement, final BlockScope scope) {
 		returnStatement.expression = replace(returnStatement.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(SwitchStatement switchStatement, BlockScope scope) {
+	public boolean visit(final SwitchStatement switchStatement, final BlockScope scope) {
 		switchStatement.expression = replace(switchStatement.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(SynchronizedStatement synchronizedStatement, BlockScope scope) {
+	public boolean visit(final SynchronizedStatement synchronizedStatement, final BlockScope scope) {
 		synchronizedStatement.expression = replace(synchronizedStatement.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(ThrowStatement throwStatement, BlockScope scope) {
+	public boolean visit(final ThrowStatement throwStatement, final BlockScope scope) {
 		throwStatement.exception = replace(throwStatement.exception);
 		return true;
 	}
 
 	@Override
-	public boolean visit(UnaryExpression unaryExpression, BlockScope scope) {
+	public boolean visit(final UnaryExpression unaryExpression, final BlockScope scope) {
 		unaryExpression.expression = replace(unaryExpression.expression);
 		return true;
 	}
 
 	@Override
-	public boolean visit(WhileStatement whileStatement, BlockScope scope) {
+	public boolean visit(final WhileStatement whileStatement, final BlockScope scope) {
 		whileStatement.condition = replace(whileStatement.condition);
 		return true;
 	}

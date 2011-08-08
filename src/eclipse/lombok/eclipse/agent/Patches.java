@@ -35,10 +35,10 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Patches {
-	private static final String AST_PACKAGE = "org.eclipse.jdt.internal.compiler.ast";
-	private static final String LOOKUP_PACKAGE = "org.eclipse.jdt.internal.compiler.lookup";
-	private static final String PROBLEM_PACKAGE = "org.eclipse.jdt.internal.compiler.problem";
-	private static final String TEXT_JAVA_PACKAGE = "org.eclipse.jdt.ui.text.java";
+	public static final String AST_PACKAGE = "org.eclipse.jdt.internal.compiler.ast";
+	public static final String LOOKUP_PACKAGE = "org.eclipse.jdt.internal.compiler.lookup";
+	public static final String PROBLEM_PACKAGE = "org.eclipse.jdt.internal.compiler.problem";
+	public static final String TEXT_JAVA_PACKAGE = "org.eclipse.jdt.ui.text.java";
 	public static final String BINDING = LOOKUP_PACKAGE + ".Binding";
 	public static final String BINDINGS = BINDING + "[]";
 	public static final String BLOCKSCOPE = LOOKUP_PACKAGE + ".BlockScope";
@@ -59,7 +59,7 @@ final class Patches {
 	public static final String TYPEBINDINGS = TYPEBINDING + "[]";
 	public static final String TYPEDECLARATION = AST_PACKAGE + ".TypeDeclaration";
 
-	public static Annotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, TypeDeclaration decl) {
+	public static Annotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final TypeDeclaration decl) {
 		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
 			if (matchesType(ann, expectedType, decl)) {
 				return ann;
@@ -68,13 +68,13 @@ final class Patches {
 		return null;
 	}
 
-	private static boolean matchesType(Annotation ann, Class<?> expectedType, TypeDeclaration decl) {
+	private static boolean matchesType(final Annotation ann, final Class<?> expectedType, final TypeDeclaration decl) {
 		if (ann.type == null) return false;
 		TypeBinding tb = ann.resolvedType;
 		if ((tb == null) && (ann.type != null)) {
 			try {
 				tb = ann.type.resolveType(decl.initializerScope);
-			} catch (Exception ignore) {
+			} catch (final Exception ignore) {
 				// completion nodes may throw an exception here
 			}
 		}
@@ -82,7 +82,7 @@ final class Patches {
 		return new String(tb.readableName()).equals(expectedType.getName());
 	}
 
-	public static EclipseNode getTypeNode(TypeDeclaration decl) {
+	public static EclipseNode getTypeNode(final TypeDeclaration decl) {
 		CompilationUnitDeclaration cud = decl.scope.compilationUnitScope().referenceContext;
 		EclipseAST astNode = TransformEclipseAST.getAST(cud, false);
 		EclipseNode node = astNode.get(decl);

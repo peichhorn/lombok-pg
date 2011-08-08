@@ -29,15 +29,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Arrays {
 
-	public static <T> T[] array(T...elements) {
+	public static <T> T[] array(final T...elements) {
 		return elements;
 	}
 
-	public static <T> T[] copy(T[] array) {
+	public static <T> T[] copy(final T[] array) {
 		return copyOf(array, array.length);
 	}
 
-	public static boolean sameSize(Object[] array1,  Object[] array2) {
+	public static boolean sameSize(final Object[] array1, final Object[] array2) {
 		if ((array1 == null) || (array2 == null)) {
 			return false;
 		} else {
@@ -45,15 +45,15 @@ public final class Arrays {
 		}
 	}
 
-	public static <T> T[] resize(T[] array, int newSize) {
+	public static <T> T[] resize(final T[] array, final int newSize) {
 		return copyOf(array, newSize);
 	}
 
-	public static boolean isEmpty(Object[] array) {
+	public static boolean isEmpty(final Object[] array) {
 		return array == null || array.length == 0;
 	}
 
-	public static boolean isNotEmpty(Object[] array) {
+	public static boolean isNotEmpty(final Object[] array) {
 		return array != null && array.length > 0;
 	}
 }

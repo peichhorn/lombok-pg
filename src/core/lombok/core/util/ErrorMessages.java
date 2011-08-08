@@ -32,63 +32,63 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ErrorMessages {
 
-	public static String canBeUsedOnConcreteClassOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnConcreteClassOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on concrete classes only", annotationType);
 	}
 
-	public static String canBeUsedOnClassOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnClassOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on classes only", annotationType);
 	}
 
-	public static String canBeUsedOnClassAndEnumOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnClassAndEnumOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on classes and enums only", annotationType);
 	}
 
-	public static String canBeUsedOnClassAndFieldOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnClassAndFieldOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on classes and fields only", annotationType);
 	}
 
-	public static String canBeUsedOnFieldOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnFieldOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on fields only", annotationType);
 	}
 
-	public static String canBeUsedOnPrivateFinalFieldOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnPrivateFinalFieldOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on private final fields only", annotationType);
 	}
 
-	public static String canBeUsedOnInitializedFieldOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnInitializedFieldOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on initialized fields only", annotationType);
 	}
 
-	public static String canBeUsedOnMethodOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnMethodOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on methods only", annotationType);
 	}
 
-	public static String canBeUsedOnConcreteMethodOnly(Class<? extends Annotation> annotationType) {
+	public static String canBeUsedOnConcreteMethodOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on concrete methods only", annotationType);
 	}
 
-	public static String requiresDefaultOrNoArgumentConstructor(Class<? extends Annotation> annotationType) {
+	public static String requiresDefaultOrNoArgumentConstructor(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s requires a default or no-argument constructor", annotationType);
 	}
 
-	public static String unsupportedExpressionIn(String where, Object expr) {
+	public static String unsupportedExpressionIn(final String where, final Object expr) {
 		return String.format("Unsupported Expression in '%s': %s", where, expr);
 	}
 
-	public static String isNotAllowedHere(String what) {
+	public static String isNotAllowedHere(final String what) {
 		return String.format("'%s' is not allowed here.", what);
 	}
 
-	public static String firstArgumentCanBeVariableNameOrNewClassStatementOnly(String what) {
+	public static String firstArgumentCanBeVariableNameOrNewClassStatementOnly(final String what) {
 		return String.format("The first argument of '%s' can be variable name or new-class statement  only", what);
 	}
 
-	public static String canBeUsedInBodyOfMethodsOnly(String what) {
+	public static String canBeUsedInBodyOfMethodsOnly(final String what) {
 		return String.format("'%s' can be used in the body of methods only", what);
 	}
 
-	private static String errorMessage(String format, Class<? extends Annotation> annotationType) {
+	private static String errorMessage(final String format, final Class<? extends Annotation> annotationType) {
 		return String.format(format, annotationType.getName());
 	}
 }

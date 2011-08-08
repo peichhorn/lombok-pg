@@ -39,7 +39,7 @@ import lombok.javac.handlers.ast.JavacMethod;
 
 public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod> {
 	@Override
-	public List<lombok.ast.Statement> sanitizeParameterOf(JavacMethod method) {
+	public List<lombok.ast.Statement> sanitizeParameterOf(final JavacMethod method) {
 		deleteImport(method.node(), Sanitize.class);
 		for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {
 			deleteImport(method.node(), sanitizerStrategy.getType());

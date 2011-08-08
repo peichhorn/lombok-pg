@@ -35,17 +35,22 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleConditionAndLock {
+
+	private static ConditionAndLockHandler<EclipseType, EclipseMethod> prepareConditionAndLockHandler(final EclipseNode node, final Annotation source) {
+		return new ConditionAndLockHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(node, source), EclipseMethod.methodOf(node, source), node);
+	}
+
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleReadLock extends EclipseAnnotationHandler<ReadLock> {
-		@Override public void preHandle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void preHandle(final AnnotationValues<ReadLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("readLock")
 				.preHandle(ann.value(), ann.getClass());
 		}
 
-		@Override public void handle(AnnotationValues<ReadLock> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<ReadLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("readLock")
@@ -56,14 +61,14 @@ public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleWriteLock extends EclipseAnnotationHandler<WriteLock> {
-		@Override public void preHandle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void preHandle(final AnnotationValues<WriteLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("writeLock")
 				.preHandle(ann.value(), ann.getClass());
 		}
 
-		@Override public void handle(AnnotationValues<WriteLock> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<WriteLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("writeLock")
@@ -74,14 +79,14 @@ public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleSignal extends EclipseAnnotationHandler<Signal> {
-		@Override public void preHandle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void preHandle(final AnnotationValues<Signal> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
 				.preHandle(ann.lockName(), ann.getClass());
 		}
 
-		@Override public void handle(AnnotationValues<Signal> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Signal> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
@@ -92,14 +97,14 @@ public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleAwait extends EclipseAnnotationHandler<Await> {
-		@Override public void preHandle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void preHandle(final AnnotationValues<Await> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
 				.preHandle(ann.lockName(), ann.getClass());
 		}
 
-		@Override public void handle(AnnotationValues<Await> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Await> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
@@ -110,7 +115,7 @@ public class HandleConditionAndLock {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleAwaitBeforeAndSignalAfter extends EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
-		@Override public void preHandle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void preHandle(final AnnotationValues<AwaitBeforeAndSignalAfter> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
@@ -118,16 +123,12 @@ public class HandleConditionAndLock {
 				.preHandle(ann.lockName(), ann.getClass());
 		}
 
-		@Override public void handle(AnnotationValues<AwaitBeforeAndSignalAfter> annotation, Annotation ast, EclipseNode annotationNode) {
+		@Override public void handle(final AnnotationValues<AwaitBeforeAndSignalAfter> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			AwaitBeforeAndSignalAfter ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
 				.handle(ann.lockName(), ann.getClass(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
-	}
-	
-	private static ConditionAndLockHandler<EclipseType, EclipseMethod> prepareConditionAndLockHandler(EclipseNode node, Annotation source) {
-		return new ConditionAndLockHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(node, source), EclipseMethod.methodOf(node, source), node);
 	}
 }

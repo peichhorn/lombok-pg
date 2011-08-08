@@ -83,7 +83,7 @@ import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchExtensionMethod {
-	static void addPatches(ScriptManager sm, boolean ecj) {
+	static void addPatches(final ScriptManager sm, final boolean ecj) {
 		sm.addScript(wrapReturnValue()
 			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
 			.request(StackRequest.RETURN_VALUE)
@@ -113,17 +113,17 @@ public final class PatchExtensionMethod {
 		}
 	}
 
-	private static Map<MessageSend, PostponedError> errors = new WeakHashMap<MessageSend, PostponedError>();
+	private static final Map<MessageSend, PostponedError> ERRORS = new WeakHashMap<MessageSend, PostponedError>();
 
-	public static void errorNoMethodFor(ProblemReporter problemReporter, MessageSend messageSend, TypeBinding recType, TypeBinding[] params) {
-		errors.put(messageSend, new PostponedNoMethodError(problemReporter, messageSend, recType, params));
+	public static void errorNoMethodFor(final ProblemReporter problemReporter, final MessageSend messageSend, final TypeBinding recType, final TypeBinding[] params) {
+		ERRORS.put(messageSend, new PostponedNoMethodError(problemReporter, messageSend, recType, params));
 	}
 
-	public static void invalidMethod(ProblemReporter problemReporter, MessageSend messageSend, MethodBinding method) {
-		errors.put(messageSend, new PostponedInvalidMethodError(problemReporter, messageSend, method));
+	public static void invalidMethod(final ProblemReporter problemReporter, final MessageSend messageSend, final MethodBinding method) {
+		ERRORS.put(messageSend, new PostponedInvalidMethodError(problemReporter, messageSend, method));
 	}
 
-	public static TypeBinding resolveType(TypeBinding resolvedType, MessageSend methodCall, BlockScope scope) {
+	public static TypeBinding resolveType(final TypeBinding resolvedType, final MessageSend methodCall, final BlockScope scope) {
 		if (methodCall.binding instanceof ProblemMethodBinding) {
 			TypeDeclaration decl = scope.classScope().referenceContext;
 			EclipseNode typeNode = getTypeNode(decl);
@@ -146,20 +146,21 @@ public final class PatchExtensionMethod {
 					methodCall.binding = extensionMethod;
 					methodCall.resolvedType = extensionMethod.returnType;
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
-					errors.remove(methodCall);
+					ERRORS.remove(methodCall);
 					return methodCall.resolvedType;
 				}
 			}
 		}
-		PostponedError error = errors.get(methodCall);
+		PostponedError error = ERRORS.get(methodCall);
 		if (error != null) {
 			error.fire();
 		}
-		errors.remove(methodCall);
+		ERRORS.remove(methodCall);
 		return resolvedType;
 	}
 	
-	public static IJavaCompletionProposal[] getJavaCompletionProposals(IJavaCompletionProposal[] javaCompletionProposals, CompletionProposalCollector completionProposalCollector) {
+	public static IJavaCompletionProposal[] getJavaCompletionProposals(final IJavaCompletionProposal[] javaCompletionProposals,
+			final CompletionProposalCollector completionProposalCollector) {
 		List<IJavaCompletionProposal> proposals = new ArrayList<IJavaCompletionProposal>(Arrays.asList(javaCompletionProposals));
 		if (canExtendCodeAssist(proposals)) {
 			IJavaCompletionProposal firstProposal = proposals.get(0);
@@ -174,7 +175,7 @@ public final class PatchExtensionMethod {
 		return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
 	}
 	
-	private static List<MethodBinding> getExtensionMethods(CompletionProposalCollector completionProposalCollector) {
+	private static List<MethodBinding> getExtensionMethods(final CompletionProposalCollector completionProposalCollector) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 		ClassScope classScope = getClassScope(completionProposalCollector);
 		if (classScope != null) {
@@ -187,7 +188,7 @@ public final class PatchExtensionMethod {
 		return extensionMethods;
 	}
 	
-	private static List<MethodBinding> getApplicableExtensionMethods(EclipseNode typeNode, Annotation ann, TypeBinding receiverType) {
+	private static List<MethodBinding> getApplicableExtensionMethods(final EclipseNode typeNode, final Annotation ann, final TypeBinding receiverType) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 		if ((typeNode != null) && (ann != null) && (receiverType != null)) {
 			BlockScope blockScope = ((TypeDeclaration) typeNode.get()).initializerScope;
@@ -205,7 +206,8 @@ public final class PatchExtensionMethod {
 		return extensionMethods;
 	}
 	
-	private static List<MethodBinding> getApplicableExtensionMethodsDefinedInProvider(EclipseNode typeNode, ReferenceBinding extensionMethodProviderBinding, TypeBinding receiverType) {
+	private static List<MethodBinding> getApplicableExtensionMethodsDefinedInProvider(final EclipseNode typeNode, final ReferenceBinding extensionMethodProviderBinding,
+			final TypeBinding receiverType) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 		CompilationUnitScope cuScope = ((CompilationUnitDeclaration) typeNode.top().get()).scope;
 		for (MethodBinding method : extensionMethodProviderBinding.methods()) {
@@ -220,7 +222,7 @@ public final class PatchExtensionMethod {
 		return extensionMethods;
 	}
 	
-	private static TypeBinding getFirstParameterType(TypeDeclaration decl, CompletionProposalCollector completionProposalCollector) {
+	private static TypeBinding getFirstParameterType(final TypeDeclaration decl, final CompletionProposalCollector completionProposalCollector) {
 		TypeBinding firstParameterType = null;
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
@@ -242,13 +244,13 @@ public final class PatchExtensionMethod {
 			if (firstParameterType == null) {
 				firstParameterType = decl.binding;
 			}
-		} catch (Exception ignore) {
+		} catch (final Exception ignore) {
 			// ignore
 		}
 		return firstParameterType;
 	}
 	
-	private static ClassScope getClassScope(CompletionProposalCollector completionProposalCollector) {
+	private static ClassScope getClassScope(final CompletionProposalCollector completionProposalCollector) {
 		ClassScope scope = null;
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
@@ -256,53 +258,55 @@ public final class PatchExtensionMethod {
 			if (extendedContext != null) {
 				scope = ((Scope) Reflection.assistScopeField.get(extendedContext)).classScope();
 			}
-		} catch (IllegalAccessException ignore) {
+		} catch (final IllegalAccessException ignore) {
 			// ignore
 		}
 		return scope;
 	}
 	
-	private static void copyNameLookupAndCompletionEngine(CompletionProposalCollector completionProposalCollector, IJavaCompletionProposal proposal, InternalCompletionProposal newProposal) {
+	private static void copyNameLookupAndCompletionEngine(final CompletionProposalCollector completionProposalCollector, final IJavaCompletionProposal proposal,
+			final InternalCompletionProposal newProposal) {
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			LookupEnvironment lookupEnvironment = (LookupEnvironment) Reflection.lookupEnvironmentField.get(extendedContext);
 			Reflection.nameLookup.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
 			Reflection.completionEngine.set(newProposal, lookupEnvironment.typeRequestor);
-		} catch (IllegalAccessException ignore) {
+		} catch (final IllegalAccessException ignore) {
 			// ignore
 		}
 	}
 	
-	private static void createAndAddJavaCompletionProposal(CompletionProposalCollector completionProposalCollector, CompletionProposal newProposal, List<IJavaCompletionProposal> proposals) {
+	private static void createAndAddJavaCompletionProposal(final CompletionProposalCollector completionProposalCollector, final CompletionProposal newProposal,
+			final List<IJavaCompletionProposal> proposals) {
 		try {
 			proposals.add((IJavaCompletionProposal)Reflection.createJavaCompletionProposalMethod.invoke(completionProposalCollector, newProposal));
-		} catch (Exception ignore) {
+		} catch (final Exception ignore) {
 			// ignore
 		}
 	}
 	
-	private static int getReplacementOffset(IJavaCompletionProposal proposal) {
+	private static int getReplacementOffset(final IJavaCompletionProposal proposal) {
 		try {
 			return Reflection.replacementOffsetField.getInt(proposal);
-		} catch (Exception ignore) {
+		} catch (final Exception ignore) {
 			return 0;
 		}
 	}
 
-	private static boolean canExtendCodeAssist(List<IJavaCompletionProposal> proposals) {
+	private static boolean canExtendCodeAssist(final List<IJavaCompletionProposal> proposals) {
 		return !proposals.isEmpty() && Reflection.canExtendCodeAssist;
 	}
 	
 	private static class ExtensionMethodCompletionProposal extends InternalCompletionProposal {
 		private final int replacementOffset;
 
-		public ExtensionMethodCompletionProposal(int replacementOffset) {
+		public ExtensionMethodCompletionProposal(final int replacementOffset) {
 			super(CompletionProposal.METHOD_REF, replacementOffset - 1);
 			this.replacementOffset = replacementOffset; 
 		}
 		
-		public void setMethodBinding(MethodBinding method) {
+		public void setMethodBinding(final MethodBinding method) {
 			MethodBinding original = method.original();
 			TypeBinding[] parameters = Arrays.copyOf(method.parameters, method.parameters.length);
 			method.parameters = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
@@ -402,25 +406,25 @@ public final class PatchExtensionMethod {
 			canExtendCodeAssist = available[0];
 		}
 		
-		private static Field accessField(Class<?> clazz, String fieldName, boolean[] available) {
+		private static Field accessField(final Class<?> clazz, final String fieldName, final boolean[] available) {
 			try {
 				return makeAccessible(clazz.getDeclaredField(fieldName));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				available[0] = false;
 				return null;
 			}
 		}
 		
-		private static Method accessMethod(Class<?> clazz, String methodName, Class<?> parameter, boolean[] available) {
+		private static Method accessMethod(final Class<?> clazz, final String methodName, final Class<?> parameter, final boolean[] available) {
 			try {
 				return makeAccessible(clazz.getDeclaredMethod(methodName, parameter));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				available[0] = false;
 				return null;
 			}
 		}
 		
-		private static <T extends AccessibleObject> T makeAccessible(T object) {
+		private static <T extends AccessibleObject> T makeAccessible(final T object) {
 			object.setAccessible(true);
 			return object;
 		}

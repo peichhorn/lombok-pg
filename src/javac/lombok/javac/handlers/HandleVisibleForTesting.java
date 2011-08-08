@@ -38,7 +38,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTesting > {
 
 	@Override
-	public void handle(AnnotationValues<VisibleForTesting> annotation, JCAnnotation source, JavacNode annotationNode) {
+	public void handle(final AnnotationValues<VisibleForTesting> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, VisibleForTesting.class);
 		JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method == null) {

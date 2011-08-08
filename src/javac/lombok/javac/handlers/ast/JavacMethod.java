@@ -42,7 +42,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
-public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
+public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
 	private final JavacNode methodNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;
@@ -56,19 +56,19 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		builder = new JavacASTMaker(methodNode, source);
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node) {
+	public <T extends JCTree> T build(final lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node, Class<T> extectedType) {
+	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -94,7 +94,7 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		return objectReturnType;
 	}
 
-	public boolean returns(Class<?> clazz) {
+	public boolean returns(final Class<?> clazz) {
 		return returns(clazz.getName());
 	}
 
@@ -115,11 +115,11 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		return get().restype;
 	}
 	
-	public void replaceReturns(lombok.ast.Statement replacement) {
+	public void replaceReturns(final lombok.ast.Statement replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
 	}
 
-	public void replaceVariableName(String oldName, String newName) {
+	public void replaceVariableName(final String oldName, final String newName) {
 		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
 	}
 
@@ -191,11 +191,11 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		get().mods.flags |= PUBLIC;
 	}
 
-	public void body(lombok.ast.Statement... statements) {
+	public void body(final lombok.ast.Statement... statements) {
 		body(list(statements));
 	}
 
-	public void body(java.util.List<lombok.ast.Statement> statements) {
+	public void body(final java.util.List<lombok.ast.Statement> statements) {
 		body(Block().withStatements(statements));
 	}
 
@@ -224,7 +224,7 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		return annotations(get().mods);
 	}
 
-	private java.util.List<lombok.ast.Annotation> annotations(JCModifiers mods) {
+	private java.util.List<lombok.ast.Annotation> annotations(final JCModifiers mods) {
 		final java.util.List<lombok.ast.Annotation> annotations = new java.util.ArrayList<lombok.ast.Annotation>();
 		for (JCAnnotation annotation : mods.annotations) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.annotationType));
@@ -245,7 +245,7 @@ public class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCT
 		return arguments(false);
 	}
 
-	public java.util.List<lombok.ast.Argument> arguments(boolean includeAnnotations) {
+	public java.util.List<lombok.ast.Argument> arguments(final boolean includeAnnotations) {
 		final java.util.List<lombok.ast.Argument> methodArguments = new java.util.ArrayList<lombok.ast.Argument>();
 		if (includeAnnotations) for (JCVariableDecl param : get().params) {
 			methodArguments.add(Arg(Type(param.vartype), param.name.toString()).withAnnotations(annotations(param.mods)));

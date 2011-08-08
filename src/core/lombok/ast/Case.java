@@ -30,7 +30,7 @@ public class Case extends Statement {
 	private final List<Statement> statements = new ArrayList<Statement>();
 	private Expression pattern;
 
-	public Case(Expression pattern) {
+	public Case(final Expression pattern) {
 		this.pattern = child(pattern);
 	}
 
@@ -50,7 +50,7 @@ public class Case extends Statement {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitCase(this, p);
 	}
 }

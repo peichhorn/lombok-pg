@@ -45,13 +45,13 @@ public final class New extends Expression {
 		return this;
 	}
 
-	public New withTypeDeclaration(ClassDecl anonymousType) {
+	public New withTypeDeclaration(final ClassDecl anonymousType) {
 		this.anonymousType = child(anonymousType);
 		return this;
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitNew(this, p);
 	}
 }

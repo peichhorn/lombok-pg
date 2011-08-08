@@ -46,7 +46,7 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected void handle(EclipseType type) {
+		@Override protected void handle(final EclipseType type) {
 			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
 	}
@@ -60,7 +60,7 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected void handle(EclipseType type) {
+		@Override protected void handle(final EclipseType type) {
 			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
 			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
 			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
@@ -69,10 +69,10 @@ public class HandleEntrypoint {
 	}
 
 	@RequiredArgsConstructor
-	public static abstract class EclipseEntrypointHandler extends EclipseASTAdapter {
+	public abstract static class EclipseEntrypointHandler extends EclipseASTAdapter {
 		private final Class<?> interfaze;
 
-		@Override public void visitType(EclipseNode typeNode, TypeDeclaration type) {
+		@Override public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
 			if (isNotEmpty(type.superInterfaces)) for (TypeReference ref : type.superInterfaces) {

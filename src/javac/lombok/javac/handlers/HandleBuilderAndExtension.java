@@ -61,7 +61,7 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleBuilder extends JavacAnnotationHandler<Builder> {
 
-		@Override public void handle(AnnotationValues<Builder> annotation, JCAnnotation source, JavacNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Builder> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 			deleteAnnotationIfNeccessary(annotationNode, Builder.class);
 			final JavacType type = JavacType.typeOf(annotationNode, source);
 
@@ -74,7 +74,8 @@ public class HandleBuilderAndExtension {
 			case EXISTS_BY_LOMBOK:
 				return;
 			case EXISTS_BY_USER:
-				annotationNode.addWarning(String.format("Not generating 'public static %s %s()' A method with that name already exists", BuilderAndExtensionHandler.BUILDER, decapitalize(type.name())));
+				final String message = "Not generating 'public static %s %s()' A method with that name already exists";
+				annotationNode.addWarning(String.format(message, BuilderAndExtensionHandler.BUILDER, decapitalize(type.name())));
 				return;
 			default:
 			case NOT_EXISTS:
@@ -91,7 +92,7 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleBuilderExtension extends JavacAnnotationHandler<Builder.Extension> {
 
-		@Override public void handle(AnnotationValues<Builder.Extension> annotation, JCAnnotation source, JavacNode annotationNode) {
+		@Override public void handle(final AnnotationValues<Builder.Extension> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 			final Class<? extends java.lang.annotation.Annotation> annotationType = Builder.Extension.class;
 			deleteAnnotationIfNeccessary(annotationNode, annotationType);
 
@@ -132,18 +133,18 @@ public class HandleBuilderAndExtension {
 
 	private static class JavacBuilderAndExtensionHandler extends BuilderAndExtensionHandler<JavacType, JavacMethod, JCVariableDecl> {
 
-		@Override protected void collectExtensions(JavacMethod method, IExtensionCollector collector) {
+		@Override protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
 			method.node().traverse((JavacASTVisitor) collector);
 		}
 
-		@Override protected Object[] getTypeArguments(Object type) {
+		@Override protected Object[] getTypeArguments(final Object type) {
 			if (type instanceof JCTypeApply) {
 				return ((JCTypeApply) type).arguments.toArray(new JCExpression[0]);
 			}
 			return null;
 		}
 
-		@Override protected String name(Object object) {
+		@Override protected String name(final Object object) {
 			if (object instanceof JCMethodDecl) {
 				return string(((JCMethodDecl)object).name);
 			} else if (object instanceof JCVariableDecl) {
@@ -152,11 +153,11 @@ public class HandleBuilderAndExtension {
 			return null;
 		}
 
-		@Override protected Object type(JCVariableDecl field) {
+		@Override protected Object type(final JCVariableDecl field) {
 			return field.vartype;
 		}
 
-		@Override protected String typeStringOf(JCVariableDecl field) {
+		@Override protected String typeStringOf(final JCVariableDecl field) {
 			if (field.vartype instanceof JCTypeApply) {
 				return ((JCTypeApply)field.vartype).clazz.type.toString();
 			} else {
@@ -164,11 +165,11 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override protected Object getFieldInitialization(JCVariableDecl field) {
+		@Override protected Object getFieldInitialization(final JCVariableDecl field) {
 			return field.init;
 		}
 
-		@Override protected void setFieldInitialization(JCVariableDecl field, Object init) {
+		@Override protected void setFieldInitialization(final JCVariableDecl field, final Object init) {
 			field.init = (JCExpression) init;
 		}
 	}
@@ -187,11 +188,7 @@ public class HandleBuilderAndExtension {
 		private final AccessLevel level;
 		private final Set<String> excludes;
 
-		@Override public IExtensionCollector getExtensionCollector() {
-			return new ExtensionCollector();
-		}
-
-		public BuilderDataCollector(JavacType type, Builder builder) {
+		public BuilderDataCollector(final JavacType type, final Builder builder) {
 			super(1);
 			this.type = type;
 			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
@@ -199,6 +196,10 @@ public class HandleBuilderAndExtension {
 			prefix = builder.prefix();
 			callMethods = Arrays.asList(builder.callMethods());
 			level = builder.value();
+		}
+
+		@Override public IExtensionCollector getExtensionCollector() {
+			return new ExtensionCollector();
 		}
 
 		public IBuilderData<JavacType, JavacMethod, JCVariableDecl> collect() {
@@ -212,7 +213,7 @@ public class HandleBuilderAndExtension {
 			return allFields;
 		}
 
-		@Override public void visitField(JavacNode fieldNode, JCVariableDecl field) {
+		@Override public void visitField(final JavacNode fieldNode, final JCVariableDecl field) {
 			if (isOfInterest()) {
 				if ((field.mods.flags & STATIC) != 0) return;
 				String fieldName = field.name.toString();
@@ -250,7 +251,7 @@ public class HandleBuilderAndExtension {
 			return this;
 		}
 
-		@Override public void visitMethod(JavacNode methodNode, JCMethodDecl method) {
+		@Override public void visitMethod(final JavacNode methodNode, final JCMethodDecl method) {
 			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
 				containsRequiredFields = false;
 				isRequiredFieldsExtension = false;
@@ -260,7 +261,7 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void visitStatement(JavacNode statementNode, JCTree statement) {
+		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 			if (isOfInterest()) {
 				if (statement instanceof JCAssign) {
 					JCAssign assign = (JCAssign) statement;
@@ -275,7 +276,7 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void endVisitMethod(JavacNode methodNode, JCMethodDecl method) {
+		@Override public void endVisitMethod(final JavacNode methodNode, final JCMethodDecl method) {
 			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
 				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
 					if (containsRequiredFields) {

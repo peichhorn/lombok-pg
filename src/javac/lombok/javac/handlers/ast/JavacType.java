@@ -47,7 +47,7 @@ import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.JavacHandlerUtil;
 import lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult;
 
-public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassDecl, JCMethodDecl> {
+public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassDecl, JCMethodDecl> {
 	private final JavacNode typeNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;
@@ -61,19 +61,19 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		builder = new JavacASTMaker(typeNode, source);
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node) {
+	public <T extends JCTree> T build(final lombok.ast.Node node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node, Class<T> extectedType) {
+	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends JCTree> List<T> build(List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -93,7 +93,7 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return get().getExtendsClause() != null;
 	}
 
-	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName) {
+	public <T extends IType<?, ?, ?, ?, ?>> T memberType(final String typeName) {
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
@@ -129,25 +129,25 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return typeNode;
 	}
 
-	public void injectField(lombok.ast.FieldDecl fieldDecl) {
+	public void injectField(final lombok.ast.FieldDecl fieldDecl) {
 		final JCVariableDecl field = builder.build(fieldDecl);
 		JavacHandlerUtil.injectField(typeNode, field);
 	}
 
-	public void injectField(lombok.ast.EnumConstant enumConstant) {
+	public void injectField(final lombok.ast.EnumConstant enumConstant) {
 		final JCVariableDecl field = builder.build(enumConstant);
 		JavacHandlerUtil.injectField(typeNode, field);
 	}
 
-	public JCMethodDecl injectMethod(lombok.ast.MethodDecl methodDecl) {
+	public JCMethodDecl injectMethod(final lombok.ast.MethodDecl methodDecl) {
 		return injectMethodImpl(methodDecl);
 	}
 
-	public JCMethodDecl injectConstructor(lombok.ast.ConstructorDecl constructorDecl) {
+	public JCMethodDecl injectConstructor(final lombok.ast.ConstructorDecl constructorDecl) {
 		return injectMethodImpl(constructorDecl);
 	}
 
-	private JCMethodDecl injectMethodImpl(lombok.ast.AbstractMethodDecl<?> methodDecl) {
+	private JCMethodDecl injectMethodImpl(final lombok.ast.AbstractMethodDecl<?> methodDecl) {
 		final JCMethodDecl method = builder.build(methodDecl, JCMethodDecl.class);
 		JavacHandlerUtil.injectMethod(typeNode, method);
 		if (methodDecl instanceof WrappedMethodDecl) {
@@ -161,19 +161,19 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return method;
 	}
 
-	public void injectType(lombok.ast.ClassDecl typeDecl) {
+	public void injectType(final lombok.ast.ClassDecl typeDecl) {
 		final JCClassDecl type = builder.build(typeDecl);
 		Javac.injectType(typeNode, type);
 	}
 
-	public void removeMethod(JavacMethod method) {
+	public void removeMethod(final JavacMethod method) {
 		JCClassDecl type = (JCClassDecl) typeNode.get();
 		ListBuffer<JCTree> defs = ListBuffer.lb();
 		for (JCTree def : type.defs) {
 			if (!def.equals(method.get())) {
 				defs.append(def);
 			}
-		};
+		}
 		type.defs = defs.toList();
 		typeNode.removeChild(method.node());
 	}
@@ -190,11 +190,11 @@ public class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassD
 		return typeParameters;
 	}
 
-	public boolean hasField(String fieldName) {
+	public boolean hasField(final String fieldName) {
 		return (fieldExists(fieldName, typeNode) != MemberExistsResult.NOT_EXISTS);
 	}
 
-	public boolean hasMethod(String methodName) {
+	public boolean hasMethod(final String methodName) {
 		return (methodExists(methodName, typeNode, false) != MemberExistsResult.NOT_EXISTS);
 	}
 

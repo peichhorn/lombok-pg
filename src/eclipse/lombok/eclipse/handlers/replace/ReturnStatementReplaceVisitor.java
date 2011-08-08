@@ -28,11 +28,11 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 
 public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 
-	public ReturnStatementReplaceVisitor(EclipseMethod method, lombok.ast.Statement replacement) {
+	public ReturnStatementReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
 		super(method, replacement);
 	}
 
-	@Override protected boolean needsReplacing(Statement node) {
+	@Override protected boolean needsReplacing(final Statement node) {
 		return node instanceof ReturnStatement;
 	}
 }

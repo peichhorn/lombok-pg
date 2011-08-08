@@ -21,6 +21,7 @@
  */
 package lombok;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class With {
 
 	/**
@@ -58,7 +59,7 @@ public class With {
 	 *
 	 * @author Philipp Eichhorn
 	 */
-	public static <T> T with(T implicitThisExpression, Object firstExpression, Object... otherExpressions) {
+	public static <T> T with(final T implicitThisExpression, final Object firstExpression, final Object... otherExpressions) {
 		return null; // yup, that's about all we need
 	}
 }

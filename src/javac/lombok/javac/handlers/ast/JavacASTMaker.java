@@ -83,7 +83,7 @@ import lombok.core.util.Cast;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.JavacHandlerUtil;
 
-public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
+public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	private final JavacNode sourceNode;
 	private final JCTree source;
 	private final TreeMaker M;
@@ -94,11 +94,11 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		M = sourceNode.getTreeMaker();
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node) {
+	public <T extends JCTree> T build(final lombok.ast.Node node) {
 		return this.<T>build(node, null);
 	}
 
-	public <T extends JCTree> T build(lombok.ast.Node node, Class<T> extectedType) {
+	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		if (node == null) return null;
 		JCTree tree = node.accept(this, null);
 		if ((JCStatement.class == extectedType ) && (tree instanceof JCExpression)) {
@@ -107,11 +107,11 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		return Cast.<T>uncheckedCast(tree);
 	}
 
-	public <T extends JCTree> List<T> build(java.util.List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(final java.util.List<? extends lombok.ast.Node> nodes) {
 		return this.<T>build(nodes, null);
 	}
 
-	public <T extends JCTree> List<T> build(java.util.List<? extends lombok.ast.Node> nodes, Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(final java.util.List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
 		if (nodes == null) return null;
 		ListBuffer<T> list = ListBuffer.lb();
 		for (lombok.ast.Node node : nodes) {
@@ -128,7 +128,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		return JavacHandlerUtil.chainDotsString(M, sourceNode, name);
 	}
 
-	private JCExpression fixLeadingDot(JCExpression expr) {
+	private JCExpression fixLeadingDot(final JCExpression expr) {
 		if (expr instanceof JCFieldAccess) {
 			JCFieldAccess fieldAccess = (JCFieldAccess) expr;
 			JCExpression selExpr = fieldAccess.selected;
@@ -143,7 +143,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 		return expr;
 	}
 
-	private long flagsFor(Set<lombok.ast.Modifier> modifiers) {
+	private long flagsFor(final Set<lombok.ast.Modifier> modifiers) {
 		long flags = 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
 		flags |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? PRIVATE : 0;
@@ -156,7 +156,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitAnnotation(lombok.ast.Annotation node, Void p) {
+	public JCTree visitAnnotation(final lombok.ast.Annotation node, final Void p) {
 		final ListBuffer<JCExpression> args = ListBuffer.lb();
 		for (Entry<String, lombok.ast.Expression> entry : node.getValues().entrySet()) {
 			args.append(build(Assign(Name(entry.getKey()), entry.getValue()), JCExpression.class));
@@ -166,26 +166,26 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitArgument(lombok.ast.Argument node, Void p) {
+	public JCTree visitArgument(final lombok.ast.Argument node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		final JCVariableDecl argument = setGeneratedBy(M.VarDef(mods, name(node.getName()), build(node.getType(), JCExpression.class), null), source);
 		return argument;
 	}
 
 	@Override
-	public JCTree visitArrayRef(lombok.ast.ArrayRef node, Void p) {
+	public JCTree visitArrayRef(final lombok.ast.ArrayRef node, final Void p) {
 		final JCArrayAccess arrayAccess = setGeneratedBy(M.Indexed(build(node.getIndexed(), JCExpression.class), build(node.getIndex(), JCExpression.class)), source);
 		return arrayAccess;
 	}
 
 	@Override
-	public JCTree visitAssignment(lombok.ast.Assignment node, Void p) {
+	public JCTree visitAssignment(final lombok.ast.Assignment node, final Void p) {
 		final JCAssign assignment = setGeneratedBy(M.Assign(build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
 		return assignment;
 	}
 
 	@Override
-	public JCTree visitBinary(lombok.ast.Binary node, Void p) {
+	public JCTree visitBinary(final lombok.ast.Binary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opcode;
 		if ("+".equals(operator)) {
@@ -208,19 +208,19 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitBlock(lombok.ast.Block node, Void p) {
+	public JCTree visitBlock(final lombok.ast.Block node, final Void p) {
 		final JCBlock block = setGeneratedBy(M.Block(0, build(node.getStatements(), JCStatement.class)), source);
 		return block;
 	}
 
 	@Override
-	public JCTree visitBooleanLiteral(lombok.ast.BooleanLiteral node, Void p) {
+	public JCTree visitBooleanLiteral(final lombok.ast.BooleanLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(TypeTags.BOOLEAN, node.isTrue() ? 1 : 0), source);
 		return literal;
 	}
 
 	@Override
-	public JCTree visitCall(lombok.ast.Call node, Void p) {
+	public JCTree visitCall(final lombok.ast.Call node, final Void p) {
 		final JCExpression fn;
 		if (node.getReceiver() == null) {
 			fn = M.Ident(name(node.getName()));
@@ -232,25 +232,25 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitCase(lombok.ast.Case node, Void p) {
+	public JCTree visitCase(final lombok.ast.Case node, final Void p) {
 		final JCCase caze = setGeneratedBy(M.Case(build(node.getPattern(), JCExpression.class), build(node.getStatements(), JCStatement.class)), source);
 		return caze;
 	}
 
 	@Override
-	public JCTree visitCast(lombok.ast.Cast node, Void p) {
+	public JCTree visitCast(final lombok.ast.Cast node, final Void p) {
 		final JCTypeCast cast = setGeneratedBy(M.TypeCast(build(node.getType()), build(node.getExpression(), JCExpression.class)), source);
 		return cast;
 	}
 
 	@Override
-	public JCTree visitCharLiteral(lombok.ast.CharLiteral node, Void p) {
+	public JCTree visitCharLiteral(final lombok.ast.CharLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(node.getCharacter().charAt(0)), source);
 		return literal;
 	}
 
 	@Override
-	public JCTree visitClassDecl(lombok.ast.ClassDecl node, Void p) {
+	public JCTree visitClassDecl(final lombok.ast.ClassDecl node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		if (node.isInterface()) mods.flags |= Flags.INTERFACE;
 		final ListBuffer<JCTree> defs = ListBuffer.lb();
@@ -264,7 +264,8 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	// to support both:
 	//   javac 1.6 - M.ClassDef(JCModifiers, Name, List<JCTypeParameter>, JCTree, List<JCExpression>, List<JCTree>)
 	//   and javac 1.7 - M.ClassDef(JCModifiers, Name, List<JCTypeParameter>, JCExpression, List<JCExpression>, List<JCTree>)
-	private JCClassDecl createClassDef(JCModifiers mods, Name name, List<JCTypeParameter> typarams, JCExpression extending, List<JCExpression> implementing, List<JCTree> defs) {
+	private JCClassDecl createClassDef(final JCModifiers mods, final Name name, final List<JCTypeParameter> typarams, final JCExpression extending,
+			final List<JCExpression> implementing, final List<JCTree> defs) {
 		try {
 			Method classDefMethod = null;
 			for (Method method : TreeMaker.class.getMethods()) {
@@ -275,13 +276,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 			}
 			if (classDefMethod == null) throw new IllegalStateException();
 			return (JCClassDecl) classDefMethod.invoke(M, mods, name, typarams, extending, implementing, defs);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
 	@Override
-	public JCTree visitConstructorDecl(lombok.ast.ConstructorDecl node, Void p) {
+	public JCTree visitConstructorDecl(final lombok.ast.ConstructorDecl node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		List<JCStatement> statements = build(node.getStatements(), JCStatement.class);
 		if (node.implicitSuper()) {
@@ -293,19 +294,19 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitContinue(lombok.ast.Continue node, Void p) {
+	public JCTree visitContinue(final lombok.ast.Continue node, final Void p) {
 		final JCContinue continueStatement = setGeneratedBy(M.Continue(node.getLabel() == null ? null : name(node.getLabel())), source);
 		return continueStatement;
 	}
 
 	@Override
-	public JCTree visitDoWhile(lombok.ast.DoWhile node, Void p) {
+	public JCTree visitDoWhile(final lombok.ast.DoWhile node, final Void p) {
 		final JCDoWhileLoop doStatement = setGeneratedBy(M.DoLoop(build(node.getAction(), JCStatement.class), build(node.getCondition(), JCExpression.class)), source);
 		return doStatement;
 	}
 
 	@Override
-	public JCTree visitEnumConstant(lombok.ast.EnumConstant node, Void p) {
+	public JCTree visitEnumConstant(final lombok.ast.EnumConstant node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()) | ENUM, build(node.getAnnotations(), JCAnnotation.class)), source);
 		lombok.ast.ClassDecl enumClassDecl = node.upTo(lombok.ast.ClassDecl.class);
 		final JCExpression varType;
@@ -321,20 +322,20 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitEqual(lombok.ast.Equal node, Void p) {
+	public JCTree visitEqual(final lombok.ast.Equal node, final Void p) {
 		final JCBinary equal = setGeneratedBy(M.Binary(getCTCint(JCTree.class, node.isNotEqual() ? "NE": "EQ"), build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
 		return equal;
 	}
 
 	@Override
-	public JCTree visitFieldDecl(lombok.ast.FieldDecl node, Void p) {
+	public JCTree visitFieldDecl(final lombok.ast.FieldDecl node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		final JCVariableDecl field = setGeneratedBy(M.VarDef(mods, name(node.getName()), build(node.getType(), JCExpression.class), build(node.getInitialization(), JCExpression.class)), source);
 		return field;
 	}
 
 	@Override
-	public JCTree visitFieldRef(lombok.ast.FieldRef node, Void p) {
+	public JCTree visitFieldRef(final lombok.ast.FieldRef node, final Void p) {
 		final Name fieldName = name(node.getName());
 		if (node.getReceiver() == null) {
 			return setGeneratedBy(M.Ident(fieldName), source);
@@ -344,32 +345,32 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitForeach(lombok.ast.Foreach node, Void p) {
+	public JCTree visitForeach(final lombok.ast.Foreach node, final Void p) {
 		final JCEnhancedForLoop foreach = setGeneratedBy(M.ForeachLoop(build(node.getElementVariable(), JCVariableDecl.class), build(node.getCollection(), JCExpression.class), build(node.getAction(), JCStatement.class)), source);
 		return foreach;
 	}
 
 	@Override
-	public JCTree visitIf(lombok.ast.If node, Void p) {
+	public JCTree visitIf(final lombok.ast.If node, final Void p) {
 		final JCIf ifStatement = setGeneratedBy(M.If(build(node.getCondition(), JCExpression.class), build(node.getThenStatement(), JCStatement.class), build(node.getElseStatement(), JCStatement.class)), source);
 		return ifStatement;
 	}
 
 	@Override
-	public JCTree visitInstanceOf(lombok.ast.InstanceOf node, Void p) {
+	public JCTree visitInstanceOf(final lombok.ast.InstanceOf node, final Void p) {
 		final JCInstanceOf instanceOf = setGeneratedBy(M.TypeTest(build(node.getExpression(), JCExpression.class), build(node.getType())), source);
 		return instanceOf;
 	}
 
 	@Override
-	public JCTree visitLocalDecl(lombok.ast.LocalDecl node, Void p) {
+	public JCTree visitLocalDecl(final lombok.ast.LocalDecl node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		final JCVariableDecl local = setGeneratedBy(M.VarDef(mods, name(node.getName()), build(node.getType(), JCExpression.class), build(node.getInitialization(), JCExpression.class)), source);
 		return local;
 	}
 
 	@Override
-	public JCTree visitMethodDecl(lombok.ast.MethodDecl node, Void p) {
+	public JCTree visitMethodDecl(final lombok.ast.MethodDecl node, final Void p) {
 		final JCModifiers mods = setGeneratedBy(M.Modifiers(flagsFor(node.getModifiers()), build(node.getAnnotations(), JCAnnotation.class)), source);
 		JCBlock body = null;
 		if (!node.noBody() && ((mods.flags & Flags.ABSTRACT) == 0)) {
@@ -380,18 +381,18 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitNameRef(lombok.ast.NameRef node, Void p) {
+	public JCTree visitNameRef(final lombok.ast.NameRef node, final Void p) {
 		return setGeneratedBy(chainDots(node.getName()), source);
 	}
 
 	@Override
-	public JCTree visitNew(lombok.ast.New node, Void p) {
+	public JCTree visitNew(final lombok.ast.New node, final Void p) {
 		final JCNewClass newClass = setGeneratedBy(M.NewClass(null, build(node.getTypeArgs(), JCExpression.class), build(node.getType(), JCExpression.class), build(node.getArgs(), JCExpression.class), build(node.getAnonymousType(), JCClassDecl.class)), source);
 		return newClass;
 	}
 
 	@Override
-	public JCTree visitNewArray(lombok.ast.NewArray node, Void p) {
+	public JCTree visitNewArray(final lombok.ast.NewArray node, final Void p) {
 		final ListBuffer<JCExpression> dims = ListBuffer.lb();
 		dims.appendList(build(node.getDimensionExpressions(), JCExpression.class));
 		final List<JCExpression> initializerExpressions = build(node.getInitializerExpressions(), JCExpression.class);
@@ -400,25 +401,25 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitNullLiteral(lombok.ast.NullLiteral node, Void p) {
+	public JCTree visitNullLiteral(final lombok.ast.NullLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(TypeTags.BOT, null), source);
 		return literal;
 	}
 
 	@Override
-	public JCTree visitNumberLiteral(lombok.ast.NumberLiteral node, Void p) {
+	public JCTree visitNumberLiteral(final lombok.ast.NumberLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(node.getNumber()), source);
 		return literal;
 	}
 
 	@Override
-	public JCTree visitReturn(lombok.ast.Return node, Void p) {
+	public JCTree visitReturn(final lombok.ast.Return node, final Void p) {
 		final JCReturn returnStatement = setGeneratedBy(M.Return(build(node.getExpression(), JCExpression.class)), source);
 		return returnStatement;
 	}
 
 	@Override
-	public JCTree visitReturnDefault(lombok.ast.ReturnDefault node, Void p) {
+	public JCTree visitReturnDefault(final lombok.ast.ReturnDefault node, final Void p) {
 		lombok.ast.Return returnDefault = Return(Null());
 		lombok.ast.TypeRef returnType = node.upTo(lombok.ast.MethodDecl.class).getReturnType();
 		if (returnType == null) {
@@ -437,26 +438,26 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitStringLiteral(lombok.ast.StringLiteral node, Void p) {
+	public JCTree visitStringLiteral(final lombok.ast.StringLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(node.getString()), source);
 		return literal;
 	}
 
 	@Override
-	public JCTree visitSwitch(lombok.ast.Switch node, Void p) {
+	public JCTree visitSwitch(final lombok.ast.Switch node, final Void p) {
 		final JCSwitch switchStatement = setGeneratedBy(M.Switch(build(node.getExpression(), JCExpression.class), build(node.getCases(), JCCase.class)), source);
 		return switchStatement;
 	}
 
 	@Override
-	public JCTree visitSynchronized(lombok.ast.Synchronized node, Void p) {
+	public JCTree visitSynchronized(final lombok.ast.Synchronized node, final Void p) {
 		final JCBlock block = setGeneratedBy(M.Block(0, build(node.getStatements(), JCStatement.class)), source);
 		final JCSynchronized synchronizedStatemenet = setGeneratedBy(M.Synchronized(build(node.getLock(), JCExpression.class), block), source);
 		return synchronizedStatemenet;
 	}
 
 	@Override
-	public JCTree visitThis(lombok.ast.This node, Void p) {
+	public JCTree visitThis(final lombok.ast.This node, final Void p) {
 		final Name thisName = name("this");
 		if (node.getType() == null) {
 			return setGeneratedBy(M.Ident(thisName), source);
@@ -466,13 +467,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitThrow(lombok.ast.Throw node, Void p) {
+	public JCTree visitThrow(final lombok.ast.Throw node, final Void p) {
 		final JCThrow throwStatement = setGeneratedBy(M.Throw(build(node.getExpression(), JCExpression.class)), source);
 		return throwStatement;
 	}
 
 	@Override
-	public JCTree visitTry(lombok.ast.Try node, Void p) {
+	public JCTree visitTry(final lombok.ast.Try node, final Void p) {
 		final ListBuffer<JCCatch> catchers = ListBuffer.lb();
 		final Iterator<lombok.ast.Argument> iter = node.getCatchArguments().iterator();
 		for (lombok.ast.Block catchBlock : node.getCatchBlocks()) {
@@ -485,13 +486,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitTypeParam(lombok.ast.TypeParam node, Void p) {
+	public JCTree visitTypeParam(final lombok.ast.TypeParam node, final Void p) {
 		JCTypeParameter typeParam = setGeneratedBy(M.TypeParameter(name(node.getName()), build(node.getBounds(), JCExpression.class)), source);
 		return typeParam;
 	}
 
 	@Override
-	public JCTree visitTypeRef(lombok.ast.TypeRef node, Void p) {
+	public JCTree visitTypeRef(final lombok.ast.TypeRef node, final Void p) {
 		JCExpression typeRef;
 		final String typeName = node.getTypeName();
 		if ("void".equals(typeName)) {
@@ -526,7 +527,7 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitUnary(lombok.ast.Unary node, Void p) {
+	public JCTree visitUnary(final lombok.ast.Unary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opcode;
 		if ("!".equals(operator)) {
@@ -543,13 +544,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitWhile(lombok.ast.While node, Void p) {
+	public JCTree visitWhile(final lombok.ast.While node, final Void p) {
 		final JCWhileLoop whileLoop = setGeneratedBy(M.WhileLoop(build(node.getCondition(), JCExpression.class), build(node.getAction(), JCStatement.class)), source);
 		return whileLoop;
 	}
 
 	@Override
-	public JCTree visitWildcard(lombok.ast.Wildcard node, Void p) {
+	public JCTree visitWildcard(final lombok.ast.Wildcard node, final Void p) {
 		BoundKind boundKind = BoundKind.UNBOUND;
 		if (node.getBound() != null) {
 			switch(node.getBound()) {
@@ -567,13 +568,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitWrappedExpression(lombok.ast.WrappedExpression node, Void p) {
+	public JCTree visitWrappedExpression(final lombok.ast.WrappedExpression node, final Void p) {
 		final JCExpression expression = (JCExpression) node.getWrappedObject();
 		return expression;
 	}
 
 	@Override
-	public JCTree visitWrappedMethodDecl(lombok.ast.WrappedMethodDecl node, Void p) {
+	public JCTree visitWrappedMethodDecl(final lombok.ast.WrappedMethodDecl node, final Void p) {
 		MethodSymbol methodSymbol = (MethodSymbol) node.getWrappedObject();
 		Type mtype = methodSymbol.type;
 
@@ -609,13 +610,13 @@ public class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
 	}
 
 	@Override
-	public JCTree visitWrappedStatement(lombok.ast.WrappedStatement node, Void p) {
+	public JCTree visitWrappedStatement(final lombok.ast.WrappedStatement node, final Void p) {
 		final JCStatement statement = new TreeCopier<Void>(M).copy((JCStatement) node.getWrappedObject());
 		return statement;
 	}
 
 	@Override
-	public JCTree visitWrappedTypeRef(lombok.ast.WrappedTypeRef node, Void p) {
+	public JCTree visitWrappedTypeRef(final lombok.ast.WrappedTypeRef node, final Void p) {
 		JCExpression typeReference = null;
 		if (node.getWrappedObject() instanceof Type) {
 			typeReference = fixLeadingDot(M.Type((Type) node.getWrappedObject()));

@@ -38,7 +38,7 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 
 public class EclipseParameterValidator implements IParameterValidator<EclipseMethod> {
 	@Override
-	public List<lombok.ast.Statement> validateParameterOf(EclipseMethod method) {
+	public List<lombok.ast.Statement> validateParameterOf(final EclipseMethod method) {
 		final List<lombok.ast.Statement> validateStatements = new ArrayList<lombok.ast.Statement>();
 		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
 			final String argumentName = new String(argument.name);

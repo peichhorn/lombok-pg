@@ -56,7 +56,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return this;
 	}
 	
-	public boolean preHandle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public boolean preHandle(final String lockName, final Class<? extends java.lang.annotation.Annotation> annotationType) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
 			return false;
@@ -84,7 +84,8 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return true;
 	}
 
-	public void handle(String lockName, Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handle(final String lockName, final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
+			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (!preHandle(lockName, annotationType)) return;
 
 		boolean isReadWriteLock = lockMethod != null;
@@ -126,7 +127,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		method.rebuild();
 	}
 
-	private String createCompleteLockName(String lockName, boolean isReadWriteLock) {
+	private String createCompleteLockName(final String lockName, final boolean isReadWriteLock) {
 		String completeLockName = lockName;
 		if ((!isReadWriteLock) && trim(lockName).isEmpty()) {
 			String awaitCondition = trim(await == null ? "" : await.condition);
@@ -136,7 +137,8 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return completeLockName;
 	}
 	
-	private boolean getConditionStatements(ConditionData condition, String lockName, String annotationTypeName, List<Statement> before, List<Statement> after) {
+	private boolean getConditionStatements(final ConditionData condition, final String lockName, final String annotationTypeName, final List<Statement> before,
+			final List<Statement> after) {
 		if (condition == null) {
 			return true;
 		}
@@ -155,29 +157,25 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return false;
 	}
 
-	private boolean tryToAddLockField(String lockName, boolean isReadWriteLock, String annotationTypeName) {
-		lockName = trim(lockName);
-		if (lockName.isEmpty()) {
+	private boolean tryToAddLockField(final String lockName, final boolean isReadWriteLock, final String annotationTypeName) {
+		String trimmedLockName = trim(lockName);
+		if (trimmedLockName.isEmpty()) {
 			diagnosticsReceiver.addError(String.format("@%s 'lockName' may not be empty or null.", annotationTypeName));
 			return false;
 		}
-		if (!type.hasField(lockName)) {
+		if (!type.hasField(trimmedLockName)) {
 			if(isReadWriteLock) {
-				type.injectField(FieldDecl(Type("java.util.concurrent.locks.ReadWriteLock"), lockName).makePrivate().makeFinal() //
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.ReadWriteLock"), trimmedLockName).makePrivate().makeFinal() //
 					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantReadWriteLock"))));
 			} else {
-				type.injectField(FieldDecl(Type("java.util.concurrent.locks.Lock"), lockName).makePrivate().makeFinal() //
+				type.injectField(FieldDecl(Type("java.util.concurrent.locks.Lock"), trimmedLockName).makePrivate().makeFinal() //
 					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantLock"))));
 			}
-		} else {
-			// TODO type check
-			// java.util.concurrent.locks.ReadWriteLock
-			// java.util.concurrent.locks.Lock
 		}
 		return true;
 	}
 
-	private boolean tryToAddConditionField(ConditionData condition, String lockName, String annotationTypeName) {
+	private boolean tryToAddConditionField(final ConditionData condition, final String lockName, final String annotationTypeName) {
 		if (condition == null) {
 			return true;
 		}
@@ -189,15 +187,12 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		if (!type.hasField(conditionName)) {
 			type.injectField(FieldDecl(Type("java.util.concurrent.locks.Condition"), conditionName).makePrivate().makeFinal() //
 				.withInitialization(Call(Name(lockName), "newCondition")));
-		} else {
-			// TODO type check
-			// java.util.concurrent.locks.Condition
 		}
 		return true;
 	}
 
 	public static class AwaitData extends ConditionData {
-		public final String conditionMethod;
+		protected final String conditionMethod;
 
 		public AwaitData(final String condition, final String conditionMethod, final Position pos) {
 			super(condition, pos);
@@ -223,9 +218,9 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 	}
 
 	@RequiredArgsConstructor
-	public static abstract class ConditionData {
-		public final String condition;
-		public final Position pos;
+	public abstract static class ConditionData {
+		protected final String condition;
+		protected final Position pos;
 
 		public abstract Statement toStatement();
 	}

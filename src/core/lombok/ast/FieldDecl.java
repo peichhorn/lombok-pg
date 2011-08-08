@@ -28,7 +28,7 @@ import lombok.*;
 public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 	private Expression initialization;
 
-	public FieldDecl(TypeRef type, String name) {
+	public FieldDecl(final TypeRef type, final String name) {
 		super(type, name);
 	}
 
@@ -58,7 +58,7 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitFieldDecl(this, p);
 	}
 }

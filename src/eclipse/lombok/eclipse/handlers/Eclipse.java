@@ -45,12 +45,12 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {
 
-	public static void setGeneratedByAndCopyPos(ASTNode target, ASTNode source) {
+	public static void setGeneratedByAndCopyPos(final ASTNode target, final ASTNode source) {
 		setGeneratedBy(target, source);
 		copyPosTo(target, source);
 	}
 
-	public static void injectType(EclipseNode typeNode, TypeDeclaration type) {
+	public static void injectType(final EclipseNode typeNode, final TypeDeclaration type) {
 		type.annotations = createSuppressWarningsAll(type, type.annotations);
 		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
 
@@ -65,7 +65,7 @@ public final class Eclipse {
 		typeNode.add(type, Kind.TYPE);
 	}
 
-	public static void copyPosTo(ASTNode target, ASTNode source) {
+	public static void copyPosTo(final ASTNode target, final ASTNode source) {
 		target.sourceStart = source.sourceStart;
 		target.sourceEnd = source.sourceEnd;
 		if (target instanceof AbstractMethodDeclaration) {
@@ -86,13 +86,13 @@ public final class Eclipse {
 		}
 	}
 
-	public static String getMethodName(MessageSend methodCall) {
+	public static String getMethodName(final MessageSend methodCall) {
 		String methodName = (methodCall.receiver instanceof ThisReference) ? "" : methodCall.receiver + ".";
 		methodName += new String(methodCall.selector);
 		return methodName;
 	}
 
-	public static boolean isMethodCallValid(EclipseNode node, String methodName, Class<?> clazz, String method) {
+	public static boolean isMethodCallValid(final EclipseNode node, final String methodName, final Class<?> clazz, final String method) {
 		Collection<String> importedStatements = node.getImportStatements();
 		boolean wasImported = methodName.equals(clazz.getName() + "." + method);
 		wasImported |= methodName.equals(clazz.getSimpleName() + "." + method) && importedStatements.contains(clazz.getName());
@@ -100,7 +100,7 @@ public final class Eclipse {
 		return wasImported;
 	}
 
-	public static void deleteMethodCallImports(EclipseNode node, String methodName, Class<?> clazz, String method) {
+	public static void deleteMethodCallImports(final EclipseNode node, final String methodName, final Class<?> clazz, final String method) {
 		if (methodName.equals(method)) {
 			deleteImport(node, clazz.getName() + "." + method, true);
 		} else if (methodName.equals(clazz.getSimpleName() + "." + method)) {
@@ -108,11 +108,11 @@ public final class Eclipse {
 		}
 	}
 
-	public static void deleteImport(EclipseNode node, String name) {
+	public static void deleteImport(final EclipseNode node, final String name) {
 		deleteImport(node, name, false);
 	}
 
-	public static void deleteImport(EclipseNode node, String name, boolean deleteStatic) {
+	public static void deleteImport(final EclipseNode node, final String name, final boolean deleteStatic) {
 		CompilationUnitDeclaration unit = (CompilationUnitDeclaration) node.top().get();
 		List<ImportReference> newImports = new ArrayList<ImportReference>();
 		for (ImportReference imp0rt : unit.imports) {
@@ -144,7 +144,7 @@ public final class Eclipse {
 		return typeNode;
 	}
 
-	public static TypeDeclaration typeDeclFiltering(EclipseNode typeNode, long filterFlags) {
+	public static TypeDeclaration typeDeclFiltering(final EclipseNode typeNode, final long filterFlags) {
 		TypeDeclaration typeDecl = null;
 		if ((typeNode != null) && (typeNode.get() instanceof TypeDeclaration)) typeDecl = (TypeDeclaration)typeNode.get();
 		if ((typeDecl != null) && ((typeDecl.modifiers & filterFlags) != 0)) {
@@ -153,15 +153,15 @@ public final class Eclipse {
 		return typeDecl;
 	}
 
-	public static boolean hasAnnotations(TypeDeclaration decl) {
+	public static boolean hasAnnotations(final TypeDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);
 	}
 
-	public static boolean hasAnnotations(AbstractVariableDeclaration decl) {
+	public static boolean hasAnnotations(final AbstractVariableDeclaration decl) {
 		return (decl != null) && isNotEmpty(decl.annotations);
 	}
 
-	public static Annotation getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType, AbstractVariableDeclaration decl) {
+	public static Annotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final AbstractVariableDeclaration decl) {
 		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
 			if (matchesType(ann, expectedType)) {
 				return ann;
@@ -170,7 +170,7 @@ public final class Eclipse {
 		return null;
 	}
 
-	private static boolean matchesType(Annotation ann, Class<?> expectedType) {
+	private static boolean matchesType(final Annotation ann, final Class<?> expectedType) {
 		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
 	}
 }

@@ -63,9 +63,7 @@ import com.sun.tools.javac.util.Name;
 @ProviderFor(JavacAnnotationHandler.class)
 @ResolutionBased
 public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
-	// TODO scan for lombok annotations that come after @AutoGenMethodStub and print a warning that @AutoGenMethodStub
-	// should be the last annotation to avoid major issues, once again.. curve ball
-	@Override public void handle(AnnotationValues<AutoGenMethodStub> annotation, JCAnnotation source, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, AutoGenMethodStub.class);
 		final JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isInterface() || type.isAnnotation()) {
@@ -135,12 +133,12 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 			return false;
 		}
 
-		public static UndefiniedMethods of(JavacNode node) {
+		public static UndefiniedMethods of(final JavacNode node) {
 			JavacNode typeNode = typeNodeOf(node);
 			return new UndefiniedMethods(typeNode, ((JCClassDecl)typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
 		}
 
-		private MethodSymbol createMethodStubFor(MethodSymbol methodSym) {
+		private MethodSymbol createMethodStubFor(final MethodSymbol methodSym) {
 			MethodType type = (MethodType) methodSym.type;
 			Name name = methodSym.name;
 			MethodSymbol methodStubSym = new MethodSymbol(methodSym.flags() & ~Flags.ABSTRACT, name, types.memberType(classSymbol.type, methodSym), classSymbol);
@@ -153,7 +151,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 			return methodStubSym;
 		}
 
-		private MethodSymbol getFirstUndefinedMethod(ClassSymbol c) {
+		private MethodSymbol getFirstUndefinedMethod(final ClassSymbol c) {
 			MethodSymbol undef = null;
 			// Do not bother to search in classes that are not abstract, since they cannot have abstract members.
 			if (c == classSymbol || (c.flags() & (ABSTRACT | INTERFACE)) != 0) {

@@ -38,7 +38,7 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleSingleton extends JavacAnnotationHandler<Singleton> {
 
-	@Override public void handle(AnnotationValues<Singleton> annotation, JCAnnotation source, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<Singleton> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, Singleton.class);
 		new SingletonHandler<JavacType, JavacMethod>(JavacType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
 	}

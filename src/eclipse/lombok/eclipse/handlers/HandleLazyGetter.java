@@ -49,14 +49,15 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleLazyGetter extends EclipseAnnotationHandler<LazyGetter> {
 
-	public void handle(AnnotationValues<LazyGetter> annotation, Annotation ast, EclipseNode annotationNode) {
+	public void handle(final AnnotationValues<LazyGetter> annotation, final Annotation ast, final EclipseNode annotationNode) {
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
 		Class<? extends java.lang.annotation.Annotation> annotationType = LazyGetter.class;
 		LazyGetter annotationInstance = annotation.getInstance();
 		createLazyGetterForField(type, annotationInstance.value(), annotationNode.up(), annotationNode, annotationType);
 	}
 
-	private void createLazyGetterForField(EclipseType type, AccessLevel level, EclipseNode fieldNode, DiagnosticsReceiver diagnosticsReceiver, Class<? extends java.lang.annotation.Annotation> annotationType) {
+	private void createLazyGetterForField(final EclipseType type, final AccessLevel level, final EclipseNode fieldNode, final DiagnosticsReceiver diagnosticsReceiver,
+			final Class<? extends java.lang.annotation.Annotation> annotationType) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(annotationType));
 			return;
@@ -96,7 +97,7 @@ public class HandleLazyGetter extends EclipseAnnotationHandler<LazyGetter> {
 		createGetter(type, level, fieldDecl, methodName);
 	}
 
-	private void createGetter(EclipseType type, AccessLevel level, FieldDeclaration field, String methodName) {
+	private void createGetter(final EclipseType type, final AccessLevel level, final FieldDeclaration field, final String methodName) {
 		String fieldName = string(field.name);
 		String initializedFieldName = "$" + fieldName + "Initialized";
 		String lockFieldName = "$" + fieldName + "Lock";

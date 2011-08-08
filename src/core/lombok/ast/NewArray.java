@@ -32,7 +32,7 @@ public final class NewArray extends Expression {
 	private final TypeRef type;
 	private final int dimensions;
 
-	public NewArray(TypeRef type, int dimensions) {
+	public NewArray(final TypeRef type, final int dimensions) {
 		this.type = child(type);
 		this.dimensions = dimensions;
 	}
@@ -57,7 +57,7 @@ public final class NewArray extends Expression {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitNewArray(this, p);
 	}
 }

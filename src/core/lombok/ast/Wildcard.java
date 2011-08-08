@@ -37,14 +37,14 @@ public class Wildcard extends TypeRef {
 		this(null, null);
 	}
 
-	public Wildcard(Bound bound, TypeRef type) {
+	public Wildcard(final Bound bound, final TypeRef type) {
 		super((String) null);
 		this.type = type;
 		this.bound = bound;
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitWildcard(this, p);
 	}
 }

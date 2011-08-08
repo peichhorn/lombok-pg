@@ -54,7 +54,7 @@ import com.sun.tools.javac.tree.JCTree;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 
-	@Override public void handle(AnnotationValues<FluentSetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	@Override public void handle(final AnnotationValues<FluentSetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		Collection<JavacNode> fields = annotationNode.upFromAnnotationToFields();
 		deleteAnnotationIfNeccessary(annotationNode, FluentSetter.class);
 		deleteImportFromCompilationUnit(annotationNode, "lombok.AccessLevel");
@@ -63,7 +63,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		handle(ast, annotationNode, level, fields);
 	}
 
-	public void generateSetterForType(JavacNode typeNode, JavacNode errorNode, AccessLevel level, boolean checkForTypeLevelSetter) {
+	public void generateSetterForType(final JavacNode typeNode, final JavacNode errorNode, final AccessLevel level, final boolean checkForTypeLevelSetter) {
 		if (checkForTypeLevelSetter) {
 			if (typeNode != null) for (JavacNode child : typeNode.down()) {
 				if (child.getKind() == Kind.ANNOTATION) {
@@ -91,7 +91,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		}
 	}
 
-	public void generateSetterForField(JavacNode fieldNode, JCTree source, AccessLevel level) {
+	public void generateSetterForField(final JavacNode fieldNode, final JCTree source, final AccessLevel level) {
 		for (JavacNode child : fieldNode.down()) {
 			if (child.getKind() == Kind.ANNOTATION) {
 				if (Javac.annotationTypeMatches(FluentSetter.class, child)) {
@@ -102,7 +102,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		createSetterForField(level, fieldNode, fieldNode, source, false);
 	}
 
-	public void handle(JCAnnotation source, JavacNode annotationNode, AccessLevel level, Collection<JavacNode> fields) {
+	public void handle(final JCAnnotation source, final JavacNode annotationNode, final AccessLevel level, final Collection<JavacNode> fields) {
 		if (level == AccessLevel.NONE) return;
 
 		JavacNode node = annotationNode.up();
@@ -115,13 +115,14 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		}
 	}
 
-	private void createSetterForFields(AccessLevel level, Collection<JavacNode> fieldNodes, JavacNode errorNode, JCTree source, boolean whineIfExists) {
+	private void createSetterForFields(final AccessLevel level, final Collection<JavacNode> fieldNodes, final JavacNode errorNode, final JCTree source,
+			final boolean whineIfExists) {
 		for (JavacNode fieldNode : fieldNodes) {
 			createSetterForField(level, fieldNode, errorNode, source, whineIfExists);
 		}
 	}
 
-	private void createSetterForField(AccessLevel level, JavacNode fieldNode, JavacNode errorNode, JCTree source, boolean whineIfExists) {
+	private void createSetterForField(final AccessLevel level, final JavacNode fieldNode, final JavacNode errorNode, final JCTree source, final boolean whineIfExists) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			fieldNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return;
@@ -146,7 +147,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		generateSetter(JavacType.typeOf(fieldNode, source), fieldNode, level, source);
 	}
 
-	public static List<lombok.ast.Annotation> findAnnotations(JCVariableDecl variable, Pattern namePattern) {
+	public static List<lombok.ast.Annotation> findAnnotations(final JCVariableDecl variable, final Pattern namePattern) {
 		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
 		for (JCAnnotation annotation : variable.mods.annotations) {
 			String name = annotation.annotationType.toString();
@@ -159,7 +160,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		return result;
 	}
 
-	private void generateSetter(JavacType type, JavacNode fieldNode, AccessLevel level, JCTree source) {
+	private void generateSetter(final JavacType type, final JavacNode fieldNode, final AccessLevel level, final JCTree source) {
 		JCVariableDecl field = (JCVariableDecl) fieldNode.get();
 		String fieldName = fieldNode.getName();
 

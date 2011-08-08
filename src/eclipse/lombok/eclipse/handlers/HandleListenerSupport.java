@@ -36,7 +36,6 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.ListenerSupportHandler;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.agent.PatchListenerSupport;
 import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -55,7 +54,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupport> {
 	private final EclipseListenerSupportHandler handler = new EclipseListenerSupportHandler();
 
-	@Override public void handle(AnnotationValues<ListenerSupport> annotation, Annotation source, EclipseNode annotationNode) {
+	@Override public void handle(final AnnotationValues<ListenerSupport> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
@@ -85,20 +84,20 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		type.rebuild();
 	}
 
-	private void addFireListenerMethods(EclipseType type, TypeBinding interfaze) {
+	private void addFireListenerMethods(final EclipseType type, final TypeBinding interfaze) {
 		List<MethodBinding> methods = getInterfaceMethods(interfaze);
 		for (MethodBinding method : methods) {
 			handler.addFireListenerMethod(type, interfaze, method);
 		}
 	}
 
-	private List<MethodBinding> getInterfaceMethods(TypeBinding binding) {
+	private List<MethodBinding> getInterfaceMethods(final TypeBinding binding) {
 		List<MethodBinding> methods = new ArrayList<MethodBinding>();
 		getInterfaceMethods(binding, methods, new HashSet<String>());
 		return methods;
 	}
 
-	private void getInterfaceMethods(TypeBinding binding, List<MethodBinding> methods, final Set<String> banList) {
+	private void getInterfaceMethods(final TypeBinding binding, final List<MethodBinding> methods, final Set<String> banList) {
 		if (binding == null) return;
 		ensureAllClassScopeMethodWereBuild(binding);
 		if (binding instanceof ReferenceBinding) {
@@ -115,13 +114,13 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		}
 	}
 
-	private void ensureAllClassScopeMethodWereBuild(TypeBinding binding) {
+	private void ensureAllClassScopeMethodWereBuild(final TypeBinding binding) {
 		if (binding instanceof SourceTypeBinding) {
 			ClassScope cs = ((SourceTypeBinding)binding).scope;
 			if (cs != null) {
 				try {
 					Reflection.classScopeBuildMethodsMethod.invoke(cs);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					// See 'Reflection' class for why we ignore this exception.
 				}
 			}
@@ -136,7 +135,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			try {
 				m = ClassScope.class.getDeclaredMethod("buildMethods");
 				m.setAccessible(true);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				// That's problematic, but as long as no local classes are used we don't actually need it.
 				// Better fail on local classes than crash altogether.
 			}
@@ -148,7 +147,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	private static class EclipseListenerSupportHandler extends ListenerSupportHandler<EclipseType> {
 
 		@Override
-		protected void createParamsAndArgs(Object method, List<Argument> params, List<Expression> args) {
+		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression> args) {
 			MethodBinding methodBinding = (MethodBinding)method;
 			if (isEmpty(methodBinding.parameters)) return;
 			int argCounter = 0;
@@ -161,7 +160,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		}
 
 		@Override
-		protected String name(Object object) {
+		protected String name(final Object object) {
 			if (object instanceof MethodBinding) {
 				return string(((MethodBinding)object).selector);
 			} else {
@@ -170,7 +169,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		}
 
 		@Override
-		protected Object type(Object object) {
+		protected Object type(final Object object) {
 			return object;
 		}
 	}

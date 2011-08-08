@@ -22,6 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.Javac.*;
 
 import lombok.*;
 import lombok.core.handlers.EntrypointHandler;
@@ -35,7 +36,6 @@ import lombok.javac.handlers.ast.JavacType;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.util.ListBuffer;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleEntrypoint {
@@ -48,7 +48,7 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected void handle(JavacType type) {
+		@Override protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
 			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
 		}
@@ -63,7 +63,7 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected void handle(JavacType type) {
+		@Override protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
 			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
 			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
@@ -73,10 +73,10 @@ public class HandleEntrypoint {
 	}
 
 	@RequiredArgsConstructor
-	public static abstract class AbstractHandleEntrypoint extends JavacASTAdapter {
+	public abstract static class AbstractHandleEntrypoint extends JavacASTAdapter {
 		private final Class<?> interfaze;
 
-		@Override public void visitType(JavacNode typeNode, JCClassDecl type) {
+		@Override public void visitType(final JavacNode typeNode, final JCClassDecl type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
 			if (type.getImplementsClause() != null) for (JCExpression exp : type.getImplementsClause()) {
@@ -90,7 +90,7 @@ public class HandleEntrypoint {
 			}
 		}
 
-		@Override public void endVisitCompilationUnit(JavacNode top, JCCompilationUnit unit) {
+		@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 			deleteImportFromCompilationUnit(top, interfaze.getName());
 		}
 
@@ -100,21 +100,5 @@ public class HandleEntrypoint {
 		 * @param type
 		 */
 		protected abstract void handle(JavacType type);
-	}
-
-	/**
-	 * Removes the interface from javac's AST (it remains in lombok's AST),
-	 * then removes any import statement that imports this exact interface (not star imports).
-	 */
-	public static void markInterfaceAsProcessed(JavacNode typeNode, Class<?> interfazeType) {
-		JCClassDecl typeDecl = null;
-		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
-		if (typeDecl != null) {
-			ListBuffer<JCExpression> newImplementing = ListBuffer.lb();
-			for (JCExpression exp : typeDecl.implementing) {
-				if (!(exp.toString().equals(interfazeType.getName()) || exp.toString().equals(interfazeType.getSimpleName()))) newImplementing.append(exp);
-			}
-			typeDecl.implementing = newImplementing.toList();
-		}
 	}
 }

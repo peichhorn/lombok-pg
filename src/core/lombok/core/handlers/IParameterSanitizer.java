@@ -51,10 +51,11 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			}
 		};
 
-		public final static Iterable<SanitizerStrategy> IN_ORDER = unmodifiableList(WITH, NORMALIZE);
+		public static final Iterable<SanitizerStrategy> IN_ORDER = unmodifiableList(WITH, NORMALIZE);
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 
-		public abstract lombok.ast.Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation);
+		public abstract lombok.ast.Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName,
+				final java.lang.annotation.Annotation annotation);
 	}
 }

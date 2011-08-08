@@ -40,7 +40,7 @@ public class HandleSwingInvoke {
 
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleSwingInvokeLater extends JavacAnnotationHandler<SwingInvokeLater> {
-		@Override public void handle(AnnotationValues<SwingInvokeLater> annotation, JCAnnotation source, JavacNode annotationNode) {
+		@Override public void handle(final AnnotationValues<SwingInvokeLater> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 			final Class<? extends java.lang.annotation.Annotation> annotationType = SwingInvokeLater.class;
 			deleteAnnotationIfNeccessary(annotationNode, annotationType);
 			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //
@@ -50,7 +50,7 @@ public class HandleSwingInvoke {
 
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleSwingInvokeAndWait extends JavacAnnotationHandler<SwingInvokeAndWait> {
-		@Override public void handle(AnnotationValues<SwingInvokeAndWait> annotation, JCAnnotation source, JavacNode annotationNode) {
+		@Override public void handle(final AnnotationValues<SwingInvokeAndWait> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 			final Class<? extends java.lang.annotation.Annotation> annotationType = SwingInvokeAndWait.class;
 			deleteAnnotationIfNeccessary(annotationNode, annotationType);
 			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //

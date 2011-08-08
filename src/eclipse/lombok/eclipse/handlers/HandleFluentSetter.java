@@ -56,7 +56,7 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 
-	@Override public void handle(AnnotationValues<FluentSetter> annotation, Annotation ast, EclipseNode annotationNode) {
+	@Override public void handle(final AnnotationValues<FluentSetter> annotation, final Annotation ast, final EclipseNode annotationNode) {
 		FluentSetter annotationInstance = annotation.getInstance();
 		AccessLevel level = annotationInstance.value();
 		if (level == AccessLevel.NONE) return;
@@ -70,7 +70,7 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		}
 	}
 
-	public boolean generateSetterForType(EclipseNode typeNode, EclipseNode pos, AccessLevel level, boolean checkForTypeLevelSetter) {
+	public boolean generateSetterForType(final EclipseNode typeNode, final EclipseNode pos, final AccessLevel level, final boolean checkForTypeLevelSetter) {
 		if (checkForTypeLevelSetter) {
 			if (typeNode != null) for (EclipseNode child : typeNode.down()) {
 				if (child.getKind() == Kind.ANNOTATION) {
@@ -96,12 +96,12 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 			//Skip final fields.
 			if ((fieldDecl.modifiers & AccFinal) != 0) continue;
 
-			generateSetterForField(field, pos.get(), level, new Annotation[0], new Annotation[0]);
+			generateSetterForField(field, pos.get(), level);
 		}
 		return true;
 	}
 
-	public void generateSetterForField(EclipseNode fieldNode, ASTNode pos, AccessLevel level, Annotation[] onMethod , Annotation[] onParam) {
+	public void generateSetterForField(final EclipseNode fieldNode, final ASTNode pos, final AccessLevel level) {
 		for (EclipseNode child : fieldNode.down()) {
 			if (child.getKind() == Kind.ANNOTATION) {
 				if (annotationTypeMatches(Setter.class, child)) {
@@ -114,13 +114,14 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		createSetterForField(level, fieldNode, fieldNode, pos, false);
 	}
 
-	private void createSetterForFields(AccessLevel level, Collection<EclipseNode> fieldNodes, EclipseNode errorNode, ASTNode source, boolean whineIfExists) {
+	private void createSetterForFields(final AccessLevel level, final Collection<EclipseNode> fieldNodes, final EclipseNode errorNode, final ASTNode source,
+			final boolean whineIfExists) {
 		for (EclipseNode fieldNode : fieldNodes) {
 			createSetterForField(level, fieldNode, errorNode, source, whineIfExists);
 		}
 	}
 
-	private void createSetterForField(AccessLevel level, EclipseNode fieldNode, EclipseNode errorNode, ASTNode source, boolean whineIfExists) {
+	private void createSetterForField(final AccessLevel level, final EclipseNode fieldNode, final EclipseNode errorNode, final ASTNode source, final boolean whineIfExists) {
 		if (fieldNode.getKind() != Kind.FIELD) {
 			errorNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return;
@@ -145,7 +146,7 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		generateSetter(EclipseType.typeOf(fieldNode, source), fieldNode, level, source);
 	}
 
-	public static List<lombok.ast.Annotation> findAnnotations(AbstractVariableDeclaration variable, Pattern namePattern) {
+	public static List<lombok.ast.Annotation> findAnnotations(final AbstractVariableDeclaration variable, final Pattern namePattern) {
 		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
 		if (isNotEmpty(variable.annotations)) for (Annotation annotation : variable.annotations) {
 			TypeReference typeRef = annotation.type;
@@ -158,7 +159,7 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		return result;
 	}
 
-	private void generateSetter(EclipseType type, EclipseNode fieldNode, AccessLevel level, ASTNode source) {
+	private void generateSetter(final EclipseType type, final EclipseNode fieldNode, final AccessLevel level, final ASTNode source) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 		String fieldName = fieldNode.getName();
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);

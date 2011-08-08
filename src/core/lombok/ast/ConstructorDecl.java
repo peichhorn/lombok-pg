@@ -24,7 +24,7 @@ package lombok.ast;
 public class ConstructorDecl extends AbstractMethodDecl<ConstructorDecl> {
 	private boolean implicitSuper;
 
-	public ConstructorDecl(String name) {
+	public ConstructorDecl(final String name) {
 		super(name);
 	}
 
@@ -38,7 +38,7 @@ public class ConstructorDecl extends AbstractMethodDecl<ConstructorDecl> {
 	}
 
 	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p) {
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitConstructorDecl(this, p);
 	}
 }

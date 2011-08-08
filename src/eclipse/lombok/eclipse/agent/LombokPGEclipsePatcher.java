@@ -29,7 +29,7 @@ import lombok.patcher.equinox.EquinoxClassLoader;
 
 public final class LombokPGEclipsePatcher extends Agent {
 	@Override
-	public void runAgent(String agentArgs, Instrumentation instrumentation, boolean injected) throws Exception {
+	public void runAgent(final String agentArgs, final Instrumentation instrumentation, final boolean injected) throws Exception {
 		String[] args = agentArgs == null ? new String[0] : agentArgs.split(":");
 		boolean forceEcj = false;
 		boolean forceEclipse = false;
@@ -51,7 +51,7 @@ public final class LombokPGEclipsePatcher extends Agent {
 		registerPatchScripts(instrumentation, injected, ecj);
 	}
 
-	private void registerPatchScripts(Instrumentation instrumentation, boolean reloadExistingClasses, boolean ecjOnly) {
+	private void registerPatchScripts(final Instrumentation instrumentation, final boolean reloadExistingClasses, final boolean ecjOnly) {
 		ScriptManager sm = new ScriptManager();
 		sm.registerTransformer(instrumentation);
 		if (!ecjOnly) {
@@ -63,7 +63,7 @@ public final class LombokPGEclipsePatcher extends Agent {
 		if (reloadExistingClasses) sm.reloadClasses(instrumentation);
 	}
 
-	private void patchEcjTransformers(ScriptManager sm, boolean ecj) {
+	private void patchEcjTransformers(final ScriptManager sm, final boolean ecj) {
 		PatchAutoGenMethodStub.addPatches(sm, ecj);
 		PatchExtensionMethod.addPatches(sm, ecj);
 		PatchListenerSupport.addPatches(sm, ecj);

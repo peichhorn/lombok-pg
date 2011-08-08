@@ -39,7 +39,7 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleExtensionMethod extends EclipseAnnotationHandler<ExtensionMethod> {
 
-	@Override public void handle(AnnotationValues<ExtensionMethod> annotation, Annotation source, EclipseNode annotationNode) {
+	@Override public void handle(final AnnotationValues<ExtensionMethod> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
