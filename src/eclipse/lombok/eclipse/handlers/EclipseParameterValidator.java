@@ -43,7 +43,7 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
 			final String argumentName = new String(argument.name);
 			for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {
-				final Annotation ann = getAnnotation(validationStrategy.getType(), argument);
+				final Annotation ann = getAnnotation(validationStrategy.getType(), argument.annotations);
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);

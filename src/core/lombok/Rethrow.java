@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -46,8 +49,7 @@ import java.lang.annotation.*;
  * }
  * </pre>
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
+@Target(METHOD) @Retention(SOURCE)
 public @interface Rethrow {
 	/**
 	 * Specifies the exception types that should be caught and rethrown, default is {@code Exception.class}.

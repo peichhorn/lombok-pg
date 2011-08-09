@@ -51,8 +51,10 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
+import lombok.core.AST.Kind;
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.replace.ReturnStatementReplaceVisitor;
 import lombok.eclipse.handlers.replace.ThisReferenceReplaceVisitor;
 import lombok.eclipse.handlers.replace.VariableNameReplaceVisitor;
@@ -172,6 +174,21 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public EclipseNode node() {
 		return methodNode;
+	}
+
+	public EclipseNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+		return getAnnotation(expectedType.getName());
+	}
+
+	public EclipseNode getAnnotation(final String typeName) {
+		EclipseNode annotationNode = null;
+		for (EclipseNode child : node().down()) {
+			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (Eclipse.matchesType((Annotation) child.get(), typeName)) {
+				annotationNode = child;
+			}
+		}
+		return annotationNode;
 	}
 
 	public boolean hasNonFinalArgument() {

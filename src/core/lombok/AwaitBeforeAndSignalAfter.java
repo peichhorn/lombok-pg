@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -43,8 +46,7 @@ import java.lang.annotation.*;
  *
  * @author Philipp Eichhorn
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
+@Target(METHOD) @Retention(SOURCE)
 public @interface AwaitBeforeAndSignalAfter {
 
 	/**

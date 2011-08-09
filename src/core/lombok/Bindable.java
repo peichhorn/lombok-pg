@@ -26,36 +26,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.*;
 
-/**
- * Before:
- * <pre>
- * &#64;Rethrows({
- *   &#64;Rethrow(IOException.class),
- *   &#64;Rethrow(value=NullPointerException.class,as=IllegalArgumentException.class)
- * })
- * void testMethod(Object arg) {
- *   // do something
- * }
- *
- * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
- *   // do something
- * }
- * </pre>
- * After:
- * <pre>
- * void testMethod(Object arg) {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   } catch (NullPointerException e2) {
- *     throw new IllegalArgumentException(e2);
- *   }
- * }
- * </pre>
- */
-@Target(METHOD) @Retention(SOURCE)
-public @interface Rethrows {
-	/** @see Rethrow */
-	Rethrow[] value();
+@Target({FIELD, TYPE}) @Retention(SOURCE) 
+public @interface Bindable {
 }

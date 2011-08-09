@@ -24,7 +24,6 @@ package lombok.javac.handlers;
 import static lombok.ast.AST.Type;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
-import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static com.sun.tools.javac.code.Flags.*;
 
@@ -33,7 +32,6 @@ import java.util.*;
 import lombok.*;
 import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.core.handlers.BuilderAndExtensionHandler;
 import lombok.core.handlers.BuilderAndExtensionHandler.IBuilderData;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
@@ -107,26 +105,20 @@ public class HandleBuilderAndExtension {
 				return;
 			}
 
-			final JavacNode typeNode = typeNodeOf(annotationNode);
-			JavacNode builderNode = null;
-
-			for (JavacNode child : typeNode.down()) {
-				if (child.getKind() != Kind.ANNOTATION) continue;
-				if (Javac.annotationTypeMatches(Builder.class, child)) {
-					builderNode = child;
-				}
-			}
+			JavacType type = JavacType.typeOf(annotationNode, source);
+			JavacNode builderNode = type.getAnnotation(Builder.class);
 
 			if (builderNode == null) {
 				annotationNode.addError("@Builder.Extension is only allowed in types annotated with @Builder");
 				return;
 			}
 			AnnotationValues<Builder> builderAnnotation = Javac.createAnnotation(Builder.class, builderNode);
-			if (methodExists(decapitalize(typeNode.getName()), typeNode, false) == MemberExistsResult.NOT_EXISTS) {
+
+			if (!type.hasMethod(decapitalize(type.name()))) {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
 			}
 
-			final BuilderDataCollector collector = new BuilderDataCollector(JavacType.typeOf(typeNode, source), builderAnnotation.getInstance());
+			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
 			new JavacBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new JavacParameterSanitizer());
 		}
 	}

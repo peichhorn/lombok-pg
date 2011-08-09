@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -52,8 +55,7 @@ import java.lang.annotation.*;
  * <b>Note:</b> If you don't like the enum-approach, try the classic singleton using<br>
  * {@code @Singleton(style = Singleton.Style.HOLDER)}.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Target(TYPE) @Retention(SOURCE)
 public @interface Singleton {
 	/** Specifies the singleton-style to use, default is ENUM. */
 	Style style() default Style.ENUM;

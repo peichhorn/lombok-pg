@@ -104,11 +104,11 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		final Call lockCall;
 		final Call unLockCall;
 		if (isReadWriteLock) {
-			lockCall = Call(Call(Field(This(), completeLockName), lockMethod), "lock");
-			unLockCall = Call(Call(Field(This(), completeLockName), lockMethod), "unlock");
+			lockCall = Call(Call(Field(completeLockName), lockMethod), "lock");
+			unLockCall = Call(Call(Field(completeLockName), lockMethod), "unlock");
 		} else {
-			lockCall = Call(Field(This(), completeLockName), "lock");
-			unLockCall = Call(Field(This(), completeLockName), "unlock");
+			lockCall = Call(Field(completeLockName), "lock");
+			unLockCall = Call(Field(completeLockName), "unlock");
 		}
 
 		method.body(Block() //
@@ -201,7 +201,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 
 		@Override
 		public Statement toStatement() {
-			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(This(), condition), "await")))) //
+			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(condition), "await")))) //
 				.Catch(Arg(Type("java.lang.InterruptedException"), "e"), Block().withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("e")))));
 		}
 	}
@@ -213,7 +213,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 
 		@Override
 		public Statement toStatement() {
-			return Call(Field(This(), condition), "signal");
+			return Call(Field(condition), "signal");
 		}
 	}
 

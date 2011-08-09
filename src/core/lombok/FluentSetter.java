@@ -21,11 +21,13 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /** Does pretty much the same as {@link Setter @Setter}. */
-@Target({ElementType.FIELD, ElementType.TYPE})
-@Retention(RetentionPolicy.SOURCE)
+@Target({FIELD, TYPE}) @Retention(SOURCE)
 public @interface FluentSetter {
 	/**
 	 * If you want your setter to be non-public, you can specify an alternate access level here.

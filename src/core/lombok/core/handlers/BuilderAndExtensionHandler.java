@@ -75,7 +75,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER), "builder").makeFinal()).withImplicitSuper();
 		for (final FIELD_TYPE field : builderData.getAllFields()) {
 			final String fieldName = name(field);
-			constructorDecl.withStatement(Assign(Field(This(), fieldName), Field(Name("builder"), fieldName)));
+			constructorDecl.withStatement(Assign(Field(fieldName), Field(Name("builder"), fieldName)));
 		}
 		type.injectConstructor(constructorDecl);
 	}
@@ -139,7 +139,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		String methodName = camelCase(builderData.getPrefix(), fieldName);
 		final Argument arg0 = Arg(Type(type(field)), fieldName).makeFinal();
 		builderMethods.add(MethodDecl(Type(typeName), methodName).makePublic().implementing().withArgument(arg0) //
-			.withStatement(Assign(Field(This(), fieldName), Name(fieldName))) //
+			.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 			.withStatement(Return(This())));
 		interfaceMethods.add(MethodDecl(Type(typeName), methodName).makePublic().withNoBody().withArgument(arg0));
 	}
@@ -160,7 +160,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			final Argument arg0 = Arg(elementType, "arg0").makeFinal();
 			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), addMethodName).makePublic().implementing().withArgument(arg0) //
-				.withStatement(Call(Field(This(), fieldName), "add").withArgument(Name("arg0"))) //
+				.withStatement(Call(Field(fieldName), "add").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
 			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), addMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
@@ -168,7 +168,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			String addAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			final Argument arg0 = Arg(collectionType, "arg0").makeFinal();
 			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), addAllMethodName).makePublic().implementing().withArgument(arg0) //
-				.withStatement(Call(Field(This(), fieldName), "addAll").withArgument(Name("arg0"))) //
+				.withStatement(Call(Field(fieldName), "addAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
 			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), addAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
@@ -194,7 +194,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			final Argument arg0 = Arg(keyType, "arg0").makeFinal();
 			final Argument arg1 = Arg(valueType, "arg1").makeFinal();
 			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), putMethodName).makePublic().implementing().withArgument(arg0).withArgument(arg1) //
-				.withStatement(Call(Field(This(), fieldName), "put").withArgument(Name("arg0")).withArgument(Name("arg1"))) //
+				.withStatement(Call(Field(fieldName), "put").withArgument(Name("arg0")).withArgument(Name("arg1"))) //
 				.withStatement(Return(This())));
 			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), putMethodName).makePublic().withNoBody().withArgument(arg0).withArgument(arg1));
 		}
@@ -202,7 +202,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			String putAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			final Argument arg0 = Arg(mapType, "arg0").makeFinal();
 			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), putAllMethodName).makePublic().implementing().withArgument(arg0) //
-				.withStatement(Call(Field(This(), fieldName), "putAll").withArgument(Name("arg0"))) //
+				.withStatement(Call(Field(fieldName), "putAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
 			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), putAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}

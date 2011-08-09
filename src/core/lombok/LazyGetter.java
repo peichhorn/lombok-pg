@@ -21,14 +21,13 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import java.lang.annotation.*;
 
 /** Does pretty much the same as {@link Getter @Getter(lazy=true)}. */
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.SOURCE)
+@Target(FIELD) @Retention(SOURCE)
 public @interface LazyGetter {
 	/**
 	 * If you want your getter to be non-public, you can specify an alternate access level here.

@@ -49,7 +49,7 @@ public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod>
 			final String argumentName = argument.name.toString();
 			final String newArgumentName = camelCase("sanitized",argumentName);
 			for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {
-				final JCAnnotation ann = getAnnotation(sanitizerStrategy.getType(), argument);
+				final JCAnnotation ann = getAnnotation(sanitizerStrategy.getType(), argument.mods);
 				if (ann == null) continue;
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = Javac.createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();

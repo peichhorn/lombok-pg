@@ -62,6 +62,10 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public LOMBOK_NODE_TYPE node();
 
+	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
+
+	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
+
 	public boolean hasNonFinalArgument();
 
 	public boolean hasArguments();

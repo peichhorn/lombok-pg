@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -45,8 +48,7 @@ import java.lang.annotation.*;
  * }
  * </pre>
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Target(TYPE) @Retention(SOURCE)
 public @interface ExtensionMethod {
 	Class<?>[] value();
 }

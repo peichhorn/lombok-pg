@@ -24,7 +24,6 @@ package lombok.eclipse.handlers;
 import static lombok.ast.AST.Type;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
-import static lombok.eclipse.handlers.Eclipse.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
@@ -33,7 +32,6 @@ import java.util.*;
 import lombok.*;
 import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.core.handlers.BuilderAndExtensionHandler;
 import lombok.core.handlers.BuilderAndExtensionHandler.IBuilderData;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
@@ -42,7 +40,6 @@ import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
@@ -111,26 +108,20 @@ public class HandleBuilderAndExtension {
 				return;
 			}
 
-			final EclipseNode typeNode = typeNodeOf(annotationNode);
-			EclipseNode builderNode = null;
-
-			for (EclipseNode child : typeNode.down()) {
-				if (child.getKind() != Kind.ANNOTATION) continue;
-				if (Eclipse.annotationTypeMatches(Builder.class, child)) {
-					builderNode = child;
-				}
-			}
+			EclipseType type = EclipseType.typeOf(annotationNode, source);
+			EclipseNode builderNode = type.getAnnotation(Builder.class);
 
 			if (builderNode == null) {
 				annotationNode.addError("@Builder.Extension is only allowed in types annotated with @Builder");
 				return;
 			}
 			AnnotationValues<Builder> builderAnnotation = Eclipse.createAnnotation(Builder.class, builderNode);
-			if (methodExists(decapitalize(typeNode.getName()), typeNode, false) == MemberExistsResult.NOT_EXISTS) {
+
+			if (!type.hasMethod(decapitalize(type.name()))) {
 				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
 			}
 
-			final BuilderDataCollector collector = new BuilderDataCollector(EclipseType.typeOf(typeNode, source), builderAnnotation.getInstance());
+			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
 			new EclispeBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new EclipseParameterSanitizer());
 		}
 	}

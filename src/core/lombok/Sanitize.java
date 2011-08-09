@@ -21,10 +21,10 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import java.lang.annotation.*;
 import java.text.Normalizer;
 
 /**
@@ -35,8 +35,7 @@ import java.text.Normalizer;
  * <b>Note:</b> All lombok-pg method-level annotations automatically
  * trigger a parameter sanitation.
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
+@Target(METHOD) @Retention(SOURCE)
 public @interface Sanitize {
 
 	/**
@@ -45,8 +44,7 @@ public @interface Sanitize {
 	 * <b>Note:</b> This works with all types, but the parameter type
 	 * has to match the method signature.
 	 */
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface With {
 		String value();
 	}
@@ -58,8 +56,7 @@ public @interface Sanitize {
 	 * <p>
 	 * <b>Note:</b> This works with only on {@link String Strings}.
 	 */
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface Normalize {
 		Normalizer.Form value() default Normalizer.Form.NFKC;
 	}

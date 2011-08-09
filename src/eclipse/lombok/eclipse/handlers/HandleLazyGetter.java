@@ -110,12 +110,12 @@ public class HandleLazyGetter extends EclipseAnnotationHandler<LazyGetter> {
 		type.injectField(FieldDecl(Type("java.lang.Object").withDimensions(1), lockFieldName).makePrivate().makeFinal() //
 			.withInitialization(NewArray(Type("java.lang.Object")).withDimensionExpression(Number(0))));
 
-		type.injectMethod(MethodDecl(Type(field.type), methodName).makePublic().withAccessLevel(level) //
-			.withStatement(If(Not(Field(This(), initializedFieldName))).Then(Block() //
-				.withStatement(Synchronized(Field(This(), lockFieldName)) //
-					.withStatement(If(Not(Field(This(), initializedFieldName))).Then(Block() //
-						.withStatement(Assign(Field(This(), fieldName), init)) //
-						.withStatement(Assign(Field(This(), initializedFieldName), True()))))))) //
-			.withStatement(Return(Field(This(), fieldName))));
+		type.injectMethod(MethodDecl(Type(field.type), methodName).withAccessLevel(level) //
+			.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
+				.withStatement(Synchronized(Field(lockFieldName)) //
+					.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
+						.withStatement(Assign(Field(fieldName), init)) //
+						.withStatement(Assign(Field(initializedFieldName), True()))))))) //
+			.withStatement(Return(Field(fieldName))));
 	}
 }

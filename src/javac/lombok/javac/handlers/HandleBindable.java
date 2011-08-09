@@ -19,43 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok;
+package lombok.javac.handlers;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
-import java.lang.annotation.*;
+import lombok.*;
+import lombok.core.AnnotationValues;
+import lombok.core.handlers.BindableHandler;
+import lombok.javac.JavacAnnotationHandler;
+import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacType;
+
+import org.mangosdk.spi.ProviderFor;
+
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 /**
- * Before:
- * <pre>
- * &#64;Rethrows({
- *   &#64;Rethrow(IOException.class),
- *   &#64;Rethrow(value=NullPointerException.class,as=IllegalArgumentException.class)
- * })
- * void testMethod(Object arg) {
- *   // do something
- * }
- *
- * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
- *   // do something
- * }
- * </pre>
- * After:
- * <pre>
- * void testMethod(Object arg) {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   } catch (NullPointerException e2) {
- *     throw new IllegalArgumentException(e2);
- *   }
- * }
- * </pre>
+ * Handles the {@code lombok.Bindable} annotation for javac.
  */
-@Target(METHOD) @Retention(SOURCE)
-public @interface Rethrows {
-	/** @see Rethrow */
-	Rethrow[] value();
+@ProviderFor(JavacAnnotationHandler.class)
+public class HandleBindable extends JavacAnnotationHandler<Bindable> {
+
+	@Override
+	public void handle(AnnotationValues<Bindable> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, Bindable.class);
+		JavacType type = JavacType.typeOf(annotationNode, ast);
+		new BindableHandler<JavacType>(type, annotationNode).handle();
+	}
 }

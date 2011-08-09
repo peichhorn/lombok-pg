@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -66,8 +69,7 @@ import java.lang.annotation.*;
  * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.
  * But in few cases it may remove massive amounts of boilerplate.
  */
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.SOURCE)
+@Target(TYPE) @Retention(SOURCE)
 public @interface AutoGenMethodStub {
 	/**
 	 * If you rather prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} thrown instead of the default value returned, try

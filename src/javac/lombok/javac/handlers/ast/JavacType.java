@@ -32,8 +32,12 @@ import java.util.List;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
@@ -89,8 +93,27 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 		return (get().mods.flags & ANNOTATION) != 0;
 	}
 
+	public boolean isClass() {
+		return !isInterface() && !isEnum() && !isAnnotation();
+	}
+
 	public boolean hasSuperClass() {
 		return get().getExtendsClause() != null;
+	}
+
+	public JavacNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+		return getAnnotation(expectedType.getName());
+	}
+
+	public JavacNode getAnnotation(final String typeName) {
+		JavacNode annotationNode = null;
+		for (JavacNode child : node().down()) {
+			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (Javac.matchesType((JCAnnotation) child.get(), typeName)) {
+				annotationNode = child;
+			}
+		}
+		return annotationNode;
 	}
 
 	public <T extends IType<?, ?, ?, ?, ?>> T memberType(final String typeName) {
@@ -189,6 +212,27 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 		}
 		return typeParameters;
 	}
+
+	public java.util.List<lombok.ast.Annotation> annotations() {
+		return annotations(get().mods);
+	}
+
+	private java.util.List<lombok.ast.Annotation> annotations(final JCModifiers mods) {
+		final java.util.List<lombok.ast.Annotation> annotations = new java.util.ArrayList<lombok.ast.Annotation>();
+		for (JCAnnotation annotation : mods.annotations) {
+			lombok.ast.Annotation ann = Annotation(Type(annotation.annotationType));
+			for (JCExpression arg : annotation.args) {
+				if (arg instanceof JCAssign) {
+					JCAssign assign = (JCAssign) arg;
+					ann.withValue(assign.lhs.toString(), Expr(assign.rhs));
+				} else {
+					ann.withValue(Expr(arg));
+				}
+			}
+			annotations.add(ann);
+		}
+		return annotations;
+	}	
 
 	public boolean hasField(final String fieldName) {
 		return (fieldExists(fieldName, typeNode) != MemberExistsResult.NOT_EXISTS);

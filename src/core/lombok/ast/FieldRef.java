@@ -34,7 +34,7 @@ public final class FieldRef extends Expression {
 	}
 
 	public FieldRef(final String name) {
-		this(new This().implicit(), name);
+		this(new This(), name);
 	}
 
 	@Override

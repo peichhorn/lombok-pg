@@ -21,10 +21,10 @@
  */
 package lombok;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import java.lang.annotation.*;
 
 /**
  * Explicitly turns on validation for all method
@@ -34,8 +34,7 @@ import java.lang.annotation.Target;
  * <b>Note:</b> All lombok-pg method-level annotations automatically
  * trigger a parameter validation.
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
+@Target(METHOD) @Retention(SOURCE)
 public @interface Validate {
 	/**
 	 * Method that should be used to validate the parameter.
@@ -43,19 +42,16 @@ public @interface Validate {
 	 * <b>Note:</b> This works with all types, but the parameter type
 	 * has to match the method signature.
 	 */
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface With {
 		String value();
 	}
 	
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface NotNull {
 	}
 
-	@Target(ElementType.PARAMETER)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface NotEmpty {
 	}
 }

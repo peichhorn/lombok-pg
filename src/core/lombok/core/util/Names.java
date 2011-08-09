@@ -21,8 +21,7 @@
  */
 package lombok.core.util;
 
-import static java.lang.Character.isLowerCase;
-import static java.lang.Character.isUpperCase;
+import static java.lang.Character.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +93,27 @@ public class Names {
 
 	public static String singular(final String s) {
 		return s.endsWith("s") ? s.substring(0, s.length() - 1) : s;
+	}
+
+	/**
+	 * Creates the name of the constant that holds the name of a property. For
+	 * example, if the name of a property is "firstName," this method will
+	 * return "PROP_FIRST_NAME."
+	 */
+	public static String nameOfConstantBasedOnProperty(String propertyName) {
+		char[] chars = propertyName.toCharArray();
+		StringBuilder b = new StringBuilder();
+		b.append("PROP_");
+		int charCount = chars.length;
+		for (int i = 0; i < charCount; i++) {
+			char c = chars[i];
+			if (isUpperCase(c) && i > 0)
+				b.append('_');
+			if (isLowerCase(c))
+				c = toUpperCase(c);
+			b.append(c);
+		}
+		return b.toString();
 	}
 
 	public static String camelCase(final String first, final String... rest) {

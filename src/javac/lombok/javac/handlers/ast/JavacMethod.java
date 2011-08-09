@@ -25,11 +25,13 @@ import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
 import static lombok.core.util.Lists.list;
 import static lombok.core.util.Names.capitalize;
-import static lombok.javac.handlers.Javac.addSuppressWarningsAll;
+import static lombok.javac.handlers.Javac.*;
 
 import java.util.List;
 
+import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.replace.*;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -153,6 +155,21 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public JavacNode node() {
 		return methodNode;
+	}
+	
+	public JavacNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+		return getAnnotation(expectedType.getName());
+	}
+	
+	public JavacNode getAnnotation(final String typeName) {
+		JavacNode annotationNode = null;
+		for (JavacNode child : node().down()) {
+			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (Javac.matchesType((JCAnnotation) child.get(), typeName)) {
+				annotationNode = child;
+			}
+		}
+		return annotationNode;
 	}
 
 	public boolean hasNonFinalArgument() {

@@ -91,7 +91,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JavacASTMaker(final JavacNode sourceNode, final JCTree source) {
 		this.sourceNode = sourceNode;
 		this.source = source;
-		M = sourceNode.getTreeMaker();
+		M = sourceNode.getTreeMaker().at(source.pos);
 	}
 
 	public <T extends JCTree> T build(final lombok.ast.Node node) {

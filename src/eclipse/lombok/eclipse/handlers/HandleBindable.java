@@ -19,43 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok;
+package lombok.eclipse.handlers;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import lombok.*;
+import lombok.core.AnnotationValues;
+import lombok.core.handlers.BindableHandler;
+import lombok.eclipse.*;
+import lombok.eclipse.handlers.ast.EclipseType;
 
-import java.lang.annotation.*;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.mangosdk.spi.ProviderFor;
 
 /**
- * Before:
- * <pre>
- * &#64;Rethrows({
- *   &#64;Rethrow(IOException.class),
- *   &#64;Rethrow(value=NullPointerException.class,as=IllegalArgumentException.class)
- * })
- * void testMethod(Object arg) {
- *   // do something
- * }
- *
- * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
- *   // do something
- * }
- * </pre>
- * After:
- * <pre>
- * void testMethod(Object arg) {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   } catch (NullPointerException e2) {
- *     throw new IllegalArgumentException(e2);
- *   }
- * }
- * </pre>
+ * Handles the {@code lombok.Bindable} annotation for eclipse.
  */
-@Target(METHOD) @Retention(SOURCE)
-public @interface Rethrows {
-	/** @see Rethrow */
-	Rethrow[] value();
+@ProviderFor(EclipseAnnotationHandler.class)
+public class HandleBindable extends EclipseAnnotationHandler<Bindable> {
+
+	@Override
+	public void handle(AnnotationValues<Bindable> annotation, Annotation ast, EclipseNode annotationNode) {
+		EclipseType type = EclipseType.typeOf(annotationNode, ast);
+		new BindableHandler<EclipseType>(type, annotationNode).handle();
+	}
 }

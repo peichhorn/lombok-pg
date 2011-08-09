@@ -157,20 +157,18 @@ public final class Eclipse {
 		return (decl != null) && isNotEmpty(decl.annotations);
 	}
 
-	public static boolean hasAnnotations(final AbstractVariableDeclaration decl) {
-		return (decl != null) && isNotEmpty(decl.annotations);
+	public static Annotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final Annotation[] annotations) {
+		return getAnnotation(expectedType.getName(), annotations);
 	}
 
-	public static Annotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final AbstractVariableDeclaration decl) {
-		if (hasAnnotations(decl)) for (Annotation ann : decl.annotations) {
-			if (matchesType(ann, expectedType)) {
-				return ann;
-			}
+	public static Annotation getAnnotation(final String typeName, final Annotation[] annotations) {
+		if (isNotEmpty(annotations)) for (Annotation ann : annotations) {
+			if (matchesType(ann, typeName)) return ann;
 		}
 		return null;
 	}
 
-	private static boolean matchesType(final Annotation ann, final Class<?> expectedType) {
-		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
+	public static boolean matchesType(final Annotation ann, final String typeName) {
+		return typeName.replace("$", ".").endsWith(ann.type.toString());
 	}
 }

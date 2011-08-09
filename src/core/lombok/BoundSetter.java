@@ -23,39 +23,17 @@ package lombok;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static lombok.AccessLevel.PUBLIC;
 
 import java.lang.annotation.*;
 
-/**
- * Before:
- * <pre>
- * &#64;Rethrows({
- *   &#64;Rethrow(IOException.class),
- *   &#64;Rethrow(value=NullPointerException.class,as=IllegalArgumentException.class)
- * })
- * void testMethod(Object arg) {
- *   // do something
- * }
- *
- * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
- *   // do something
- * }
- * </pre>
- * After:
- * <pre>
- * void testMethod(Object arg) {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   } catch (NullPointerException e2) {
- *     throw new IllegalArgumentException(e2);
- *   }
- * }
- * </pre>
- */
-@Target(METHOD) @Retention(SOURCE)
-public @interface Rethrows {
-	/** @see Rethrow */
-	Rethrow[] value();
+import lombok.AccessLevel;
+
+@Target({FIELD, TYPE}) @Retention(SOURCE)
+public @interface BoundSetter {
+  
+  /**
+   * If you want your setter to be non-public, you can specify an alternate access level here.
+   */
+  AccessLevel value() default PUBLIC;
 }

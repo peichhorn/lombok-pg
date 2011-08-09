@@ -37,9 +37,13 @@ import java.util.List;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
+import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
@@ -96,6 +100,10 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 		return (get().modifiers & AccAnnotation) != 0;
 	}
 
+	public boolean isClass() {
+		return !isInterface() && !isEnum() && !isAnnotation();
+	}
+
 	public boolean hasSuperClass() {
 		return get().superclass != null;
 	}
@@ -132,6 +140,21 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 
 	public EclipseNode node() {
 		return typeNode;
+	}
+
+	public EclipseNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+		return getAnnotation(expectedType.getName());
+	}
+
+	public EclipseNode getAnnotation(final String typeName) {
+		EclipseNode annotationNode = null;
+		for (EclipseNode child : node().down()) {
+			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (Eclipse.matchesType((Annotation) child.get(), typeName)) {
+				annotationNode = child;
+			}
+		}
+		return annotationNode;
 	}
 
 	public void injectField(final lombok.ast.FieldDecl fieldDecl) {
@@ -213,6 +236,25 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 			typeParameters.add(Type(new String(param.name)));
 		}
 		return typeParameters;
+	}
+	public List<lombok.ast.Annotation> annotations() {
+		return annotations(get().annotations);
+	}
+	
+	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
+		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
+		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
+			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
+			if (annotation instanceof SingleMemberAnnotation) {
+				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
+			} else if (annotation instanceof NormalAnnotation) {
+				for (MemberValuePair pair : ((NormalAnnotation)annotation).memberValuePairs) {
+					ann.withValue(new String(pair.name), Expr(pair.value));
+				}
+			}
+			annotations.add(ann);
+		}
+		return annotations;
 	}
 
 	public boolean hasField(final String fieldName) {

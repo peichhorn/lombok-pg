@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2011 Philipp Eichhorn
+ * Copyright © 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,41 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
+import static lombok.core.handlers.TransformationsUtil.*;
+import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.Names.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccFinal;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import lombok.*;
-import lombok.ast.*;
-import lombok.core.AST.Kind;
+import lombok.ast.MethodDecl;
 import lombok.core.AnnotationValues;
+import lombok.core.AST.Kind;
 import lombok.core.handlers.TransformationsUtil;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+import org.eclipse.jdt.internal.compiler.ast.*;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@code lombok.FluentSetter} annotation for eclipse.
+ * Handles the {@code lombok.BoundSetter} annotation for eclipse.
  */
 @ProviderFor(EclipseAnnotationHandler.class)
-public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
+public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
+	private static final String PROPERTY_SUPPORT_FIELD_NAME = "propertySupport";
+	private static final String FIRE_PROPERTY_CHANGE_METHOD_NAME = "firePropertyChange";
+	private static final String OLD_VALUE_VARIABLE_NAME = "old";
 	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
 
-	@Override public void handle(final AnnotationValues<FluentSetter> annotation, final Annotation ast, final EclipseNode annotationNode) {
+	@Override
+	public void handle(AnnotationValues<BoundSetter> annotation, Annotation ast, EclipseNode annotationNode) {
 		EclipseNode mayBeField = annotationNode.up();
 		if (mayBeField == null) return;
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
@@ -69,30 +73,44 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 				fields.add(field);
 			}
 		} else {
-			annotationNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
+			annotationNode.addError(canBeUsedOnClassAndFieldOnly(BoundSetter.class));
 			return;
 		}
 		generateSetter(fields, annotation.getInstance(), type);
 	}
 
-	private void generateSetter(List<EclipseNode> fields, FluentSetter setter, EclipseType type) {
+	private void generateSetter(List<EclipseNode> fields, BoundSetter setter, EclipseType type) {
 		for (EclipseNode fieldNode : fields) {
-			generateSetter(setter, fieldNode, type);
+			String propertyNameFieldName = nameOfConstantBasedOnProperty(fieldNode.getName());
+			generatePropertyNameConstant(propertyNameFieldName, fieldNode, type);
+			generateSetter(propertyNameFieldName, setter, fieldNode, type);
 		}
 	}
 
-	private void generateSetter(FluentSetter setter, EclipseNode fieldNode, EclipseType type) {
+	private void generatePropertyNameConstant(String propertyNameFieldName, EclipseNode fieldNode, EclipseType type) {
+		String propertyName = fieldNode.getName();
+		if (type.hasField(propertyNameFieldName)) return;
+		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
+			.withInitialization(New(Type(String.class)).withArgument(String(propertyName))));
+	}
+
+	private void generateSetter(String propertyNameFieldName, BoundSetter setter, EclipseNode fieldNode, EclipseType type) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 		String fieldName = fieldNode.getName();
 		TypeReference fieldType = field.type;
-		if (type.hasMethod(fieldName)) return;
+		boolean isBoolean = nameEquals(fieldType.getTypeName(), "boolean") && fieldType.dimensions() == 0;
+		String setterName = toSetterName(fieldName, isBoolean);
+		if (type.hasMethod(setterName)) return;
+		String oldValueName = OLD_VALUE_VARIABLE_NAME;
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldName).withAccessLevel(setter.value()).withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
+		MethodDecl methodDecl = MethodDecl(Type("void"), setterName).withAccessLevel(setter.value()).withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
 		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
 		}
-		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-			.withStatement(Return(This()));
+		methodDecl.withStatement(LocalDecl(Type(fieldType), oldValueName).makeFinal().withInitialization(Field(fieldName))) //
+			.withStatement(Assign(Field(fieldName), Name(fieldName))) //
+			.withStatement(Call(Field(PROPERTY_SUPPORT_FIELD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
+				.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Field(fieldName)));
 		type.injectMethod(methodDecl);
 	}
 

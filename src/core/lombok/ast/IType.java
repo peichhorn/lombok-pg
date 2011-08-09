@@ -40,6 +40,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public boolean isAnnotation();
 
+	public boolean isClass();
+
 	public boolean hasSuperClass();
 
 	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName);
@@ -51,6 +53,10 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 	public AST_TYPE_DECL_TYPE get();
 
 	public LOMBOK_NODE_TYPE node();
+
+	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
+
+	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
 
 	public void injectField(FieldDecl fieldDecl);
 
@@ -68,10 +74,12 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public List<TypeRef> typeParameters();
 
+	public List<Annotation> annotations();
+
 	public boolean hasField(String fieldName);
 
 	public boolean hasMethod(String methodName);
-	
+
 	public void makeEnum();
 
 	public void makePrivate();

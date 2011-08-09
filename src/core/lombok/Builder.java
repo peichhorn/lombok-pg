@@ -21,6 +21,9 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
@@ -108,8 +111,7 @@ import java.lang.annotation.*;
  * <b>Note:</b> For each field that is a initialized collection( or map), the methods add/addAll( or put/putAll) will be generated instead of the fluent-set method.
  * This behavior can be disabled via {@link #convenientMethods() convenientMethods = false}.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Target(TYPE) @Retention(SOURCE)
 public @interface Builder {
 	/**
 	 * If you want the create-method to be non-public, you can specify an alternate access level here.
@@ -153,8 +155,7 @@ public @interface Builder {
 	 * need to be private and must return void. And if you want to set a required value in you own extension,
 	 * you need to set all other required values too.
 	 */
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.SOURCE)
+	@Target(METHOD) @Retention(SOURCE)
 	public static @interface Extension {
 	}
 }

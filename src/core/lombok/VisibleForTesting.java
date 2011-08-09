@@ -21,14 +21,16 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import java.lang.annotation.*;
 
 /**
  * An annotation that indicates that the visibility of a type or member has
  * been relaxed to make the code testable.
  */
-@Target({ElementType.METHOD, ElementType.TYPE})
-@Retention(RetentionPolicy.SOURCE)
+@Target({METHOD, TYPE}) @Retention(SOURCE)
 public @interface VisibleForTesting {
 
 }

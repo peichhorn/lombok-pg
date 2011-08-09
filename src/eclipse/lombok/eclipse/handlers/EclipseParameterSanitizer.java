@@ -46,7 +46,7 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 			final String argumentName = new String(argument.name);
 			final String newArgumentName = camelCase("sanitized",argumentName);
 			for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {
-				final Annotation ann = getAnnotation(sanitizerStrategy.getType(), argument);
+				final Annotation ann = getAnnotation(sanitizerStrategy.getType(), argument.annotations);
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);

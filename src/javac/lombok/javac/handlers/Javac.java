@@ -38,7 +38,6 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -160,16 +159,18 @@ public final class Javac {
 		return typeDecl;
 	}
 
-	public static JCAnnotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final JCVariableDecl decl) {
-		for (JCAnnotation ann : decl.mods.annotations) {
-			if (matchesType(ann, expectedType)) {
-				return ann;
-			}
+	public static JCAnnotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final JCModifiers mods) {
+		return getAnnotation(expectedType.getName(), mods);
+	}
+
+	public static JCAnnotation getAnnotation(final String typeName, final JCModifiers mods) {
+		for (JCAnnotation ann : mods.annotations) {
+			if (matchesType(ann, typeName)) return ann;
 		}
 		return null;
 	}
-
-	private static boolean matchesType(final JCAnnotation ann, final Class<?> expectedType) {
-		return expectedType.getName().replace("$", ".").endsWith(ann.type.toString());
+	
+	public static boolean matchesType(final JCAnnotation ann, final String typeName) {
+		return typeName.replace("$", ".").endsWith(ann.annotationType.toString());
 	}
 }
