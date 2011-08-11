@@ -1,4 +1,4 @@
-class BindablePlain {
+class BoundPropertySupportPlain {
 	
 	int i;
 	String s;

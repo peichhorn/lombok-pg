@@ -25,7 +25,7 @@ import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessar
 
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.BindableHandler;
+import lombok.core.handlers.BoundPropertySupportHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacType;
@@ -35,15 +35,15 @@ import org.mangosdk.spi.ProviderFor;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 /**
- * Handles the {@code lombok.Bindable} annotation for javac.
+ * Handles the {@code lombok.BoundPropertySupport} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleBindable extends JavacAnnotationHandler<Bindable> {
+public class HandleBoundPropertySupport extends JavacAnnotationHandler<BoundPropertySupport> {
 
 	@Override
-	public void handle(AnnotationValues<Bindable> annotation, JCAnnotation ast, JavacNode annotationNode) {
-		deleteAnnotationIfNeccessary(annotationNode, Bindable.class);
+	public void handle(AnnotationValues<BoundPropertySupport> annotation, JCAnnotation ast, JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, BoundPropertySupport.class);
 		JavacType type = JavacType.typeOf(annotationNode, ast);
-		new BindableHandler<JavacType>(type, annotationNode).handle();
+		new BoundPropertySupportHandler<JavacType>(type, annotationNode).handle();
 	}
 }

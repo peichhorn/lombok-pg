@@ -1,7 +1,7 @@
 import lombok.AccessLevel;
-import lombok.Bindable;
+import lombok.BoundPropertySupport;
 import lombok.BoundSetter;
-@Bindable class BindablePlain {
+@BoundPropertySupport class BoundPropertySupportPlain {
   @BoundSetter int i;
   @BoundSetter(AccessLevel.PUBLIC) String s;
   @BoundSetter(AccessLevel.PROTECTED) float f;
@@ -46,7 +46,7 @@ import lombok.BoundSetter;
   public @java.lang.SuppressWarnings("all") void removePropertyChangeListener(final java.beans.PropertyChangeListener listener) {
     this.propertySupport.removePropertyChangeListener(listener);
   }
-  BindablePlain() {
+  BoundPropertySupportPlain() {
     super();
   }
 }

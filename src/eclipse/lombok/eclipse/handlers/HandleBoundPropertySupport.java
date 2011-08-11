@@ -19,13 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok;
+package lombok.eclipse.handlers;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import lombok.*;
+import lombok.core.AnnotationValues;
+import lombok.core.handlers.BoundPropertySupportHandler;
+import lombok.eclipse.*;
+import lombok.eclipse.handlers.ast.EclipseType;
 
-import java.lang.annotation.*;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.mangosdk.spi.ProviderFor;
 
-@Target({FIELD, TYPE}) @Retention(SOURCE) 
-public @interface Bindable {
+/**
+ * Handles the {@code lombok.BoundPropertySupport} annotation for eclipse.
+ */
+@ProviderFor(EclipseAnnotationHandler.class)
+public class HandleBoundPropertySupport extends EclipseAnnotationHandler<BoundPropertySupport> {
+
+	@Override
+	public void handle(AnnotationValues<BoundPropertySupport> annotation, Annotation ast, EclipseNode annotationNode) {
+		EclipseType type = EclipseType.typeOf(annotationNode, ast);
+		new BoundPropertySupportHandler<EclipseType>(type, annotationNode).handle();
+	}
 }

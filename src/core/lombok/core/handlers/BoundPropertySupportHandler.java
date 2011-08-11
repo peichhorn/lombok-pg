@@ -32,7 +32,7 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public class BindableHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?>> {
+public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?>> {
 	private static final String PROPERTY_SUPPORT_FIELD_NAME = "propertySupport";
 	private static final String LISTENER_ARG_NAME = "listener";
 	private static final String[] PROPERTY_CHANGE_METHOD_NAMES = array("addPropertyChangeListener", "removePropertyChangeListener");
@@ -42,7 +42,7 @@ public class BindableHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE
 
 	public void handle() {
 		if (!type.isClass()) {
-			diagnosticsReceiver.addError(canBeUsedOnClassOnly(Bindable.class));
+			diagnosticsReceiver.addError(canBeUsedOnClassOnly(BoundPropertySupport.class));
 			return;
 		}
 
