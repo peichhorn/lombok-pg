@@ -42,15 +42,16 @@ import lombok.patcher.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchVisibleForTesting {
 	static void addPatches(final ScriptManager sm, final boolean ecj) {
+		final String HOOK_NAME = PatchVisibleForTesting.class.getName();
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.methodToReplace(new Hook(SCOPE, "findMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
-			.replacementMethod(new Hook(PatchVisibleForTesting.class.getName(), "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook(HOOK_NAME, "onFindMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.build());
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(SCOPE, "getMethod", METHODBINDING, TYPEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.methodToReplace(new Hook(SCOPE, "findExactMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
-			.replacementMethod(new Hook(PatchVisibleForTesting.class.getName(), "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
+			.replacementMethod(new Hook(HOOK_NAME, "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.build());
 	}
 

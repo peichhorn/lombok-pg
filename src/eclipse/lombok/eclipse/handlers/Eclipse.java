@@ -75,8 +75,9 @@ public final class Eclipse {
 			((TypeDeclaration)target).bodyStart = source.sourceStart;
 			((TypeDeclaration)target).bodyEnd = source.sourceEnd;
 		} else if (target instanceof AbstractVariableDeclaration) {
-			target.sourceStart = target.sourceEnd = 0;
-			((AbstractVariableDeclaration)target).declarationSourceEnd  = -1;
+			target.sourceStart = 0;
+			target.sourceEnd = 0;
+			((AbstractVariableDeclaration)target).declarationSourceEnd = -1;
 		}
 		if (target instanceof Expression) {
 			((Expression)target).statementEnd = source.sourceEnd;

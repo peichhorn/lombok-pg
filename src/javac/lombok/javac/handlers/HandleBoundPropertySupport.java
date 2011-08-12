@@ -41,7 +41,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 public class HandleBoundPropertySupport extends JavacAnnotationHandler<BoundPropertySupport> {
 
 	@Override
-	public void handle(AnnotationValues<BoundPropertySupport> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	public void handle(final AnnotationValues<BoundPropertySupport> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, BoundPropertySupport.class);
 		JavacType type = JavacType.typeOf(annotationNode, ast);
 		new BoundPropertySupportHandler<JavacType>(type, annotationNode).handle();

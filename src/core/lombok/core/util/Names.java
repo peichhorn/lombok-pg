@@ -51,7 +51,8 @@ public class Names {
 	 * <pre>
 	 */
 	public static String interfaceName(final String s) {
-		return (isNotEmpty(s) && (s.length() > 2) && (s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
+		if (isEmpty(s) || (s.length() <= 2)) return s;
+		return ((s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
 	}
 
 	public static String decapitalize(final String s) {
@@ -65,7 +66,8 @@ public class Names {
 	}
 
 	public static boolean isEmpty(final String s) {
-		return trim(s).isEmpty();
+		if (s == null) return true;
+		return s.isEmpty();
 	}
 
 	public static boolean isNotEmpty(final String s) {
@@ -100,7 +102,7 @@ public class Names {
 	 * example, if the name of a property is "firstName," this method will
 	 * return "PROP_FIRST_NAME."
 	 */
-	public static String nameOfConstantBasedOnProperty(String propertyName) {
+	public static String nameOfConstantBasedOnProperty(final String propertyName) {
 		char[] chars = propertyName.toCharArray();
 		StringBuilder b = new StringBuilder();
 		b.append("PROP_");

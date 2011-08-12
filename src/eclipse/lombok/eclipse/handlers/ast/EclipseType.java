@@ -142,7 +142,7 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 		return typeNode;
 	}
 
-	public EclipseNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+	public EclipseNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {
 		return getAnnotation(expectedType.getName());
 	}
 

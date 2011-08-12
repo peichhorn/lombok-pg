@@ -143,15 +143,7 @@ public class HandleTuple extends JavacASTAdapter {
 	}
 
 	public boolean handle(final JavacNode tupleAssignNode, final JCMethodInvocation leftTupleCall, final JCMethodInvocation rightTupleCall) {
-		if ((leftTupleCall.args.length() != rightTupleCall.args.length()) && (rightTupleCall.args.length() != 1)) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
-					" must have one array-type argument for the tuple assignment to work.");
-			return false;
-		}
-		if (!containsOnlyNames(leftTupleCall.args)) {
-			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
-			return false;
-		}
+		if (!validateTupel(tupleAssignNode, leftTupleCall, rightTupleCall)) return false;
 
 		ListBuffer<JCStatement> tempVarAssignments = ListBuffer.lb();
 		ListBuffer<JCStatement> assignments = ListBuffer.lb();
@@ -193,6 +185,19 @@ public class HandleTuple extends JavacASTAdapter {
 		tempVarAssignments.appendList(assignments);
 		tryToInjectStatements(tupleAssignNode, tupleAssignNode.get(), tempVarAssignments.toList());
 
+		return true;
+	}
+
+	private boolean validateTupel(final JavacNode tupleAssignNode, final JCMethodInvocation leftTupleCall, final JCMethodInvocation rightTupleCall) {
+		if ((leftTupleCall.args.length() != rightTupleCall.args.length()) && (rightTupleCall.args.length() != 1)) {
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
+					" must have one array-type argument for the tuple assignment to work.");
+			return false;
+		}
+		if (!containsOnlyNames(leftTupleCall.args)) {
+			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
+			return false;
+		}
 		return true;
 	}
 

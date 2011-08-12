@@ -176,7 +176,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		return methodNode;
 	}
 
-	public EclipseNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+	public EclipseNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {
 		return getAnnotation(expectedType.getName());
 	}
 

@@ -50,19 +50,19 @@ public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMeth
 		generateChangeListenerMethods(type);
 	}
 
-	private void generatePropertyChangeSupportField(TYPE_TYPE type) {
+	private void generatePropertyChangeSupportField(final TYPE_TYPE type) {
 		if (type.hasField(PROPERTY_SUPPORT_FIELD_NAME)) return;
 		type.injectField(FieldDecl(Type(PropertyChangeSupport.class), PROPERTY_SUPPORT_FIELD_NAME).makePrivate().makeFinal() //
 			.withInitialization(New(Type(PropertyChangeSupport.class)).withArgument(This())));
 	}
 
-	private void generateChangeListenerMethods(TYPE_TYPE type) {
+	private void generateChangeListenerMethods(final TYPE_TYPE type) {
 		for (String methodName : PROPERTY_CHANGE_METHOD_NAMES) {
 			generateChangeListenerMethod(methodName, type);
 		}
 	}
 
-	private void generateChangeListenerMethod(String methodName, TYPE_TYPE type) {
+	private void generateChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
 		if (type.hasMethod(methodName)) return;
 		type.injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(PropertyChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Field(PROPERTY_SUPPORT_FIELD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));

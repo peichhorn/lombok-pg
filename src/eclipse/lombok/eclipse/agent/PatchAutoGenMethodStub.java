@@ -41,18 +41,19 @@ import lombok.patcher.*;
 public final class PatchAutoGenMethodStub {
 
 	static void addPatches(final ScriptManager sm, final boolean ecj) {
+		final String HOOK_NAME = PatchAutoGenMethodStub.class.getName();
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
 			.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 			.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
-			.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
 			.build());
 
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod", "void", METHODBINDING))
 			.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods", "void", METHODBINDINGS, "int"))
 			.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
-			.replacementMethod(new Hook(PatchAutoGenMethodStub.class.getName(), "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
 			.build());
 	}
 

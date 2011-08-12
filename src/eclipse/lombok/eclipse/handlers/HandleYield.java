@@ -24,7 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.camelCase;
+import static lombok.core.util.Names.*;
 import static lombok.core.util.Types.*;
 
 import java.util.*;
@@ -500,7 +500,7 @@ public class HandleYield extends EclipseASTAdapter {
 							.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
 							.withStatement(Continue()) //
 						));
-						addStatement(Assign(Name(new String(forStatement.elementVariable.name)), Cast(Type(forStatement.elementVariable.type), Call(Name(iteratorVarName), "next"))));
+						addStatement(Assign(Name(string(forStatement.elementVariable.name)), Cast(Type(forStatement.elementVariable.type), Call(Name(iteratorVarName), "next"))));
 						refactorStatement(forStatement.action);
 						addStatement(setStateId(labelLiteral(getIterationLabel(this))));
 						addStatement(Continue());

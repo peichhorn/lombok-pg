@@ -37,7 +37,7 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleBoundPropertySupport extends EclipseAnnotationHandler<BoundPropertySupport> {
 
 	@Override
-	public void handle(AnnotationValues<BoundPropertySupport> annotation, Annotation ast, EclipseNode annotationNode) {
+	public void handle(final AnnotationValues<BoundPropertySupport> annotation, final Annotation ast, final EclipseNode annotationNode) {
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
 		new BoundPropertySupportHandler<EclipseType>(type, annotationNode).handle();
 	}

@@ -144,15 +144,7 @@ public class HandleTuple extends EclipseASTAdapter {
 	}
 	
 	public boolean handle(final EclipseNode tupleAssignNode, final MessageSend leftTupleCall, final MessageSend rightTupleCall) {
-		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments) && (rightTupleCall.arguments.length != 1)) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
-					" must have one array-type argument for the tuple assignment to work.");
-			return false;
-		}
-		if (!containsOnlyNames(leftTupleCall.arguments)) {
-			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
-			return false;
-		}
+		if (!validateTupel(tupleAssignNode, leftTupleCall, rightTupleCall)) return false;
 
 		List<Statement> tempVarAssignments = new ArrayList<Statement>();
 		List<Statement> assignments = new ArrayList<Statement>();
@@ -194,6 +186,19 @@ public class HandleTuple extends EclipseASTAdapter {
 		tempVarAssignments.addAll(assignments);
 		tryToInjectStatements(tupleAssignNode, tupleAssignNode.get(), tempVarAssignments);
 
+		return true;
+	}
+
+	private boolean validateTupel(final EclipseNode tupleAssignNode, final MessageSend leftTupleCall, final MessageSend rightTupleCall) {
+		if (!sameSize(leftTupleCall.arguments, rightTupleCall.arguments) && (rightTupleCall.arguments.length != 1)) {
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
+					" must have one array-type argument for the tuple assignment to work.");
+			return false;
+		}
+		if (!containsOnlyNames(leftTupleCall.arguments)) {
+			tupleAssignNode.addError("Only variable names are allowed as arguments of the left hand side in a tuple assignment.");
+			return false;
+		}
 		return true;
 	}
 

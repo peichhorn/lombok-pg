@@ -79,19 +79,20 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		generateSetter(fields, annotation.getInstance(), type);
 	}
 	
-	private void generateSetter(List<JavacNode> fields, FluentSetter setter, JavacType type) {
+	private void generateSetter(final List<JavacNode> fields, final FluentSetter setter, final JavacType type) {
 		for (JavacNode fieldNode : fields) {
 			generateSetter(setter, fieldNode, type);
 		}
 	}
 
-	private void generateSetter(FluentSetter setter, JavacNode fieldNode, JavacType type) {
+	private void generateSetter(final FluentSetter setter, final JavacNode fieldNode, final JavacType type) {
 		JCVariableDecl field = (JCVariableDecl) fieldNode.get();
 		String fieldName = fieldNode.getName();
 		JCExpression fieldType = field.vartype;
 		if (type.hasMethod(fieldName)) return;
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldNode.getName()).withAccessLevel(setter.value()).withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
+		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldNode.getName()).withAccessLevel(setter.value()) //
+			.withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
 		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
 		}

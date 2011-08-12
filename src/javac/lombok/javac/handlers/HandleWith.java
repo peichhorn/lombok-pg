@@ -21,10 +21,13 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.ast.AST.Expr;
+import static lombok.ast.AST.LocalDecl;
+import static lombok.ast.AST.Name;
+import static lombok.ast.AST.Type;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static com.sun.tools.javac.code.Flags.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,6 +62,7 @@ import lombok.*;
 import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacASTMaker;
 import lombok.javac.handlers.ast.JavacMethod;
 
 @ProviderFor(JavacASTVisitor.class)
@@ -97,7 +101,7 @@ public class HandleWith extends JavacASTAdapter {
 			return true;
 		}
 
-		TreeMaker maker = methodCallNode.getTreeMaker();
+		JCTree source = withCall;
 		ListBuffer<JCStatement> withCallStatements = ListBuffer.lb();
 		JCExpression withExpr = withCall.args.head;
 		String withExprName;
@@ -105,22 +109,18 @@ public class HandleWith extends JavacASTAdapter {
 			withExprName = withExpr.toString();
 		} else if (withExpr instanceof JCNewClass) {
 			withExprName = "$with" + (withVarCounter++);
-			withCallStatements.append(maker.VarDef(maker.Modifiers(FINAL), methodCallNode.toName(withExprName), ((JCNewClass)withExpr).clazz, withExpr));
-			withExpr = chainDots(maker, methodCallNode, withExprName);
+			JavacASTMaker builder = new JavacASTMaker(methodCallNode, source);
+			JCStatement statement = builder.build(LocalDecl(Type(((JCNewClass)withExpr).clazz), withExprName).makeFinal().withInitialization(Expr(withExpr)));
+			withCallStatements.append(statement);
+			withExpr = builder.build(Name(withExprName));
 		} else {
 			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));
 			return false;
 		}
 		final JavacNode parent = methodCallNode.directUp();
-		JCTree statementThatUsesWith = parent.get();
+		final JCTree statementThatUsesWith = parent.get();
 
-		boolean wasNoMethodCall;
-		try {
-			wasNoMethodCall = tryToRemoveWithCall(methodCallNode, withCall, withExpr, statementThatUsesWith);
-		} catch (final IllegalArgumentException e) {
-			methodCallNode.addError(isNotAllowedHere("with"));
-			return false;
-		}
+		final boolean wasNoMethodCall = tryToRefactorWithCall(methodCallNode, withCall, withExpr, statementThatUsesWith);
 
 		if (tryToTransformAllStatements(methodCallNode, withCall.args.tail, withExprName, withCallStatements)) {
 			return false;
@@ -130,7 +130,7 @@ public class HandleWith extends JavacASTAdapter {
 		return true;
 	}
 
-	private boolean tryToRemoveWithCall(final JavacNode methodCallNode, final JCMethodInvocation withCall, final JCExpression withExpr,
+	private boolean tryToRefactorWithCall(final JavacNode methodCallNode, final JCMethodInvocation withCall, final JCExpression withExpr,
 			final JCTree statementThatUsesWith) throws IllegalArgumentException {
 		if ((statementThatUsesWith instanceof JCAssign) && ((JCAssign)statementThatUsesWith).rhs == withCall) {
 			((JCAssign)statementThatUsesWith).rhs = withExpr;
@@ -152,7 +152,8 @@ public class HandleWith extends JavacASTAdapter {
 			}
 			methodCall.args = newArgs.toList();
 		} else {
-			throw new IllegalArgumentException();
+			methodCallNode.addError(isNotAllowedHere("with"));
+			return false;
 		}
 		return true;
 	}
@@ -188,7 +189,7 @@ public class HandleWith extends JavacASTAdapter {
 		} else if (block instanceof JCMethodDecl) {
 			((JCMethodDecl)block).body.stats = injectStatements(((JCMethodDecl)block).body.stats, statement, wasNoMethodCall, withCallStatements);
 		} else {
-			// this would be odd odd but what the hell
+			// this would be odd but what the hell
 			return;
 		}
 		grandParent.rebuild();

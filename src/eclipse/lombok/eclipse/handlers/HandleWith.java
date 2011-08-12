@@ -101,7 +101,8 @@ public class HandleWith extends EclipseASTAdapter {
 		} else if (withExpr instanceof AllocationExpression) {
 			withExprName = "$with" + (withVarCounter++);
 			EclipseASTMaker builder = new EclipseASTMaker(methodCallNode, source);
-			withCallStatements.add(builder.build(LocalDecl(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(Expr(withExpr)), Statement.class));
+			Statement statement = builder.build(LocalDecl(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(Expr(withExpr)));
+			withCallStatements.add(statement);
 			withExpr = builder.build(Name(withExprName));
 		} else {
 			methodCallNode.addError(firstArgumentCanBeVariableNameOrNewClassStatementOnly("with"));

@@ -59,7 +59,7 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
 
 	@Override
-	public void handle(AnnotationValues<BoundSetter> annotation, JCAnnotation ast, JavacNode annotationNode) {
+	public void handle(final AnnotationValues<BoundSetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		JavacNode mayBeField = annotationNode.up();
 		if (mayBeField == null) return;
 		JavacType type = JavacType.typeOf(annotationNode, ast);
@@ -87,7 +87,7 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 		generateSetter(fields, annotation.getInstance(), type);
 	}
 
-	private void generateSetter(List<JavacNode> fields, BoundSetter setter, JavacType type) {
+	private void generateSetter(final List<JavacNode> fields, final BoundSetter setter, final JavacType type) {
 		for (JavacNode fieldNode : fields) {
 			String propertyNameFieldName = nameOfConstantBasedOnProperty(fieldNode.getName());
 			generatePropertyNameConstant(propertyNameFieldName, fieldNode, type);
@@ -95,14 +95,14 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 		}
 	}
 
-	private void generatePropertyNameConstant(String propertyNameFieldName, JavacNode fieldNode, JavacType type) {
+	private void generatePropertyNameConstant(final String propertyNameFieldName, final JavacNode fieldNode, final JavacType type) {
 		String propertyName = fieldNode.getName();
 		if (type.hasField(propertyNameFieldName)) return;
 		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
 			.withInitialization(New(Type(String.class)).withArgument(String(propertyName))));
 	}
 
-	private void generateSetter(String propertyNameFieldName, BoundSetter setter, JavacNode fieldNode, JavacType type) {
+	private void generateSetter(final String propertyNameFieldName, final BoundSetter setter, final JavacNode fieldNode, final JavacType type) {
 		JCVariableDecl field = (JCVariableDecl) fieldNode.get();
 		String fieldName = fieldNode.getName();
 		JCExpression fieldType = field.vartype;

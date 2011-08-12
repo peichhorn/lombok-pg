@@ -101,7 +101,7 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 		return get().getExtendsClause() != null;
 	}
 
-	public JavacNode getAnnotation(Class<? extends java.lang.annotation.Annotation> expectedType) {
+	public JavacNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {
 		return getAnnotation(expectedType.getName());
 	}
 

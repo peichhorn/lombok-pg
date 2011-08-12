@@ -72,6 +72,19 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
 			return;
 		}
+		List<TypeSymbol> resolvedInterfaces = resolveInterfaces(annotationNode, annotationType, listenerInterfaces);
+		for (TypeSymbol interfaze : resolvedInterfaces) {
+			handler.addListenerField(type, interfaze);
+			handler.addAddListenerMethod(type, interfaze);
+			handler.addRemoveListenerMethod(type, interfaze);
+			addFireListenerMethods(type, interfaze);
+		}
+
+		type.rebuild();
+	}
+
+	private List<TypeSymbol> resolveInterfaces(final JavacNode annotationNode, final Class<? extends java.lang.annotation.Annotation> annotationType,
+			final List<Object> listenerInterfaces) {
 		List<TypeSymbol> resolvedInterfaces = new ArrayList<TypeSymbol>();
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof JCFieldAccess) {
@@ -88,14 +101,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 				}
 			}
 		}
-		for (TypeSymbol interfaze : resolvedInterfaces) {
-			handler.addListenerField(type, interfaze);
-			handler.addAddListenerMethod(type, interfaze);
-			handler.addRemoveListenerMethod(type, interfaze);
-			addFireListenerMethods(type, interfaze);
-		}
-
-		type.rebuild();
+		return resolvedInterfaces;
 	}
 
 	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {

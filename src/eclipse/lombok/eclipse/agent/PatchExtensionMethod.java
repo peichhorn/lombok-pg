@@ -84,23 +84,24 @@ import lombok.patcher.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchExtensionMethod {
 	static void addPatches(final ScriptManager sm, final boolean ecj) {
+		final String HOOK_NAME = PatchExtensionMethod.class.getName();
 		sm.addScript(wrapReturnValue()
 			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
 			.request(StackRequest.RETURN_VALUE)
 			.request(StackRequest.THIS)
 			.request(StackRequest.PARAM1)
-			.wrapMethod(new Hook(PatchExtensionMethod.class.getName(), "resolveType", TYPEBINDING, TYPEBINDING, MESSAGESEND, BLOCKSCOPE))
+			.wrapMethod(new Hook(HOOK_NAME, "resolveType", TYPEBINDING, TYPEBINDING, MESSAGESEND, BLOCKSCOPE))
 			.build());
 
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
 			.methodToReplace(new Hook(PROBLEMREPORTER, "errorNoMethodFor", "void", MESSAGESEND, TYPEBINDING, TYPEBINDINGS))
-			.replacementMethod(new Hook(PatchExtensionMethod.class.getName(), "errorNoMethodFor", "void", PROBLEMREPORTER, MESSAGESEND, TYPEBINDING, TYPEBINDINGS))
+			.replacementMethod(new Hook(HOOK_NAME, "errorNoMethodFor", "void", PROBLEMREPORTER, MESSAGESEND, TYPEBINDING, TYPEBINDINGS))
 			.build());
 		sm.addScript(replaceMethodCall()
 			.target(new MethodTarget(MESSAGESEND, "resolveType", TYPEBINDING, BLOCKSCOPE))
 			.methodToReplace(new Hook(PROBLEMREPORTER, "invalidMethod", "void", MESSAGESEND, METHODBINDING))
-			.replacementMethod(new Hook(PatchExtensionMethod.class.getName(), "invalidMethod", "void", PROBLEMREPORTER, MESSAGESEND, METHODBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "invalidMethod", "void", PROBLEMREPORTER, MESSAGESEND, METHODBINDING))
 			.build());
 
 		if (!ecj) {
@@ -108,7 +109,7 @@ public final class PatchExtensionMethod {
 				.target(new MethodTarget(COMPLETIONPROPOSALCOLLECTOR, "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS))
 				.request(StackRequest.RETURN_VALUE)
 				.request(StackRequest.THIS)
-				.wrapMethod(new Hook(PatchExtensionMethod.class.getName(), "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS, IJAVACOMPLETIONPROPOSALS, COMPLETIONPROPOSALCOLLECTOR))
+				.wrapMethod(new Hook(HOOK_NAME, "getJavaCompletionProposals", IJAVACOMPLETIONPROPOSALS, IJAVACOMPLETIONPROPOSALS, COMPLETIONPROPOSALCOLLECTOR))
 				.build());
 		}
 	}

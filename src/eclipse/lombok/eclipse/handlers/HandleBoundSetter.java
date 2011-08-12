@@ -56,7 +56,7 @@ public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
 
 	@Override
-	public void handle(AnnotationValues<BoundSetter> annotation, Annotation ast, EclipseNode annotationNode) {
+	public void handle(final AnnotationValues<BoundSetter> annotation, final Annotation ast, final EclipseNode annotationNode) {
 		EclipseNode mayBeField = annotationNode.up();
 		if (mayBeField == null) return;
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
@@ -79,7 +79,7 @@ public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 		generateSetter(fields, annotation.getInstance(), type);
 	}
 
-	private void generateSetter(List<EclipseNode> fields, BoundSetter setter, EclipseType type) {
+	private void generateSetter(final List<EclipseNode> fields, final BoundSetter setter, final EclipseType type) {
 		for (EclipseNode fieldNode : fields) {
 			String propertyNameFieldName = nameOfConstantBasedOnProperty(fieldNode.getName());
 			generatePropertyNameConstant(propertyNameFieldName, fieldNode, type);
@@ -87,14 +87,14 @@ public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 		}
 	}
 
-	private void generatePropertyNameConstant(String propertyNameFieldName, EclipseNode fieldNode, EclipseType type) {
+	private void generatePropertyNameConstant(final String propertyNameFieldName, final EclipseNode fieldNode, final EclipseType type) {
 		String propertyName = fieldNode.getName();
 		if (type.hasField(propertyNameFieldName)) return;
 		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
 			.withInitialization(New(Type(String.class)).withArgument(String(propertyName))));
 	}
 
-	private void generateSetter(String propertyNameFieldName, BoundSetter setter, EclipseNode fieldNode, EclipseType type) {
+	private void generateSetter(final String propertyNameFieldName, final BoundSetter setter, final EclipseNode fieldNode, final EclipseType type) {
 		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
 		String fieldName = fieldNode.getName();
 		TypeReference fieldType = field.type;

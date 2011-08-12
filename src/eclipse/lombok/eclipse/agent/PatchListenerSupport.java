@@ -37,10 +37,11 @@ import lombok.patcher.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PatchListenerSupport {
 	static void addPatches(final ScriptManager sm, final boolean ecj) {
+		final String HOOK_NAME = PatchListenerSupport.class.getName();
 		sm.addScript(exitEarly()
 			.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
 			.request(StackRequest.THIS)
-			.decisionMethod(new Hook(PatchListenerSupport.class.getName(), "onClassScope_buildFieldsAndMethods", "boolean", CLASSSCOPE))
+			.decisionMethod(new Hook(HOOK_NAME, "onClassScope_buildFieldsAndMethods", "boolean", CLASSSCOPE))
 			.build());
 	}
 

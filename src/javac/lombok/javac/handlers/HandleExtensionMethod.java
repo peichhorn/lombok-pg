@@ -91,7 +91,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		for (Object extensionProvider : annotation.getActualExpressions("value")) {
 			if (extensionProvider instanceof JCFieldAccess) {
 				JCFieldAccess provider = (JCFieldAccess)extensionProvider;
-				if (provider.name.toString().equals("class")) {
+				if ("class".equals(string(provider.name))) {
 					Type providerType = resolveClassMember(typeNode, provider.selected);
 					if (providerType == null) continue;
 					if ((providerType.tsym.flags() & (INTERFACE | ANNOTATION)) != 0) continue;
@@ -155,35 +155,41 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		}
 
 		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
-			if (isOfInterest() && (statement instanceof JCMethodInvocation)) {
-				JCMethodInvocation methodCall = (JCMethodInvocation) statement;
-				JCExpression receiver;
-				String methodName;
-				if (methodCall.meth instanceof JCIdent) {
-					receiver = type.build(This());
-					methodName = ((JCIdent)methodCall.meth).name.toString();
-				} else {
-					JCFieldAccess meth = (JCFieldAccess) methodCall.meth;
-					receiver = meth.selected;
-					methodName = meth.name.toString();
+			if (!isOfInterest() || !(statement instanceof JCMethodInvocation)) return;
+			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
+			JCExpression receiver = receiverOf(methodCall);
+			String methodName = methodNameOf(methodCall);
+			if (isOneOf(methodName, "this", "super")) return;
+			Type resolvedMethodCall = resolveMethodMember(statementNode, methodCall);
+			if (!(resolvedMethodCall instanceof ErrorType)) return;
+			Type receiverType = resolveMethodMember(statementNode, receiver);
+			Types types = Types.instance(type.node().getContext());
+			for (Extension extension : extensions) {
+				for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
+					if (!(extensionMethod.type instanceof MethodType)) continue;
+					MethodType method = (MethodType) extensionMethod.type;
+					if (!methodName.equals(string(extensionMethod.name))) continue;
+					if (!types.isAssignable(receiverType, method.argtypes.get(0))) continue;
+					methodCall.args = methodCall.args.prepend(receiver);
+					methodCall.meth = type.build(Call(Name(string(extension.getExtensionProvider())), methodName), JCMethodInvocation.class).meth;
+					return;
 				}
-				
-				if (isOneOf(methodName, "this", "super")) return;
-				Type resolvedMethodCall = resolveMethodMember(statementNode, methodCall);
-				if (!(resolvedMethodCall instanceof ErrorType)) return;
-				Type receiverType = resolveMethodMember(statementNode, receiver);
-				Types types = Types.instance(type.node().getContext());
-				for (Extension extension : extensions) {
-					for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
-						if (!(extensionMethod.type instanceof MethodType)) continue;
-						MethodType method = (MethodType) extensionMethod.type;
-						if (!methodName.equals(extensionMethod.name.toString())) continue;
-						if (!types.isAssignable(receiverType, method.argtypes.get(0))) continue;
-						methodCall.args = methodCall.args.prepend(receiver);
-						methodCall.meth = type.build(Call(Name(extension.getExtensionProvider().toString()), methodName), JCMethodInvocation.class).meth;
-						return;
-					}
-				}
+			}
+		}
+
+		private String methodNameOf(final JCMethodInvocation methodCall) {
+			if (methodCall.meth instanceof JCIdent) {
+				return string(((JCIdent)methodCall.meth).name);
+			} else {
+				return string(((JCFieldAccess)methodCall.meth).name);
+			}
+		}
+
+		private JCExpression receiverOf(final JCMethodInvocation methodCall) {
+			if (methodCall.meth instanceof JCIdent) {
+				return type.build(This());
+			} else {
+				return ((JCFieldAccess) methodCall.meth).selected;
 			}
 		}
 	}
