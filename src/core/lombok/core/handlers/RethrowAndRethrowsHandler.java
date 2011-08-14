@@ -27,6 +27,8 @@ import static lombok.core.util.ErrorMessages.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lombok.*;
 import lombok.ast.*;
@@ -67,21 +69,36 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
 			for (Class<?> thrown : rethrow.thrown) {
-				String varname = "$e" + counter++;
+				final String varname = "$e" + counter++;
+				String message = rethrow.message;
 				if (RethrowData.class == thrown) {
 					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
-				} else if (rethrow.message.isEmpty()) {
+				} else if (message.isEmpty()) {
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
 						.withArgument(Name(varname)))));
 				} else {
+					final List<Expression> arguments = new ArrayList<Expression>();
+					message = manipulateMessage(message, arguments);
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
-						.withArgument(String(rethrow.message)).withArgument(Name(varname)))));
+						.withArgument(Call(Name("java.lang.String"), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
 				}
 			}
 		}
 		method.body(Block().withStatement(tryBuilder));
 
 		method.rebuild();
+	}
+
+	private String manipulateMessage(final String message, final List<Expression> arguments) {
+		final Matcher matcher = Pattern.compile("\\$([a-zA-Z0-9_]+)").matcher(message);
+		final StringBuilder manipulatedMessage = new StringBuilder();
+		int start = 0;
+		for (; matcher.find(); start = matcher.end()) {
+			manipulatedMessage.append(message.substring(start, matcher.start())).append("%s");
+			arguments.add(Name(message.substring(matcher.start(1), matcher.end(1))));
+		}
+		manipulatedMessage.append(message.substring(start, message.length()));
+		return manipulatedMessage.toString();
 	}
 
 	public static List<Class<?>> classNames(final Class<?>[] classes) {

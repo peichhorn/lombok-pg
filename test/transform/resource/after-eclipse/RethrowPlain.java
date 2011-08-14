@@ -36,7 +36,7 @@ class RethrowPlain {
         throw $e1;
       }
     catch (final java.lang.Exception $e2)       {
-        throw new java.lang.IllegalArgumentException("meh.", $e2);
+        throw new java.lang.IllegalArgumentException(java.lang.String.format("meh."), $e2);
       }
   }
   
@@ -53,7 +53,7 @@ class RethrowPlain {
       }
   }
   
-  @lombok.Rethrow(as = java.lang.IllegalArgumentException.class,message = "meh.") @java.lang.SuppressWarnings("all") void testExceptionsInSanitizeAlsoGetRethrown(final @lombok.Sanitize.With("filterArg") String arg) {
+  @lombok.Rethrow(as = java.lang.IllegalArgumentException.class,message = "$arg meh.") @java.lang.SuppressWarnings("all") void testExceptionsInSanitizeAlsoGetRethrown(final @lombok.Sanitize.With("filterArg") String arg) {
     try 
       {
         final String sanitizedArg = filterArg(arg);
@@ -63,7 +63,7 @@ class RethrowPlain {
         throw $e1;
       }
     catch (final java.lang.Exception $e2)       {
-        throw new java.lang.IllegalArgumentException("meh.", $e2);
+        throw new java.lang.IllegalArgumentException(java.lang.String.format("%s meh.", arg), $e2);
       }
   }
   

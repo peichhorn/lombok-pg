@@ -23,7 +23,7 @@ class RethrowPlain {
 		System.out.println("code that throws FileNotFoundException and IOException");
 	}
 	
-	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "meh.")
+	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "$arg meh.")
 	void testExceptionsInSanitizeAlsoGetRethrown(final @lombok.Sanitize.With("filterArg") String arg) {
 		System.out.println("code throws all kinds of Exceptions");
 	}

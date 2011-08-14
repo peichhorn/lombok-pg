@@ -28,7 +28,7 @@ class RethrowPlain {
 		} catch (final java.lang.RuntimeException $e1) {
 			throw $e1;
 		} catch (final java.lang.Exception $e2) {
-			throw new java.lang.IllegalArgumentException("meh.", $e2);
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("meh."), $e2);
 		}
 	}
 
@@ -51,7 +51,7 @@ class RethrowPlain {
 		} catch (final java.lang.RuntimeException $e1) {
 			throw $e1;
 		} catch (final java.lang.Exception $e2) {
-			throw new java.lang.IllegalArgumentException("meh.", $e2);
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("%s meh.", arg), $e2);
 		}
 	}
 	
