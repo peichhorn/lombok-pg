@@ -43,6 +43,7 @@ final class Patches {
 	public static final String BINDINGS = BINDING + "[]";
 	public static final String BLOCKSCOPE = LOOKUP_PACKAGE + ".BlockScope";
 	public static final String CLASSSCOPE = LOOKUP_PACKAGE + ".ClassScope";
+	public static final String COMPILATIONUNITSCOPE = LOOKUP_PACKAGE + ".CompilationUnitScope";
 	public static final String COMPLETIONPROPOSALCOLLECTOR = TEXT_JAVA_PACKAGE + ".CompletionProposalCollector";
 	public static final String IJAVACOMPLETIONPROPOSALS = TEXT_JAVA_PACKAGE + ".IJavaCompletionProposal[]";
 	public static final String INVOCATIONSITE = LOOKUP_PACKAGE + ".InvocationSite";
@@ -51,6 +52,7 @@ final class Patches {
 	public static final String METHODBINDINGS = METHODBINDING + "[]";
 	public static final String METHODDECLARATION = AST_PACKAGE + ".MethodDeclaration";
 	public static final String METHODVERIFIER = LOOKUP_PACKAGE + ".MethodVerifier";
+	public static final String PACKAGEBINDING = LOOKUP_PACKAGE + ".PackageBinding";
 	public static final String PROBLEMREPORTER = PROBLEM_PACKAGE + ".ProblemReporter";
 	public static final String REFERENCEBINDING = LOOKUP_PACKAGE + ".ReferenceBinding";
 	public static final String SCOPE = LOOKUP_PACKAGE + ".Scope";

@@ -22,6 +22,7 @@
 package lombok.eclipse.agent;
 
 import static lombok.core.util.Arrays.*;
+import static lombok.core.util.Names.string;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
@@ -30,8 +31,10 @@ import org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.InvocationSite;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.PackageBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ProblemReasons;
+import org.eclipse.jdt.internal.compiler.lookup.ProblemReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
@@ -53,31 +56,58 @@ public final class PatchVisibleForTesting {
 			.methodToReplace(new Hook(SCOPE, "findExactMethod", METHODBINDING, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.replacementMethod(new Hook(HOOK_NAME, "onFindExactMethod", METHODBINDING, SCOPE, REFERENCEBINDING, "char[]", TYPEBINDINGS, INVOCATIONSITE))
 			.build());
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(COMPILATIONUNITSCOPE, "findImport", BINDING, "char[][]", "int"))
+			.target(new MethodTarget(COMPILATIONUNITSCOPE, "findSingleImport", BINDING, "char[][]", "int", "boolean"))
+			.target(new MethodTarget(SCOPE, "getTypeOrPackage", BINDING, "char[]", "int", "boolean"))
+			.methodToReplace(new Hook(SCOPE, "findType", REFERENCEBINDING, "char[]", PACKAGEBINDING, PACKAGEBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "onFindType", REFERENCEBINDING, SCOPE, "char[]", PACKAGEBINDING, PACKAGEBINDING))
+			.build());
 	}
 
 	public static MethodBinding onFindMethod(final Scope scope, final ReferenceBinding receiverType, final char[] selector, final TypeBinding[] argumentTypes,
 			final InvocationSite invocationSite) {
-		return handleVisibleForTesting(scope, scope.findMethod(receiverType, selector, argumentTypes, invocationSite));
+		return handleVisibleForTestingOnMethod(scope, scope.findMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
 
 	public static MethodBinding onFindExactMethod(final Scope scope, final ReferenceBinding receiverType, final char[] selector, final TypeBinding[] argumentTypes,
 			final InvocationSite invocationSite) {
-		return handleVisibleForTesting(scope, scope.findExactMethod(receiverType, selector, argumentTypes, invocationSite));
+		return handleVisibleForTestingOnMethod(scope, scope.findExactMethod(receiverType, selector, argumentTypes, invocationSite));
 	}
 
-	private static MethodBinding handleVisibleForTesting(final Scope scope, final MethodBinding methodBinding) {
+	public static ReferenceBinding onFindType(final Scope scope, final char[] typeName, final PackageBinding declarationPackage, final PackageBinding invocationPackage) {
+		return handleVisibleForTestingOnType(scope, scope.findType(typeName, declarationPackage, invocationPackage));
+	}
+
+	private static MethodBinding handleVisibleForTestingOnMethod(final Scope scope, final MethodBinding methodBinding) {
 		if (methodBinding == null) {
 			return null;
 		}
 		final AnnotationBinding[] annotations = methodBinding.getAnnotations();
 		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
-			if (!"@VisibleForTesting".equals(annotation.toString())) continue;
+			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
 			ClassScope classScope = scope.classScope();
 			if (classScope == null) continue;
 			TypeDeclaration decl = classScope.referenceContext;
-			if ((methodBinding.declaringClass == decl.binding) || new String(decl.name).contains("Test")) continue;
+			if ((methodBinding.declaringClass == decl.binding) || string(decl.name).contains("Test")) continue;
 			return new ProblemMethodBinding(methodBinding, methodBinding.selector, methodBinding.parameters, ProblemReasons.NotVisible);
 		}
 		return methodBinding;
+	}
+
+	private static ReferenceBinding handleVisibleForTestingOnType(final Scope scope, final ReferenceBinding typeBinding) {
+		if (typeBinding == null) {
+			return null;
+		}
+		final AnnotationBinding[] annotations = typeBinding.getAnnotations();
+		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
+			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
+			ClassScope classScope = scope.classScope();
+			if (classScope == null) continue;
+			TypeDeclaration decl = classScope.referenceContext;
+			if (string(decl.name).contains("Test")) continue;
+			return new ProblemReferenceBinding(typeBinding.compoundName, typeBinding, ProblemReasons.NotVisible);
+		}
+		return typeBinding;
 	}
 }

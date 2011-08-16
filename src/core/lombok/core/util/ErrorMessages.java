@@ -48,6 +48,10 @@ public final class ErrorMessages {
 		return errorMessage("@%s can be used on classes and fields only", annotationType);
 	}
 
+	public static String canBeUsedOnClassAndMethodOnly(final Class<? extends Annotation> annotationType) {
+		return errorMessage("@%s can be used on classes and methods only", annotationType);
+	}
+
 	public static String canBeUsedOnFieldOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on fields only", annotationType);
 	}

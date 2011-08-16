@@ -27,7 +27,9 @@ import static lombok.javac.handlers.Javac.*;
 import static com.sun.tools.javac.code.Flags.*;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -80,10 +82,57 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
 import lombok.core.util.Cast;
+import lombok.javac.Javac;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.JavacHandlerUtil;
 
 public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
+	private static final Map<String, Integer> OPERATORS = new HashMap<String, Integer>();
+	static {
+		OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "POS"));
+		OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "NEG"));
+		OPERATORS.put("!", Javac.getCtcInt(JCTree.class, "NOT"));
+		OPERATORS.put("~", Javac.getCtcInt(JCTree.class, "COMPL"));
+		OPERATORS.put("++", Javac.getCtcInt(JCTree.class, "PREINC"));
+		OPERATORS.put("--", Javac.getCtcInt(JCTree.class, "PREDEC"));
+		OPERATORS.put("++", Javac.getCtcInt(JCTree.class, "POSTINC"));
+		OPERATORS.put("--", Javac.getCtcInt(JCTree.class, "POSTDEC"));
+		OPERATORS.put("<*nullchk*>", Javac.getCtcInt(JCTree.class, "NULLCHK"));
+		OPERATORS.put("||", Javac.getCtcInt(JCTree.class, "OR"));
+		OPERATORS.put("&&", Javac.getCtcInt(JCTree.class, "AND"));
+		OPERATORS.put("==", Javac.getCtcInt(JCTree.class, "EQ"));
+		OPERATORS.put("!=", Javac.getCtcInt(JCTree.class, "NE"));
+		OPERATORS.put("<", Javac.getCtcInt(JCTree.class, "LT"));
+		OPERATORS.put(">", Javac.getCtcInt(JCTree.class, "GT"));
+		OPERATORS.put("<=", Javac.getCtcInt(JCTree.class, "LE"));
+		OPERATORS.put(">=", Javac.getCtcInt(JCTree.class, "GE"));
+		OPERATORS.put("|", Javac.getCtcInt(JCTree.class, "BITOR"));
+		OPERATORS.put("^", Javac.getCtcInt(JCTree.class, "BITXOR"));
+		OPERATORS.put("&", Javac.getCtcInt(JCTree.class, "BITAND"));
+		OPERATORS.put("<<", Javac.getCtcInt(JCTree.class, "SL"));
+		OPERATORS.put(">>", Javac.getCtcInt(JCTree.class, "SR"));
+		OPERATORS.put(">>>", Javac.getCtcInt(JCTree.class, "USR"));
+		OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "PLUS"));
+		OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "MINUS"));
+		OPERATORS.put("*", Javac.getCtcInt(JCTree.class, "MUL"));
+		OPERATORS.put("/", Javac.getCtcInt(JCTree.class, "DIV"));
+		OPERATORS.put("%", Javac.getCtcInt(JCTree.class, "MOD"));
+	}
+	private static final Map<String, Integer> TYPES = new HashMap<String, Integer>();
+	static {
+		TYPES.put("none", Javac.getCtcInt(TypeTags.class, "NONE"));
+		TYPES.put("null", Javac.getCtcInt(TypeTags.class, "BOT"));
+		TYPES.put("void", Javac.getCtcInt(TypeTags.class, "VOID"));
+		TYPES.put("int", Javac.getCtcInt(TypeTags.class, "INT"));
+		TYPES.put("long", Javac.getCtcInt(TypeTags.class, "LONG"));
+		TYPES.put("short", Javac.getCtcInt(TypeTags.class, "SHORT"));
+		TYPES.put("boolean", Javac.getCtcInt(TypeTags.class, "BOOLEAN"));
+		TYPES.put("byte", Javac.getCtcInt(TypeTags.class, "BYTE"));
+		TYPES.put("char", Javac.getCtcInt(TypeTags.class, "CHAR"));
+		TYPES.put("float", Javac.getCtcInt(TypeTags.class, "FLOAT"));
+		TYPES.put("double", Javac.getCtcInt(TypeTags.class, "DOUBLE"));
+	}
+
 	private final JavacNode sourceNode;
 	private final JCTree source;
 	private final TreeMaker M;
@@ -101,7 +150,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
 		if (node == null) return null;
 		JCTree tree = node.accept(this, null);
-		if ((JCStatement.class == extectedType ) && (tree instanceof JCExpression)) {
+		if ((JCStatement.class == extectedType) && (tree instanceof JCExpression)) {
 			tree = M.Exec((JCExpression) tree);
 		}
 		return Cast.<T>uncheckedCast(tree);
@@ -188,18 +237,8 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitBinary(final lombok.ast.Binary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opcode;
-		if ("+".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "PLUS");
-		} else if ("-".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "MINUS");
-		} else if ("*".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "MUL");
-		} else if ("/".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "DIV");
-		} else if ("||".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "OR");
-		} else if ("&&".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "AND");
+		if (OPERATORS.containsKey(operator)) {
+			opcode = OPERATORS.get(operator);
 		} else {
 			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
@@ -215,7 +254,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitBooleanLiteral(final lombok.ast.BooleanLiteral node, final Void p) {
-		final JCLiteral literal = setGeneratedBy(M.Literal(TypeTags.BOOLEAN, node.isTrue() ? 1 : 0), source);
+		final JCLiteral literal = setGeneratedBy(M.Literal(TYPES.get("boolean"), node.isTrue() ? 1 : 0), source);
 		return literal;
 	}
 
@@ -331,7 +370,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitEqual(final lombok.ast.Equal node, final Void p) {
 		final JCExpression left = build(node.getLeft());
 		final JCExpression right = build(node.getRight());
-		final JCBinary equal = setGeneratedBy(M.Binary(getCTCint(JCTree.class, node.isNotEqual() ? "NE": "EQ"), left, right), source);
+		final JCBinary equal = setGeneratedBy(M.Binary(OPERATORS.get(node.isNotEqual() ? "!=" : "=="), left, right), source);
 		return equal;
 	}
 
@@ -429,7 +468,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitNullLiteral(final lombok.ast.NullLiteral node, final Void p) {
-		final JCLiteral literal = setGeneratedBy(M.Literal(TypeTags.BOT, null), source);
+		final JCLiteral literal = setGeneratedBy(M.Literal(TYPES.get("null"), null), source);
 		return literal;
 	}
 
@@ -455,7 +494,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 		final JCExpression type = build(returnType);
 		if (type instanceof JCPrimitiveTypeTree) {
 			JCPrimitiveTypeTree primitiveType = (JCPrimitiveTypeTree) type;
-			if (primitiveType.typetag == TypeTags.VOID) {
+			if (primitiveType.typetag == TYPES.get("void")) {
 				returnDefault = Return();
 			} else {
 				returnDefault = Return(Expr(M.Literal(primitiveType.typetag, 0)));
@@ -522,31 +561,18 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitTypeRef(final lombok.ast.TypeRef node, final Void p) {
 		JCExpression typeRef;
 		final String typeName = node.getTypeName();
-		if ("void".equals(typeName)) {
-			return setGeneratedBy(M.TypeIdent(TypeTags.VOID), source);
-		} else if ("int".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.INT);
-		} else if ("long".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.LONG);
-		} else if ("short".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.SHORT);
-		} else if ("boolean".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.BOOLEAN);
-		} else if ("byte".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.BYTE);
-		} else if ("char".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.CHAR);
-		} else if ("float".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.FLOAT);
-		} else if ("double".equals(typeName)) {
-			typeRef = M.TypeIdent(TypeTags.DOUBLE);
+		if (TYPES.containsKey(typeName)) {
+			typeRef = M.TypeIdent(TYPES.get(typeName));
+			typeRef = setGeneratedBy(typeRef, source);
+			if ("void".equals(typeName)) return typeRef;
 		} else {
 			typeRef = chainDots(node.getTypeName());
+			typeRef = setGeneratedBy(typeRef, source);
 			if (!node.getTypeArgs().isEmpty()) {
-				typeRef = M.TypeApply(setGeneratedBy(typeRef, source), build(node.getTypeArgs(), JCExpression.class));
+				typeRef = M.TypeApply(typeRef, build(node.getTypeArgs(), JCExpression.class));
+				typeRef = setGeneratedBy(typeRef, source);
 			}
 		}
-		typeRef = setGeneratedBy(typeRef, source);
 		for (int i = 0; i < node.getDims(); i++) {
 			typeRef = setGeneratedBy(M.TypeArray(typeRef), source);
 		}
@@ -557,12 +583,8 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitUnary(final lombok.ast.Unary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opcode;
-		if ("!".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "NOT");
-		} else if ("+".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "PLUS");
-		} else if ("-".equals(operator)) {
-			opcode = getCTCint(JCTree.class, "MINUS");
+		if (OPERATORS.containsKey(operator)) {
+			opcode = OPERATORS.get(operator);
 		} else {
 			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}

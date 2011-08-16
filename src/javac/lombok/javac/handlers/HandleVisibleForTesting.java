@@ -28,9 +28,11 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
+import lombok.core.AST.Kind;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
+import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -40,17 +42,21 @@ public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTe
 	@Override
 	public void handle(final AnnotationValues<VisibleForTesting> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, VisibleForTesting.class);
-		JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
-			return;
+		JavacNode mayBeMethod = annotationNode.up();
+		if (mayBeMethod.getKind() == Kind.METHOD) {
+			JavacMethod method = JavacMethod.methodOf(annotationNode, source);
+			if (method.isAbstract()) {
+				annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
+				return;
+			}
+			method.makePrivate();
+			method.rebuild();
+		} else if (mayBeMethod.getKind() == Kind.TYPE) {
+			JavacType type = JavacType.typeOf(annotationNode, source);
+			type.makePrivate();
+			type.rebuild();
+		} else {
+			annotationNode.addError(canBeUsedOnClassAndMethodOnly(VisibleForTesting.class));
 		}
-		if (method.isAbstract()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
-			return;
-		}
-
-		method.makePrivate();
-		method.rebuild();
 	}
 }

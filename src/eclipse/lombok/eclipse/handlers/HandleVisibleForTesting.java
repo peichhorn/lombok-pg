@@ -25,6 +25,7 @@ import static lombok.core.util.ErrorMessages.*;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
+import lombok.core.AST.Kind;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -37,14 +38,15 @@ public class HandleVisibleForTesting extends EclipseAnnotationHandler<VisibleFor
 
 	@Override
 	public void handle(final AnnotationValues<VisibleForTesting> annotation, final Annotation source, final EclipseNode annotationNode) {
-		EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(VisibleForTesting.class));
-			return;
-		}
-		if (method.isAbstract()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
-			return;
+		EclipseNode mayBeMethod = annotationNode.up();
+		if (mayBeMethod.getKind() == Kind.METHOD) {
+			EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
+			if (method.isAbstract()) {
+				annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
+				return;
+			}
+		} else if (mayBeMethod.getKind() != Kind.TYPE) {
+			annotationNode.addError(canBeUsedOnClassAndMethodOnly(VisibleForTesting.class));
 		}
 	}
 }
