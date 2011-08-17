@@ -86,7 +86,7 @@ public final class PatchVisibleForTesting {
 		final AnnotationBinding[] annotations = methodBinding.getAnnotations();
 		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
 			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
-			ClassScope classScope = scope.classScope();
+			ClassScope classScope = scope.outerMostClassScope();
 			if (classScope == null) continue;
 			TypeDeclaration decl = classScope.referenceContext;
 			if ((methodBinding.declaringClass == decl.binding) || string(decl.name).contains("Test")) continue;
@@ -102,7 +102,7 @@ public final class PatchVisibleForTesting {
 		final AnnotationBinding[] annotations = typeBinding.getAnnotations();
 		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
 			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
-			ClassScope classScope = scope.classScope();
+			ClassScope classScope = scope.outerMostClassScope();
 			if (classScope == null) continue;
 			TypeDeclaration decl = classScope.referenceContext;
 			if (string(decl.name).contains("Test")) continue;
