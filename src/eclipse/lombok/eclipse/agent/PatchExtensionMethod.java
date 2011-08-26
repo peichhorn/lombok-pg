@@ -257,14 +257,17 @@ public final class PatchExtensionMethod {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			if (extendedContext != null) {
-				scope = ((Scope) Reflection.assistScopeField.get(extendedContext)).classScope();
+				Scope assistScope = ((Scope) Reflection.assistScopeField.get(extendedContext));
+				if (assistScope != null) {
+					scope = assistScope.classScope();
+				}
 			}
 		} catch (final IllegalAccessException ignore) {
 			// ignore
 		}
 		return scope;
 	}
-	
+
 	private static void copyNameLookupAndCompletionEngine(final CompletionProposalCollector completionProposalCollector, final IJavaCompletionProposal proposal,
 			final InternalCompletionProposal newProposal) {
 		try {
