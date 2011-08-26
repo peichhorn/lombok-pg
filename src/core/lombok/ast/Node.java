@@ -24,21 +24,21 @@ package lombok.ast;
 public abstract class Node {
 	private Node parent;
 
-	public <T extends Node> T child(final T node) {
+	public final <T extends Node> T child(final T node) {
 		if (node != null) node.parent = this;
 		return node;
 	}
 
-	public Node up() {
+	public final Node up() {
 		return parent;
 	}
 
-	public <T extends Node> T upTo(final Class<T> type) {
+	public final <T extends Node> T upTo(final Class<T> type) {
 		Node node = this;
 		while ((node != null) && !type.isInstance(node)) {
 			node = node.up();
 		}
-		return lombok.core.util.Cast.<T>uncheckedCast(node);
+		return type.cast(node);
 	}
 
 	public abstract <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p);
