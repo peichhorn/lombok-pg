@@ -91,8 +91,9 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 		JCExpression fieldType = field.vartype;
 		if (type.hasMethod(fieldName)) return;
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
+		List<lombok.ast.Annotation> nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldNode.getName()).withAccessLevel(setter.value()) //
-			.withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
+			.withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
 		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
 		}
