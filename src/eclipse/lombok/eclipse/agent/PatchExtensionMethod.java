@@ -176,6 +176,10 @@ public final class PatchExtensionMethod {
 		return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
 	}
 	
+	private static boolean canExtendCodeAssist(final List<IJavaCompletionProposal> proposals) {
+		return !proposals.isEmpty() && Reflection.isComplete();
+	}
+	
 	private static List<MethodBinding> getExtensionMethods(final CompletionProposalCollector completionProposalCollector) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 		ClassScope classScope = getClassScope(completionProposalCollector);
@@ -274,8 +278,8 @@ public final class PatchExtensionMethod {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			LookupEnvironment lookupEnvironment = (LookupEnvironment) Reflection.lookupEnvironmentField.get(extendedContext);
-			Reflection.nameLookup.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
-			Reflection.completionEngine.set(newProposal, lookupEnvironment.typeRequestor);
+			Reflection.nameLookupField.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
+			Reflection.completionEngineField.set(newProposal, lookupEnvironment.typeRequestor);
 		} catch (final IllegalAccessException ignore) {
 			// ignore
 		}
@@ -296,10 +300,6 @@ public final class PatchExtensionMethod {
 		} catch (final Exception ignore) {
 			return 0;
 		}
-	}
-
-	private static boolean canExtendCodeAssist(final List<IJavaCompletionProposal> proposals) {
-		return !proposals.isEmpty() && Reflection.canExtendCodeAssist;
 	}
 	
 	private static class ExtensionMethodCompletionProposal extends InternalCompletionProposal {
@@ -391,39 +391,40 @@ public final class PatchExtensionMethod {
 		public static final Field assistNodeField;
 		public static final Field assistScopeField;
 		public static final Field lookupEnvironmentField;
-		public static final Field completionEngine;
-		public static final Field nameLookup;
+		public static final Field completionEngineField;
+		public static final Field nameLookupField;
 		public static final Method createJavaCompletionProposalMethod;
-		public static final boolean canExtendCodeAssist;
 		
 		static {
-			boolean[] available = new boolean[] { true };
-			replacementOffsetField = accessField(AbstractJavaCompletionProposal.class, "fReplacementOffset", available);
-			contextField = accessField(CompletionProposalCollector.class, "fContext", available);
-			extendedContextField = accessField(InternalCompletionContext.class, "extendedContext", available);
-			assistNodeField = accessField(InternalExtendedCompletionContext.class, "assistNode", available);
-			assistScopeField = accessField(InternalExtendedCompletionContext.class, "assistScope", available);
-			lookupEnvironmentField = accessField(InternalExtendedCompletionContext.class, "lookupEnvironment", available);
-			completionEngine = accessField(InternalCompletionProposal.class, "completionEngine", available);
-			nameLookup = accessField(InternalCompletionProposal.class, "nameLookup", available);
-			createJavaCompletionProposalMethod = accessMethod(CompletionProposalCollector.class, "createJavaCompletionProposal", CompletionProposal.class, available);
-			canExtendCodeAssist = available[0];
+			replacementOffsetField = accessField(AbstractJavaCompletionProposal.class, "fReplacementOffset");
+			contextField = accessField(CompletionProposalCollector.class, "fContext");
+			extendedContextField = accessField(InternalCompletionContext.class, "extendedContext");
+			assistNodeField = accessField(InternalExtendedCompletionContext.class, "assistNode");
+			assistScopeField = accessField(InternalExtendedCompletionContext.class, "assistScope");
+			lookupEnvironmentField = accessField(InternalExtendedCompletionContext.class, "lookupEnvironment");
+			completionEngineField = accessField(InternalCompletionProposal.class, "completionEngine");
+			nameLookupField = accessField(InternalCompletionProposal.class, "nameLookup");
+			createJavaCompletionProposalMethod = accessMethod(CompletionProposalCollector.class, "createJavaCompletionProposal", CompletionProposal.class);
 		}
 		
-		private static Field accessField(final Class<?> clazz, final String fieldName, final boolean[] available) {
+		private static boolean isComplete() {
+			final Object[] requiredFieldsAndMethods = { replacementOffsetField, contextField, extendedContextField, assistNodeField, assistScopeField, lookupEnvironmentField, completionEngineField, nameLookupField, createJavaCompletionProposalMethod };
+			for (Object o : requiredFieldsAndMethods) if (o == null) return false;
+			return true;
+		}
+		
+		private static Field accessField(final Class<?> clazz, final String fieldName) {
 			try {
 				return makeAccessible(clazz.getDeclaredField(fieldName));
 			} catch (final Exception e) {
-				available[0] = false;
 				return null;
 			}
 		}
 		
-		private static Method accessMethod(final Class<?> clazz, final String methodName, final Class<?> parameter, final boolean[] available) {
+		private static Method accessMethod(final Class<?> clazz, final String methodName, final Class<?> parameter) {
 			try {
 				return makeAccessible(clazz.getDeclaredMethod(methodName, parameter));
 			} catch (final Exception e) {
-				available[0] = false;
 				return null;
 			}
 		}
