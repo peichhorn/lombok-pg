@@ -2,7 +2,6 @@ import javax.swing.JFrame;
 
 class SwingInvokeLaterExample {
 
-	@java.lang.SuppressWarnings("all")
 	void createUI() {
 		final java.lang.Runnable $createUIRunnable = new java.lang.Runnable(){
 			@java.lang.Override
@@ -22,7 +21,6 @@ class SwingInvokeLaterExample {
 
 class SwingInvokeAndWaitExample {
 
-	@java.lang.SuppressWarnings("all")
 	void createUI() {
 		final java.lang.Runnable $createUIRunnable = new java.lang.Runnable(){
 			@java.lang.Override

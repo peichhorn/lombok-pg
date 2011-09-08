@@ -2,8 +2,7 @@ public class ApplicationExample {
 	public void runApp(final String[] args) {
 		// something
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	public static void main(final String[] args) throws Throwable {
 		new ApplicationExample().runApp(args);
 	}
@@ -13,13 +12,11 @@ public class JVMAgentExample {
 	public void runAgent(boolean injected, String params, Instrumentation instrumentation) {
 		// something
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	public static void agentmain(final String params, final Instrumentation instrumentation) throws Throwable {
 		new JVMAgentExample().runAgent(true, params, instrumentation);
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	public static void premain(final String params, final Instrumentation instrumentation) throws Throwable {
 		new JVMAgentExample().runAgent(false, params, instrumentation);
 	}

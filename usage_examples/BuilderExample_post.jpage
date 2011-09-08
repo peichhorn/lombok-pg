@@ -9,16 +9,14 @@ class BuilderExample {
 	public boolean save() throws IOException {
 		// do something
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	private BuilderExample(final $Builder builder) {
 		this.text = builder.text;
 		this.id = builder.id;
 		this.optionalVal1 = builder.optionalVal1;
 		this.optionalVal2 = builder.optionalVal2;
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	public static $TextDef builderExample() {
 		return new $Builder();
 	}

@@ -2,8 +2,7 @@ class ConditionExample {
 	private volatile boolean paused;
 	private final java.util.concurrent.locks.Lock $canResumeLock = new java.util.concurrent.locks.ReentrantLock();
 	private final java.util.concurrent.locks.Condition canResume = $canResumeLock.newCondition();
-	
-	@java.lang.SuppressWarnings("all")
+
 	void unpause() {
 		this.$canResumeLock.lock();
 		try {
@@ -13,8 +12,7 @@ class ConditionExample {
 			this.$canResumeLock.unlock();
 		}
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	void pause() {
 		this.$canResumeLock.lock();
 		try {
@@ -29,8 +27,7 @@ class ConditionExample {
 			this.$canResumeLock.unlock();
 		}
 	}
-	
-	@java.lang.SuppressWarnings("all")
+
 	private boolean isPaused() {
 		return this.paused;
 	}

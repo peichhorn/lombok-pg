@@ -42,6 +42,9 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="DoPrivileged" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="EnumId" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Entrypoint" />
 		</antcall>
 		<antcall target="-integrateSnippet">

@@ -1,5 +1,5 @@
 class RethrowExample {
-	@java.lang.SuppressWarnings("all")
+
 	void test1() {
 		try {
 			System.out.println("code that might throw all kinds of Exceptions");
@@ -10,7 +10,6 @@ class RethrowExample {
 		}
 	}
 
-	@java.lang.SuppressWarnings("all")
 	void test2() {
 		try {
 			System.out.println("code that might throw InterruptedException due to cancelation");
@@ -19,7 +18,6 @@ class RethrowExample {
 		}
 	}
 
-	@java.lang.SuppressWarnings("all")
 	void test3(final File file) {
 		try {
 			new java.io.FileInputStream(file);

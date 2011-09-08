@@ -5,7 +5,6 @@ public class YieldExample {
 		}
 	}
 	
-	@java.lang.SuppressWarnings("all")
 	public Iterable<Long> fibunacci() {
 		class $YielderFibunacci implements Iterator<Long>, Iterable<Long> {
 			private long a;
@@ -66,7 +65,6 @@ public class YieldExample {
 		return new $YielderFibunacci();
 	}
 	
-	@java.lang.SuppressWarnings("all")
 	public Iterable<Long> filterMod(final long mod, final Iterable<Long> values) {
 		class $YielderFilterMod implements Iterator<Long>, Iterable<Long> {
 			private Long value;
