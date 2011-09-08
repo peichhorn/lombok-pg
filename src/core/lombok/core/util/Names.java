@@ -97,22 +97,18 @@ public class Names {
 		return s.endsWith("s") ? s.substring(0, s.length() - 1) : s;
 	}
 
-	/**
-	 * Creates the name of the constant that holds the name of a property. For
-	 * example, if the name of a property is "firstName," this method will
-	 * return "PROP_FIRST_NAME."
-	 */
-	public static String nameOfConstantBasedOnProperty(final String propertyName) {
-		char[] chars = propertyName.toCharArray();
+	public static String camelCaseToConstant(final String fieldName) {
+		if (isEmpty(fieldName)) return "";
+		char[] chars = fieldName.toCharArray();
 		StringBuilder b = new StringBuilder();
-		b.append("PROP_");
-		int charCount = chars.length;
-		for (int i = 0; i < charCount; i++) {
+		b.append(toUpperCase(chars[0]));
+		for (int i = 1, iend = chars.length; i < iend; i++) {
 			char c = chars[i];
-			if (isUpperCase(c) && i > 0)
+			if (isUpperCase(c)) {
 				b.append('_');
-			if (isLowerCase(c))
+			} else {
 				c = toUpperCase(c);
+			}
 			b.append(c);
 		}
 		return b.toString();

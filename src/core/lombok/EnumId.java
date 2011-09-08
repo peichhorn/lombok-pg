@@ -19,21 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.ast;
+package lombok;
 
-import lombok.*;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
-@RequiredArgsConstructor
-@Getter
-public final class NameRef extends Expression {
-	private final String name;
+import java.lang.annotation.*;
 
-	public NameRef(final Class<?> clazz) {
-		this(clazz.getName());
-	}
-
-	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
-		return v.visitNameRef(this, p);
-	}
+/**
+ * This annotation allows you mark fields in enums as identifier, so these fields
+ * can be used to identify enum values. To do that, the following method
+ * <pre>
+ *     public static ENUM_TYPE findByFIELD_NAME(FIELD_TYPE FIELD_NAME)
+ * </pre>
+ * will be generated for each annotated field.
+ */
+@Target({FIELD}) @Retention(SOURCE)
+public @interface EnumId {
 }

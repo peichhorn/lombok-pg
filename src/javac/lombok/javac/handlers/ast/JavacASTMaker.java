@@ -412,6 +412,12 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	}
 
 	@Override
+	public JCTree visitInitializer(lombok.ast.Initializer node, Void p) {
+		final JCBlock block = setGeneratedBy(M.Block(flagsFor(node.getModifiers()), build(node.getStatements(), JCStatement.class)), source);
+		return block;
+	}
+
+	@Override
 	public JCTree visitInstanceOf(final lombok.ast.InstanceOf node, final Void p) {
 		final JCInstanceOf instanceOf = setGeneratedBy(M.TypeTest(build(node.getExpression(), JCExpression.class), build(node.getType())), source);
 		return instanceOf;

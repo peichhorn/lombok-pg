@@ -21,19 +21,35 @@
  */
 package lombok.ast;
 
+import static lombok.ast.Modifier.STATIC;
+
+import java.util.*;
+
 import lombok.*;
 
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Getter
-public final class NameRef extends Expression {
-	private final String name;
+public class Initializer extends Statement {
+	private final List<Statement> statements = new ArrayList<Statement>();
+	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
 
-	public NameRef(final Class<?> clazz) {
-		this(clazz.getName());
+	public Initializer withStatement(final Statement statement) {
+		statements.add(child(statement));
+		return this;
+	}
+
+	public Initializer withStatements(final List<Statement> statements) {
+		for (Statement statement : statements) withStatement(statement);
+		return this;
+	}
+	
+	public Initializer makeStatic() {
+		modifiers.add(STATIC);
+		return this;
 	}
 
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
-		return v.visitNameRef(this, p);
+		return v.visitInitializer(this, p);
 	}
 }

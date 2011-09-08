@@ -133,6 +133,10 @@ public final class AST {
 		return new If(condition);
 	}
 
+	public static Initializer Initializer() {
+		return new Initializer();
+	}
+
 	public static InstanceOf InstanceOf(final Expression expression, final TypeRef type) {
 		return new InstanceOf(expression, type);
 	}
@@ -151,6 +155,10 @@ public final class AST {
 
 	public static NameRef Name(final String name) {
 		return new NameRef(name);
+	}
+
+	public static NameRef Name(final Class<?> clazz) {
+		return new NameRef(clazz);
 	}
 
 	public static New New(final TypeRef type) {

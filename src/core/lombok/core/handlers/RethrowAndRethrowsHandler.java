@@ -72,7 +72,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 				final String varname = "$e" + counter++;
 				String message = rethrow.message;
 				if (RethrowData.class == thrown) {
-					tryBuilder.Catch(Arg(Type("java.lang.RuntimeException"), varname), Block().withStatement(Throw(Name(varname))));
+					tryBuilder.Catch(Arg(Type(RuntimeException.class), varname), Block().withStatement(Throw(Name(varname))));
 				} else if (message.isEmpty()) {
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
 						.withArgument(Name(varname)))));
@@ -80,7 +80,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 					final List<Expression> arguments = new ArrayList<Expression>();
 					message = manipulateMessage(message, arguments);
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
-						.withArgument(Call(Name("java.lang.String"), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
+						.withArgument(Call(Name(String.class), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
 				}
 			}
 		}

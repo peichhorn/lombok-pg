@@ -34,6 +34,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -150,6 +151,11 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 
 	public JavacNode node() {
 		return typeNode;
+	}
+
+	public void injectInitializer(final lombok.ast.Initializer initializer) {
+		final JCBlock initializerBlock = builder.build(initializer);
+		Javac.injectInitializer(typeNode, initializerBlock);
 	}
 
 	public void injectField(final lombok.ast.FieldDecl fieldDecl) {

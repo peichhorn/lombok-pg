@@ -65,6 +65,8 @@ public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
 
 	RETURN_TYPE visitArrayRef(ArrayRef node, PARAMETER_TYPE p);
 
+	RETURN_TYPE visitInitializer(Initializer node, PARAMETER_TYPE p);
+
 	RETURN_TYPE visitInstanceOf(InstanceOf node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitLocalDecl(LocalDecl node, PARAMETER_TYPE p);

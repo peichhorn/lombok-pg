@@ -58,6 +58,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
 
+	public void injectInitializer(final Initializer initializerBlock);
+
 	public void injectField(FieldDecl fieldDecl);
 
 	public void injectField(EnumConstant enumConstant);

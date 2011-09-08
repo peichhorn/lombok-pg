@@ -37,7 +37,9 @@ import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
+import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
+import org.eclipse.jdt.internal.compiler.ast.Initializer;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -63,6 +65,19 @@ public final class Eclipse {
 			parent.memberTypes = newArray;
 		}
 		typeNode.add(type, Kind.TYPE);
+	}
+
+	public static void injectInitializer(EclipseNode typeNode, Initializer initializerBlock) {
+		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
+		if (parent.fields == null) {
+			parent.fields = new FieldDeclaration[]{ initializerBlock };
+		} else {
+			FieldDeclaration[] newArray = new FieldDeclaration[parent.fields.length + 1];
+			System.arraycopy(parent.fields, 0, newArray, 0, parent.fields.length);
+			newArray[parent.fields.length] = initializerBlock;
+			parent.fields = newArray;
+		}
+		typeNode.add(initializerBlock, Kind.INITIALIZER);
 	}
 
 	public static void copyPosTo(final ASTNode target, final ASTNode source) {

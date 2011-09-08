@@ -40,6 +40,7 @@ import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.Initializer;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -155,6 +156,11 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 			}
 		}
 		return annotationNode;
+	}
+
+	public void injectInitializer(final lombok.ast.Initializer initializer) {
+		final Initializer initializerBlock = builder.build(initializer);
+		Eclipse.injectInitializer(typeNode, initializerBlock);
 	}
 
 	public void injectField(final lombok.ast.FieldDecl fieldDecl) {

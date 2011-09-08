@@ -80,6 +80,7 @@ import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
 import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
 import org.eclipse.jdt.internal.compiler.ast.IfStatement;
+import org.eclipse.jdt.internal.compiler.ast.Initializer;
 import org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
 import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
@@ -124,7 +125,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.core.util.Cast;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
@@ -444,6 +445,17 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		}
 		setGeneratedByAndCopyPos(ifStatement, source);
 		return ifStatement;
+	}
+
+	@Override
+	public ASTNode visitInitializer(lombok.ast.Initializer node, Void p) {
+		final Block block = new Block(0);
+		setGeneratedByAndCopyPos(block, source);
+		block.statements = toArray(build(node.getStatements()), new Statement[0]);
+		final Initializer initializer = new Initializer(block, modifiersFor(node.getModifiers()));
+		initializer.bits |=  ECLIPSE_DO_NOT_TOUCH_FLAG;
+		setGeneratedByAndCopyPos(initializer, source);
+		return initializer;
 	}
 
 	@Override

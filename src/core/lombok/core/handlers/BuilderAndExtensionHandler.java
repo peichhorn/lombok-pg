@@ -25,8 +25,7 @@ import static lombok.ast.AST.*;
 import static lombok.ast.Wildcard.Bound.EXTENDS;
 import static lombok.core.util.Names.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
@@ -146,8 +145,8 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 
 	private void createCollectionMethods(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final FIELD_TYPE field,
 			final List<AbstractMethodDecl<?>> interfaceMethods, final List<AbstractMethodDecl<?>> builderMethods) {
-		TypeRef elementType = Type("java.lang.Object");
-		TypeRef collectionType = Type("java.util.Collection");
+		TypeRef elementType = Type(Object.class);
+		TypeRef collectionType = Type(Collection.class);
 		Object[] typeArguments = getTypeArguments(type(field));
 		if ((typeArguments != null) && (typeArguments.length == 1)) {
 			elementType = Type(typeArguments[0]);
@@ -176,9 +175,9 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 
 	private void createMapMethods(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final FIELD_TYPE field, final List<AbstractMethodDecl<?>> interfaceMethods,
 			final List<AbstractMethodDecl<?>> builderMethods) {
-		TypeRef keyType = Type("java.lang.Object");
-		TypeRef valueType = Type("java.lang.Object");
-		TypeRef mapType = Type("java.util.Map");
+		TypeRef keyType = Type(Object.class);
+		TypeRef valueType = Type(Object.class);
+		TypeRef mapType = Type(Map.class);
 		Object[] typeArguments = getTypeArguments(type(field));
 		if ((typeArguments != null) && (typeArguments.length == 2)) {
 			keyType = Type(typeArguments[0]);
@@ -223,7 +222,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		boolean returnsVoid = true;
 		List<TypeRef> thrownExceptions = new ArrayList<TypeRef>();
 		if ("toString".equals(methodName)) {
-			returnType = Type("java.lang.String");
+			returnType = Type(String.class);
 			returnsVoid = false;
 		} else {
 			for (METHOD_TYPE method : type.methods()) {

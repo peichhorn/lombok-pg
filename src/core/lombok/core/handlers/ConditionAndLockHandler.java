@@ -25,8 +25,8 @@ import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.locks.*;
 
 import lombok.*;
 import lombok.ast.*;
@@ -165,11 +165,11 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 		if (!type.hasField(trimmedLockName)) {
 			if(isReadWriteLock) {
-				type.injectField(FieldDecl(Type("java.util.concurrent.locks.ReadWriteLock"), trimmedLockName).makePrivate().makeFinal() //
-					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantReadWriteLock"))));
+				type.injectField(FieldDecl(Type(ReadWriteLock.class), trimmedLockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type(ReentrantReadWriteLock.class))));
 			} else {
-				type.injectField(FieldDecl(Type("java.util.concurrent.locks.Lock"), trimmedLockName).makePrivate().makeFinal() //
-					.withInitialization(New(Type("java.util.concurrent.locks.ReentrantLock"))));
+				type.injectField(FieldDecl(Type(Lock.class), trimmedLockName).makePrivate().makeFinal() //
+					.withInitialization(New(Type(ReentrantLock.class))));
 			}
 		}
 		return true;
@@ -185,7 +185,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			return false;
 		}
 		if (!type.hasField(conditionName)) {
-			type.injectField(FieldDecl(Type("java.util.concurrent.locks.Condition"), conditionName).makePrivate().makeFinal() //
+			type.injectField(FieldDecl(Type(Condition.class), conditionName).makePrivate().makeFinal() //
 				.withInitialization(Call(Name(lockName), "newCondition")));
 		}
 		return true;
@@ -202,7 +202,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		@Override
 		public Statement toStatement() {
 			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(condition), "await")))) //
-				.Catch(Arg(Type("java.lang.InterruptedException"), "e"), Block().withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("e")))));
+				.Catch(Arg(Type(InterruptedException.class), "e"), Block().withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("e")))));
 		}
 	}
 

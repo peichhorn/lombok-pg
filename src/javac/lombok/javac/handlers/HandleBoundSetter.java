@@ -89,7 +89,7 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 
 	private void generateSetter(final List<JavacNode> fields, final BoundSetter setter, final JavacType type) {
 		for (JavacNode fieldNode : fields) {
-			String propertyNameFieldName = nameOfConstantBasedOnProperty(fieldNode.getName());
+			String propertyNameFieldName = "PROP_" + camelCaseToConstant(fieldNode.getName());
 			generatePropertyNameConstant(propertyNameFieldName, fieldNode, type);
 			generateSetter(propertyNameFieldName, setter, fieldNode, type);
 		}
@@ -112,7 +112,7 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type("void"), setterName).withAccessLevel(setter.value()).withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls));
 		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
-			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
+			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
 		}
 		methodDecl.withStatement(LocalDecl(Type(fieldType), oldValueName).makeFinal().withInitialization(Field(fieldName))) //
 			.withStatement(Assign(Field(fieldName), Name(fieldName))) //

@@ -25,10 +25,11 @@ import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
@@ -53,7 +54,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
-		Call elseStatementRun = Call(Name("java.awt.EventQueue"), methodName).withArgument(Name(field));
+		Call elseStatementRun = Call(Name(EventQueue.class), methodName).withArgument(Name(field));
 
 		Statement elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
@@ -65,11 +66,11 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		method.body(Block() //
 			.withStatements(validation.validateParameterOf(method)) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatement(LocalDecl(Type("java.lang.Runnable"), field).makeFinal().withInitialization(New(Type("java.lang.Runnable")) //
+			.withStatement(LocalDecl(Type(Runnable.class), field).makeFinal().withInitialization(New(Type(Runnable.class)) //
 				.withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-					.withMethod(MethodDecl(Type("void"), "run").makePublic().withAnnotation(Annotation(Type("java.lang.Override"))) //
+					.withMethod(MethodDecl(Type("void"), "run").makePublic().withAnnotation(Annotation(Type(Override.class))) //
 						.withStatements(method.statements()))))) //
-			.withStatement(If(Call(Name("java.awt.EventQueue"), "isDispatchThread")) //
+			.withStatement(If(Call(Name(EventQueue.class), "isDispatchThread")) //
 				.Then(Block().withStatement(Call(Name(field), "run"))) //
 				.Else(elseStatement)));
 
@@ -79,11 +80,11 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private Try generateTryCatchBlock(final Call elseStatementRun, final METHOD_TYPE method) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
-			.Catch(Arg(Type("java.lang.InterruptedException"), "$ex1"), Block()) //
-			.Catch(Arg(Type("java.lang.reflect.InvocationTargetException"), "$ex2"), Block() //
-				.withStatement(LocalDecl(Type("java.lang.Throwable"), "$cause").makeFinal().withInitialization(Call(Name("$ex2"), "getCause")))
+			.Catch(Arg(Type(InterruptedException.class), "$ex1"), Block()) //
+			.Catch(Arg(Type(InvocationTargetException.class), "$ex2"), Block() //
+				.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex2"), "getCause")))
 				.withStatements(rethrowStatements(method)) //
-				.withStatement(Throw(New(Type("java.lang.RuntimeException")).withArgument(Name("$cause")))));
+				.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))));
 	}
 
 	private List<Statement> rethrowStatements(final METHOD_TYPE method) {

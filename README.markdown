@@ -10,6 +10,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@BoundPropertySupport` and `@BoundSetter`
 - `@Builder` and `@Builder.Extension`
 - `@DoPrivileged`
+- `@EnumId`
 - `@ExtensionMethod`
 - `@FluentSetter`
 - `@LazyGetter`

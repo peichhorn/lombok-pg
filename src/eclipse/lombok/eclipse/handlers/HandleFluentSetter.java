@@ -91,7 +91,7 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeParameters()), fieldName).withAccessLevel(setter.value()) //
 			.withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
 		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
-			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type("java.lang.NullPointerException")).withArgument(String(fieldName)))));
+			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
 		}
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 			.withStatement(Return(This()));

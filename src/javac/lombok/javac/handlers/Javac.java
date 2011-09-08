@@ -30,6 +30,7 @@ import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
 
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -48,6 +49,12 @@ public final class Javac {
 		addSuppressWarningsAll(type.mods, typeNode, type.pos);
 		typeDecl.defs = typeDecl.defs.append(type);
 		typeNode.add(type, Kind.TYPE);
+	}
+
+	public static void injectInitializer(final JavacNode typeNode, final JCBlock initializerBlock) {
+		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		typeDecl.defs = typeDecl.defs.append(initializerBlock);
+		typeNode.add(initializerBlock, Kind.INITIALIZER);
 	}
 
 	public static void addSuppressWarningsAll(final JCModifiers mods, final JavacNode node, final int pos) {
