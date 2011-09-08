@@ -89,6 +89,9 @@ public final class Eclipse {
 		} else if (target instanceof TypeDeclaration) {
 			((TypeDeclaration)target).bodyStart = source.sourceStart;
 			((TypeDeclaration)target).bodyEnd = source.sourceEnd;
+		} else if (target instanceof Initializer) {
+			((Initializer)target).declarationSourceStart = source.sourceStart;
+			((Initializer)target).declarationSourceEnd = source.sourceEnd;
 		} else if (target instanceof AbstractVariableDeclaration) {
 			target.sourceStart = 0;
 			target.sourceEnd = 0;
