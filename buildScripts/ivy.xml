@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <ivy-module version="2.0">
-  <info organisation="de.fips" module="lombok-pg" />
-  <configurations>
-    <conf name="eclipseBuild" />
-    <conf name="build" extends="eclipseBuild" />
-    <conf name="runtime" />
-    <conf name="test" extends="build, runtime" />
-    <conf name="contrib" />
-  </configurations>
-  <dependencies>
-    <dependency org="junit" name="junit" rev="4.8.2" conf="test->default; contrib->sources" />
-    <dependency org="org.easytesting" name="fest-assert" rev="1.4" conf="test->default; contrib->sources" />
-    <dependency org="org.easytesting" name="fest-util" rev="1.1.6" conf="test->default; contrib->sources" />
-    <dependency org="projectlombok.org" name="lombok-test-core" rev="0.10.0" conf="test; contrib->sources" />
+	<info organisation="de.fips" module="lombok-pg" revision="${revision}">
+		<license name="MIT License" url="http://www.opensource.org/licenses/mit-license.php" />
+		<ivyauthor name="peichhorn" url="http://github.com/peichhorn" />
+		<description homepage="http://projectlombok.org/" />
+	</info>
+	<configurations>
+		<conf name="eclipseBuild" />
+		<conf name="build" extends="eclipseBuild" />
+		<conf name="runtime" />
+		<conf name="test" extends="build, runtime" />
+		<conf name="contrib" />
+	</configurations>
+	<dependencies>
+		<dependency org="junit" name="junit" rev="4.8.2" conf="test->default; contrib->sources" />
+		<dependency org="org.easytesting" name="fest-assert" rev="1.4" conf="test->default; contrib->sources" />
+		<dependency org="org.easytesting" name="fest-util" rev="1.1.6" conf="test->default; contrib->sources" />
+		<dependency org="projectlombok.org" name="lombok-test-core" rev="0.10.0" conf="test; contrib->sources" />
 
-    <dependency org="projectlombok.org" name="lombok" rev="0.10.0" conf="build; contrib->sources" />
-    <dependency org="org.netbeans.api" name="org-openide-filesystems" rev="0.1-CAP" conf="build" />
-    <dependency org="projectlombok.org" name="spi" rev="0.2.4" conf="build" />
-    <dependency org="projectlombok.org" name="javac" rev="1.6.0.18" conf="build->runtime; contrib->sources" />
-    <dependency org="de.java2html" name="java2html" rev="5.0" conf="build->default" />
+		<dependency org="projectlombok.org" name="lombok" rev="0.10.0" conf="build; contrib->sources" />
+		<dependency org="org.netbeans.api" name="org-openide-filesystems" rev="0.1-CAP" conf="build" />
+		<dependency org="projectlombok.org" name="spi" rev="0.2.4" conf="build" />
+		<dependency org="projectlombok.org" name="javac" rev="1.6.0.18" conf="build->runtime; contrib->sources" />
+		<dependency org="de.java2html" name="java2html" rev="5.0" conf="build->default" />
 
-    <dependency org="org.eclipse.core" name="org.eclipse.core.runtime" rev="3.6.0.v20100505" conf="eclipseBuild->default; contrib->sources" transitive="false" />
-    <dependency org="org.eclipse.jdt" name="org.eclipse.jdt.core" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
-    <dependency org="org.eclipse.jdt" name="org.eclipse.jdt.ui" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
-    <dependency org="org.eclipse.equinox" name="org.eclipse.equinox.common" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
-  </dependencies>
+		<dependency org="org.eclipse.core" name="org.eclipse.core.runtime" rev="3.6.0.v20100505" conf="eclipseBuild->default; contrib->sources" transitive="false" />
+		<dependency org="org.eclipse.jdt" name="org.eclipse.jdt.core" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
+		<dependency org="org.eclipse.jdt" name="org.eclipse.jdt.ui" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
+		<dependency org="org.eclipse.equinox" name="org.eclipse.equinox.common" rev="3.6.0" conf="eclipseBuild->runtime; contrib->sources" />
+	</dependencies>
 </ivy-module>

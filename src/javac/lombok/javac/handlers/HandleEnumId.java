@@ -25,6 +25,7 @@ import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.ast.JavacASTUtil.boxedType;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
@@ -36,8 +37,6 @@ import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import org.mangosdk.spi.ProviderFor;
@@ -57,20 +56,5 @@ public class HandleEnumId extends JavacAnnotationHandler<EnumId> {
 		}
 		JCVariableDecl fieldDecl = (JCVariableDecl)fieldNode.get();
 		new EnumIdHandler<JavacType, JavacMethod>(JavacType.typeOf(annotationNode, source), annotationNode).handle(string(fieldDecl.name), Type(fieldDecl.vartype), boxedType(fieldDecl.vartype));
-	}
-
-	private lombok.ast.TypeRef boxedType(JCExpression type) {
-		lombok.ast.TypeRef boxedType = Type(type);
-		if (type instanceof JCPrimitiveTypeTree) {
-			final String name = type.toString();
-			if ("int".equals(name)) {
-				boxedType = Type(Integer.class);
-			} else if ("char".equals(name)) {
-				boxedType = Type(Character.class);
-			} else {
-				boxedType = Type("java.lang." + capitalize(name));
-			}
-		}
-		return boxedType;
 	}
 }

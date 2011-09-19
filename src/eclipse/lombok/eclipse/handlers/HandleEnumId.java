@@ -24,6 +24,7 @@ package lombok.eclipse.handlers;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
+import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
@@ -35,8 +36,6 @@ import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -56,20 +55,5 @@ public class HandleEnumId extends EclipseAnnotationHandler<EnumId> {
 
 		new EnumIdHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(annotationNode, source), annotationNode).handle(string(fieldDecl.name), Type(fieldDecl.type),
 				boxedType(fieldDecl.type));
-	}
-
-	public lombok.ast.TypeRef boxedType(TypeReference type) {
-		lombok.ast.TypeRef boxedType = Type(type);
-		if (type instanceof SingleTypeReference) {
-			final String name = new String(type.getLastToken());
-			if ("int".equals(name)) {
-				boxedType = Type(Integer.class);
-			} else if ("char".equals(name)) {
-				boxedType = Type(Character.class);
-			} else {
-				boxedType = Type("java.lang." + capitalize(name));
-			}
-		}
-		return boxedType;
 	}
 }

@@ -33,7 +33,7 @@ public final class Lists {
 
 	public static <T> List<T> list(final T... a) {
 		List<T> results = new ArrayList<T>();
-		Collections.addAll(results, a);
+		if (a != null) Collections.addAll(results, a);
 		return results;
 	}
 	

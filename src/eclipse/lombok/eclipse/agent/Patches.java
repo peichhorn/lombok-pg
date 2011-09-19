@@ -27,11 +27,14 @@ import lombok.*;
 import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
+import lombok.eclipse.handlers.Eclipse;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.parser.Parser;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Patches {
@@ -39,6 +42,7 @@ final class Patches {
 	public static final String LOOKUP_PACKAGE = "org.eclipse.jdt.internal.compiler.lookup";
 	public static final String PROBLEM_PACKAGE = "org.eclipse.jdt.internal.compiler.problem";
 	public static final String TEXT_JAVA_PACKAGE = "org.eclipse.jdt.ui.text.java";
+	public static final String ABSTRACTMETHODDECLARATION = AST_PACKAGE + ".AbstractMethodDeclaration";
 	public static final String BINDING = LOOKUP_PACKAGE + ".Binding";
 	public static final String BINDINGS = BINDING + "[]";
 	public static final String BLOCKSCOPE = LOOKUP_PACKAGE + ".BlockScope";
@@ -93,5 +97,19 @@ final class Patches {
 			node = astNode.get(decl);
 		}
 		return node;
+	}
+
+	/** should be used with caution */
+	public static void completeNode(final EclipseNode node) {
+		if (node.isCompleteParse()) return;
+		final EclipseNode typeNode = Eclipse.typeNodeOf(node);
+		if (typeNode == null) return;
+		TypeDeclaration decl = (TypeDeclaration) typeNode.get();
+		if (decl.scope == null) return;
+		final CompilationUnitScope cus = decl.scope.compilationUnitScope();
+		final org.eclipse.jdt.internal.compiler.Compiler c = (org.eclipse.jdt.internal.compiler.Compiler) cus.environment().typeRequestor;
+		final Parser parser = c.parser;
+		parser.getMethodBodies(cus.referenceContext);
+		typeNode.rebuild();
 	}
 }

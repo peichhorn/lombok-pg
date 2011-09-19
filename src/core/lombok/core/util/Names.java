@@ -23,11 +23,9 @@ package lombok.core.util;
 
 import static java.lang.Character.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Names {

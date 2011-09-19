@@ -102,7 +102,8 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		ensureAllClassScopeMethodWereBuild(binding);
 		if (binding instanceof ReferenceBinding) {
 			ReferenceBinding rb = (ReferenceBinding) binding;
-			for (MethodBinding mb : rb.availableMethods()) {
+			MethodBinding[] availableMethods = rb.availableMethods();
+			if (isNotEmpty(availableMethods)) for (MethodBinding mb : availableMethods) {
 				String sig = string(mb.readableName());
 				if (!banList.add(sig)) continue;
 				methods.add(mb);

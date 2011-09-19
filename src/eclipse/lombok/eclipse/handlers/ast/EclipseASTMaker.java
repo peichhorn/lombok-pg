@@ -21,12 +21,10 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static org.eclipse.jdt.core.dom.Modifier.*;
 import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.EQUAL_EQUAL;
 import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.NOT_EQUAL;
 import static org.eclipse.jdt.internal.compiler.ast.ASTNode.IsSuperType;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccAbstract;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccInterface;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccSemicolonBody;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccImplementing;
 
@@ -159,13 +157,13 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 
 	private int modifiersFor(final Set<lombok.ast.Modifier> modifiers) {
 		int mods = 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.FINAL) ? FINAL : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? PRIVATE : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? PROTECTED : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.PUBLIC) ? PUBLIC : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.STATIC) ? STATIC : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.TRANSIENT) ? TRANSIENT : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.VOLATILE) ? VOLATILE : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.FINAL) ? AccFinal : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? AccPrivate : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? AccProtected: 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.PUBLIC) ? AccPublic : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.STATIC) ? AccStatic : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.TRANSIENT) ? AccTransient : 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.VOLATILE) ? AccVolatile : 0;
 		return mods;
 	}
 

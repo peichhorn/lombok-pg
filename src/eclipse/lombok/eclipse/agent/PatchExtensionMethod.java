@@ -23,18 +23,14 @@ package lombok.eclipse.agent;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
+import static lombok.core.util.Names.*;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -143,7 +139,7 @@ public final class PatchExtensionMethod {
 					arguments.add(methodCall.receiver);
 					if (isNotEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
 					methodCall.arguments = arguments.toArray(new Expression[0]);
-					methodCall.receiver = type.build(Name(Eclipse.toQualifiedName(extensionMethod.declaringClass.compoundName)));
+					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
 					methodCall.binding = extensionMethod;
 					methodCall.resolvedType = extensionMethod.returnType;
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
@@ -159,7 +155,14 @@ public final class PatchExtensionMethod {
 		ERRORS.remove(methodCall);
 		return resolvedType;
 	}
-	
+
+	private static String qualifiedName(final TypeBinding typeBinding) {
+		String qualifiedName = string(typeBinding.qualifiedPackageName());
+		if (!qualifiedName.isEmpty()) qualifiedName += ".";
+		qualifiedName += string(typeBinding.qualifiedSourceName());
+		return qualifiedName;
+	}
+
 	public static IJavaCompletionProposal[] getJavaCompletionProposals(final IJavaCompletionProposal[] javaCompletionProposals,
 			final CompletionProposalCollector completionProposalCollector) {
 		List<IJavaCompletionProposal> proposals = new ArrayList<IJavaCompletionProposal>(Arrays.asList(javaCompletionProposals));

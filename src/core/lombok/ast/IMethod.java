@@ -23,6 +23,7 @@ package lombok.ast;
 
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.core.LombokNode;
 
 public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_METHOD_DECL_TYPE> {
@@ -47,6 +48,8 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 	public void replaceVariableName(String oldName, String newName);
 
 	public void forceQualifiedThis();
+
+	public AccessLevel accessLevel();
 
 	public boolean isSynchronized();
 
@@ -94,9 +97,14 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public List<Annotation> annotations();
 
-	public List<Argument> arguments();
+	public List<Argument> arguments(ArgumentStyle... style);
 	
-	public List<Argument> arguments(boolean includeAnnotations);
+	public List<TypeParam> typeParameters();
 
 	public List<TypeRef> thrownExceptions();
+	
+	public enum ArgumentStyle {
+		INCLUDE_ANNOTATIONS,
+		BOXED_TYPES;
+	}
 }

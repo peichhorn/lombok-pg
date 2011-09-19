@@ -22,6 +22,7 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
+import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
 import static lombok.ast.Wildcard.Bound.EXTENDS;
 import static lombok.core.util.Names.*;
 
@@ -61,10 +62,10 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				interfaceType = type.<TYPE_TYPE>memberType(OPTIONAL_DEF);
 			}
 			String methodName = method.name();
-			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), methodName).makePublic().implementing().withArguments(method.arguments(true)) //
+			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), methodName).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
 					.withStatements(method.statements()) //
 					.withStatement(Return(This())));
-			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), method.name()).makePublic().withNoBody().withArguments(method.arguments(true)));
+			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
 			type.removeMethod(method);
 		}
 	}

@@ -118,4 +118,9 @@ public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
 		typeParameters.add(child(typeParameter));
 		return self();
 	}
+
+	public SELF_TYPE withTypeParameters(final List<TypeParam> typeParameters) {
+		for (TypeParam typeParameter : typeParameters) withTypeParameter(typeParameter);
+		return self();
+	}
 }

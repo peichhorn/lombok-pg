@@ -67,6 +67,7 @@ public final class LombokPGEclipsePatcher extends Agent {
 		PatchAutoGenMethodStub.addPatches(sm, ecj);
 		PatchExtensionMethod.addPatches(sm, ecj);
 		PatchListenerSupport.addPatches(sm, ecj);
+		PatchFunction.addPatches(sm, ecj);
 		PatchVisibleForTesting.addPatches(sm, ecj);
 	}
 }

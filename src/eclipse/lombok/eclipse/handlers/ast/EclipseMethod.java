@@ -21,17 +21,16 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
-import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
-import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
-import static org.eclipse.jdt.internal.compiler.ast.ASTNode.IsSynchronized;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccFinal;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Lists.list;
-import static lombok.core.util.Names.capitalize;
+import static lombok.core.util.Lists.*;
+import static lombok.core.util.Names.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
+import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import static lombok.ast.AST.*;
+import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
+import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
 
 import java.lang.StringBuilder;
 import java.util.ArrayList;
@@ -46,11 +45,11 @@ import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
+import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
 
+import lombok.AccessLevel;
 import lombok.core.AST.Kind;
 import lombok.core.util.Arrays;
 import lombok.eclipse.EclipseNode;
@@ -90,25 +89,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public lombok.ast.TypeRef returns() {
-		if (isConstructor()) return null;
-		return Type(returnType());
+		return isConstructor() ? null : Type(returnType());
 	}
 
 	public lombok.ast.TypeRef boxedReturns() {
-		if (isConstructor()) return null;
-		TypeReference type = returnType();
-		lombok.ast.TypeRef objectReturnType = Type(type);
-		if (type instanceof SingleTypeReference) {
-			final String name = new String(type.getLastToken());
-			if ("int".equals(name)) {
-				objectReturnType = Type("java.lang.Integer");
-			} else if ("char".equals(name)) {
-				objectReturnType = Type("java.lang.Character");
-			} else {
-				objectReturnType = Type("java.lang." + capitalize(name));
-			}
-		}
-		return objectReturnType;
+		return boxedType(returnType());
 	}
 
 	public boolean returns(final Class<?> clazz) {
@@ -147,13 +132,20 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	public void forceQualifiedThis() {
 		new ThisReferenceReplaceVisitor(this, This(Type(surroundingType().name()))).visit(get());
 	}
-	
-	public boolean isSynchronized() {
-		return !isConstructor() && (get().bits & IsSynchronized) != 0;
+
+	public AccessLevel accessLevel() {
+		if ((get().modifiers & AccPublic) != 0) return AccessLevel.PUBLIC;
+		if ((get().modifiers & AccProtected) != 0) return AccessLevel.PROTECTED;
+		if ((get().modifiers & AccPrivate) != 0) return AccessLevel.PRIVATE;
+		return AccessLevel.PACKAGE;
 	}
-	
+
+	public boolean isSynchronized() {
+		return !isConstructor() && (get().modifiers & AccSynchronized) != 0;
+	}
+
 	public boolean isStatic() {
-		return !isConstructor() && (get().modifiers & ClassFileConstants.AccStatic) != 0;
+		return !isConstructor() && (get().modifiers & AccStatic) != 0;
 	}
 
 	public boolean isConstructor() {
@@ -210,21 +202,21 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public void makePrivate() {
 		makePackagePrivate();
-		get().modifiers |= PRIVATE;
+		get().modifiers |= AccPrivate;
 	}
 
 	public void makePackagePrivate() {
-		get().modifiers &= ~(PRIVATE |PROTECTED | PUBLIC);
+		get().modifiers &= ~(AccPrivate | AccProtected | AccPublic);
 	}
 
 	public void makeProtected() {
 		makePackagePrivate();
-		get().modifiers |= PROTECTED;
+		get().modifiers |= AccProtected;
 	}
 
 	public void makePublic() {
 		makePackagePrivate();
-		get().modifiers |= PUBLIC;
+		get().modifiers |= AccPublic;
 	}
 
 	public void body(final lombok.ast.Statement... statements) {
@@ -278,7 +270,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : ((NormalAnnotation)annotation).memberValuePairs) {
-					ann.withValue(new String(pair.name), Expr(pair.value));
+					ann.withValue(string(pair.name), Expr(pair.value));
 				}
 			}
 			annotations.add(ann);
@@ -286,20 +278,31 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		return annotations;
 	}
 
-	public java.util.List<lombok.ast.Argument> arguments() {
-		return arguments(false);
-	}
-
-	public java.util.List<lombok.ast.Argument> arguments(final boolean includeAnnotations) {
+	public java.util.List<lombok.ast.Argument> arguments(final ArgumentStyle... style) {
+		final List<ArgumentStyle> styles = list(style);
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
-		if (isNotEmpty(get().arguments)) {
-			if (includeAnnotations) for (Argument argument : get().arguments) {
-				methodArguments.add(Arg(Type(argument.type), new String(argument.name)).withAnnotations(annotations(argument.annotations)));
-			} else for (Argument argument : get().arguments) {
-				methodArguments.add(Arg(Type(argument.type), new String(argument.name)));
-			}
+		if (isNotEmpty(get().arguments)) for (Argument argument : get().arguments) {
+			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type): Type(argument.type);
+			lombok.ast.Argument arg = Arg(argType, string(argument.name));
+			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(argument.annotations));
+			methodArguments.add(arg);
 		}
 		return methodArguments;
+	}
+
+	public List<lombok.ast.TypeParam> typeParameters() {
+		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
+		if (isConstructor()) return typeParameters;
+		MethodDeclaration methodDecl = (MethodDeclaration)get();
+		if (isNotEmpty(methodDecl.typeParameters)) for (TypeParameter typaram : methodDecl.typeParameters) {
+			lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
+			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
+			if (isNotEmpty(typaram.bounds)) for (TypeReference bound : typaram.bounds) {
+				typeParameter.withBound(Type(bound));
+			}
+			typeParameters.add(typeParameter);
+		}
+		return typeParameters;
 	}
 
 	public List<lombok.ast.TypeRef> thrownExceptions() {

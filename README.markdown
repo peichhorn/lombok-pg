@@ -13,6 +13,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@EnumId`
 - `@ExtensionMethod`
 - `@FluentSetter`
+- `@Function`
 - `@LazyGetter`
 - `@ListenerSupport`
 - `@WriteLock` and `@ReadLock`
