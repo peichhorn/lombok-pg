@@ -21,9 +21,7 @@
  */
 package lombok;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
+@NoArgsConstructor(access=AccessLevel.PRIVATE)
 public final class Functions {
 
 	public static interface Function0<R> {
