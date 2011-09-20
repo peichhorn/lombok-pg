@@ -32,6 +32,7 @@ import lombok.eclipse.handlers.Eclipse;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.impl.ITypeRequestor;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.parser.Parser;
@@ -107,7 +108,9 @@ final class Patches {
 		TypeDeclaration decl = (TypeDeclaration) typeNode.get();
 		if (decl.scope == null) return;
 		final CompilationUnitScope cus = decl.scope.compilationUnitScope();
-		final org.eclipse.jdt.internal.compiler.Compiler c = (org.eclipse.jdt.internal.compiler.Compiler) cus.environment().typeRequestor;
+		final ITypeRequestor typeRequestor = cus.environment().typeRequestor;
+		if (!(typeRequestor instanceof org.eclipse.jdt.internal.compiler.Compiler)) return;
+		final org.eclipse.jdt.internal.compiler.Compiler c = (org.eclipse.jdt.internal.compiler.Compiler) typeRequestor;
 		final Parser parser = c.parser;
 		parser.getMethodBodies(cus.referenceContext);
 		typeNode.rebuild();
