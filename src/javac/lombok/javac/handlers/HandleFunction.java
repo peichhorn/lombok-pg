@@ -150,7 +150,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		for (Symbol enclosedElement : template.getEnclosedElements()) {
 			if (!(enclosedElement instanceof TypeSymbol)) continue;
 			final TypeSymbol enclosedType = (TypeSymbol) enclosedElement;
-			if (!enclosedType.isStatic()) continue;
+			if (!enclosedType.isInterface() && !enclosedType.isStatic()) continue;
 			foundTemplates.addAll(findTemplatesFor(methodDecl, enclosedType));
 		}
 		return foundTemplates;

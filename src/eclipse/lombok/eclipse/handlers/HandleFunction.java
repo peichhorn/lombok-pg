@@ -128,7 +128,7 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 		if (templateData != null) foundTemplates.add(templateData);
 		final ReferenceBinding[] memberTypes = template.memberTypes();
 		if (isNotEmpty(memberTypes)) for (ReferenceBinding memberType : memberTypes) {
-			if (!memberType.isStatic()) continue;
+			if (!template.isInterface() && !memberType.isStatic()) continue;
 			foundTemplates.addAll(findTemplatesFor(methodDecl, memberType));
 		}
 		return foundTemplates;
