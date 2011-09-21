@@ -9,6 +9,11 @@ class FunctionPlain {
 	}
 
 	@Function
+	public static boolean startsWith(String string, String _prefix) {
+		return string.startsWith(_prefix);
+	}
+
+	@Function
 	public static float sqrt(float f) {
 		return (float) Math.sqrt(f);
 	}

@@ -21,9 +21,6 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
-import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
@@ -31,10 +28,9 @@ import static lombok.javac.handlers.JavacHandlerUtil.*;
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.Argument;
-import lombok.ast.MethodDecl;
-import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.FunctionHandler;
+import lombok.core.handlers.FunctionHandler.TemplateData;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
@@ -52,6 +48,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import org.mangosdk.spi.ProviderFor;
 
@@ -87,35 +84,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 			annotationNode.addError("@Function more than one template found that matches the given method signature");
 			return;
 		}
-		final TemplateData matchingTemplate = matchingTemplates.get(0);
-		rebuildFunctionMethod(method, matchingTemplate);
-	}
-	
-	private void rebuildFunctionMethod(final JavacMethod method, final TemplateData template) {
-		final JavacType type = method.surroundingType();
-		final TypeRef boxedReturnType = method.boxedReturns();
-		final List<TypeRef> boxedArgumentTypes = new ArrayList<TypeRef>();
-		final List<Argument> boxedArguments = method.arguments(BOXED_TYPES, INCLUDE_ANNOTATIONS);
-		for (Argument argument : boxedArguments) {
-			boxedArgumentTypes.add(argument.getType());
-		}
-		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes).withTypeArgument(boxedReturnType);
-		if (method.returns("void")) {
-			method.replaceReturns(Return(Null()));
-		}
-		final MethodDecl innerMethod = MethodDecl(boxedReturnType, template.methodName).withArguments(boxedArguments).makePublic().implementing() //
-			.withStatements(method.statements());
-		if (method.returns("void")) {
-			innerMethod.withStatement(Return(Null()));
-		}
-		final MethodDecl functionMethod = MethodDecl(interfaceType, method.name()).withTypeParameters(method.typeParameters()).withAnnotations(method.annotations()) //
-			.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-				.withMethod(innerMethod))));
-		if (method.isStatic()) functionMethod.makeStatic();
-		functionMethod.withAccessLevel(method.accessLevel());
-		type.injectMethod(functionMethod);
-		type.removeMethod(method);
-		type.rebuild();
+		new FunctionHandler<JavacType, JavacMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0));
 	}
 
 	private TypeSymbol resolveTemplates(final JavacNode node, final JCAnnotation annotation, final Object templatesDef) {
@@ -133,7 +102,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 			return defaultValue.getValue().asElement();
 		}
 	}
-	
+
 	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
 		Type type = expr.type;
 		if (type == null) {
@@ -155,7 +124,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		}
 		return foundTemplates;
 	}
-	
+
 	private TemplateData templateDataFor(final JCMethodDecl methodDecl, final TypeSymbol template) {
 		if ((template.flags_field & (Flags.PUBLIC)) == 0) return null;
 		if (!template.isInterface()) return null;
@@ -167,10 +136,18 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		final List<Type> methodTypeArguments = new ArrayList<Type>(enclosedMethodType.getParameterTypes());
 		methodTypeArguments.add(enclosedMethodType.getReturnType());
 		if (!templateTypeArguments.equals(methodTypeArguments)) return null;
-		if ((methodDecl.getParameters().size() + 1) != templateTypeArguments.size()) return null;
+		if ((numberOfFunctionParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
 		return new TemplateData(string(template.getQualifiedName()), string(enclosedMethod.name));
 	}
-	
+
+	private int numberOfFunctionParameters(final JCMethodDecl methodDecl) {
+		int numberOfFunctionParameters = 0;
+		for (JCVariableDecl param : methodDecl.params) {
+			if (!string(param.name).startsWith("_")) numberOfFunctionParameters++;
+		}
+		return numberOfFunctionParameters;
+	}
+
 	private List<MethodSymbol> enclosedMethodsOf(final TypeSymbol type) {
 		final List<MethodSymbol> enclosedMethods = new ArrayList<MethodSymbol>();
 		for (Symbol enclosedElement : type.getEnclosedElements()) {
@@ -179,12 +156,5 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 			}
 		}
 		return enclosedMethods;
-	}
-	
-	@RequiredArgsConstructor
-	@Getter
-	private static class TemplateData {
-		private final String typeName;
-		private final String methodName;
 	}
 }

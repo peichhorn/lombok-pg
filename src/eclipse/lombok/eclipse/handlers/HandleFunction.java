@@ -21,9 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
-import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
 import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Lists.list;
@@ -34,10 +31,9 @@ import static lombok.eclipse.Eclipse.poss;
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.Argument;
-import lombok.ast.MethodDecl;
-import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.FunctionHandler;
+import lombok.core.handlers.FunctionHandler.TemplateData;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -45,6 +41,7 @@ import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
@@ -83,35 +80,7 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 			annotationNode.addError("@Function more than one template found that matches the given method signature");
 			return;
 		}
-		final TemplateData matchingTemplate = matchingTemplates.get(0);
-		rebuildFunctionMethod(method, matchingTemplate);
-	}
-
-	private void rebuildFunctionMethod(final EclipseMethod method, final TemplateData template) {
-		final EclipseType type = method.surroundingType();
-		final TypeRef boxedReturnType = method.boxedReturns();
-		final List<TypeRef> boxedArgumentTypes = new ArrayList<TypeRef>();
-		final List<Argument> boxedArguments = method.arguments(BOXED_TYPES, INCLUDE_ANNOTATIONS);
-		for (Argument argument : boxedArguments) {
-			boxedArgumentTypes.add(argument.getType());
-		}
-		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes).withTypeArgument(boxedReturnType);
-		if (method.returns("void")) {
-			method.replaceReturns(Return(Null()));
-		}
-		final MethodDecl innerMethod = MethodDecl(boxedReturnType, template.methodName).withArguments(boxedArguments).makePublic().implementing() //
-				.withStatements(method.statements());
-		if (method.returns("void")) {
-			innerMethod.withStatement(Return(Null()));
-		}
-		final MethodDecl functionMethod = MethodDecl(interfaceType, method.name()).withTypeParameters(method.typeParameters()).withAnnotations(method.annotations()) //
-			.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-					.withMethod(innerMethod))));
-		if (method.isStatic()) functionMethod.makeStatic();
-		functionMethod.withAccessLevel(method.accessLevel());
-		type.injectMethod(functionMethod);
-		type.removeMethod(method);
-		type.rebuild();
+		new FunctionHandler<EclipseType, EclipseMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0));
 	}
 
 	private ReferenceBinding resolveTemplates(final EclipseNode node, final Annotation annotation, final Class<?> templatesDef) {
@@ -144,8 +113,16 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 		final List<TypeBinding> methodTypeArguments = list(enclosedMethod.parameters);
 		methodTypeArguments.add(enclosedMethod.returnType);
 		if (!templateTypeArguments.equals(methodTypeArguments)) return null;
-		if ((list(methodDecl.arguments).size() + 1) != templateTypeArguments.size()) return null;
+		if ((numberOfFunctionParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
 		return new TemplateData(qualifiedName(template), string(enclosedMethod.selector));
+	}
+
+	private int numberOfFunctionParameters(final AbstractMethodDeclaration methodDecl) {
+		int numberOfFunctionParameters = 0;
+		if (isNotEmpty(methodDecl.arguments)) for (Argument param : methodDecl.arguments) {
+			if (!string(param.name).startsWith("_")) numberOfFunctionParameters++;
+		}
+		return numberOfFunctionParameters;
 	}
 
 	private String qualifiedName(final TypeBinding typeBinding) {
@@ -162,13 +139,5 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 			enclosedMethods.addAll(list(rb.availableMethods()));
 		}
 		return enclosedMethods;
-	}
-
-	@RequiredArgsConstructor
-	@Getter
-	@ToString
-	private static class TemplateData {
-		private final String typeName;
-		private final String methodName;
 	}
 }

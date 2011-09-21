@@ -3,6 +3,14 @@ import lombok.Function;
 
 class FunctionPlain {
   
+  public static @Function @java.lang.SuppressWarnings("all") lombok.Functions.Function1<String, java.lang.Boolean> startsWith(final String _prefix) {
+    return new lombok.Functions.Function1<String, java.lang.Boolean>() {
+  public java.lang.Boolean apply(final String string) {
+    return string.startsWith(_prefix);
+  }
+};
+  }
+  
   public static @Function @java.lang.SuppressWarnings("all") lombok.Functions.Function1<java.lang.Float, java.lang.Float> sqrt() {
     return new lombok.Functions.Function1<java.lang.Float, java.lang.Float>() {
   public java.lang.Float apply(final java.lang.Float f) {
