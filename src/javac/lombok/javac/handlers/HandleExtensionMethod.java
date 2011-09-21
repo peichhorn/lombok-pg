@@ -25,6 +25,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
+import static lombok.core.util.Types.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import java.util.*;
@@ -43,10 +44,12 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Types;
+import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.ErrorType;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.code.Type.TypeVar;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -166,10 +169,11 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			Types types = Types.instance(type.node().getContext());
 			for (Extension extension : extensions) {
 				for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
-					if (!(extensionMethod.type instanceof MethodType)) continue;
-					MethodType method = (MethodType) extensionMethod.type;
 					if (!methodName.equals(string(extensionMethod.name))) continue;
-					if (!types.isAssignable(receiverType, method.argtypes.get(0))) continue;
+					Type extensionMethodType = extensionMethod.type;
+					if (isNoneOf(extensionMethodType, MethodType.class, ForAll.class)) continue;
+					Type firstArgType = extensionMethodType.asMethodType().argtypes.get(0);
+					if (!(firstArgType instanceof TypeVar) && !types.isAssignable(receiverType, firstArgType)) continue;
 					methodCall.args = methodCall.args.prepend(receiver);
 					methodCall.meth = type.build(Call(Name(string(extension.getExtensionProvider())), methodName), JCMethodInvocation.class).meth;
 					return;

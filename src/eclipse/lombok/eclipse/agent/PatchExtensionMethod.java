@@ -141,7 +141,6 @@ public final class PatchExtensionMethod {
 					methodCall.arguments = arguments.toArray(new Expression[0]);
 					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
 					methodCall.binding = extensionMethod;
-					methodCall.resolvedType = extensionMethod.returnType;
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
 					ERRORS.remove(methodCall);
 					return methodCall.resolvedType;
@@ -222,7 +221,7 @@ public final class PatchExtensionMethod {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
 			if (isEmpty(method.parameters)) continue;
-			if (!receiverType.isCompatibleWith(method.parameters[0])) continue;
+			if (!method.parameters[0].isTypeVariable() && !receiverType.isCompatibleWith(method.parameters[0])) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
 			if ((receiverType instanceof ReferenceBinding) && ((ReferenceBinding) receiverType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
 			extensionMethods.add(method);
