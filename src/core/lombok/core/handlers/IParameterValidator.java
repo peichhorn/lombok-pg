@@ -37,21 +37,21 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	public enum ValidationStrategy {
 		WITH(Validate.With.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final String validateMethodName) {
-				return If(Not(Call(validateMethodName).withArgument(Name(argumentName)))).Then(Block() //
+			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
+				return If(Not(Call(((Validate.With) annotation).value()).withArgument(Name(argumentName)))).Then(Block() //
 					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated expression is false")))));
 			}
 		},
 		NOT_NULL(Validate.NotNull.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final String validateMethodName) {
+			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
 				return If(Equal(Name(argumentName), Null())).Then(Block() //
 					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated object is null")))));
 			}
 		},
 		NOT_EMPTY(Validate.NotEmpty.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final String validateMethodName) {
+			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
 				return If(Or(Equal(Name(argumentName), Null()), Call(Name(argumentName), "isEmpty"))).Then(Block() //
 					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated object is empty")))));
 			}
@@ -61,6 +61,6 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 
-		public abstract lombok.ast.Statement getStatementFor(final String argumentName, final String validateMethodName);
+		public abstract lombok.ast.Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation);
 	}
 }

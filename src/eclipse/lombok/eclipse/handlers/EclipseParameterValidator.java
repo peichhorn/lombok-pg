@@ -47,8 +47,8 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
-				final String validateMethodName = Eclipse.createAnnotation(validationStrategy.getType(), annotationNode).getRawExpression("value");
-				validateStatements.add(validationStrategy.getStatementFor(argumentName, validateMethodName));
+				final java.lang.annotation.Annotation annotation = Eclipse.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
+				validateStatements.add(validationStrategy.getStatementFor(argumentName, annotation));
 				setGeneratedBy(ann, ann);
 				argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 				break;

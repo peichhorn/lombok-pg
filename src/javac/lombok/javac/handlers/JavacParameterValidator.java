@@ -49,8 +49,8 @@ public class JavacParameterValidator implements IParameterValidator<JavacMethod>
 				final JCAnnotation ann = getAnnotation(validationStrategy.getType(), argument.mods);
 				if (ann == null) continue;
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
-				final String validateMethodName = Javac.createAnnotation(validationStrategy.getType(), annotationNode).getRawExpression("value");
-				validateStatements.add(validationStrategy.getStatementFor(argumentName, validateMethodName));
+				final java.lang.annotation.Annotation annotation = Javac.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
+				validateStatements.add(validationStrategy.getStatementFor(argumentName, annotation));
 				argument.mods.annotations = remove(argument.mods.annotations, ann);
 				break;
 			}
