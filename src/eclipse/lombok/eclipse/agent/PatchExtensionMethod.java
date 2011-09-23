@@ -347,8 +347,8 @@ public final class PatchExtensionMethod {
 			setName(method.selector);
 			setCompletion(completion);
 			setFlags(method.modifiers & (~Modifier.STATIC));
-			setReplaceRange(replacementOffset, replacementOffset + completion.length);
-			setTokenRange(replacementOffset, replacementOffset + completion.length);
+			setReplaceRange(replacementOffset, replacementOffset);
+			setTokenRange(replacementOffset, replacementOffset);
 			setRelevance(100);
 			
 			method.parameters = parameters;
