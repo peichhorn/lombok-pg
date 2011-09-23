@@ -34,7 +34,7 @@ import java.lang.annotation.*;
  * <b>Note:</b> All lombok-pg method-level annotations automatically
  * trigger a parameter validation.
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target({METHOD, CONSTRUCTOR}) @Retention(SOURCE)
 public @interface Validate {
 	/**
 	 * Method that should be used to validate the parameter.

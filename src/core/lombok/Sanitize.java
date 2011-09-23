@@ -35,7 +35,7 @@ import java.text.Normalizer;
  * <b>Note:</b> All lombok-pg method-level annotations automatically
  * trigger a parameter sanitation.
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target({METHOD, CONSTRUCTOR}) @Retention(SOURCE)
 public @interface Sanitize {
 
 	/**
