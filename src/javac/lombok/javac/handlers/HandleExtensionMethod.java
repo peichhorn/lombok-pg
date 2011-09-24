@@ -48,7 +48,6 @@ import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.ErrorType;
 import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -172,8 +171,8 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 					if (!methodName.equals(string(extensionMethod.name))) continue;
 					Type extensionMethodType = extensionMethod.type;
 					if (isNoneOf(extensionMethodType, MethodType.class, ForAll.class)) continue;
-					Type firstArgType = extensionMethodType.asMethodType().argtypes.get(0);
-					if (!(firstArgType instanceof TypeVar) && !types.isAssignable(receiverType, firstArgType)) continue;
+					Type firstArgType = types.erasure(extensionMethodType.asMethodType().argtypes.get(0));
+					if (!types.isAssignable(receiverType, firstArgType)) continue;
 					methodCall.args = methodCall.args.prepend(receiver);
 					methodCall.meth = type.build(Call(Name(string(extension.getExtensionProvider())), methodName), JCMethodInvocation.class).meth;
 					return;

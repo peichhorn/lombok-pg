@@ -139,9 +139,13 @@ public final class PatchExtensionMethod {
 					arguments.add(methodCall.receiver);
 					if (isNotEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
 					methodCall.arguments = arguments.toArray(new Expression[0]);
+					List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
+					argumentTypes.add(methodCall.receiver.resolvedType);
+					argumentTypes.addAll(Arrays.asList(methodCall.binding.parameters));
 					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
-					methodCall.binding = extensionMethod;
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
+					methodCall.binding = scope.getMethod(methodCall.actualReceiverType, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
+					methodCall.resolvedType = methodCall.binding.returnType;
 					ERRORS.remove(methodCall);
 					return methodCall.resolvedType;
 				}
@@ -221,7 +225,8 @@ public final class PatchExtensionMethod {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
 			if (isEmpty(method.parameters)) continue;
-			if (!method.parameters[0].isTypeVariable() && !receiverType.isCompatibleWith(method.parameters[0])) continue;
+			TypeBinding firstArgType = method.parameters[0].erasure();
+			if (!receiverType.isCompatibleWith(firstArgType)) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
 			if ((receiverType instanceof ReferenceBinding) && ((ReferenceBinding) receiverType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
 			extensionMethods.add(method);

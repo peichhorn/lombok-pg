@@ -29,16 +29,7 @@ class ExtensionMethodPlain {
 		return false;
 	}
 	
-	private void test6() {
-		String foo = null;
-		String s = foo.orElse("bar");
-	}
-	
 	static class Objects {
-		public static <T> T orElse(T value, T orElse) {
-			return value == null ? orElse : value;
-		}
-		
 		public static boolean isOneOf(Object object, Object... possibleValues) {
 			if (possibleValues != null) for (Object possibleValue : possibleValues) {
 				if (object.equals(possibleValue)) return true;
