@@ -1,6 +1,6 @@
 # lombok-pg
 
-lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers ...and a bit more!
+lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/index.html) [(source)](https://github.com/rzwitserloot/lombok) which further reduce boilerplate in Java. It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers ...and a bit more!
 
 ## Extensions to lombok found in this version:
 
