@@ -2,28 +2,28 @@
 
 lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers and a bit more.
 
-## Extensions:
+## Extensions to lombok found in this version:
 
 #### Annotations:
 
-- `@AutoGenMethodStub` [doc](http://peichhorn.github.com/lombok-pg/AutoGenMethodStub.html)
+- `@AutoGenMethodStub` [info](http://peichhorn.github.com/lombok-pg/AutoGenMethodStub.html)
 - `@BoundPropertySupport` and `@BoundSetter` 
-- `@Builder` and `@Builder.Extension` [doc](http://peichhorn.github.com/lombok-pg/Builder.html)
-- `@DoPrivileged` [doc](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
-- `@EnumId` [docs](http://peichhorn.github.com/lombok-pg/EnumId.html)
-- `@ExtensionMethod` [doc](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
-- `@FluentSetter` [doc](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
+- `@Builder` and `@Builder.Extension` [info](http://peichhorn.github.com/lombok-pg/Builder.html)
+- `@DoPrivileged` [info](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
+- `@EnumId` [info](http://peichhorn.github.com/lombok-pg/EnumId.html)
+- `@ExtensionMethod` [info](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
+- `@FluentSetter` [info](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
 - `@Function` (documentation coming soon...)
 - `@LazyGetter` 
-- `@ListenerSupport` [doc](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
-- `@WriteLock` and `@ReadLock` [doc](http://peichhorn.github.com/lombok-pg/Lock.html)
-- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [doc](http://peichhorn.github.com/lombok-pg/Condition.html)
-- `@Rethrow` and `@Rethrows` [doc](http://peichhorn.github.com/lombok-pg/Rethrow.html)
+- `@ListenerSupport` [info](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
+- `@WriteLock` and `@ReadLock` [info](http://peichhorn.github.com/lombok-pg/Lock.html)
+- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [info](http://peichhorn.github.com/lombok-pg/Condition.html)
+- `@Rethrow` and `@Rethrows` [info](http://peichhorn.github.com/lombok-pg/Rethrow.html)
 - `@Sanitize.Normalize` and `@Sanitize.With`
-- `@Singleton` [doc](http://peichhorn.github.com/lombok-pg/Singleton.html)
-- `@SwingInvokeLater` and `@SwingInvokeAndWait` [doc] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
+- `@Singleton` [info](http://peichhorn.github.com/lombok-pg/Singleton.html)
+- `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
 - `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` (documentation coming soon...)
-- `@VisibleForTesting` [doc](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
+- `@VisibleForTesting` [info](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
 
 #### Interfaces:
 
@@ -39,7 +39,21 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 [lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
 
 ## Overview:
-[Features](http://peichhorn.github.com/lombok-pg/)
+[Check out all lombok-pg features](http://peichhorn.github.com/lombok-pg/)
 
-## New here? Check out lombok, before exploring lombok-pg:
-[how-to-guide](http://projectlombok.org/features/index.html)
+## New here? Check out lombok, before exploring lombok-pg. The lombok-pg project is based on lombok :)
+[lombok How-to, installation and features guide](http://projectlombok.org/features/index.html)
+
+Includes documentation for core features:
+- '@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor' [info](http://projectlombok.org/features/Constructor.html)
+- '@Cleanup' [info](http://projectlombok.org/features/Cleanup.html)
+- '@Delegate' [info](http://projectlombok.org/features/Delegate.html)
+- '@EqualsAndHashcode' [info](http://projectlombok.org/features/EqualsAndHashCode.html)
+- `@Getter/Setter` [info](http://projectlombok.org/features/GetterSetter.html)
+- `@Getter(lazy=true)` [info](http://projectlombok.org/features/GetterLazy.html)
+- '@Log' [info](http://projectlombok.org/features/Log.html)
+- '@SneakyThrows' [info](http://projectlombok.org/features/SneakyThrows.html)
+- '@Synchronized' [info](http://projectlombok.org/features/Synchronized.html)
+- `@ToString` [info](http://projectlombok.org/features/ToString.html)
+
+- 'val' [info](http://projectlombok.org/features/val.html)
