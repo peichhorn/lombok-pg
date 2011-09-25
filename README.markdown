@@ -41,5 +41,5 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 ## Feature overview:
 [Features](http://peichhorn.github.com/lombok-pg/)
 
-## New to lombok? Start here with lombok, before exploring lombok-pg:
+## New to lombok? Check out lombok, before exploring lombok-pg:
 [how-to-guide](http://projectlombok.org/features/index.html)
