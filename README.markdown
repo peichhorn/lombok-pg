@@ -1,6 +1,6 @@
 # lombok-pg
 
-lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers and a bit more.
+lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers ...and a bit more!
 
 ## Extensions to lombok found in this version:
 
@@ -35,28 +35,25 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `with(object, expr1, expr2, ...)` [doc](http://peichhorn.github.com/lombok-pg/With.html)
 - `yield(object)` [doc](http://peichhorn.github.com/lombok-pg/Yield.html)
 
+
+#### Base annotations from lombok:
+
+- `@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor` [info](http://projectlombok.org/features/Constructor.html)
+- `@Cleanup` [info](http://projectlombok.org/features/Cleanup.html)
+- `@Delegate` [info](http://projectlombok.org/features/Delegate.html)
+- `@EqualsAndHashcode` [info](http://projectlombok.org/features/EqualsAndHashCode.html)
+- `@Getter/Setter` [info](http://projectlombok.org/features/GetterSetter.html)
+- `@Getter(lazy=true)` [info](http://projectlombok.org/features/GetterLazy.html)
+- `@Log` [info](http://projectlombok.org/features/Log.html)
+- `@SneakyThrows` [info](http://projectlombok.org/features/SneakyThrows.html)
+- `@Synchronized` [info](http://projectlombok.org/features/Synchronized.html)
+- `@ToString` [info](http://projectlombok.org/features/ToString.html)
+- `val` [info](http://projectlombok.org/features/val.html)
+
 ## Grab the latest version:
 [lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
 
-## Overview:
-[Check out all lombok-pg features](http://peichhorn.github.com/lombok-pg/)
+## Documentation:
+[Check out lombok features](http://projectlombok.org/features/)
+[Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
 
-## New here? Check out lombok, before exploring lombok-pg. 
-Why? Because lombok is based on lombok-pg :)
-
-[lombok How-to, installation and features guide](http://projectlombok.org/features/index.html)
-
-#### Lombok annotations:
-
-- '@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor' [info](http://projectlombok.org/features/Constructor.html)
-- '@Cleanup' [info](http://projectlombok.org/features/Cleanup.html)
-- '@Delegate' [info](http://projectlombok.org/features/Delegate.html)
-- '@EqualsAndHashcode' [info](http://projectlombok.org/features/EqualsAndHashCode.html)
-- `@Getter/Setter` [info](http://projectlombok.org/features/GetterSetter.html)
-- `@Getter(lazy=true)` [info](http://projectlombok.org/features/GetterLazy.html)
-- '@Log' [info](http://projectlombok.org/features/Log.html)
-- '@SneakyThrows' [info](http://projectlombok.org/features/SneakyThrows.html)
-- '@Synchronized' [info](http://projectlombok.org/features/Synchronized.html)
-- `@ToString` [info](http://projectlombok.org/features/ToString.html)
-
-- 'val' [info](http://projectlombok.org/features/val.html)
