@@ -17,19 +17,27 @@
 			<p>
 This annotation allows you to widen the access scope of a method solely for the purposes of testing. The compiler will complain if any portion of the code accesses this method if the class name containing it does not contain "Test".
 </p>
+			</p>
+		</div>
+		<div style="clear: left;"></div>
+		<div class="overview">
+			<h3>Small print</h3><div class="smallprint">
 <p>
 <pre>
+/**
+ * Declaring a class with a method only visible to tests
+ */
 package main.myClasses;
 public class MyClass {
-
    @VisibleForTesting
    public int add(int a, int b) {
       return a+b;
    }
-
 }
 
-
+/**
+ * This class is not a test, hence it cannot access the add() method, even if it's declared public
+ */
 package main.myOtherClasses;
 public class MyOtherClass
 {
@@ -39,7 +47,9 @@ public class MyOtherClass
    }
 }
 
-
+/**
+ * This class can access the add() method, because its named XXXTest.
+ */
 package main.tests.myOtherClasses;
 public class MyOtherClassTest
 {
@@ -49,14 +59,7 @@ public class MyOtherClassTest
    }
 }
 </pre>
-</p>
-			</p>
-		</div>
-		<div style="clear: left;"></div>
-		<div class="overview">
-			<h3>Small print</h3><div class="smallprint">
-				<p>
-					Smallprint
+
 				</p>
 			</div>
 		</div>
