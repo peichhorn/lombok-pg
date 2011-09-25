@@ -48,12 +48,16 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 - `@SneakyThrows` [info](http://projectlombok.org/features/SneakyThrows.html)
 - `@Synchronized` [info](http://projectlombok.org/features/Synchronized.html)
 - `@ToString` [info](http://projectlombok.org/features/ToString.html)
+
+
+#### Base methods from lombok:
+
 - `val` [info](http://projectlombok.org/features/val.html)
 
 ## Grab the latest version:
 [lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
 
 ## Documentation:
-[Check out lombok features](http://projectlombok.org/features/)
-[Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
+- [Check out lombok features](http://projectlombok.org/features/)
+- [Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
 
