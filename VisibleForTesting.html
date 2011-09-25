@@ -11,11 +11,45 @@
 	<div class="meat">
 		<div class="header"><a href="http://projectlombok.org/index.html">Project Lombok</a><br /><a href="https://github.com/peichhorn/lombok-pg">lombok-pg</a></div>
 		<h1>@VisibleForTesting</h1>
-		<div class="byline">No need to compromise visiblity due to testabily!</div>
+		<div class="byline">No need to compromise visibility due to testability!</div>
 		<div class="overview">
 			<h3>Overview</h3>
 			<p>
-			Detailed Description
+This annotation allows you to widen the access scope of a method solely for the purposes of testing. The compiler will complain if any portion of the code accesses this method if the class name containing it does not contain "Test".
+</p>
+<p>
+<pre>
+package main.myClasses;
+public class MyClass {
+
+   @VisibleForTesting
+   public int add(int a, int b) {
+      return a+b;
+   }
+
+}
+
+
+package main.myOtherClasses;
+public class MyOtherClass
+{
+   public MyOtherClasses() {
+      // ERROR: method add is not visible
+      new MyClass().add(1, 1);
+   }
+}
+
+
+package main.tests.myOtherClasses;
+public class MyOtherClassTest
+{
+   public MyOtherClassesTest() {
+      // OK, it is visible
+      new MyClass().add(1, 1); 
+   }
+}
+</pre>
+</p>
 			</p>
 		</div>
 		<div style="clear: left;"></div>
