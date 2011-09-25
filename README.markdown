@@ -10,10 +10,10 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@BoundPropertySupport` and `@BoundSetter` 
 - `@Builder` and `@Builder.Extension` [doc](http://peichhorn.github.com/lombok-pg/Builder.html)
 - `@DoPrivileged` [doc](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
-- `@EnumId` [doc](http://peichhorn.github.com/lombok-pg/EnumId.html)
+- `@EnumId` [docs](http://peichhorn.github.com/lombok-pg/EnumId.html)
 - `@ExtensionMethod` [doc](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
 - `@FluentSetter` [doc](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
-- `@Function`
+- `@Function` (documentation coming soon...)
 - `@LazyGetter` 
 - `@ListenerSupport` [doc](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
 - `@WriteLock` and `@ReadLock` [doc](http://peichhorn.github.com/lombok-pg/Lock.html)
@@ -22,7 +22,7 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `@Sanitize.Normalize` and `@Sanitize.With`
 - `@Singleton` [doc](http://peichhorn.github.com/lombok-pg/Singleton.html)
 - `@SwingInvokeLater` and `@SwingInvokeAndWait` [doc] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
-- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With`
+- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` (documentation coming soon...)
 - `@VisibleForTesting` [doc](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
 
 #### Interfaces:
