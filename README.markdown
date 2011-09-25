@@ -41,10 +41,13 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 ## Overview:
 [Check out all lombok-pg features](http://peichhorn.github.com/lombok-pg/)
 
-## New here? Check out lombok, before exploring lombok-pg. The lombok-pg project is based on lombok :)
+## New here? Check out lombok, before exploring lombok-pg. 
+Why? Because lombok is based on lombok-pg :)
+
 [lombok How-to, installation and features guide](http://projectlombok.org/features/index.html)
 
-Includes documentation for core features:
+#### Lombok annotations:
+
 - '@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor' [info](http://projectlombok.org/features/Constructor.html)
 - '@Cleanup' [info](http://projectlombok.org/features/Cleanup.html)
 - '@Delegate' [info](http://projectlombok.org/features/Delegate.html)
