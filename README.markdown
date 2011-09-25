@@ -35,11 +35,11 @@ lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserl
 - `with(object, expr1, expr2, ...)` [doc](http://peichhorn.github.com/lombok-pg/With.html)
 - `yield(object)` [doc](http://peichhorn.github.com/lombok-pg/Yield.html)
 
-## Grab a copy (latest version):
+## Grab the latest version:
 [lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
 
-## Feature overview:
+## Overview:
 [Features](http://peichhorn.github.com/lombok-pg/)
 
-## New to lombok? Check out lombok, before exploring lombok-pg:
+## New here? Check out lombok, before exploring lombok-pg:
 [how-to-guide](http://projectlombok.org/features/index.html)
