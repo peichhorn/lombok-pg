@@ -43,14 +43,16 @@ public class JavacParameterValidator implements IParameterValidator<JavacMethod>
 			deleteImport(method.node(), validationStrategy.getType());
 		}
 		final List<lombok.ast.Statement> validateStatements = new ArrayList<lombok.ast.Statement>();
+		int argumentIndex = 0;
 		for (JCVariableDecl argument : method.get().params) {
 			final String argumentName = argument.name.toString();
+			argumentIndex++;
 			for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {
 				final JCAnnotation ann = getAnnotation(validationStrategy.getType(), argument.mods);
 				if (ann == null) continue;
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = Javac.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
-				validateStatements.add(validationStrategy.getStatementFor(argumentName, annotation));
+				validateStatements.addAll(validationStrategy.getStatementsFor(argumentName, argumentIndex, annotation));
 				argument.mods.annotations = remove(argument.mods.annotations, ann);
 				break;
 			}

@@ -31,7 +31,7 @@ import lombok.*;
 import lombok.ast.*;
 
 public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
-	public List<lombok.ast.Statement> sanitizeParameterOf(METHOD_TYPE method);
+	public List<Statement> sanitizeParameterOf(METHOD_TYPE method);
 
 	@RequiredArgsConstructor
 	@Getter
@@ -55,7 +55,7 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 
-		public abstract lombok.ast.Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName,
+		public abstract Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName,
 				final java.lang.annotation.Annotation annotation);
 	}
 }

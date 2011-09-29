@@ -5,8 +5,11 @@ class LockPlain {
 	
 	@java.lang.SuppressWarnings("all")
 	public void put(final String key, final String value) {
-		if (key == null || key.isEmpty()) {
-			throw new java.lang.IllegalArgumentException("The validated object is empty");
+		if (key == null) {
+			throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "key", 1));
+		}
+		if (key.isEmpty()) {
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "key", 1));
 		}
 		final String sanitizedKey = checkKey(key);
 		this.dictionaryLock.writeLock().lock();
@@ -19,8 +22,11 @@ class LockPlain {
 	
 	@java.lang.SuppressWarnings("all")
 	public String get(final String key) {
-		if (key == null || key.isEmpty()) {
-			throw new java.lang.IllegalArgumentException("The validated object is empty");
+		if (key == null) {
+			throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "key", 1));
+		}
+		if (key.isEmpty()) {
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "key", 1));
 		}
 		final String sanitizedKey = checkKey(key);
 		this.dictionaryLock.readLock().lock();

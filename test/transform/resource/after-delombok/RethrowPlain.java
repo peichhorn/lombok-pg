@@ -21,8 +21,11 @@ class RethrowPlain {
 	@java.lang.SuppressWarnings("all")
 	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
 		try {
-			if (arg == null || arg.isEmpty()) {
-				throw new java.lang.IllegalArgumentException("The validated object is empty");
+			if (arg == null) {
+				throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "arg", 1));
+			}
+			if (arg.isEmpty()) {
+				throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "arg", 1));
 			}
 			System.out.println("code throws all kinds of Exceptions");
 		} catch (final java.lang.RuntimeException $e1) {

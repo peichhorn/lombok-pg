@@ -40,15 +40,17 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 	@Override
 	public List<lombok.ast.Statement> validateParameterOf(final EclipseMethod method) {
 		final List<lombok.ast.Statement> validateStatements = new ArrayList<lombok.ast.Statement>();
+		int argumentIndex = 0;
 		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
 			final String argumentName = new String(argument.name);
+			argumentIndex++;
 			for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {
 				final Annotation ann = getAnnotation(validationStrategy.getType(), argument.annotations);
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = Eclipse.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
-				validateStatements.add(validationStrategy.getStatementFor(argumentName, annotation));
+				validateStatements.addAll(validationStrategy.getStatementsFor(argumentName, argumentIndex, annotation));
 				setGeneratedBy(ann, ann);
 				argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 				break;

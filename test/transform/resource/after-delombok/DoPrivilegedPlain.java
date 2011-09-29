@@ -47,8 +47,11 @@ class DoPrivilegedPlain {
 
 	@java.lang.SuppressWarnings("all")
 	int test3(final String filename) throws FileNotFoundException {
-		if (filename == null || filename.isEmpty()) {
-			throw new java.lang.IllegalArgumentException("The validated object is empty");
+		if (filename == null) {
+			throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "filename", 1));
+		}
+		if (filename.isEmpty()) {
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "filename", 1));
 		}
 		final String sanitizedFilename = cleanFilename(filename);
 		try {

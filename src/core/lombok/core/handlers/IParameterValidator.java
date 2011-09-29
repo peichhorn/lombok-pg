@@ -21,39 +21,46 @@
  */
 package lombok.core.handlers;
 
+import static java.util.Collections.singletonList;
 import static lombok.ast.AST.*;
 import static lombok.core.util.Lists.unmodifiableList;
 
-import java.util.List;
+import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
 
 public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
-	public List<lombok.ast.Statement> validateParameterOf(METHOD_TYPE method);
+	public List<Statement> validateParameterOf(METHOD_TYPE method);
 
 	@RequiredArgsConstructor
 	@Getter
 	public enum ValidationStrategy {
 		WITH(Validate.With.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
-				return If(Not(Call(((Validate.With) annotation).value()).withArgument(Name(argumentName)))).Then(Block() //
-					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated expression is false")))));
+			public List<? extends Statement> getStatementsFor(final String argumentName, final int argumentIndex, final java.lang.annotation.Annotation annotation) {
+				final List<Statement> statements = new ArrayList<Statement>();
+				statements.addAll(NOT_NULL.getStatementsFor(argumentName, argumentIndex, annotation));
+				statements.add(If(Not(Call(((Validate.With) annotation).value()).withArgument(Name(argumentName)))).Then(Block() //
+					.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The object '%s' (argument #%s) is invalid", argumentName, argumentIndex))))));
+				return statements;
 			}
 		},
 		NOT_NULL(Validate.NotNull.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
-				return If(Equal(Name(argumentName), Null())).Then(Block() //
-					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated object is null")))));
+			public List<? extends Statement> getStatementsFor(final String argumentName, final int argumentIndex, final java.lang.annotation.Annotation annotation) {
+				return singletonList(If(Equal(Name(argumentName), Null())).Then(Block() //
+					.withStatement(Throw(New(Type(NullPointerException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is null", argumentName, argumentIndex))))));
 			}
 		},
 		NOT_EMPTY(Validate.NotEmpty.class) {
 			@Override
-			public Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation) {
-				return If(Or(Equal(Name(argumentName), Null()), Call(Name(argumentName), "isEmpty"))).Then(Block() //
-					.withStatement(Throw(New(Type("java.lang.IllegalArgumentException")).withArgument(String("The validated object is empty")))));
+			public List<? extends Statement> getStatementsFor(final String argumentName, final int argumentIndex, final java.lang.annotation.Annotation annotation) {
+				final List<Statement> statements = new ArrayList<Statement>();
+				statements.addAll(NOT_NULL.getStatementsFor(argumentName, argumentIndex, annotation));
+				statements.add(If(Call(Name(argumentName), "isEmpty")).Then(Block() //
+					.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is empty", argumentName, argumentIndex))))));
+				return statements;
 			}
 		};
 
@@ -61,6 +68,10 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 
-		public abstract lombok.ast.Statement getStatementFor(final String argumentName, final java.lang.annotation.Annotation annotation);
+		public abstract List<? extends Statement> getStatementsFor(final String argumentName, final int argumentIndex, final java.lang.annotation.Annotation annotation);
+
+		private static final Expression formattedMessage(final String message, final String argumentName, final int argumentIndex) {
+			return Call(Name(String.class), "format").withArgument(String(message)).withArgument(String(argumentName)).withArgument(Number(argumentIndex));
+		}
 	}
 }

@@ -29,7 +29,7 @@ class SwingInvokeLaterPlain {
   @lombok.SwingInvokeLater @java.lang.SuppressWarnings("all") void test2(final @lombok.Validate.NotNull @lombok.Sanitize.Normalize String title) throws Exception {
     if ((title == null))
         {
-          throw new java.lang.IllegalArgumentException("The validated object is null");
+          throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "title", 1));
         }
     final String sanitizedTitle = java.text.Normalizer.normalize(title, java.text.Normalizer.Form.NFKC);
     final java.lang.Runnable $test2Runnable = new java.lang.Runnable() {

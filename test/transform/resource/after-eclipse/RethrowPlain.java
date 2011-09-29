@@ -26,9 +26,13 @@ class RethrowPlain {
   @lombok.Rethrow(as = java.lang.IllegalArgumentException.class,message = "meh.") @java.lang.SuppressWarnings("all") void testRethrowEveryExceptionAsSpecifiedException(final @lombok.Validate.NotEmpty String arg) {
     try 
       {
-        if (((arg == null) || arg.isEmpty()))
+        if ((arg == null))
             {
-              throw new java.lang.IllegalArgumentException("The validated object is empty");
+              throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "arg", 1));
+            }
+        if (arg.isEmpty())
+            {
+              throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "arg", 1));
             }
         System.out.println("code throws all kinds of Exceptions");
       }
