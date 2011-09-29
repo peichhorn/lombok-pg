@@ -15,7 +15,7 @@
 		<div class="overview">
 			<h3>Overview</h3>
 			<p>
-			Detailed Description
+			This annotation allows you to use <a href="http://en.wikipedia.org/wiki/Extension_method">extension methods</a> in Java.
 			</p>
 		</div>
 		<div class="snippets">
@@ -33,7 +33,19 @@
 		<div class="overview">
 			<h3>Small print</h3><div class="smallprint">
 				<p>
-					Smallprint
+					A recent update allows usage of this in generic methods. For example, here's a null coalescing extension method:
+<pre>
+
+// given this code
+public static <T> T orElse(final T value, final T elseValue) {
+return value != null ? value : elseValue;
+}
+
+
+String name = null;
+String value = name.orElse("John Doe"); // value is "John Doe"
+
+</pre>
 				</p>
 			</div>
 		</div>

@@ -1,45 +1,63 @@
 # lombok-pg
 
-lombok-pg is a collection of extensions to [lombok](https://github.com/rzwitserloot/lombok). Together with lombok it is distributed in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers and a bit more.
+lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/index.html) [(source)](https://github.com/rzwitserloot/lombok) which further reduce boilerplate in Java. It is distributed together with lombok in one spicy package. lombok-pg is usually pretty much up to date with lombok, so you can enjoy all the funky stuff lombok offers ...and a bit more!
 
-## Extensions:
+## Extensions to lombok found in this version:
 
 #### Annotations:
 
-- `@AutoGenMethodStub`
-- `@BoundPropertySupport` and `@BoundSetter`
-- `@Builder` and `@Builder.Extension`
-- `@DoPrivileged`
-- `@EnumId`
-- `@ExtensionMethod`
-- `@FluentSetter`
-- `@Function`
-- `@LazyGetter`
-- `@ListenerSupport`
-- `@WriteLock` and `@ReadLock`
-- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter`
-- `@Rethrow` and `@Rethrows`
+- `@AutoGenMethodStub` [info](http://peichhorn.github.com/lombok-pg/AutoGenMethodStub.html)
+- `@BoundPropertySupport` and `@BoundSetter` 
+- `@Builder` and `@Builder.Extension` [info](http://peichhorn.github.com/lombok-pg/Builder.html)
+- `@DoPrivileged` [info](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
+- `@EnumId` [info](http://peichhorn.github.com/lombok-pg/EnumId.html)
+- `@ExtensionMethod` [info](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
+- `@FluentSetter` [info](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
+- `@Function` (documentation coming soon...)
+- `@LazyGetter` 
+- `@ListenerSupport` [info](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
+- `@WriteLock` and `@ReadLock` [info](http://peichhorn.github.com/lombok-pg/Lock.html)
+- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [info](http://peichhorn.github.com/lombok-pg/Condition.html)
+- `@Rethrow` and `@Rethrows` [info](http://peichhorn.github.com/lombok-pg/Rethrow.html)
 - `@Sanitize.Normalize` and `@Sanitize.With`
-- `@Singleton`
-- `@SwingInvokeLater` and `@SwingInvokeAndWait`
-- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With`
-- `@VisibleForTesting`
+- `@Singleton` [info](http://peichhorn.github.com/lombok-pg/Singleton.html)
+- `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
+- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` (documentation coming soon...)
+- `@VisibleForTesting` [info](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
 
 #### Interfaces:
 
-- `Application` and `JVMAgent`
+- `Application` and `JVMAgent` [info](http://peichhorn.github.com/lombok-pg/Entrypoint.html)
 
 #### Methods:
 
-- `tuple(expr1, expr2, ...)`
-- `with(object, expr1, expr2, ...)`
-- `yield(object)`
+- `tuple(expr1, expr2, ...)` [info](http://peichhorn.github.com/lombok-pg/Tuple.html)
+- `with(object, expr1, expr2, ...)` [info](http://peichhorn.github.com/lombok-pg/With.html)
+- `yield(object)` [info](http://peichhorn.github.com/lombok-pg/Yield.html)
 
-## Grab a copy:
+
+#### Base annotations from lombok:
+
+- `@AllArgsConstructor, @RequiredArgsConstructor and @NoArgsConstructor` [info](http://projectlombok.org/features/Constructor.html)
+- `@Cleanup` [info](http://projectlombok.org/features/Cleanup.html)
+- `@Delegate` [info](http://projectlombok.org/features/Delegate.html)
+- `@EqualsAndHashcode` [info](http://projectlombok.org/features/EqualsAndHashCode.html)
+- `@Getter/Setter` [info](http://projectlombok.org/features/GetterSetter.html)
+- `@Getter(lazy=true)` [info](http://projectlombok.org/features/GetterLazy.html)
+- `@Log` [info](http://projectlombok.org/features/Log.html)
+- `@SneakyThrows` [info](http://projectlombok.org/features/SneakyThrows.html)
+- `@Synchronized` [info](http://projectlombok.org/features/Synchronized.html)
+- `@ToString` [info](http://projectlombok.org/features/ToString.html)
+
+
+#### Base methods from lombok:
+
+- `val` [info](http://projectlombok.org/features/val.html)
+
+## Grab the latest version:
 [lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
 
-## Where to start and How to use:
-[lombok how-to-guide](http://projectlombok.org/features/index.html)
-
 ## Documentation:
-[Features](http://peichhorn.github.com/lombok-pg/)
+- [Check out lombok features](http://projectlombok.org/features/)
+- [Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
+
