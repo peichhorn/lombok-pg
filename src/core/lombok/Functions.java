@@ -21,42 +21,222 @@
  */
 package lombok;
 
-@NoArgsConstructor(access=AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Functions {
 
-	public static interface Function0<R> {
-		public R apply();
+	public static abstract class Function0<R> {
+		public abstract R apply();
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
 	}
 
-	public static interface Function1<T1, R> {
-		public R apply(T1 t1);
+	public static abstract class Function1<T1, R> {
+		public abstract R apply(T1 t1);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
 	}
 
-	public static interface Function2<T1, T2, R> {
-		public R apply(T1 t1, T2 t2);
+	public static abstract class Function2<T1, T2, R> {
+		public abstract R apply(T1 t1, T2 t2);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
 	}
 
-	public static interface Function3<T1, T2, T3, R> {
-		public R apply(T1 t1, T2 t2, T3 t3);
+	public static abstract class Function3<T1, T2, T3, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
 	}
 
-	public static interface Function4<T1, T2, T3, T4, R> {
-		public R apply(T1 t1, T2 t2, T3 t3, T4 t4);
+	public static abstract class Function4<T1, T2, T3, T4, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3, T4 t4);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 4);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType4() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
 	}
 
-	public static interface Function5<T1, T2, T3, T4, T5, R> {
-		public R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
+	public static abstract class Function5<T1, T2, T3, T4, T5, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 5);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType4() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
+
+		public final Class<?> getParameterType5() {
+			return TypeArguments.getClassFor(getClass(), 4);
+		}
 	}
 
-	public static interface Function6<T1, T2, T3, T4, T5, T6, R> {
-		public R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6);
+	public static abstract class Function6<T1, T2, T3, T4, T5, T6, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 6);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType4() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
+
+		public final Class<?> getParameterType5() {
+			return TypeArguments.getClassFor(getClass(), 4);
+		}
+
+		public final Class<?> getParameterType6() {
+			return TypeArguments.getClassFor(getClass(), 5);
+		}
 	}
 
-	public static interface Function7<T1, T2, T3, T4, T5, T6, T7, R> {
-		public R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7);
+	public static abstract class Function7<T1, T2, T3, T4, T5, T6, T7, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 7);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType4() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
+
+		public final Class<?> getParameterType5() {
+			return TypeArguments.getClassFor(getClass(), 4);
+		}
+
+		public final Class<?> getParameterType6() {
+			return TypeArguments.getClassFor(getClass(), 5);
+		}
+
+		public final Class<?> getParameterType7() {
+			return TypeArguments.getClassFor(getClass(), 6);
+		}
 	}
 
-	public static interface Function8<T1, T2, T3, T4, T5, T6, T7, T8, R> {
-		public R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8);
+	public static abstract class Function8<T1, T2, T3, T4, T5, T6, T7, T8, R> {
+		public abstract R apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8);
+
+		public final Class<?> getReturnType() {
+			return TypeArguments.getClassFor(getClass(), 8);
+		}
+
+		public final Class<?> getParameterType1() {
+			return TypeArguments.getClassFor(getClass(), 0);
+		}
+
+		public final Class<?> getParameterType2() {
+			return TypeArguments.getClassFor(getClass(), 1);
+		}
+
+		public final Class<?> getParameterType3() {
+			return TypeArguments.getClassFor(getClass(), 2);
+		}
+
+		public final Class<?> getParameterType4() {
+			return TypeArguments.getClassFor(getClass(), 3);
+		}
+
+		public final Class<?> getParameterType5() {
+			return TypeArguments.getClassFor(getClass(), 4);
+		}
+
+		public final Class<?> getParameterType6() {
+			return TypeArguments.getClassFor(getClass(), 5);
+		}
+
+		public final Class<?> getParameterType7() {
+			return TypeArguments.getClassFor(getClass(), 6);
+		}
+
+		public Class<?> getParameterType8() {
+			return TypeArguments.getClassFor(getClass(), 7);
+		}
 	}
 }

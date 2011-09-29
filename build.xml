@@ -145,6 +145,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<jar destfile="dist/lombok-pg-runtime-${lombok.version}.jar">
 			<fileset dir="build/lombok-pg">
 				<include name="*lombok/Functions*.class"/>
+				<include name="*lombok/TypeArguments.class"/>
 			</fileset>
 			<fileset dir="." includes="LICENSE" />
 			<manifest>

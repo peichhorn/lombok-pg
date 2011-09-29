@@ -105,7 +105,7 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 
 	private TemplateData templateDataFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template) {
 		if (!template.isPublic()) return null;
-		if (!template.isInterface()) return null;
+		if (!template.isInterface() && !template.isAbstract()) return null;
 		final List<TypeVariableBinding> templateTypeArguments = list(template.typeVariables());
 		final List<MethodBinding> enclosedMethods = enclosedMethodsOf(template);
 		if (enclosedMethods.size() != 1) return null;
@@ -136,7 +136,10 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 		final List<MethodBinding> enclosedMethods = new ArrayList<MethodBinding>();
 		if (type instanceof ReferenceBinding) {
 			ReferenceBinding rb = (ReferenceBinding) type;
-			enclosedMethods.addAll(list(rb.availableMethods()));
+			for (MethodBinding enclosedElement : list(rb.availableMethods())) {
+				if (!enclosedElement.isAbstract()) continue;
+				enclosedMethods.add(enclosedElement);
+			}
 		}
 		return enclosedMethods;
 	}
