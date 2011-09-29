@@ -23,7 +23,9 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
+import static lombok.core.util.Types.*;
 
+import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.SingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
@@ -35,7 +37,7 @@ public final class EclipseASTUtil {
 	public static lombok.ast.TypeRef boxedType(final TypeReference type) {
 		if (type == null) return null;
 		lombok.ast.TypeRef boxedType = Type(type);
-		if (type instanceof SingleTypeReference) {
+		if (isOneOf(type, SingleTypeReference.class) && isNoneOf(type, ArrayTypeReference.class)) {
 			final String name = new String(type.getLastToken());
 			if ("int".equals(name)) {
 				boxedType = Type(Integer.class);

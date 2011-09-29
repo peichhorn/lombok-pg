@@ -34,4 +34,14 @@ class FunctionPlain {
 			}
 		};
 	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static lombok.Functions.Function2<float[], double[], int[]> testArrays() {
+		return new lombok.Functions.Function2<float[], double[], int[]>(){
+			
+			public int[] apply(final float[] a, final double[] b) {
+				return null;
+			}
+		};
+	}
 }
