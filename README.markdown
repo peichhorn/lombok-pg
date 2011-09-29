@@ -13,7 +13,7 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 - `@EnumId` [info](http://peichhorn.github.com/lombok-pg/EnumId.html)
 - `@ExtensionMethod` [info](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
 - `@FluentSetter` [info](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
-- `@Function` (documentation coming soon...)
+- `@Function` and `@Action` (documentation coming soon...)
 - `@LazyGetter` 
 - `@ListenerSupport` [info](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
 - `@WriteLock` and `@ReadLock` [info](http://peichhorn.github.com/lombok-pg/Lock.html)
