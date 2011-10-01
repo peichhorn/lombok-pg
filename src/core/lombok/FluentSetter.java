@@ -26,7 +26,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.*;
 
-/** Does pretty much the same as {@link Setter @Setter}. */
+/**
+ * Does pretty much the same as {@link Setter @Setter}.
+ */
 @Target({FIELD, TYPE}) @Retention(SOURCE)
 public @interface FluentSetter {
 	/**

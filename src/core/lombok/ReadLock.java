@@ -27,6 +27,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
+ * Locking beyond {@code @Synchronized}.
  * <pre>
  * void methodAnnotatedWithReadLock() {
  *   this.&lt;LOCK_NAME&gt;.readLock().lock();
@@ -39,8 +40,6 @@ import java.lang.annotation.*;
  *   }
  * }
  * <pre>
- *
- * @author Philipp Eichhorn
  */
 @Target(METHOD) @Retention(SOURCE)
 public @interface ReadLock {

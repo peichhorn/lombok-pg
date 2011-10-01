@@ -27,6 +27,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
+ * Lock Conditions
  * <pre>
  * void methodAnnotatedWithAwait() throws java.lang.InterruptedException {
  *   this.&lt;LOCK_NAME&gt;.lock();
@@ -42,8 +43,6 @@ import java.lang.annotation.*;
  *   }
  * }
  * <pre>
- *
- * @author Philipp Eichhorn
  */
 @Target(METHOD) @Retention(SOURCE)
 public @interface Await {

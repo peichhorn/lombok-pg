@@ -21,6 +21,9 @@
  */
 package lombok;
 
+/**
+ * Collection of function templates.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Functions {
 

@@ -21,6 +21,9 @@
  */
 package lombok;
 
+/**
+ * Collection of action templates.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Actions {
 

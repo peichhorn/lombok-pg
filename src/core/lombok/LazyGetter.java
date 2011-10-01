@@ -26,7 +26,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.*;
 
-/** Does pretty much the same as {@link Getter @Getter(lazy=true)}. */
+/**
+ * Does pretty much the same as {@link Getter @Getter(lazy=true)}.
+ */
 @Target(FIELD) @Retention(SOURCE)
 public @interface LazyGetter {
 	/**

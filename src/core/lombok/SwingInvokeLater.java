@@ -27,9 +27,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Wraps a bit of Swing pain.<br>
- * <br>
- * Before:
+ * Wraps a bit of Swing pain.
+ * <p>
+ * With lombok:
  * <pre>
  * class SwingApp {
  *   private final JFrame frame = new JFrame();
@@ -40,7 +40,7 @@ import java.lang.annotation.*;
  *   }
  * }
  * </pre>
- * After:
+ * Vanilla Java:
  * <pre>
  * class SwingApp {
  *   private final JFrame frame = new JFrame();

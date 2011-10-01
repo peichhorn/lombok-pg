@@ -27,7 +27,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Before:
+ * Helps defining complex {@link Rethrow} statements.
+ * <p>
+ * With lombok:
  * <pre>
  * &#64;Rethrows({
  *   &#64;Rethrow(IOException.class),
@@ -41,7 +43,7 @@ import java.lang.annotation.*;
  *   // do something
  * }
  * </pre>
- * After:
+ * Vanilla Java:
  * <pre>
  * void testMethod(Object arg) {
  *   try {
@@ -56,6 +58,5 @@ import java.lang.annotation.*;
  */
 @Target(METHOD) @Retention(SOURCE)
 public @interface Rethrows {
-	/** @see Rethrow */
 	Rethrow[] value();
 }

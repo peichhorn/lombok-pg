@@ -27,7 +27,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Before:
+ * Simplifies rethrowing {@link Exception Exceptions} by wrapping them.
+ * <p>
+ * With lombok:
  * <pre>
  * &#64;Rethrow(IOException.class)
  * void testMethod() {
@@ -38,7 +40,7 @@ import java.lang.annotation.*;
  *   // do something
  * }
  * </pre>
- * After:
+ * Vanilla Java:
  * <pre>
  * void testMethod() {
  *   try {

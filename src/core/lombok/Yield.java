@@ -25,7 +25,7 @@ package lombok;
 public class Yield {
 
 	/**
-	 *  A simplified (incomplete) take on yield return;
+	 *  A take on yield return.
 	 * <pre>
 	 * public Iterable&lt;T&gt; doSomething(Collection&lt;T&gt; entries) {
 	 *   for (T entry : entries) {
@@ -50,10 +50,8 @@ public class Yield {
 	 *   }
 	 * }
 	 * </pre>
-	 * <p>
-	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
-	 *
-	 * @author Philipp Eichhorn
+	 * <b>Note:</b> This is an experimental feature and might not work in some cases.
+	 * Please file a bug report if you stumble over anything weird.
 	 */
 	public static <T> void yield(final T value) {
 		return; // yup, that's about all we need

@@ -25,7 +25,7 @@ package lombok;
 public class With {
 
 	/**
-	 * All the expressions in the {@code with} statement work on a scope, where the implicit {@code this} gets resolved by the specified
+	 * All the expressions in the {@code with} statement work in a scope, where the implicit {@code this} gets resolved by the specified
 	 * {@code implicitThisExpression}. With the magic symbol {@code _} the {@code implicitThisExpression} can used
 	 * explicitly. More importantly the explicit {@code this} is not affected by the {@code with} statement.
 	 * <p>
@@ -35,16 +35,15 @@ public class With {
 	 * <pre>
 	 * {@code
 	 * JFrame frame = with(new JFrame(),
-	 *                  setTitle("Application"),
-	 *                  setResizable(false),
-	 *                  setFrameIcon(this.ICON),
-	 *                  setLayout(new BorderLayout()),
-	 *                  add(this.createButton(), BorderLayout.SOUTH),
-	 *                  pack(),
-	 *                  setVisible(true));
+	 *                     setTitle("Application"),
+	 *                     setResizable(false),
+	 *                     setFrameIcon(this.ICON),
+	 *                     setLayout(new BorderLayout()),
+	 *                     add(this.createButton(), BorderLayout.SOUTH),
+	 *                     pack(),
+	 *                     setVisible(true));
 	 * }
 	 * </pre>
-	 * <p>
 	 * 2. Chaining non-fluent API
 	 * <pre>
 	 * {@code
@@ -54,10 +53,8 @@ public class With {
 	 *              add("World")).toString();
 	 * }
 	 * </pre>
-	 * <p>
-	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
-	 *
-	 * @author Philipp Eichhorn
+	 * <b>Note:</b> This is an experimental feature and might not work in some cases or the
+	 * behavior might change rather drastically. Still, please file a bug report if you stumble over anything weird.
 	 */
 	public static <T> T with(final T implicitThisExpression, final Object firstExpression, final Object... otherExpressions) {
 		return null; // yup, that's about all we need

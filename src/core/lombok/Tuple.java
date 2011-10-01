@@ -24,7 +24,7 @@ package lombok;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Tuple {
 	/**
-	 * A simplified (incomplete) take on tuple assignments.
+	 * A take on tuple assignments.
 	 * <pre>
 	 * public void tuple() {
 	 *   int a, b, c = tuple(1, 2, 3);
@@ -33,10 +33,8 @@ public class Tuple {
 	 *   tuple(c, a, b) = tuple(d);
 	 * }
 	 * </pre>
-	 * <p>
-	 * <b>Note:</b> This is a highly experimental feature. I'm still not sure, that I like the way it works right now.
-	 *
-	 * @author Philipp Eichhorn
+	 * <b>Note:</b> This is an experimental feature and might not work in some cases.
+	 * Please file a bug report if you stumble over anything weird.
 	 */
 	public static Tuple tuple(final Object... objects) {
 		return null;

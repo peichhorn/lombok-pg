@@ -29,9 +29,9 @@ import java.lang.annotation.*;
 /**
  * Two popular singleton templates.
  * <p>
- * Although not much code is generated the annotation also acts as documentation.
+ * Since not much code is generated the annotation also acts as documentation.
  * <p>
- * Before:
+ * With lombok:
  * <pre>
  * &#64;Singleton
  * class MySingleton {
@@ -39,7 +39,7 @@ import java.lang.annotation.*;
  *   }
  * }
  * </pre>
- * After:
+ * Vanilla Java:
  * <pre>
  * enum MySingleton {
  *   INSTANCE;
@@ -52,7 +52,7 @@ import java.lang.annotation.*;
  * }
  * </pre>
  * <p>
- * <b>Note:</b> If you don't like the enum-approach, try the classic singleton using<br>
+ * <b>Note:</b> If you don't like the enum approach, try the holder approach using<br>
  * {@code @Singleton(style = Singleton.Style.HOLDER)}.
  */
 @Target(TYPE) @Retention(SOURCE)

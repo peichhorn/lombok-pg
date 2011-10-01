@@ -27,6 +27,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
+ * Lock Conditions
  * <pre>
  * void methodAnnotatedWithSignal() {
  *   this.&lt;LOCK_NAME&gt;.lock();
@@ -40,8 +41,6 @@ import java.lang.annotation.*;
  *   }
  * }
  * <pre>
- *
- * @author Philipp Eichhorn
  */
 @Target(METHOD)
 @Retention(SOURCE)

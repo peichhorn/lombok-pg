@@ -29,7 +29,7 @@ import java.text.Normalizer;
 
 /**
  * Explicitly turns on sanitation for all method
- * parameter annotated with {@code @Sanitize.With("methodname")} and
+ * parameter annotated with {@code @Sanitize.With("methodname")} or
  * {@code @Sanitize.Normalize}.
  * <p>
  * <b>Note:</b> All lombok-pg method-level annotations automatically
@@ -39,7 +39,7 @@ import java.text.Normalizer;
 public @interface Sanitize {
 
 	/**
-	 * Method that should be used to sanitize the parameter.
+	 * Specify a custom sanitation method.
 	 * <p>
 	 * <b>Note:</b> This works with all types, but the parameter type
 	 * has to match the method signature.
@@ -54,7 +54,7 @@ public @interface Sanitize {
 	 * {@link Normalizer#normalize(CharSequence, Normalizer.Form)}
 	 * with default form being {@link Normalizer.Form#NFKC NFKC}
 	 * <p>
-	 * <b>Note:</b> This works with only on {@link String Strings}.
+	 * <b>Note:</b> This works only on {@link String Strings}.
 	 */
 	@Target(PARAMETER) @Retention(SOURCE)
 	public static @interface Normalize {

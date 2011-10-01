@@ -27,6 +27,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
+ * Locking beyond {@code @Synchronized}.
  * <pre>
  * void methodAnnotatedWithWriteLock() {
  *   this.&lt;LOCK_NAME&gt;.writeLock().lock();
@@ -38,9 +39,7 @@ import java.lang.annotation.*;
  *     this.&lt;LOCK_NAME&gt;.writeLock().unlock();
  *   }
  * }
- * <pre>
- *
- * @author Philipp Eichhorn
+ * </pre>
  */
 @Target(METHOD) @Retention(SOURCE)
 public @interface WriteLock {
