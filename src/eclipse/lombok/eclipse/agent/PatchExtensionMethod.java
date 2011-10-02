@@ -130,6 +130,7 @@ public final class PatchExtensionMethod {
 				EclipseType type = EclipseType.typeOf(typeNode, ann);
 				for (MethodBinding extensionMethod : extensionMethods) {
 					if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
+					ERRORS.remove(methodCall);
 					if (methodCall.receiver instanceof ThisReference) {
 						if ((methodCall.receiver.bits & ASTNode.IsImplicitThis) != 0) {
 							methodCall.receiver.bits &= ~ASTNode.IsImplicitThis;
@@ -138,15 +139,19 @@ public final class PatchExtensionMethod {
 					List<Expression> arguments = new ArrayList<Expression>();
 					arguments.add(methodCall.receiver);
 					if (isNotEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
-					methodCall.arguments = arguments.toArray(new Expression[0]);
 					List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
 					argumentTypes.add(methodCall.receiver.resolvedType);
 					argumentTypes.addAll(Arrays.asList(methodCall.binding.parameters));
-					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
-					methodCall.actualReceiverType = extensionMethod.declaringClass;
-					methodCall.binding = scope.getMethod(methodCall.actualReceiverType, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
-					methodCall.resolvedType = methodCall.binding.returnType;
-					ERRORS.remove(methodCall);
+					MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
+					if (fixedBinding instanceof ProblemMethodBinding) {
+						scope.problemReporter().invalidMethod(methodCall, fixedBinding);
+					} else {
+						methodCall.arguments = arguments.toArray(new Expression[0]);
+						methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
+						methodCall.actualReceiverType = extensionMethod.declaringClass;
+						methodCall.binding = fixedBinding;
+						methodCall.resolvedType = methodCall.binding.returnType;
+					}
 					return methodCall.resolvedType;
 				}
 			}
