@@ -45,8 +45,11 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -155,7 +158,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public boolean isEmpty() {
-		return get().body == null;
+		return (get().body == null) || get().body.stats.isEmpty();
 	}
 
 	public JCMethodDecl get() {
@@ -227,7 +230,13 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public void replaceBody(final lombok.ast.Block body) {
-		get().body = builder.build(body);
+		final lombok.ast.Block bodyWithSuperCall = new lombok.ast.Block();
+		if (!isEmpty()) {
+			final JCStatement suspect = get().body.stats.get(0);
+			if (isSuperConstructorCall(suspect)) bodyWithSuperCall.withStatement(Stat(suspect));
+		}
+		bodyWithSuperCall.withStatements(body.getStatements());
+		get().body = builder.build(bodyWithSuperCall);
 		addSuppressWarningsAll(get().mods, node(), get().pos);
 	}
 
@@ -241,10 +250,18 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public List<lombok.ast.Statement> statements() {
 		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
-		for (Object statement : get().body.stats) {
+		for (JCStatement statement : get().body.stats) {
+			if (isSuperConstructorCall(statement)) continue;
 			methodStatements.add(Stat(statement));
 		}
 		return methodStatements;
+	}
+
+	private boolean isSuperConstructorCall(final JCStatement supect) {
+		if (!(supect instanceof JCExpressionStatement)) return false;
+		final JCExpression supectExpression = ((JCExpressionStatement) supect).expr;
+		if (!(supectExpression instanceof JCMethodInvocation)) return false;
+		return "super".equals(((JCMethodInvocation) supectExpression).meth.toString());
 	}
 
 	public List<lombok.ast.Annotation> annotations() {
