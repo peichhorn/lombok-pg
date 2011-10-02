@@ -30,7 +30,13 @@ such as converting the changelog into HTML, and creating javadoc.
 			</fileset>
 		</copy>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Action" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="AutoGenMethodStub" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="BoundProperties" />
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Builder" />
@@ -54,6 +60,12 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="FluentSetter" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Function" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="LazyGetter" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="ListenerSupport" />
 		</antcall>
 		<antcall target="-integrateSnippet">
@@ -63,6 +75,9 @@ such as converting the changelog into HTML, and creating javadoc.
 			<param name="transformationName" value="Rethrow" />
 		</antcall>
 		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Sanitize" />
+		</antcall>
+		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Singleton" />
 		</antcall>
 		<antcall target="-integrateSnippet">
@@ -70,6 +85,9 @@ such as converting the changelog into HTML, and creating javadoc.
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="Tuple" />
+		</antcall>
+		<antcall target="-integrateSnippet">
+			<param name="transformationName" value="Validate" />
 		</antcall>
 		<antcall target="-integrateSnippet">
 			<param name="transformationName" value="With" />

@@ -6,23 +6,24 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 
 #### Annotations:
 
+- `@Action` [info](http://peichhorn.github.com/lombok-pg/Action.html)
 - `@AutoGenMethodStub` [info](http://peichhorn.github.com/lombok-pg/AutoGenMethodStub.html)
-- `@BoundPropertySupport` and `@BoundSetter` 
+- `@BoundPropertySupport` and `@BoundSetter` [info](http://peichhorn.github.com/lombok-pg/BoundProperties.html)
 - `@Builder` and `@Builder.Extension` [info](http://peichhorn.github.com/lombok-pg/Builder.html)
 - `@DoPrivileged` [info](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
 - `@EnumId` [info](http://peichhorn.github.com/lombok-pg/EnumId.html)
 - `@ExtensionMethod` [info](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
 - `@FluentSetter` [info](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
-- `@Function` and `@Action` (documentation coming soon...)
-- `@LazyGetter` 
+- `@Function` [info](http://peichhorn.github.com/lombok-pg/Function.html)
+- `@LazyGetter` [info](http://peichhorn.github.com/lombok-pg/LazyGetter.html)
 - `@ListenerSupport` [info](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
 - `@WriteLock` and `@ReadLock` [info](http://peichhorn.github.com/lombok-pg/Lock.html)
 - `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [info](http://peichhorn.github.com/lombok-pg/Condition.html)
 - `@Rethrow` and `@Rethrows` [info](http://peichhorn.github.com/lombok-pg/Rethrow.html)
-- `@Sanitize.Normalize` and `@Sanitize.With`
+- `@Sanitize.Normalize` and `@Sanitize.With` [info](http://peichhorn.github.com/lombok-pg/Sanitize.html)
 - `@Singleton` [info](http://peichhorn.github.com/lombok-pg/Singleton.html)
 - `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
-- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` (documentation coming soon...)
+- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` [info](http://peichhorn.github.com/lombok-pg/Validate.html)
 - `@VisibleForTesting` [info](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
 
 #### Interfaces:
