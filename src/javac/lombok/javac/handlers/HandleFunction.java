@@ -84,7 +84,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 			annotationNode.addError("@Function more than one template found that matches the given method signature");
 			return;
 		}
-		new FunctionHandler<JavacType, JavacMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0));
+		new FunctionHandler<JavacType, JavacMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());
 	}
 
 	private TypeSymbol resolveTemplates(final JavacNode node, final JCAnnotation annotation, final Object templatesDef) {

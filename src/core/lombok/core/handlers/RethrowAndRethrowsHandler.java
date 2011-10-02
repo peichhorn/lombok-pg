@@ -84,7 +84,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 				}
 			}
 		}
-		method.body(Block().withStatement(tryBuilder));
+		method.replaceBody(Block().withStatement(tryBuilder));
 
 		method.rebuild();
 	}

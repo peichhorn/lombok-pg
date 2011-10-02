@@ -1,7 +1,13 @@
 import lombok.Actions.Action1;
 import lombok.Action;
+import lombok.Validate.NotNull;
 
 class ActionPlain {
+
+	@Action
+	public static void testAction0() {
+		System.out.println("Action0");
+	}
 
 	@Action
 	public static void startsWith(String string, String _prefix) {
@@ -14,7 +20,7 @@ class ActionPlain {
 	}
 
 	@Action
-	public static <T> void notNull(T object, Action1<T> notNullAction) {
+	public static <T> void notNull(T object, @NotNull Action1<T> notNullAction) {
 		if (object != null) notNullFunction.apply(object);
 	}
 

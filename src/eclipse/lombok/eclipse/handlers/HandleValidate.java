@@ -54,7 +54,7 @@ public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 			return;
 		}
 
-		method.body(Block() //
+		method.replaceBody(Block() //
 			.withStatements(new EclipseParameterValidator().validateParameterOf(method)) //
 			.withStatements(method.statements()));
 		method.rebuild();

@@ -1,5 +1,6 @@
 import lombok.Functions.Function1;
 import lombok.Function;
+import lombok.Validate.NotNull;
 
 class FunctionPlain {
 
@@ -9,7 +10,7 @@ class FunctionPlain {
 	}
 
 	@Function
-	public static boolean startsWith(String string, String _prefix) {
+	public static boolean startsWith(@NotNull String string, @NotNull String _prefix) {
 		return string.startsWith(_prefix);
 	}
 

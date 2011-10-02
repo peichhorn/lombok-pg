@@ -73,11 +73,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public <T extends ASTNode> T build(final lombok.ast.Node node) {
-		return builder.<T>build(node);
+		return builder.<T> build(node);
 	}
 
 	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
-		return builder.build(node,extectedType);
+		return builder.build(node, extectedType);
 	}
 
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
@@ -102,12 +102,15 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public boolean returns(final String typeName) {
 		TypeReference returnType = returnType();
-		if (returnType == null) return false;
+		if (returnType == null)
+			return false;
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
 		for (char[] elem : returnType.getTypeName()) {
-			if (first) first = false;
-			else sb.append('.');
+			if (first)
+				first = false;
+			else
+				sb.append('.');
 			sb.append(elem);
 		}
 		String type = sb.toString();
@@ -115,9 +118,17 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	private TypeReference returnType() {
-		if (isConstructor()) return null;
-		MethodDeclaration methodDecl = (MethodDeclaration)get();
+		if (isConstructor())
+			return null;
+		MethodDeclaration methodDecl = (MethodDeclaration) get();
 		return methodDecl.returnType;
+	}
+
+	public void replaceReturnType(final lombok.ast.TypeRef returnType) {
+		if (isConstructor())
+			return;
+		MethodDeclaration methodDecl = (MethodDeclaration) get();
+		methodDecl.returnType = build(returnType);
 	}
 
 	public void replaceReturns(final lombok.ast.Statement replacement) {
@@ -134,9 +145,12 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public AccessLevel accessLevel() {
-		if ((get().modifiers & AccPublic) != 0) return AccessLevel.PUBLIC;
-		if ((get().modifiers & AccProtected) != 0) return AccessLevel.PROTECTED;
-		if ((get().modifiers & AccPrivate) != 0) return AccessLevel.PRIVATE;
+		if ((get().modifiers & AccPublic) != 0)
+			return AccessLevel.PUBLIC;
+		if ((get().modifiers & AccProtected) != 0)
+			return AccessLevel.PROTECTED;
+		if ((get().modifiers & AccPrivate) != 0)
+			return AccessLevel.PRIVATE;
 		return AccessLevel.PACKAGE;
 	}
 
@@ -161,7 +175,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public AbstractMethodDeclaration get() {
-		return (AbstractMethodDeclaration)methodNode.get();
+		return (AbstractMethodDeclaration) methodNode.get();
 	}
 
 	public EclipseNode node() {
@@ -175,7 +189,8 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	public EclipseNode getAnnotation(final String typeName) {
 		EclipseNode annotationNode = null;
 		for (EclipseNode child : node().down()) {
-			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (child.getKind() != Kind.ANNOTATION)
+				continue;
 			if (Eclipse.matchesType((Annotation) child.get(), typeName)) {
 				annotationNode = child;
 			}
@@ -184,11 +199,12 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public boolean hasNonFinalArgument() {
-		if (hasArguments()) for (Argument arg : get().arguments) {
-			if ((arg.modifiers & AccFinal) == 0) {
-				return true;
+		if (hasArguments())
+			for (Argument arg : get().arguments) {
+				if ((arg.modifiers & AccFinal) == 0) {
+					return true;
+				}
 			}
-		}
 		return false;
 	}
 
@@ -219,27 +235,28 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		get().modifiers |= AccPublic;
 	}
 
-	public void body(final lombok.ast.Statement... statements) {
-		body(list(statements));
+	public void replaceBody(final lombok.ast.Statement... statements) {
+		replaceBody(list(statements));
 	}
 
-	public void body(final List<lombok.ast.Statement> statements) {
+	public void replaceBody(final List<lombok.ast.Statement> statements) {
 		setGeneratedByAndCopyPos(get(), source);
 		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-		get().statements = builder.build(statements).toArray(new Statement[0]);
+		get().statements = build(statements).toArray(new Statement[0]);
 		final List<Annotation> annotations = new ArrayList<Annotation>();
 		Annotation[] originalAnnotations = get().annotations;
-		if (originalAnnotations != null) for (Annotation originalAnnotation : originalAnnotations) {
-			if (!originalAnnotation.type.toString().endsWith("SuppressWarnings")) {
-				annotations.add(originalAnnotation);
+		if (originalAnnotations != null)
+			for (Annotation originalAnnotation : originalAnnotations) {
+				if (!originalAnnotation.type.toString().endsWith("SuppressWarnings")) {
+					annotations.add(originalAnnotation);
+				}
 			}
-		}
-		annotations.add(builder.build(Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")), Annotation.class));
+		annotations.add(build(Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")), Annotation.class));
 		get().annotations = annotations.toArray(new Annotation[0]);
 	}
 
-	public void body(final lombok.ast.Block body) {
-		body(body.getStatements());
+	public void replaceBody(final lombok.ast.Block body) {
+		replaceBody(body.getStatements());
 	}
 
 	public void rebuild() {
@@ -252,64 +269,73 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public List<lombok.ast.Statement> statements() {
 		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
-		if (isNotEmpty(get().statements)) for (Object statement : get().statements) {
-			methodStatements.add(Stat(statement));
-		}
+		if (isNotEmpty(get().statements))
+			for (Object statement : get().statements) {
+				methodStatements.add(Stat(statement));
+			}
 		return methodStatements;
 	}
 
 	public List<lombok.ast.Annotation> annotations() {
 		return annotations(get().annotations);
 	}
-	
+
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
-			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
-			if (annotation instanceof SingleMemberAnnotation) {
-				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
-			} else if (annotation instanceof NormalAnnotation) {
-				for (MemberValuePair pair : ((NormalAnnotation)annotation).memberValuePairs) {
-					ann.withValue(string(pair.name), Expr(pair.value));
+		if (isNotEmpty(anns))
+			for (Annotation annotation : anns) {
+				lombok.ast.Annotation ann = Annotation(Type(annotation.type));
+				if (annotation instanceof SingleMemberAnnotation) {
+					ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
+				} else if (annotation instanceof NormalAnnotation) {
+					for (MemberValuePair pair : ((NormalAnnotation) annotation).memberValuePairs) {
+						ann.withValue(string(pair.name), Expr(pair.value));
+					}
 				}
+				annotations.add(ann);
 			}
-			annotations.add(ann);
-		}
 		return annotations;
 	}
 
 	public java.util.List<lombok.ast.Argument> arguments(final ArgumentStyle... style) {
 		final List<ArgumentStyle> styles = list(style);
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
-		if (isNotEmpty(get().arguments)) for (Argument argument : get().arguments) {
-			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type): Type(argument.type);
-			lombok.ast.Argument arg = Arg(argType, string(argument.name));
-			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(argument.annotations));
-			methodArguments.add(arg);
-		}
+		if (isNotEmpty(get().arguments))
+			for (Argument argument : get().arguments) {
+				lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type) : Type(argument.type);
+				lombok.ast.Argument arg = Arg(argType, string(argument.name));
+				if (styles.contains(INCLUDE_ANNOTATIONS))
+					arg.withAnnotations(annotations(argument.annotations));
+				methodArguments.add(arg);
+			}
 		return methodArguments;
 	}
 
 	public List<lombok.ast.TypeParam> typeParameters() {
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
-		if (isConstructor()) return typeParameters;
-		MethodDeclaration methodDecl = (MethodDeclaration)get();
-		if (isNotEmpty(methodDecl.typeParameters)) for (TypeParameter typaram : methodDecl.typeParameters) {
-			lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
-			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
-			if (isNotEmpty(typaram.bounds)) for (TypeReference bound : typaram.bounds) {
-				typeParameter.withBound(Type(bound));
+		if (isConstructor())
+			return typeParameters;
+		MethodDeclaration methodDecl = (MethodDeclaration) get();
+		if (isNotEmpty(methodDecl.typeParameters))
+			for (TypeParameter typaram : methodDecl.typeParameters) {
+				lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
+				if (typaram.type != null)
+					typeParameter.withBound(Type(typaram.type));
+				if (isNotEmpty(typaram.bounds))
+					for (TypeReference bound : typaram.bounds) {
+						typeParameter.withBound(Type(bound));
+					}
+				typeParameters.add(typeParameter);
 			}
-			typeParameters.add(typeParameter);
-		}
 		return typeParameters;
 	}
 
 	public List<lombok.ast.TypeRef> thrownExceptions() {
 		final List<lombok.ast.TypeRef> thrownExceptions = new ArrayList<lombok.ast.TypeRef>();
-		if (isNotEmpty(get().thrownExceptions)) for (Object thrownException : get().thrownExceptions) {
-			thrownExceptions.add(Type(thrownException));
-		}
+		if (isNotEmpty(get().thrownExceptions))
+			for (Object thrownException : get().thrownExceptions) {
+				thrownExceptions.add(Type(thrownException));
+			}
 		return thrownExceptions;
 	}
 

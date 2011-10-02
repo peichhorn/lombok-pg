@@ -11,6 +11,12 @@ class FunctionPlain {
 	public static lombok.Functions.Function1<String, java.lang.Boolean> startsWith(final String _prefix) {
 		return new lombok.Functions.Function1<String, java.lang.Boolean>(){
 			public java.lang.Boolean apply(final String string) {
+				if (string == null) {
+					throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "string", 1));
+				}
+				if (_prefix == null) {
+					throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "_prefix", 2));
+				}
 				return string.startsWith(_prefix);
 			}
 		};

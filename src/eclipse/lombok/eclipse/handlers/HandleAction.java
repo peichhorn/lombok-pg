@@ -85,7 +85,7 @@ public class HandleAction extends EclipseAnnotationHandler<Action> {
 			annotationNode.addError("@Action more than one template found that matches the given method signature");
 			return;
 		}
-		new ActionHandler<EclipseType, EclipseMethod>().rebuildActionMethod(method, matchingTemplates.get(0));
+		new ActionHandler<EclipseType, EclipseMethod>().rebuildActionMethod(method, matchingTemplates.get(0), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 	}
 
 	private ReferenceBinding resolveTemplates(final EclipseNode node, final Annotation annotation, final Class<?> templatesDef) {

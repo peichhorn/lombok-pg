@@ -43,9 +43,17 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public boolean returns(final String typeName);
 
+	public void replaceReturnType(final TypeRef returnType);
+
 	public void replaceReturns(Statement replacement);
 
 	public void replaceVariableName(String oldName, String newName);
+
+	public void replaceBody(Statement... statements);
+
+	public void replaceBody(List<Statement> statements);
+
+	public void replaceBody(final Block body);
 
 	public void forceQualifiedThis();
 
@@ -83,14 +91,8 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 
 	public void makePublic();
 
-	public void body(Statement... statements);
-	
-	public void body(List<Statement> statements);
-	
-	public void body(final Block body);
-
 	public void rebuild();
-	
+
 	public TYPE_TYPE surroundingType();
 
 	public List<Statement> statements();
@@ -98,13 +100,12 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?>, LOMBOK_NODE_TYP
 	public List<Annotation> annotations();
 
 	public List<Argument> arguments(ArgumentStyle... style);
-	
+
 	public List<TypeParam> typeParameters();
 
 	public List<TypeRef> thrownExceptions();
-	
+
 	public enum ArgumentStyle {
-		INCLUDE_ANNOTATIONS,
-		BOXED_TYPES;
+		INCLUDE_ANNOTATIONS, BOXED_TYPES;
 	}
 }

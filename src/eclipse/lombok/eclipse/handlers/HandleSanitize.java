@@ -54,7 +54,7 @@ public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 			return;
 		}
 
-		method.body(Block() //
+		method.replaceBody(Block() //
 			.withStatements(new EclipseParameterSanitizer().sanitizeParameterOf(method)) //
 			.withStatements(method.statements()));
 		method.rebuild();

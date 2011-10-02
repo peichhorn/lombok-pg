@@ -90,7 +90,7 @@ public class HandleAction extends JavacAnnotationHandler<Action> {
 			annotationNode.addError("@Action more than one template found that matches the given method signature");
 			return;
 		}
-		new ActionHandler<JavacType, JavacMethod>().rebuildActionMethod(method, matchingTemplates.get(0));
+		new ActionHandler<JavacType, JavacMethod>().rebuildActionMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());
 	}
 
 	private TypeSymbol resolveTemplates(final JavacNode node, final JCAnnotation annotation, final Object templatesDef) {

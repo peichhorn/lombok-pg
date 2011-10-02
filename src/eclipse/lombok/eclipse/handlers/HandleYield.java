@@ -148,7 +148,7 @@ public class HandleYield extends EclipseASTAdapter {
 			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException"))))) //
 			.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(switchStatement)));
 
-		method.body(yielder, Return(New(Type(yielderName))));
+		method.replaceBody(yielder, Return(New(Type(yielderName))));
 		method.rebuild();
 
 		return true;

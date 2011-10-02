@@ -52,7 +52,7 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
 			method.replaceReturns(Return(Null()));
-			method.body(Block() //
+			method.replaceBody(Block() //
 				.withStatements(validation.validateParameterOf(method)) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(Try(Block() //
@@ -66,7 +66,7 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 					.withStatements(rethrowStatements(method)) //
 					.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
 		} else {
-			method.body(Block() //
+			method.replaceBody(Block() //
 				.withStatements(validation.validateParameterOf(method)) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(Try(Block() //

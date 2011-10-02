@@ -56,7 +56,7 @@ public class HandleValidate extends JavacAnnotationHandler<Validate> {
 			return;
 		}
 
-		method.body(Block() //
+		method.replaceBody(Block() //
 				.withStatements(new JavacParameterValidator().validateParameterOf(method)) //
 				.withStatements(method.statements()));
 		method.rebuild();

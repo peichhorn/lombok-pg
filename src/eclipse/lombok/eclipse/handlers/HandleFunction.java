@@ -80,7 +80,7 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 			annotationNode.addError("@Function more than one template found that matches the given method signature");
 			return;
 		}
-		new FunctionHandler<EclipseType, EclipseMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0));
+		new FunctionHandler<EclipseType, EclipseMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 	}
 
 	private ReferenceBinding resolveTemplates(final EclipseNode node, final Annotation annotation, final Class<?> templatesDef) {

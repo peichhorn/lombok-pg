@@ -111,7 +111,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			unLockCall = Call(Field(completeLockName), "unlock");
 		}
 
-		method.body(Block() //
+		method.replaceBody(Block() //
 			.withStatements(validation.validateParameterOf(method)) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatement(lockCall) //
