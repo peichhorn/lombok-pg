@@ -180,7 +180,8 @@ public final class PatchExtensionMethod {
 			for (MethodBinding method : getExtensionMethods(completionProposalCollector)) {
 				ExtensionMethodCompletionProposal newProposal = new ExtensionMethodCompletionProposal(replacementOffset);
 				copyNameLookupAndCompletionEngine(completionProposalCollector, firstProposal, newProposal);
-				newProposal.setMethodBinding(method);
+				ASTNode node = getAssistNode(completionProposalCollector);
+				newProposal.setMethodBinding(method, node);
 				createAndAddJavaCompletionProposal(completionProposalCollector, newProposal, proposals);
 			}
 		}
@@ -241,30 +242,34 @@ public final class PatchExtensionMethod {
 	
 	private static TypeBinding getFirstParameterType(final TypeDeclaration decl, final CompletionProposalCollector completionProposalCollector) {
 		TypeBinding firstParameterType = null;
+		ASTNode node = getAssistNode(completionProposalCollector);
+		if (node == null) return null;
+		if( Types.isNoneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
+		if (node instanceof NameReference) {
+			Binding binding = ((NameReference)node).binding;
+			if (binding instanceof VariableBinding) {
+				firstParameterType = ((VariableBinding)binding).type;
+			} else {
+				firstParameterType = (TypeBinding)binding;
+			}
+		} else if (node instanceof FieldReference) {
+			firstParameterType = ((FieldReference)node).actualReceiverType;
+		}
+		if (firstParameterType == null) {
+			firstParameterType = decl.binding;
+		}
+		return firstParameterType;
+	}
+	
+	private static ASTNode getAssistNode(final CompletionProposalCollector completionProposalCollector) {
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			if (extendedContext == null) return null; 
-			ASTNode node = (ASTNode) Reflection.assistNodeField.get(extendedContext);
-			if (node == null) return null;
-			if( Types.isNoneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
-			if (node instanceof NameReference) {
-				Binding binding = ((NameReference)node).binding;
-				if (binding instanceof VariableBinding) {
-					firstParameterType = ((VariableBinding)binding).type;
-				} else {
-					firstParameterType = (TypeBinding)binding;
-				}
-			} else if (node instanceof FieldReference) {
-				firstParameterType = ((FieldReference)node).actualReceiverType;
-			}
-			if (firstParameterType == null) {
-				firstParameterType = decl.binding;
-			}
+			return (ASTNode) Reflection.assistNodeField.get(extendedContext);
 		} catch (final Exception ignore) {
-			// ignore
+			return null;
 		}
-		return firstParameterType;
 	}
 	
 	private static ClassScope getClassScope(final CompletionProposalCollector completionProposalCollector) {
@@ -315,14 +320,12 @@ public final class PatchExtensionMethod {
 	}
 	
 	private static class ExtensionMethodCompletionProposal extends InternalCompletionProposal {
-		private final int replacementOffset;
 
 		public ExtensionMethodCompletionProposal(final int replacementOffset) {
 			super(CompletionProposal.METHOD_REF, replacementOffset - 1);
-			this.replacementOffset = replacementOffset; 
 		}
 		
-		public void setMethodBinding(final MethodBinding method) {
+		public void setMethodBinding(final MethodBinding method, final ASTNode node) {
 			MethodBinding original = method.original();
 			TypeBinding[] parameters = Arrays.copyOf(method.parameters, method.parameters.length);
 			method.parameters = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
@@ -357,8 +360,19 @@ public final class PatchExtensionMethod {
 			setName(method.selector);
 			setCompletion(completion);
 			setFlags(method.modifiers & (~Modifier.STATIC));
-			setReplaceRange(replacementOffset, replacementOffset);
-			setTokenRange(replacementOffset, replacementOffset);
+			int index = node.sourceEnd + 1;
+			if (node instanceof CompletionOnQualifiedNameReference) {
+				index -= ((CompletionOnQualifiedNameReference) node).completionIdentifier.length;
+			}
+			if (node instanceof CompletionOnMemberAccess) {
+				index -= ((CompletionOnMemberAccess) node).token.length;
+			}
+			if (node instanceof CompletionOnSingleNameReference) {
+				index -= ((CompletionOnSingleNameReference) node).token.length;
+			}
+			setReplaceRange(index, index);
+			setTokenRange(index, index);
+			
 			setRelevance(100);
 			
 			method.parameters = parameters;
