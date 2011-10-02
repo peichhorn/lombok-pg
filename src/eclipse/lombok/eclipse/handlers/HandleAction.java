@@ -61,7 +61,7 @@ public class HandleAction extends EclipseAnnotationHandler<Action> {
 	public void handle(final AnnotationValues<Action> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Action.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-		if (method.isAbstract() || method.isEmpty()) {
+		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}

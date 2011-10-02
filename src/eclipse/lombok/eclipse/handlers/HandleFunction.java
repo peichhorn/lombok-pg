@@ -60,7 +60,7 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 	public void handle(final AnnotationValues<Function> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Function.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-		if (method.isAbstract() || method.isEmpty()) {
+		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}

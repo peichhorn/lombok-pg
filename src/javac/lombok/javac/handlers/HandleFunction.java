@@ -64,7 +64,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Function.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-		if (method.isAbstract() || method.isEmpty()) {
+		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}

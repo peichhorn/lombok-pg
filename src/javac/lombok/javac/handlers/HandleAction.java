@@ -66,7 +66,7 @@ public class HandleAction extends JavacAnnotationHandler<Action> {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Action.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-		if (method.isAbstract() || method.isEmpty()) {
+		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}
