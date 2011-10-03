@@ -58,6 +58,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ProblemBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
@@ -247,6 +248,7 @@ public final class PatchExtensionMethod {
 		if( Types.isNoneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
 		if (node instanceof NameReference) {
 			Binding binding = ((NameReference)node).binding;
+			if (binding instanceof ProblemBinding) return null;
 			if (binding instanceof VariableBinding) {
 				firstParameterType = ((VariableBinding)binding).type;
 			} else {
