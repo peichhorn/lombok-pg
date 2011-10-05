@@ -1,0 +1,171 @@
+import java.util.Arrays;
+import lombok.Functions.Function1;
+
+public class Main {
+
+	public static void main(String[] args) {
+
+		Operations.print(Operations.map(Operations.filter(Operations.toList(new String[]{"john", "james", "eddie"}), startsWith("j")), toUpperCase()), '-');
+		// outputs "JOHN-JAMES"
+	}
+
+	@java.lang.SuppressWarnings("all")
+	private static lombok.Functions.Function1<String, java.lang.Boolean> startsWith(final String _prefix) {
+		return new lombok.Functions.Function1<String, java.lang.Boolean>(){
+			
+			public java.lang.Boolean apply(final String element) {
+				return element.startsWith(_prefix);
+			}
+		};
+	}
+
+	@java.lang.SuppressWarnings("all")
+	private static lombok.Functions.Function1<String, String> toUpperCase() {
+		return new lombok.Functions.Function1<String, String>(){
+			
+			public String apply(final String element) {
+				return element.toUpperCase();
+			}
+		};
+	}
+}
+
+public class Operations {
+
+	@java.lang.SuppressWarnings("all")
+	public static <T> Iterable<T> filter(final Iterable<T> list, final Function1<T, Boolean> filter) {
+
+		class $YielderFilter implements java.util.Iterator<T>, java.lang.Iterable<T> {
+			private T element;
+			private java.util.Iterator $elementIter;
+			private int $state;
+			private boolean $hasNext;
+			private boolean $nextDefined;
+			private T $next;
+
+			public java.util.Iterator<T> iterator() {
+				return new $YielderFilter();
+			}
+
+			public boolean hasNext() {
+				if (!$nextDefined) {
+					$hasNext = getNext();
+					$nextDefined = true;
+				}
+				return $hasNext;
+			}
+
+			public T next() {
+				if (!hasNext()) {
+					throw new java.util.NoSuchElementException();
+				}
+				$nextDefined = false;
+				return $next;
+			}
+
+			public void remove() {
+				throw new java.lang.UnsupportedOperationException();
+			}
+
+			private boolean getNext() {
+				while (true) switch ($state) {
+				case 0: 
+					$elementIter = list.iterator();
+				case 1: 
+					if (!$elementIter.hasNext()) {
+						$state = 3;
+						continue;
+					}
+					element = (T)$elementIter.next();
+					if (!(filter.apply(element))) {
+						$state = 2;
+						continue;
+					}
+					$next = element;
+					$state = 2;
+					return true;
+				case 2: 
+					$state = 1;
+					continue;
+				case 3: 
+				default: 
+					return false;
+				}
+			}
+		}
+		return new $YielderFilter();
+	}
+
+	@java.lang.SuppressWarnings("all")
+	public static <S, T> Iterable<T> map(final Iterable<S> list, final Function1<S, T> mapping) {
+
+		class $YielderMap implements java.util.Iterator<T>, java.lang.Iterable<T> {
+			private S element;
+			private java.util.Iterator $elementIter;
+			private int $state;
+			private boolean $hasNext;
+			private boolean $nextDefined;
+			private T $next;
+
+			public java.util.Iterator<T> iterator() {
+				return new $YielderMap();
+			}
+
+			public boolean hasNext() {
+				if (!$nextDefined) {
+					$hasNext = getNext();
+					$nextDefined = true;
+				}
+				return $hasNext;
+			}
+
+			public T next() {
+				if (!hasNext()) {
+					throw new java.util.NoSuchElementException();
+				}
+				$nextDefined = false;
+				return $next;
+			}
+
+			public void remove() {
+				throw new java.lang.UnsupportedOperationException();
+			}
+
+			private boolean getNext() {
+				while (true) switch ($state) {
+				case 0: 
+					$elementIter = list.iterator();
+				case 1: 
+					if (!$elementIter.hasNext()) {
+						$state = 3;
+						continue;
+					}
+					element = (S)$elementIter.next();
+					$next = mapping.apply(element);
+					$state = 2;
+					return true;
+				case 2: 
+					$state = 1;
+					continue;
+				case 3: 
+				default: 
+					return false;
+				}
+			}
+		}
+		return new $YielderMap();
+	}
+
+	public static <T> Iterable<T> toList(final T[] array) {
+		return Arrays.asList(array);
+	}
+
+	public static <T> void print(final Iterable<T> list, final char delimiter) {
+		StringBuilder sb = new StringBuilder();
+		for (T element : list) {
+			sb.append(element.toString());
+			sb.append(delimiter);
+		}
+		System.out.println(sb.length() > 0 ? sb.substring(0, sb.length() - 1) : "");
+	}
+}
