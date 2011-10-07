@@ -2,8 +2,13 @@ import java.util.Arrays;
 
 class ExtensionMethodPlain {
 	private void test1() {
-		long[] values = new long[]{2, 5, 7, 9};
-		java.util.Arrays.sort(java.util.Arrays.copyOf(values, 3));
+		new Runnable(){
+			@Override
+			public void run() {
+				long[] values = new long[]{2, 5, 7, 9};
+				java.util.Arrays.sort(java.util.Arrays.copyOf(values, 3));
+			}
+		};
 	}
 	
 	private boolean test2(String s) {

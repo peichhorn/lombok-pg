@@ -4,8 +4,13 @@ import java.util.Arrays;
 @ExtensionMethod({Arrays.class, ExtensionMethodPlain.Objects.class, ExtensionMethodPlain.Strings.class})
 class ExtensionMethodPlain {
 	private void test1() {
-		long[] values = new long[] { 2, 5, 7, 9 };
-		values.copyOf(3).sort();
+		new Runnable() {
+			@Override
+			public void run() {
+				long[] values = new long[] { 2, 5, 7, 9 };
+				values.copyOf(3).sort();
+			}
+		};
 	}
 	
 	private boolean test2(String s) {

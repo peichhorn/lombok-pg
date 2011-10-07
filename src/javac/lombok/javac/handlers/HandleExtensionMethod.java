@@ -34,6 +34,7 @@ import javax.lang.model.element.ElementKind;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
+import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
@@ -142,12 +143,12 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		private final TypeSymbol extensionProvider;
 	}
 
-	private static class ExtensionMethodReplaceVisitor extends JavacASTAdapterWithTypeDepth {
+	private static class ExtensionMethodReplaceVisitor extends JavacASTAdapter {
 		private final JavacType type;
 		private final List<Extension> extensions;
 
 		public ExtensionMethodReplaceVisitor(final JavacType type, final List<Extension> extensions) {
-			super(1);
+			super();
 			this.type = type;
 			this.extensions = extensions;
 		}
@@ -157,7 +158,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		}
 
 		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
-			if (!isOfInterest() || !(statement instanceof JCMethodInvocation)) return;
+			if (!(statement instanceof JCMethodInvocation)) return;
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			JCExpression receiver = receiverOf(methodCall);
 			String methodName = methodNameOf(methodCall);

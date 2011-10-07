@@ -71,6 +71,7 @@ import org.eclipse.jdt.ui.text.java.CompletionProposalCollector;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 
 import lombok.*;
+import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
 import lombok.core.util.Types;
 import lombok.eclipse.Eclipse;
@@ -123,12 +124,15 @@ public final class PatchExtensionMethod {
 
 	public static TypeBinding resolveType(final TypeBinding resolvedType, final MessageSend methodCall, final BlockScope scope) {
 		if (methodCall.binding instanceof ProblemMethodBinding) {
+			List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
 			TypeDeclaration decl = scope.classScope().referenceContext;
-			EclipseNode typeNode = getTypeNode(decl);
-			Annotation ann = getAnnotation(ExtensionMethod.class, decl);
-			List<MethodBinding> extensionMethods = getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType);
+			EclipseType type = null;
+			for (EclipseNode typeNode = getTypeNode(decl); typeNode != null; typeNode = upToType(typeNode)) {
+				Annotation ann = getAnnotation(ExtensionMethod.class, (TypeDeclaration) typeNode.get());
+				extensionMethods.addAll(0, getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType));
+				if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
+			}
 			if (!extensionMethods.isEmpty()) {
-				EclipseType type = EclipseType.typeOf(typeNode, ann);
 				for (MethodBinding extensionMethod : extensionMethods) {
 					if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
 					ERRORS.remove(methodCall);
@@ -198,12 +202,21 @@ public final class PatchExtensionMethod {
 		ClassScope classScope = getClassScope(completionProposalCollector);
 		if (classScope != null) {
 			TypeDeclaration decl = classScope.referenceContext;
-			EclipseNode typeNode = getTypeNode(decl);
-			Annotation ann = getAnnotation(ExtensionMethod.class, decl);
 			TypeBinding firstParameterType = getFirstParameterType(decl, completionProposalCollector);
-			extensionMethods.addAll(getApplicableExtensionMethods(typeNode, ann, firstParameterType));
+			for (EclipseNode typeNode = getTypeNode(decl); typeNode != null; typeNode = upToType(typeNode)) {
+				Annotation ann = getAnnotation(ExtensionMethod.class, (TypeDeclaration) typeNode.get());
+				extensionMethods.addAll(0, getApplicableExtensionMethods(typeNode, ann, firstParameterType));
+			}
 		}
 		return extensionMethods;
+	}
+	
+	private static EclipseNode upToType(final EclipseNode typeNode) {
+		EclipseNode node = typeNode;
+		do {
+			node = node.up();
+		} while ((node != null) && (node.getKind() != Kind.TYPE));
+		return node;
 	}
 	
 	private static List<MethodBinding> getApplicableExtensionMethods(final EclipseNode typeNode, final Annotation ann, final TypeBinding receiverType) {

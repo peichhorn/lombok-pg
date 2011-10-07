@@ -135,9 +135,8 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			MethodType mtype = (MethodType) type(method);
 			if (mtype.argtypes.isEmpty()) return;
 			int argCounter = 0;
-			String arg;
-			for (Type parameter : mtype.argtypes) {
-				arg = "arg" + argCounter++;
+			for (Type parameter : mtype.getParameterTypes()) {
+				String arg = "arg" + argCounter++;
 				params.add(Arg(Type(parameter), arg));
 				args.add(Name(arg));
 			}

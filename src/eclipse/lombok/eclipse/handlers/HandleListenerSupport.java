@@ -70,6 +70,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof ClassLiteralAccess) {
 				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
+				if (binding == null) continue;
 				if (!binding.isInterface()) {
 					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), string(binding.readableName())));
 					continue;
@@ -152,9 +153,8 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			MethodBinding methodBinding = (MethodBinding)method;
 			if (isEmpty(methodBinding.parameters)) return;
 			int argCounter = 0;
-			String arg;
 			for (TypeBinding parameter : methodBinding.parameters) {
-				arg = "arg" + argCounter++;
+				String arg = "arg" + argCounter++;
 				params.add(Arg(Type(parameter), arg));
 				args.add(Name(arg));
 			}

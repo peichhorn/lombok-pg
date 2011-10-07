@@ -126,8 +126,8 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 	}
 
 	private TemplateData templateDataFor(final JCMethodDecl methodDecl, final TypeSymbol template) {
-		if ((template.flags_field & (Flags.PUBLIC)) == 0) return null;
-		if (!template.isInterface() && ((template.flags_field & (Flags.ABSTRACT)) == 0)) return null;
+		if ((template.flags() & (Flags.PUBLIC)) == 0) return null;
+		if (!template.isInterface() && ((template.flags() & (Flags.ABSTRACT)) == 0)) return null;
 		final List<Type> templateTypeArguments = new ArrayList<Type>(template.type.getTypeArguments());
 		final List<MethodSymbol> enclosedMethods = enclosedMethodsOf(template);
 		if (enclosedMethods.size() != 1) return null;
@@ -152,7 +152,7 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		final List<MethodSymbol> enclosedMethods = new ArrayList<MethodSymbol>();
 		for (Symbol enclosedElement : type.getEnclosedElements()) {
 			if (enclosedElement instanceof MethodSymbol) {
-				if ((enclosedElement.flags_field & (Flags.ABSTRACT)) == 0) continue;
+				if ((enclosedElement.flags() & (Flags.ABSTRACT)) == 0) continue;
 				enclosedMethods.add((MethodSymbol) enclosedElement);
 			}
 		}
