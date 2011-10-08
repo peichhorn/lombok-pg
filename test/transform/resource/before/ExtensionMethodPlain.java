@@ -3,6 +3,8 @@ import java.util.Arrays;
 
 @ExtensionMethod({Arrays.class, ExtensionMethodPlain.Objects.class, ExtensionMethodPlain.Strings.class})
 class ExtensionMethodPlain {
+	 private static final String s = "f?ob*r".escapeToJavaRegex();
+	
 	private void test1() {
 		new Runnable() {
 			@Override
@@ -32,6 +34,12 @@ class ExtensionMethodPlain {
 			}
 		}
 		return false;
+	}
+	
+	private static class ExtensionMethodInExplicitSuperCall extends Exception {
+		public ExtensionMethodInExplicitSuperCall() {
+			super("f?ob*r".escapeToJavaRegex());
+		}
 	}
 	
 	static class Objects {

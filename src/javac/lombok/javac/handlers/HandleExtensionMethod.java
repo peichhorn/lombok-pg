@@ -27,6 +27,8 @@ import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.Types.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
+import static lombok.javac.handlers.ast.JavacResolver.CLASS;
+import static lombok.javac.handlers.ast.JavacResolver.CLASS_AND_METHOD;
 
 import java.util.*;
 
@@ -34,13 +36,13 @@ import javax.lang.model.element.ElementKind;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.javac.JavacASTAdapter;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
-import lombok.javac.JavacResolution;
 import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacType;
 
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol;
@@ -50,7 +52,6 @@ import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.ErrorType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.Types;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -66,7 +67,8 @@ import org.mangosdk.spi.ProviderFor;
 @ResolutionBased
 public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMethod> {
 
-	@Override public void handle(final AnnotationValues<ExtensionMethod> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<ExtensionMethod> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
 		JavacType type = JavacType.typeOf(annotationNode, source);
@@ -80,22 +82,22 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", annotationType.getName()));
 			return;
 		}
-		
+
 		final List<Extension> extensions = getExtensions(type.node(), annotation);
 		if (extensions.isEmpty()) return;
-		
+
 		new ExtensionMethodReplaceVisitor(type, extensions).replace();
-		
+
 		type.rebuild();
 	}
-	
+
 	private List<Extension> getExtensions(final JavacNode typeNode, final AnnotationValues<ExtensionMethod> annotation) {
 		List<Extension> extensions = new ArrayList<Extension>();
 		for (Object extensionProvider : annotation.getActualExpressions("value")) {
 			if (extensionProvider instanceof JCFieldAccess) {
-				JCFieldAccess provider = (JCFieldAccess)extensionProvider;
+				JCFieldAccess provider = (JCFieldAccess) extensionProvider;
 				if ("class".equals(string(provider.name))) {
-					Type providerType = resolveClassMember(typeNode, provider.selected);
+					Type providerType = CLASS.resolveMember(typeNode, provider.selected);
 					if (providerType == null) continue;
 					if ((providerType.tsym.flags() & (INTERFACE | ANNOTATION)) != 0) continue;
 					extensions.add(getExtension(typeNode, (ClassType) providerType));
@@ -104,36 +106,19 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		}
 		return extensions;
 	}
-	
+
 	private Extension getExtension(final JavacNode typeNode, final ClassType extensionMethodProviderType) {
 		List<MethodSymbol> extensionMethods = new ArrayList<MethodSymbol>();
 		TypeSymbol tsym = extensionMethodProviderType.asElement();
-		if (tsym != null) for (Symbol member : tsym.getEnclosedElements()) {
-			if (member.getKind() != ElementKind.METHOD) continue;
-			MethodSymbol method = (MethodSymbol) member;
-			if ((method.flags() & (STATIC | PUBLIC)) == 0) continue;
-			if (method.params().isEmpty()) continue;
-			extensionMethods.add(method);
-		}
+		if (tsym != null)
+			for (Symbol member : tsym.getEnclosedElements()) {
+				if (member.getKind() != ElementKind.METHOD) continue;
+				MethodSymbol method = (MethodSymbol) member;
+				if ((method.flags() & (STATIC | PUBLIC)) == 0) continue;
+				if (method.params().isEmpty()) continue;
+				extensionMethods.add(method);
+			}
 		return new Extension(extensionMethods, tsym);
-	}
-
-	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
-		Type type = expr.type;
-		if (type == null) {
-			new JavacResolution(node.getContext()).resolveClassMember(node);
-			type = expr.type;
-		}
-		return type;
-	}
-	
-	private static Type resolveMethodMember(final JavacNode node, final JCExpression expr) {
-		Type type = expr.type;
-		if (type == null) {
-			JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr));
-			if (resolvedExpression != null) type = resolvedExpression.type;
-		}
-		return type;
 	}
 
 	@RequiredArgsConstructor
@@ -143,7 +128,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		private final TypeSymbol extensionProvider;
 	}
 
-	private static class ExtensionMethodReplaceVisitor extends JavacASTAdapter {
+	private static class ExtensionMethodReplaceVisitor extends TreeScanner<Void, Void> {
 		private final JavacType type;
 		private final List<Extension> extensions;
 
@@ -154,18 +139,23 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		}
 
 		public void replace() {
-			type.node().traverse(this);
+			type.get().accept(this, null);
 		}
 
-		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
-			if (!(statement instanceof JCMethodInvocation)) return;
-			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
+		@Override
+		public Void visitMethodInvocation(final MethodInvocationTree tree, final Void p) {
+			handleMethodCall((JCMethodInvocation) tree);
+			return super.visitMethodInvocation(tree, p);
+		}
+
+		private void handleMethodCall(final JCMethodInvocation methodCall) {
+			JavacNode methodCallNode = type.node().getAst().get(methodCall);
 			JCExpression receiver = receiverOf(methodCall);
 			String methodName = methodNameOf(methodCall);
 			if (isOneOf(methodName, "this", "super")) return;
-			Type resolvedMethodCall = resolveMethodMember(statementNode, methodCall);
+			Type resolvedMethodCall = CLASS_AND_METHOD.resolveMember(methodCallNode, methodCall);
 			if (!(resolvedMethodCall instanceof ErrorType)) return;
-			Type receiverType = resolveMethodMember(statementNode, receiver);
+			Type receiverType = CLASS_AND_METHOD.resolveMember(methodCallNode, receiver);
 			Types types = Types.instance(type.node().getContext());
 			for (Extension extension : extensions) {
 				for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
@@ -183,9 +173,9 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 
 		private String methodNameOf(final JCMethodInvocation methodCall) {
 			if (methodCall.meth instanceof JCIdent) {
-				return string(((JCIdent)methodCall.meth).name);
+				return string(((JCIdent) methodCall.meth).name);
 			} else {
-				return string(((JCFieldAccess)methodCall.meth).name);
+				return string(((JCFieldAccess) methodCall.meth).name);
 			}
 		}
 
