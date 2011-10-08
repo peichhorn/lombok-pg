@@ -29,6 +29,7 @@ import static lombok.core.util.Lists.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.ast.JavacASTUtil.boxedType;
+import static lombok.javac.handlers.ast.JavacResolver.METHOD;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.core.AST.Kind;
 import lombok.javac.JavacNode;
-import lombok.javac.JavacResolution;
 import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.replace.*;
 
@@ -271,7 +271,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	private List<lombok.ast.Annotation> annotations(final JCModifiers mods) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		for (JCAnnotation annotation : mods.annotations) {
-			Type type = resolveMethodMember(annotation);
+			Type type = METHOD.resolveMember(node(), annotation);
 			if (type.toString().startsWith("lombok.")) continue;
 			lombok.ast.Annotation ann = Annotation(Type(annotation.annotationType));
 			for (JCExpression arg : annotation.args) {
@@ -285,16 +285,6 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 			annotations.add(ann);
 		}
 		return annotations;
-	}
-
-	private Type resolveMethodMember(final JCExpression expr) {
-		Type type = expr.type;
-		if (type == null) {
-			JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node().getContext()).resolveMethodMember(node()).get(expr));
-			if (resolvedExpression != null)
-				type = resolvedExpression.type;
-		}
-		return type;
 	}
 
 	public List<lombok.ast.Argument> arguments(final ArgumentStyle... style) {

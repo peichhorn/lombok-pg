@@ -25,6 +25,7 @@ import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.ast.JavacResolver.CLASS;
 
 import java.util.*;
 
@@ -36,7 +37,6 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.ListenerSupportHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
-import lombok.javac.JavacResolution;
 import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacType;
 
@@ -47,7 +47,6 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 
 import org.mangosdk.spi.ProviderFor;
@@ -90,7 +89,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			if (listenerInterface instanceof JCFieldAccess) {
 				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
 				if ("class".equals(string(interfaze.name))) {
-					Type interfaceType = resolveClassMember(annotationNode, interfaze.selected);
+					Type interfaceType = CLASS.resolveMember(annotationNode, interfaze.selected);
 					if (interfaceType == null) continue;
 					if (interfaceType.isInterface()) {
 						TypeSymbol interfaceSymbol = interfaceType.asElement();
@@ -102,15 +101,6 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			}
 		}
 		return resolvedInterfaces;
-	}
-
-	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
-		Type type = expr.type;
-		if (type == null) {
-			new JavacResolution(node.getContext()).resolveClassMember(node);
-			type = expr.type;
-		}
-		return type;
 	}
 
 	private void addFireListenerMethods(final JavacType type, final TypeSymbol interfaze) {

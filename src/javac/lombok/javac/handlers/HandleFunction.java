@@ -24,6 +24,7 @@ package lombok.javac.handlers;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.ast.JavacResolver.CLASS;
 
 import java.util.*;
 
@@ -33,7 +34,6 @@ import lombok.core.handlers.FunctionHandler;
 import lombok.core.handlers.FunctionHandler.TemplateData;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
-import lombok.javac.JavacResolution;
 import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
@@ -91,25 +91,16 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		if (templatesDef instanceof JCFieldAccess) {
 			final JCFieldAccess templates = (JCFieldAccess) templatesDef;
 			if (!"class".equals(string(templates.name))) return null;
-			final Type templatesType = resolveClassMember(node, templates.selected);
+			final Type templatesType = CLASS.resolveMember(node, templates.selected);
 			return (templatesType == null) ? null : templatesType.asElement();
 		} else {
-			final Type annotationType = resolveClassMember(node, (JCExpression) annotation.annotationType);
+			final Type annotationType = CLASS.resolveMember(node, (JCExpression) annotation.annotationType);
 			if (annotationType == null) return null;
 			final List<MethodSymbol> enclosedMethods = enclosedMethodsOf(annotationType.asElement());
 			if (enclosedMethods.size() != 1) return null;
 			final Attribute.Class defaultValue = (Attribute.Class) enclosedMethods.get(0).getDefaultValue();
 			return defaultValue.getValue().asElement();
 		}
-	}
-
-	private static Type resolveClassMember(final JavacNode node, final JCExpression expr) {
-		Type type = expr.type;
-		if (type == null) {
-			new JavacResolution(node.getContext()).resolveClassMember(node);
-			type = expr.type;
-		}
-		return type;
 	}
 
 	private List<TemplateData> findTemplatesFor(final JCMethodDecl methodDecl, final TypeSymbol template) {
