@@ -19,33 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.core.util;
+package lombok.ast;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import lombok.*;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class Break extends Statement {
+	private String label;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Lists {
-	
-	public static <T> List<T> notNull(final List<T> list) {
-		return (list == null) ? Collections.<T>emptyList() : list;
-	}
-	
-	public static boolean isEmpty(final List<?> list) {
-		return (list == null) || list.isEmpty();
-	}
-
-	public static <T> List<T> list(final T... a) {
-		List<T> results = new ArrayList<T>();
-		if (a != null) Collections.addAll(results, a);
-		return results;
-	}
-	
-	public static <T> List<T> unmodifiableList(final T... a) {
-		return Collections.unmodifiableList(list(a));
+	@Override
+	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
+		return v.visitBreak(this, p);
 	}
 }

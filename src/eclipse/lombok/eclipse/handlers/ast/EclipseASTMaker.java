@@ -60,6 +60,7 @@ import org.eclipse.jdt.internal.compiler.ast.ArrayTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.Assignment;
 import org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
 import org.eclipse.jdt.internal.compiler.ast.Block;
+import org.eclipse.jdt.internal.compiler.ast.BreakStatement;
 import org.eclipse.jdt.internal.compiler.ast.CaseStatement;
 import org.eclipse.jdt.internal.compiler.ast.CastExpression;
 import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
@@ -276,6 +277,13 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		}
 		setGeneratedByAndCopyPos(literal, source);
 		return literal;
+	}
+
+	@Override
+	public ASTNode visitBreak(final lombok.ast.Break node, final Void p) {
+		final BreakStatement breakStatement = new BreakStatement(node.getLabel() == null ? null : node.getLabel().toCharArray(), 0, 0);
+		setGeneratedByAndCopyPos(breakStatement, source);
+		return breakStatement;
 	}
 
 	@Override

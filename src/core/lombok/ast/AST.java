@@ -45,8 +45,20 @@ public final class AST {
 		return new Assignment(left, right);
 	}
 
+	public static Binary Binary(final Expression left, final String operator, final Expression right) {
+		return new Binary(left, operator, right);
+	}
+
 	public static Block Block() {
 		return new Block();
+	}
+
+	public static Break Break() {
+		return new Break();
+	}
+
+	public static Break Break(final String label) {
+		return new Break(label);
 	}
 
 	public static Call Call(final String name) {

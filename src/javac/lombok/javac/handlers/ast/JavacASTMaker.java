@@ -44,6 +44,7 @@ import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCBreak;
 import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -256,6 +257,12 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitBooleanLiteral(final lombok.ast.BooleanLiteral node, final Void p) {
 		final JCLiteral literal = setGeneratedBy(M.Literal(TYPES.get("boolean"), node.isTrue() ? 1 : 0), source);
 		return literal;
+	}
+
+	@Override
+	public JCTree visitBreak(final lombok.ast.Break node, final Void p) {
+		final JCBreak breakStatement = setGeneratedBy(M.Break(node.getLabel() == null ? null : name(node.getLabel())), source);
+		return breakStatement;
 	}
 
 	@Override

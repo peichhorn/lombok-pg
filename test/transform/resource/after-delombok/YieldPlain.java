@@ -299,6 +299,7 @@ class YieldPlain {
 		class $YielderComplexForeach implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
 			private Object object;
 			private Class<?> c;
+			@java.lang.SuppressWarnings("all")
 			private java.util.Iterator $objectIter;
 			private int $state;
 			private boolean $hasNext;

@@ -35,6 +35,8 @@ public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
 
 	RETURN_TYPE visitBooleanLiteral(BooleanLiteral node, PARAMETER_TYPE p);
 
+	RETURN_TYPE visitBreak(Break node, PARAMETER_TYPE p);
+
 	RETURN_TYPE visitCall(Call node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitCase(Case node, PARAMETER_TYPE p);
