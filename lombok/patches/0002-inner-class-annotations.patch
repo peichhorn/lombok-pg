@@ -1,0 +1,45 @@
+diff --git a/src/core/lombok/core/TypeLibrary.java b/src/core/lombok/core/TypeLibrary.java
+index 5de01b7..4091893 100644
+--- a/src/core/lombok/core/TypeLibrary.java
++++ b/src/core/lombok/core/TypeLibrary.java
+@@ -50,6 +50,7 @@ public class TypeLibrary {
+ 		if (idx == -1) throw new IllegalArgumentException(
+ 				"Only fully qualified types are allowed (and stuff in the default package is not palatable to us either!)");
+ 		
++		fullyQualifiedTypeName = fullyQualifiedTypeName.replace("$", ".");
+ 		final String simpleName = fullyQualifiedTypeName.substring(idx +1);
+ 		final String packageName = fullyQualifiedTypeName.substring(0, idx);
+ 		
+diff --git a/src/core/lombok/eclipse/HandlerLibrary.java b/src/core/lombok/eclipse/HandlerLibrary.java
+index b6684c2..f3d5568 100644
+--- a/src/core/lombok/eclipse/HandlerLibrary.java
++++ b/src/core/lombok/eclipse/HandlerLibrary.java
+@@ -112,8 +112,8 @@ public class HandlerLibrary {
+ 					Class<? extends Annotation> annotationClass =
+ 						SpiLoadUtil.findAnnotationClass(handler.getClass(), EclipseAnnotationHandler.class);
+ 					AnnotationHandlerContainer<?> container = new AnnotationHandlerContainer(handler, annotationClass);
+-					if (lib.annotationHandlers.put(container.annotationClass.getName(), container) != null) {
+-						Eclipse.error(null, "Duplicate handlers for annotation type: " + container.annotationClass.getName(), null);
++					if (lib.annotationHandlers.put(container.annotationClass.getName().replace("$", "."), container) != null) {
++						Eclipse.error(null, "Duplicate handlers for annotation type: " + container.annotationClass.getName().replace("$", "."), null);
+ 					}
+ 					lib.typeLibrary.addType(container.annotationClass.getName());
+ 				} catch (Throwable t) {
+diff --git a/src/core/lombok/javac/HandlerLibrary.java b/src/core/lombok/javac/HandlerLibrary.java
+index f0bd344..6bfe3fd 100644
+--- a/src/core/lombok/javac/HandlerLibrary.java
++++ b/src/core/lombok/javac/HandlerLibrary.java
+@@ -107,8 +107,8 @@ public class HandlerLibrary {
+ 			Class<? extends Annotation> annotationClass =
+ 				SpiLoadUtil.findAnnotationClass(handler.getClass(), JavacAnnotationHandler.class);
+ 			AnnotationHandlerContainer<?> container = new AnnotationHandlerContainer(handler, annotationClass);
+-			if (lib.annotationHandlers.put(container.annotationClass.getName(), container) != null) {
+-				lib.javacWarning("Duplicate handlers for annotation type: " + container.annotationClass.getName());
++			if (lib.annotationHandlers.put(container.annotationClass.getName().replace("$", "."), container) != null) {
++				lib.javacWarning("Duplicate handlers for annotation type: " + container.annotationClass.getName().replace("$", "."));
+ 			}
+ 			lib.typeLibrary.addType(container.annotationClass.getName());
+ 		}
+-- 
+1.7.0.2.msysgit.0
+
