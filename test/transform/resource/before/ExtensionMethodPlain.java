@@ -20,7 +20,11 @@ class ExtensionMethodPlain {
 	}
 	
 	private boolean test3() {
-		return this.isOneOf("for", "bar");
+		try {
+			return this.isOneOf("for", "bar");
+		} catch (Exception e) {
+			throw new RuntimeException("f?ob*r".escapeToJavaRegex());
+		}
 	}
 	
 	private boolean test4(String s) {

@@ -18,7 +18,11 @@ class ExtensionMethodPlain {
 	}
 	
 	private boolean test3() {
-		return ExtensionMethodPlain.Objects.isOneOf(this, "for", "bar");
+		try {
+			return ExtensionMethodPlain.Objects.isOneOf(this, "for", "bar");
+		} catch (Exception e) {
+			throw new RuntimeException(ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r"));
+		}
 	}
 	
 	private boolean test4(String s) {
