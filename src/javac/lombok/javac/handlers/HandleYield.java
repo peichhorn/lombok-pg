@@ -111,8 +111,11 @@ public class HandleYield extends JavacASTAdapter {
 			return true;
 		}
 
+		final String stateName = "$state";
+		final String nextName = "$next";
+		final String errorName = "$yieldException";
 		YieldDataCollector collector = new YieldDataCollector();
-		collector.collect(method, "$state", "$next", "$exception");
+		collector.collect(method, stateName, nextName, errorName);
 
 		if (!collector.hasYields()) {
 			return true;
@@ -126,10 +129,10 @@ public class HandleYield extends JavacASTAdapter {
 
 		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
 				.withFields(variables) //
-				.withField(FieldDecl(Type("int"), "$state").makePrivate()) //
+				.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
 				.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
 				.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
-				.withField(FieldDecl(Type(elementType), "$next").makePrivate()); //
+				.withField(FieldDecl(Type(elementType), nextName).makePrivate()); //
 		if (returnsIterable) {
 			yielder.implementing(Type("java.lang.Iterable").withTypeArgument(Type(elementType))) //
 					.withMethod(MethodDecl(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
@@ -142,13 +145,14 @@ public class HandleYield extends JavacASTAdapter {
 				.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
 						.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
 						.withStatement(Assign(Name("$nextDefined"), False())) //
-						.withStatement(Return(Name("$next")))) //
+						.withStatement(Return(Name(nextName)))) //
 				.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")))));
 		if (errorHandler != null) {
+			String caughtErrorName = errorName + "Caught";
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
-					.withStatement(LocalDecl(Type(Throwable.class), "$exception")) //
+					.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
 					.withStatement(While(True()).Do(Block().withStatement(Try(Block().withStatement(stateSwitch)) //
-							.Catch(Arg(Type(Throwable.class), "$e"), Block().withStatement(Assign(Name("$exception"), Name("$e"))).withStatement(errorHandler))))));
+							.Catch(Arg(Type(Throwable.class), caughtErrorName), Block().withStatement(Assign(Name(errorName), Name(caughtErrorName))).withStatement(errorHandler))))));
 		} else {
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(stateSwitch)));
 		}
@@ -221,11 +225,12 @@ public class HandleYield extends JavacASTAdapter {
 					}
 				}
 				
+				final String unhandledErrorName = errorName + "Unhandled";
 				switchCases.add(Case() //
 						.withStatement(setState(literal(getBreakLabel(root)))) //
-						.withStatement(LocalDecl(Type(ConcurrentModificationException.class), "$e").withInitialization(New(Type(ConcurrentModificationException.class)))) //
-						.withStatement(Call(Name("$e"), "initCause").withArgument(Name(errorName))) //
-						.withStatement(Throw(Name("$e"))));
+						.withStatement(LocalDecl(Type(ConcurrentModificationException.class), unhandledErrorName).withInitialization(New(Type(ConcurrentModificationException.class)))) //
+						.withStatement(Call(Name(unhandledErrorName), "initCause").withArgument(Name(errorName))) //
+						.withStatement(Throw(Name(unhandledErrorName))));
 				return Switch(Name(stateName)).withCases(switchCases);
 			}
 		}
@@ -669,7 +674,7 @@ public class HandleYield extends JavacASTAdapter {
 							finallyHandler = new ErrorHandler();
 							finallyLabel = getFinallyLabel(this);
 							finallyBlocks++;
-							finallyErrorName = "$exception" + finallyBlocks;
+							finallyErrorName = errorName + finallyBlocks;
 							labelName = "$id" + finallyBlocks;
 							
 							stateVariables.add(FieldDecl(Type(Throwable.class), finallyErrorName).makePrivate());

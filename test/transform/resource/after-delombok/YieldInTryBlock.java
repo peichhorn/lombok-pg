@@ -8,7 +8,7 @@ class YieldTryBlock {
 			private boolean b;
 			@java.lang.SuppressWarnings("unused")
 			private RuntimeException e;
-			private java.lang.Throwable $exception1;
+			private java.lang.Throwable $yieldException1;
 			private int $id1;
 			private int $state;
 			private boolean $hasNext;
@@ -40,7 +40,7 @@ class YieldTryBlock {
 			}
 			
 			private boolean getNext() {
-				java.lang.Throwable $exception;
+				java.lang.Throwable $yieldException;
 				while (true) {
 					try {
 						switch ($state) {
@@ -48,7 +48,7 @@ class YieldTryBlock {
 							b = true;
 						
 						case 1: 
-							$exception1 = null;
+							$yieldException1 = null;
 							$id1 = 6;
 							$state = 2;
 							if (b) {
@@ -75,8 +75,8 @@ class YieldTryBlock {
 							{
 								b = !b;
 							}
-							if ($exception1 != null) {
-								$exception = $exception1;
+							if ($yieldException1 != null) {
+								$yieldException = $yieldException1;
 								break;
 							}
 							$state = $id1;
@@ -92,12 +92,12 @@ class YieldTryBlock {
 							return false;
 						
 						}
-					} catch (final java.lang.Throwable $e) {
-						$exception = $e;
+					} catch (final java.lang.Throwable $yieldExceptionCaught) {
+						$yieldException = $yieldExceptionCaught;
 						switch ($state) {
 						case 2: 
-							if ($exception instanceof RuntimeException) {
-								e = (RuntimeException)$exception;
+							if ($yieldException instanceof RuntimeException) {
+								e = (RuntimeException)$yieldException;
 								$state = 3;
 								continue;
 							}
@@ -105,15 +105,15 @@ class YieldTryBlock {
 						case 3: 
 						
 						case 4: 
-							$exception1 = $exception;
+							$yieldException1 = $yieldException;
 							$state = 5;
 							continue;
 						
 						default: 
 							$state = 7;
-							java.util.ConcurrentModificationException $e = new java.util.ConcurrentModificationException();
-							$e.initCause($exception);
-							throw $e;
+							java.util.ConcurrentModificationException $yieldExceptionUnhandled = new java.util.ConcurrentModificationException();
+							$yieldExceptionUnhandled.initCause($yieldException);
+							throw $yieldExceptionUnhandled;
 						
 						}
 					}
