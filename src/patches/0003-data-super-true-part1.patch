@@ -66,24 +66,6 @@ diff --git a/src/core/lombok/eclipse/handlers/HandleData.java b/src/core/lombok/
 index 71027c0..2a44cf4 100644
 --- a/src/core/lombok/eclipse/handlers/HandleData.java
 +++ b/src/core/lombok/eclipse/handlers/HandleData.java
-@@ -30,15 +30,14 @@ import lombok.eclipse.EclipseNode;
- import org.eclipse.jdt.internal.compiler.ast.Annotation;
- import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
- import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
--import org.mangosdk.spi.ProviderFor;
- 
- /**
-  * Handles the {@code lombok.Data} annotation for eclipse.
-  */
--@ProviderFor(EclipseAnnotationHandler.class)
-+//TODO ClassScopse.buildFieldsAndMethods should be a official hook
-+// @ProviderFor(EclipseAnnotationHandler.class)
- public class HandleData extends EclipseAnnotationHandler<Data> {
- 	public void handle(AnnotationValues<Data> annotation, Annotation ast, EclipseNode annotationNode) {
--		Data ann = annotation.getInstance();
- 		EclipseNode typeNode = annotationNode.up();
- 		
- 		TypeDeclaration typeDecl = null;
 @@ -58,10 +57,15 @@ public class HandleData extends EclipseAnnotationHandler<Data> {
  		//for whatever reason, though you can find callers of that one by focusing on the class name itself
  		//and hitting 'find callers'.
