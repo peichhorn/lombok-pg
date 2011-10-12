@@ -8,17 +8,16 @@ import static lombok.Yield.yield;
 public class Main {
 
 	public static void main(String[] args) {
-
 		new String[] { "john", "james", "eddie" }.toList().filter(startsWith("j")).map(toUpperCase()).print('-');
 		// outputs "JOHN-JAMES"
 	}
 
-	@function
+	@Function
 	private static boolean startsWith(String element, String _prefix) {
 		return element.startsWith(_prefix);
 	}
 
-	@function
+	@Function
 	private static String toUpperCase(String element) {
 		return element.toUpperCase();
 	}
