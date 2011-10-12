@@ -1,4 +1,4 @@
-These are the patches one need to apply to the lombok codebase in order to
+These are the patches one need to apply to the lombok code base in order to
 prepare a lombok version that lombok-pg can run with.
 
 Changes:
@@ -9,9 +9,9 @@ Changes:
 
 [0002-marker-Annotations-for-handlers.patch]
 
-  enables a more convinient definition of annotation handler and ast visitors
+  enables a more convenient definition of annotation handler and ast visitors
   
 [0003-data-super-true-part1.patch]
 
   @Data(super=true) works for @ToString and @EqualsAndHashCode
-  (Note: This is one of the features, that will mostlikly end up in lombok once part 2 is done)
+  (Note: This is one of the features, that will most likely end up in lombok once part 2 is done)

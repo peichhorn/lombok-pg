@@ -21,6 +21,18 @@
  */
 package lombok;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
+import java.lang.annotation.*;
+
+/**
+ * Encapsulates a method that does not return a value.
+ */
+@Target(METHOD) @Retention(SOURCE)
 public @interface Action {
+	/**
+	 * Specifies the template class, that should be used. Default is {@code Actions.class}.
+	 */
 	Class<?> template() default Actions.class;
 }

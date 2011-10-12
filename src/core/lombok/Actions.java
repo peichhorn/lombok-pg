@@ -27,10 +27,18 @@ package lombok;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Actions {
 
+	/**
+	 * Encapsulates a method that has no parameters and does not return a value
+	 */
 	public static abstract class Action0 {
 		public abstract void apply();
 	}
 
+	/**
+	 * Encapsulates a method that has a single parameter and does not return a value.
+	 *
+	 * @param <T1> The type of the parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action1<T1> {
 		public abstract void apply(T1 t1);
 
@@ -39,6 +47,12 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has two parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action2<T1, T2> {
 		public abstract void apply(T1 t1, T2 t2);
 
@@ -51,6 +65,13 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has three parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action3<T1, T2, T3> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3);
 
@@ -67,6 +88,14 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has four parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 * @param <T4> The type of the four parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action4<T1, T2, T3, T4> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3, T4 t4);
 
@@ -87,6 +116,15 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has five parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 * @param <T4> The type of the four parameter of the method that this delegate encapsulates.
+	 * @param <T5> The type of the five parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action5<T1, T2, T3, T4, T5> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5);
 
@@ -111,6 +149,16 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has six parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 * @param <T4> The type of the four parameter of the method that this delegate encapsulates.
+	 * @param <T5> The type of the five parameter of the method that this delegate encapsulates.
+	 * @param <T6> The type of the six parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action6<T1, T2, T3, T4, T5, T6> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6);
 
@@ -139,6 +187,17 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has seven parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 * @param <T4> The type of the four parameter of the method that this delegate encapsulates.
+	 * @param <T5> The type of the five parameter of the method that this delegate encapsulates.
+	 * @param <T6> The type of the six parameter of the method that this delegate encapsulates.
+	 * @param <T7> The type of the seven parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action7<T1, T2, T3, T4, T5, T6, T7> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7);
 
@@ -171,6 +230,18 @@ public final class Actions {
 		}
 	}
 
+	/**
+	 * Encapsulates a method that has eight parameters and does not return a value.
+	 *
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
+	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
+	 * @param <T3> The type of the third parameter of the method that this delegate encapsulates.
+	 * @param <T4> The type of the four parameter of the method that this delegate encapsulates.
+	 * @param <T5> The type of the five parameter of the method that this delegate encapsulates.
+	 * @param <T6> The type of the six parameter of the method that this delegate encapsulates.
+	 * @param <T7> The type of the seven parameter of the method that this delegate encapsulates.
+	 * @param <T8> The type of the eight parameter of the method that this delegate encapsulates.
+	 */
 	public static abstract class Action8<T1, T2, T3, T4, T5, T6, T7, T8> {
 		public abstract void apply(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8);
 

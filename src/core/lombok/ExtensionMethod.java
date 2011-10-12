@@ -27,6 +27,9 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
+ * Extension methods enable you to "add" methods to existing types without creating a new derived type,
+ * recompiling, or otherwise modifying the original type. Extension methods are a special kind of static
+ * method, but they are called as if they were instance methods on the extended type.
  * <p>
  * Before:
  * <pre>
@@ -50,5 +53,6 @@ import java.lang.annotation.*;
  */
 @Target(TYPE) @Retention(SOURCE)
 public @interface ExtensionMethod {
+	/** All types whose static methods will be exposed as extension methods. */
 	Class<?>[] value();
 }
