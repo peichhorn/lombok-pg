@@ -32,6 +32,9 @@ import lombok.eclipse.handlers.ast.EclipseType;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
+/**
+ * Handles the {@link Singleton} annotation for eclipse.
+ */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 

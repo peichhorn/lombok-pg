@@ -32,11 +32,11 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
-/**
- * Handles the {@code lombok.SwingInvokeLater} and {@code lombok.SwingInvokeAndWait} annotation for eclipse.
- */
 public class HandleSwingInvoke {
 
+	/**
+	 * Handles the {@code lombok.SwingInvokeLater} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleSwingInvokeLater extends EclipseAnnotationHandler<SwingInvokeLater> {
@@ -46,6 +46,9 @@ public class HandleSwingInvoke {
 		}
 	}
 
+	/**
+	 * Handles the {@code lombok.SwingInvokeAndWait} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleSwingInvokeAndWait extends EclipseAnnotationHandler<SwingInvokeAndWait> {

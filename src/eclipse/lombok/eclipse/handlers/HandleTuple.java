@@ -57,6 +57,9 @@ import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.mangosdk.spi.ProviderFor;
 
+/**
+ * Handles the {@code lombok.Tuple.tuple} method call for eclipse.
+ */
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleTuple extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();

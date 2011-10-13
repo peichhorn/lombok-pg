@@ -56,6 +56,9 @@ import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseASTMaker;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
+/**
+ * Handles the {@code lombok.With.with} method call for eclipse.
+ */
 @ProviderFor(EclipseASTVisitor.class)
 public class HandleWith extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();

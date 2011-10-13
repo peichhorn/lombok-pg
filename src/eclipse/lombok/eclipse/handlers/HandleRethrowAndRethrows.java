@@ -41,6 +41,9 @@ import org.mangosdk.spi.ProviderFor;
 
 public class HandleRethrowAndRethrows {
 
+	/**
+	 * Handles the {@link Rethrow} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleRethrow extends EclipseAnnotationHandler<Rethrow> {
@@ -53,6 +56,9 @@ public class HandleRethrowAndRethrows {
 		}
 	}
 
+	/**
+	 * Handles the {@link Rethrows} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleRethrows extends EclipseAnnotationHandler<Rethrows> {

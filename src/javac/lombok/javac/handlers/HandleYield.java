@@ -543,7 +543,7 @@ public class HandleYield extends JavacASTAdapter {
 				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						String iteratorVar = "$" + tree.var.name + "Iter";
+						String iteratorVar = "$" + string(tree.var.name) + "Iter";
 						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
 						
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.expr), "iterator")));

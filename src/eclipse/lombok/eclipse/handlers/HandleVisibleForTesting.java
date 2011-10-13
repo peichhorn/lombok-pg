@@ -33,6 +33,9 @@ import lombok.eclipse.handlers.ast.EclipseMethod;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
+/**
+ * Handles the {@link VisibleForTesting} annotation for eclipse.
+ */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleVisibleForTesting extends EclipseAnnotationHandler<VisibleForTesting> {
 

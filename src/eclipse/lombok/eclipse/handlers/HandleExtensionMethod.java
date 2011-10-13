@@ -34,7 +34,7 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.mangosdk.spi.ProviderFor;
 
 /**
- * Handles the {@link ExtensionMethod} annotation for eclipse using the {@link PatchExtensionMethod}.
+ * Handles the {@link ExtensionMethod} annotation for eclipse
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleExtensionMethod extends EclipseAnnotationHandler<ExtensionMethod> {

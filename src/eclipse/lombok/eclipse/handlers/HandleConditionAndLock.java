@@ -40,6 +40,9 @@ public class HandleConditionAndLock {
 		return new ConditionAndLockHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(node, source), EclipseMethod.methodOf(node, source), node);
 	}
 
+	/**
+	 * Handles the {@code lombok.ReadLock} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleReadLock extends EclipseAnnotationHandler<ReadLock> {
@@ -58,6 +61,9 @@ public class HandleConditionAndLock {
 		}
 	}
 
+	/**
+	 * Handles the {@code lombok.WriteLock} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleWriteLock extends EclipseAnnotationHandler<WriteLock> {
@@ -76,6 +82,9 @@ public class HandleConditionAndLock {
 		}
 	}
 
+	/**
+	 * Handles the {@code lombok.Signal} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleSignal extends EclipseAnnotationHandler<Signal> {
@@ -94,6 +103,9 @@ public class HandleConditionAndLock {
 		}
 	}
 
+	/**
+	 * Handles the {@code lombok.Await} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleAwait extends EclipseAnnotationHandler<Await> {
@@ -112,6 +124,9 @@ public class HandleConditionAndLock {
 		}
 	}
 
+	/**
+	 * Handles the {@code lombok.AwaitBeforeAndSignalAfter} annotation for eclipse.
+	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
 	@DeferUntilPostDiet
 	public static class HandleAwaitBeforeAndSignalAfter extends EclipseAnnotationHandler<AwaitBeforeAndSignalAfter> {
