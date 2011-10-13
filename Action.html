@@ -24,19 +24,18 @@
 			</p>
 			<p>
 			By default <code>@Action</code> uses <code>lombok.Actions</code> as template class.
-			This means you have a runtime depenceny to lombok-pg. In this case lombok-pg provides a small library called <code>lombok-pg-runtime.jar</code>,
-			containing only the runtime dependencies. <br>
+			This means you need some lombok-pg classes at runtime. That's why lombok-pg provides a small library called <code>lombok-pg-runtime.jar</code>,
+			containing only the runtime dependencies.<br />
 			As a benefit of using <code>lombok.Actions</code> you get type getters for free, meaning you can execute methods
-			like <code>Class&lt;?&gt; getParameterType1()</code> on the action objects.<br />
-			If you want to avoid this runtime dependencies or just define you own template, use <code>@Action(template=MyActionTemplate.class)</code>
+			like <code>Class&lt;?&gt; getParameterType1()</code>&nbsp;&hellip;&nbsp;<code>Class&lt;?&gt; getParameterTypeN()</code> on the action objects.<br />
+			If you want to avoid having a runtime dependency to lombok-pg or just want to define you own template, use <code>@Action(template=MyActionTemplate.class)</code>
 			and make sure that MyActionTemplate satisfies the following conditions:
 			<ul>
 			<li>The template class and any accessible (meaning public static) inner class qualifies as a possible
 			template if they are an abstract class or an interface that have only one abstract public method.</li>
-			<li>The type arguments of the abstract method have have to match the type arguments of the type.</li>
+			<li>The type arguments of the abstract method have to match the type arguments of the surrounding type.</li>
 			<li>A template class must not define multiple templates for the same argument count.</li>
 			</ul>
-			Being able to specifing a template class also allows you to use <code>@Action</code> with other libraries such as commons-collections <code>@Action(template=Closure.class)</code>.
 			</p>
 		</div>
 		<div class="snippets">
@@ -54,7 +53,7 @@
 		<div class="overview">
 			<h3>Small print</h3><div class="smallprint">
 				<p>
-					No further information at this point.
+					Being able to specifing a template class also allows you to use <code>@Action</code> with other libraries such as commons-collections <code>@Action(template=Closure.class)</code>.
 				</p>
 			</div>
 		</div>
