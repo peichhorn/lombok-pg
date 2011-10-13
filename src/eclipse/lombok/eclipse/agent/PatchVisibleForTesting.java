@@ -80,9 +80,8 @@ public final class PatchVisibleForTesting {
 	}
 
 	private static MethodBinding handleVisibleForTestingOnMethod(final Scope scope, final MethodBinding methodBinding) {
-		if (methodBinding == null) {
-			return null;
-		}
+		if ((methodBinding == null) || (methodBinding.declaringClass == null)) return methodBinding;
+		
 		final AnnotationBinding[] annotations = methodBinding.getAnnotations();
 		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
 			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
