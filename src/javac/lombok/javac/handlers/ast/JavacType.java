@@ -23,6 +23,7 @@ package lombok.javac.handlers.ast;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
+import static lombok.core.util.Names.string;
 import static lombok.javac.handlers.JavacHandlerUtil.fieldExists;
 import static lombok.javac.handlers.JavacHandlerUtil.methodExists;
 
@@ -210,11 +211,23 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 	public String name() {
 		return get().name.toString();
 	}
+	
+	public List<lombok.ast.TypeRef> typeArguments() {
+		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
+		for (JCTypeParameter typaram : get().typarams) {
+			typeArguments.add(Type(string(typaram.name)));
+		}
+		return typeArguments;
+	}
 
-	public List<lombok.ast.TypeRef> typeParameters() {
-		final List<lombok.ast.TypeRef> typeParameters = new ArrayList<lombok.ast.TypeRef>();
-		for (JCTypeParameter param : get().typarams) {
-			typeParameters.add(Type(param.name.toString()));
+	public List<lombok.ast.TypeParam> typeParameters() {
+		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
+		for (JCTypeParameter typaram : get().typarams) {
+			final lombok.ast.TypeParam typeParam = TypeParam(string(typaram.name));
+			for (JCExpression expr : typaram.bounds) {
+				typeParam.withBound(Type(expr));
+			}
+			typeParameters.add(typeParam);
 		}
 		return typeParameters;
 	}

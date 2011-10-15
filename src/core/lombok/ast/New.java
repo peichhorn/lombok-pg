@@ -22,6 +22,7 @@
 package lombok.ast;
 
 import java.util.*;
+
 import lombok.*;
 
 @Getter
@@ -42,6 +43,11 @@ public final class New extends Expression {
 
 	public New withTypeArgument(final TypeRef typeArg) {
 		typeArgs.add(child(typeArg));
+		return this;
+	}
+
+	public New withTypeArguments(final List<TypeRef> typeArgs) {
+		for (TypeRef typeArg : typeArgs) withTypeArgument(typeArg);
 		return this;
 	}
 

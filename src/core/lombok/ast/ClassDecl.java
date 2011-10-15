@@ -24,6 +24,7 @@ package lombok.ast;
 import static lombok.ast.Modifier.*;
 
 import java.util.*;
+
 import lombok.*;
 
 @Getter
@@ -117,6 +118,16 @@ public class ClassDecl extends Statement {
 
 	public ClassDecl withType(final ClassDecl type) {
 		memberTypes.add(child(type));
+		return this;
+	}
+
+	public ClassDecl withTypeParameter(final TypeParam typeParameter) {
+		typeParameters.add(child(typeParameter));
+		return this;
+	}
+
+	public ClassDecl withTypeParameters(final List<TypeParam> typeParameters) {
+		for (TypeParam typeParameter : typeParameters) withTypeParameter(typeParameter);
 		return this;
 	}
 

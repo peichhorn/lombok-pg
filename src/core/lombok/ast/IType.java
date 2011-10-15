@@ -74,7 +74,9 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public String name();
 
-	public List<TypeRef> typeParameters();
+	public List<TypeRef> typeArguments();
+
+	public List<TypeParam> typeParameters();
 
 	public List<Annotation> annotations();
 

@@ -122,7 +122,7 @@ public class HandleBuilderAndExtension {
 			}
 
 			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
-			new EclispeBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new EclipseParameterSanitizer());
+			new EclispeBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 	

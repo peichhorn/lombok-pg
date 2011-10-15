@@ -98,8 +98,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public boolean returns(final String typeName) {
 		final JCExpression returnType = returnType();
-		if (returnType == null)
-			return false;
+		if (returnType == null) return false;
 		final String type;
 		if (returnType instanceof JCTypeApply) {
 			type = ((JCTypeApply) returnType).clazz.type.toString();
@@ -114,8 +113,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public void replaceReturnType(final lombok.ast.TypeRef returnType) {
-		if (isConstructor())
-			return;
+		if (isConstructor()) return;
 		get().restype = build(returnType);
 	}
 
@@ -132,12 +130,9 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public AccessLevel accessLevel() {
-		if ((get().mods.flags & PUBLIC) != 0)
-			return AccessLevel.PUBLIC;
-		if ((get().mods.flags & PROTECTED) != 0)
-			return AccessLevel.PROTECTED;
-		if ((get().mods.flags & PRIVATE) != 0)
-			return AccessLevel.PRIVATE;
+		if ((get().mods.flags & PUBLIC) != 0) return AccessLevel.PUBLIC;
+		if ((get().mods.flags & PROTECTED) != 0) return AccessLevel.PROTECTED;
+		if ((get().mods.flags & PRIVATE) != 0) return AccessLevel.PRIVATE;
 		return AccessLevel.PACKAGE;
 	}
 
@@ -176,8 +171,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	public JavacNode getAnnotation(final String typeName) {
 		JavacNode annotationNode = null;
 		for (JavacNode child : node().down()) {
-			if (child.getKind() != Kind.ANNOTATION)
-				continue;
+			if (child.getKind() != Kind.ANNOTATION) continue;
 			if (Javac.matchesType((JCAnnotation) child.get(), typeName)) {
 				annotationNode = child;
 			}
@@ -293,8 +287,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		for (JCVariableDecl param : get().params) {
 			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(param.vartype) : Type(param.vartype);
 			lombok.ast.Argument arg = Arg(argType, string(param.name));
-			if (styles.contains(INCLUDE_ANNOTATIONS))
-				arg.withAnnotations(annotations(param.mods));
+			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(param.mods));
 			methodArguments.add(arg);
 		}
 		return methodArguments;
@@ -302,8 +295,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public List<lombok.ast.TypeParam> typeParameters() {
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
-		if (isConstructor())
-			return typeParameters;
+		if (isConstructor()) return typeParameters;
 		for (JCTypeParameter typaram : get().typarams) {
 			final lombok.ast.TypeParam typeParam = TypeParam(string(typaram.name));
 			for (JCExpression expr : typaram.bounds) {

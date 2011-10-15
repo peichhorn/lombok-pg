@@ -119,7 +119,7 @@ public class HandleBuilderAndExtension {
 			}
 
 			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
-			new JavacBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new JavacParameterSanitizer());
+			new JavacBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 

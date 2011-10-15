@@ -23,6 +23,7 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
+import static lombok.core.util.Names.string;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
 import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
@@ -47,6 +48,7 @@ import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
@@ -236,17 +238,31 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 		return new String(get().name);
 	}
 
-	public List<lombok.ast.TypeRef> typeParameters() {
-		final List<lombok.ast.TypeRef> typeParameters = new ArrayList<lombok.ast.TypeRef>();
-		if (isNotEmpty(get().typeParameters)) for (TypeParameter param : get().typeParameters) {
-			typeParameters.add(Type(new String(param.name)));
+	public List<lombok.ast.TypeRef> typeArguments() {
+		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
+		if (isNotEmpty(get().typeParameters)) for (TypeParameter typaram : get().typeParameters) {
+			typeArguments.add(Type(string(typaram.name)));
+		}
+		return typeArguments;
+	}
+
+	public List<lombok.ast.TypeParam> typeParameters() {
+		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
+		if (isNotEmpty(get().typeParameters)) for (TypeParameter typaram : get().typeParameters) {
+			lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
+			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
+			if (isNotEmpty(typaram.bounds)) for (TypeReference bound : typaram.bounds) {
+				typeParameter.withBound(Type(bound));
+			}
+			typeParameters.add(typeParameter);
 		}
 		return typeParameters;
 	}
+
 	public List<lombok.ast.Annotation> annotations() {
 		return annotations(get().annotations);
 	}
-	
+
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		if (isNotEmpty(anns)) for (Annotation annotation : anns) {

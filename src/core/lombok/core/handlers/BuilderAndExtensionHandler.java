@@ -36,20 +36,23 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 	public static final String BUILDER = "$Builder";
 
 	public void handleBuilder(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
+		final TYPE_TYPE type = builderData.getType();
 		final List<TypeRef> requiredFieldDefTypes = builderData.getRequiredFieldDefTypes();
 		final List<TypeRef> interfaceTypes = new ArrayList<TypeRef>(requiredFieldDefTypes);
 		interfaceTypes.add(Type(OPTIONAL_DEF));
-		TypeRef fieldDefType = builderData.getRequiredFields().isEmpty() ? Type(OPTIONAL_DEF) : requiredFieldDefTypes.get(0);
+		for (TypeRef interfaceType : interfaceTypes) interfaceType.withTypeArguments(type.typeArguments());
+		final List<AbstractMethodDecl<?>> builderMethods = new ArrayList<AbstractMethodDecl<?>>();
+		final TypeRef fieldDefType = builderData.getRequiredFields().isEmpty() ? Type(OPTIONAL_DEF) : requiredFieldDefTypes.get(0);
 
 		createConstructor(builderData);
 		createInitializeBuilderMethod(builderData, fieldDefType);
-		List<AbstractMethodDecl<?>> builderMethods = new ArrayList<AbstractMethodDecl<?>>();
 		createRequiredFieldInterfaces(builderData, builderMethods);
 		createOptionalFieldInterface(builderData, builderMethods);
 		createBuilder(builderData, interfaceTypes, builderMethods);
 	}
 
-	public void handleExtension(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final METHOD_TYPE method, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handleExtension(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final METHOD_TYPE method, final IParameterValidator<METHOD_TYPE> validation,
+			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		TYPE_TYPE type = builderData.getType();
 		IExtensionCollector extensionCollector = builderData.getExtensionCollector().withRequiredFieldNames(builderData.getAllRequiredFieldNames());
 		collectExtensions(method, extensionCollector);
@@ -61,18 +64,19 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			} else {
 				interfaceType = type.<TYPE_TYPE>memberType(OPTIONAL_DEF);
 			}
-			String methodName = method.name();
-			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), methodName).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
+			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
+					.withStatements(validation.validateParameterOf(method)) //
+					.withStatements(sanitizer.sanitizeParameterOf(method)) //
 					.withStatements(method.statements()) //
 					.withStatement(Return(This())));
-			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
+			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
 			type.removeMethod(method);
 		}
 	}
 
 	private void createConstructor(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
 		TYPE_TYPE type = builderData.getType();
-		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER), "builder").makeFinal()).withImplicitSuper();
+		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER).withTypeArguments(type.typeArguments()), "builder").makeFinal()).withImplicitSuper();
 		for (final FIELD_TYPE field : builderData.getAllFields()) {
 			final String fieldName = name(field);
 			constructorDecl.withStatement(Assign(Field(fieldName), Field(Name("builder"), fieldName)));
@@ -82,7 +86,8 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 
 	private void createInitializeBuilderMethod(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final TypeRef fieldDefType) {
 		final TYPE_TYPE type = builderData.getType();
-		type.injectMethod(MethodDecl(fieldDefType, decapitalize(type.name())).makeStatic().withAccessLevel(builderData.getLevel()).withStatement(Return(New(Type(BUILDER)))));
+		type.injectMethod(MethodDecl(fieldDefType, decapitalize(type.name())).makeStatic().withAccessLevel(builderData.getLevel()).withTypeParameters(type.typeParameters()) //
+			.withStatement(Return(New(Type(BUILDER).withTypeArguments(type.typeArguments())))));
 	}
 
 	private void createRequiredFieldInterfaces(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final List<AbstractMethodDecl<?>> builderMethods) {
@@ -103,7 +108,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
 			createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 
-			type.injectType(InterfaceDecl(name).makePublic().makeStatic().withMethods(interfaceMethods));
+			type.injectType(InterfaceDecl(name).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 		}
 	}
 
@@ -130,22 +135,24 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			createMethodCall(builderData, callMethod, interfaceMethods, builderMethods);
 		}
 
-		type.injectType(InterfaceDecl(OPTIONAL_DEF).makePublic().makeStatic().withMethods(interfaceMethods));
+		type.injectType(InterfaceDecl(OPTIONAL_DEF).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 	}
 
 	private void createFluentSetter(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final String typeName, final FIELD_TYPE field,
 			final List<AbstractMethodDecl<?>> interfaceMethods, final List<AbstractMethodDecl<?>> builderMethods) {
+		TYPE_TYPE type = builderData.getType();
 		String fieldName = name(field);
 		String methodName = camelCase(builderData.getPrefix(), fieldName);
 		final Argument arg0 = Arg(Type(type(field)), fieldName).makeFinal();
-		builderMethods.add(MethodDecl(Type(typeName), methodName).makePublic().implementing().withArgument(arg0) //
+		builderMethods.add(MethodDecl(Type(typeName).withTypeArguments(type.typeArguments()), methodName).makePublic().implementing().withArgument(arg0) //
 			.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 			.withStatement(Return(This())));
-		interfaceMethods.add(MethodDecl(Type(typeName), methodName).makePublic().withNoBody().withArgument(arg0));
+		interfaceMethods.add(MethodDecl(Type(typeName).withTypeArguments(type.typeArguments()), methodName).makePublic().withNoBody().withArgument(arg0));
 	}
 
 	private void createCollectionMethods(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final FIELD_TYPE field,
 			final List<AbstractMethodDecl<?>> interfaceMethods, final List<AbstractMethodDecl<?>> builderMethods) {
+		TYPE_TYPE type = builderData.getType();
 		TypeRef elementType = Type(Object.class);
 		TypeRef collectionType = Type(Collection.class);
 		Object[] typeArguments = getTypeArguments(type(field));
@@ -159,23 +166,24 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		{ // add
 			String addMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			final Argument arg0 = Arg(elementType, "arg0").makeFinal();
-			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), addMethodName).makePublic().implementing().withArgument(arg0) //
+			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), addMethodName).makePublic().implementing().withArgument(arg0) //
 				.withStatement(Call(Field(fieldName), "add").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), addMethodName).makePublic().withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), addMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 		{ // addAll
 			String addAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			final Argument arg0 = Arg(collectionType, "arg0").makeFinal();
-			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), addAllMethodName).makePublic().implementing().withArgument(arg0) //
+			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), addAllMethodName).makePublic().implementing().withArgument(arg0) //
 				.withStatement(Call(Field(fieldName), "addAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), addAllMethodName).makePublic().withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), addAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 	}
 
 	private void createMapMethods(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final FIELD_TYPE field, final List<AbstractMethodDecl<?>> interfaceMethods,
 			final List<AbstractMethodDecl<?>> builderMethods) {
+		TYPE_TYPE type = builderData.getType();
 		TypeRef keyType = Type(Object.class);
 		TypeRef valueType = Type(Object.class);
 		TypeRef mapType = Type(Map.class);
@@ -193,26 +201,27 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			final String putMethodName = singular(camelCase(builderData.getPrefix(), fieldName));
 			final Argument arg0 = Arg(keyType, "arg0").makeFinal();
 			final Argument arg1 = Arg(valueType, "arg1").makeFinal();
-			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), putMethodName).makePublic().implementing().withArgument(arg0).withArgument(arg1) //
+			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), putMethodName).makePublic().implementing().withArgument(arg0).withArgument(arg1) //
 				.withStatement(Call(Field(fieldName), "put").withArgument(Name("arg0")).withArgument(Name("arg1"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), putMethodName).makePublic().withNoBody().withArgument(arg0).withArgument(arg1));
+			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), putMethodName).makePublic().withNoBody().withArgument(arg0).withArgument(arg1));
 		}
 		{ // putAll
 			String putAllMethodName = camelCase(builderData.getPrefix(), fieldName);
 			final Argument arg0 = Arg(mapType, "arg0").makeFinal();
-			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF), putAllMethodName).makePublic().implementing().withArgument(arg0) //
+			builderMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), putAllMethodName).makePublic().implementing().withArgument(arg0) //
 				.withStatement(Call(Field(fieldName), "putAll").withArgument(Name("arg0"))) //
 				.withStatement(Return(This())));
-			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF), putAllMethodName).makePublic().withNoBody().withArgument(arg0));
+			interfaceMethods.add(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), putAllMethodName).makePublic().withNoBody().withArgument(arg0));
 		}
 	}
 
 	private void createBuildMethod(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final String typeName, final List<AbstractMethodDecl<?>> interfaceMethods,
 			final List<AbstractMethodDecl<?>> builderMethods) {
-		builderMethods.add(MethodDecl(Type(typeName), "build").makePublic().implementing() //
-			.withStatement(Return(New(Type(typeName)).withArgument(This()))));
-		interfaceMethods.add(MethodDecl(Type(typeName), "build").makePublic().withNoBody());
+		TYPE_TYPE type = builderData.getType();
+		builderMethods.add(MethodDecl(Type(typeName).withTypeArguments(type.typeArguments()), "build").makePublic().implementing() //
+			.withStatement(Return(New(Type(typeName).withTypeArguments(type.typeArguments())).withArgument(This()))));
+		interfaceMethods.add(MethodDecl(Type(typeName).withTypeArguments(type.typeArguments()), "build").makePublic().withNoBody());
 	}
 
 	private void createMethodCall(final IBuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final String methodName, final List<AbstractMethodDecl<?>> interfaceMethods,
@@ -251,7 +260,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			final List<AbstractMethodDecl<?>> builderMethods) {
 		TYPE_TYPE type = builderData.getType();
 		builderMethods.add(ConstructorDecl(BUILDER).makePrivate().withImplicitSuper());
-		type.injectType(ClassDecl(BUILDER).makePrivate().makeStatic().implementing(interfaceTypes) //
+		type.injectType(ClassDecl(BUILDER).withTypeParameters(type.typeParameters()).makePrivate().makeStatic().implementing(interfaceTypes) //
 			.withFields(createBuilderFields(builderData)).withMethods(builderMethods));
 	}
 
