@@ -32,7 +32,7 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?>> {
+public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?, ?>> {
 	private static final String PROPERTY_SUPPORT_FIELD_NAME = "propertySupport";
 	private static final String LISTENER_ARG_NAME = "listener";
 	private static final String[] PROPERTY_CHANGE_METHOD_NAMES = array("addPropertyChangeListener", "removePropertyChangeListener");
@@ -65,6 +65,6 @@ public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMeth
 	private void generateChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
 		if (type.hasMethod(methodName)) return;
 		type.injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(PropertyChangeListener.class), LISTENER_ARG_NAME)) //
-				.withStatement(Call(Field(PROPERTY_SUPPORT_FIELD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
+			.withStatement(Call(Field(PROPERTY_SUPPORT_FIELD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 }

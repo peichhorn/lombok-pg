@@ -53,7 +53,6 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
-import lombok.ast.IType;
 import lombok.core.AST.Kind;
 import lombok.core.util.Cast;
 import lombok.eclipse.EclipseNode;
@@ -61,7 +60,7 @@ import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
 import lombok.eclipse.handlers.EclipseHandlerUtil.MemberExistsResult;
 
-public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTNode, TypeDeclaration, AbstractMethodDeclaration> {
+public final class EclipseType implements lombok.ast.IType<EclipseMethod, EclipseField, EclipseNode, ASTNode, TypeDeclaration, AbstractMethodDeclaration> {
 	private final EclipseNode typeNode;
 	private final ASTNode source;
 	private final EclipseASTMaker builder;
@@ -111,7 +110,7 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 		return get().superclass != null;
 	}
 
-	public <T extends IType<?, ?, ?, ?, ?>> T memberType(final String typeName) {
+	public <T extends lombok.ast.IType<?, ?, ?, ?, ?, ?>> T memberType(final String typeName) {
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
@@ -128,6 +127,15 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 			methods.add(EclipseMethod.methodOf(child, source));
 		}
 		return methods;
+	}
+
+	public List<EclipseField> fields() {
+		List<EclipseField> fields = new ArrayList<EclipseField>();
+		for (EclipseNode child : node().down()) {
+			if (child.getKind() != Kind.METHOD) continue;
+			fields.add(EclipseField.fieldOf(child, source));
+		}
+		return fields;
 	}
 
 	public boolean hasMultiArgumentConstructor() {
@@ -235,7 +243,7 @@ public final class EclipseType implements IType<EclipseMethod, EclipseNode, ASTN
 	}
 
 	public String name() {
-		return new String(get().name);
+		return node().getName();
 	}
 
 	public List<lombok.ast.TypeRef> typeArguments() {

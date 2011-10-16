@@ -204,7 +204,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public String name() {
-		return new String(get().selector);
+		return node().getName();
 	}
 
 	public void makePrivate() {

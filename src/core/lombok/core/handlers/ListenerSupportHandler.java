@@ -29,7 +29,7 @@ import java.util.List;
 
 import lombok.ast.*;
 
-public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends IMethod<?, ?, ? , ?>, ?, ?, ?, ?>> {
+public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends IMethod<?, ?, ? , ?>, ?, ?, ?, ?, ?>> {
 
 	public void addListenerField(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));

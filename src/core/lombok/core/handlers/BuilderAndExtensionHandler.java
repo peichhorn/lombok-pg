@@ -31,7 +31,7 @@ import java.util.*;
 import lombok.*;
 import lombok.ast.*;
 
-public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE> {
+public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE> {
 	public static final String OPTIONAL_DEF = "$OptionalDef";
 	public static final String BUILDER = "$Builder";
 
@@ -65,10 +65,10 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				interfaceType = type.<TYPE_TYPE>memberType(OPTIONAL_DEF);
 			}
 			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
-					.withStatements(validation.validateParameterOf(method)) //
-					.withStatements(sanitizer.sanitizeParameterOf(method)) //
-					.withStatements(method.statements()) //
-					.withStatement(Return(This())));
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatements(method.statements()) //
+				.withStatement(Return(This())));
 			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
 			type.removeMethod(method);
 		}
@@ -313,7 +313,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		public boolean isExtension();
 	}
 
-	public static interface IBuilderData<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE> {
+	public static interface IBuilderData<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE> {
 
 		public TYPE_TYPE getType();
 

@@ -44,8 +44,6 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
-import lombok.ast.IType;
-import lombok.ast.WrappedMethodDecl;
 import lombok.core.AST.Kind;
 import lombok.core.util.Cast;
 import lombok.javac.JavacNode;
@@ -53,7 +51,7 @@ import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.JavacHandlerUtil;
 import lombok.javac.handlers.JavacHandlerUtil.MemberExistsResult;
 
-public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JCClassDecl, JCMethodDecl> {
+public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField, JavacNode, JCTree, JCClassDecl, JCMethodDecl> {
 	private final JavacNode typeNode;
 	private final JCTree source;
 	private final JavacASTMaker builder;
@@ -118,7 +116,7 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 		return annotationNode;
 	}
 
-	public <T extends IType<?, ?, ?, ?, ?>> T memberType(final String typeName) {
+	public <T extends lombok.ast.IType<?, ?, ?, ?, ?, ?>> T memberType(final String typeName) {
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
@@ -135,6 +133,15 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 			methods.add(JavacMethod.methodOf(child, source));
 		}
 		return methods;
+	}
+
+	public List<JavacField> fields() {
+		List<JavacField> fields = new ArrayList<JavacField>();
+		for (JavacNode child : node().down()) {
+			if (child.getKind() != Kind.FIELD) continue;
+			fields.add(JavacField.fieldOf(child, source));
+		}
+		return fields;
 	}
 
 	public boolean hasMultiArgumentConstructor() {
@@ -180,8 +187,8 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 	private JCMethodDecl injectMethodImpl(final lombok.ast.AbstractMethodDecl<?> methodDecl) {
 		final JCMethodDecl method = builder.build(methodDecl, JCMethodDecl.class);
 		JavacHandlerUtil.injectMethod(typeNode, method);
-		if (methodDecl instanceof WrappedMethodDecl) {
-			WrappedMethodDecl node = (WrappedMethodDecl)methodDecl;
+		if (methodDecl instanceof lombok.ast.WrappedMethodDecl) {
+			lombok.ast.WrappedMethodDecl node = (lombok.ast.WrappedMethodDecl)methodDecl;
 			MethodSymbol methodSymbol = (MethodSymbol) node.getWrappedObject();
 			JCClassDecl tree = get();
 			ClassSymbol c = tree.sym;
@@ -209,7 +216,7 @@ public final class JavacType implements IType<JavacMethod, JavacNode, JCTree, JC
 	}
 
 	public String name() {
-		return get().name.toString();
+		return node().getName();
 	}
 	
 	public List<lombok.ast.TypeRef> typeArguments() {

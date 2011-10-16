@@ -29,7 +29,7 @@ import java.util.*;
 import lombok.*;
 import lombok.ast.*;
 
-public final class ActionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
+public final class ActionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 
 	public void rebuildActionMethod(final METHOD_TYPE method, final TemplateData template, final IParameterValidator<METHOD_TYPE> validation,
 			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
@@ -43,15 +43,14 @@ public final class ActionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?
 		}
 		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes);
 		final MethodDecl innerMethod = MethodDecl(Type("void"), template.methodName).withArguments(boxedArguments).makePublic().implementing() //
-				.withStatements(validation.validateParameterOf(method)) //
-				.withStatements(sanitizer.sanitizeParameterOf(method)) //
-				.withStatements(method.statements());
+			.withStatements(validation.validateParameterOf(method)) //
+			.withStatements(sanitizer.sanitizeParameterOf(method)) //
+			.withStatements(method.statements());
 		final MethodDecl actionMethod = MethodDecl(interfaceType, method.name()).withArguments(arguments).withTypeParameters(method.typeParameters())
-				.withAnnotations(method.annotations()) //
-				.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(innerMethod))));
-		if (method.isStatic())
-			actionMethod.makeStatic();
+			.withAnnotations(method.annotations()) //
+			.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
+				.withMethod(innerMethod))));
+		if (method.isStatic()) actionMethod.makeStatic();
 		actionMethod.withAccessLevel(method.accessLevel());
 		type.injectMethod(actionMethod);
 		type.removeMethod(method);
@@ -61,8 +60,7 @@ public final class ActionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?
 	private List<Argument> withUnderscoreName(final List<Argument> arguments) {
 		final List<Argument> filtedList = new ArrayList<Argument>();
 		for (Argument argument : arguments) {
-			if (argument.getName().startsWith("_"))
-				filtedList.add(argument);
+			if (argument.getName().startsWith("_")) filtedList.add(argument);
 		}
 		return filtedList;
 	}

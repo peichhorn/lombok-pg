@@ -25,7 +25,7 @@ import java.util.List;
 
 import lombok.core.LombokNode;
 
-public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> {
+public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> {
 	public <T extends AST_BASE_TYPE> T build(Node node);
 
 	public <T extends AST_BASE_TYPE> T build(Node node, Class<T> extectedType);
@@ -44,9 +44,11 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, LOMBOK_NODE_TYPE
 
 	public boolean hasSuperClass();
 
-	public <T extends IType<?, ?, ?, ?, ?>> T memberType(String typeName);
+	public <T extends IType<?, ?, ?, ?, ?, ?>> T memberType(String typeName);
 
 	public List<METHOD_TYPE> methods();
+
+	public List<FIELD_TYPE> fields();
 
 	public boolean hasMultiArgumentConstructor();
 

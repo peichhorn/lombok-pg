@@ -28,7 +28,7 @@ import java.util.List;
 
 import lombok.ast.*;
 
-public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
+public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 
 	/**
 	 * Checks if there is an entry point with the provided name.
@@ -68,7 +68,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 		}
 
 		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-				.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
+			.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
 	}
 
 	public static interface IArgumentProvider {

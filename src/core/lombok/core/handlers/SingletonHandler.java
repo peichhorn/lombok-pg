@@ -29,7 +29,7 @@ import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
 
 @RequiredArgsConstructor
-public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
+public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 	private final TYPE_TYPE type;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 	
