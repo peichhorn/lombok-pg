@@ -21,28 +21,16 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.ErrorMessages.*;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
-
-import java.util.*;
-import java.util.regex.Pattern;
-
 import lombok.*;
-import lombok.ast.*;
-import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.TransformationsUtil;
+import lombok.core.handlers.FluentSetterHandler;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.ast.EclipseField;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.AbstractVariableDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -50,64 +38,18 @@ import org.mangosdk.spi.ProviderFor;
  */
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
-	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
 
 	@Override public void handle(final AnnotationValues<FluentSetter> annotation, final Annotation ast, final EclipseNode annotationNode) {
-		EclipseNode mayBeField = annotationNode.up();
-		if (mayBeField == null) return;
-		EclipseType type = EclipseType.typeOf(annotationNode, ast);
-		List<EclipseNode> fields = new ArrayList<EclipseNode>(annotationNode.upFromAnnotationToFields());
-		if (mayBeField.getKind() == Kind.FIELD) {
-			fields.addAll(annotationNode.upFromAnnotationToFields());
-		} else if (mayBeField.getKind() == Kind.TYPE) {
-			for (EclipseNode field : type.node().down()) {
-				if (field.getKind() != Kind.FIELD) continue;
-				FieldDeclaration fieldDecl = (FieldDeclaration) field.get();
-				if (!findAnnotations(fieldDecl, SETTER_PATTERN).isEmpty()) continue;
-				if (!EclipseHandlerUtil.filterField(fieldDecl)) continue;
-				if ((fieldDecl.modifiers & AccFinal) != 0) continue;
-				fields.add(field);
+		FluentSetter annotationInstance = annotation.getInstance();
+		new FluentSetterHandler<EclipseType, EclipseField, EclipseNode, ASTNode>(annotationNode, ast) {
+
+			@Override protected EclipseType typeOf(EclipseNode node, ASTNode ast) {
+				return EclipseType.typeOf(node, ast);
 			}
-		} else {
-			annotationNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
-			return;
-		}
-		generateSetter(fields, annotation.getInstance(), type);
-	}
 
-	private void generateSetter(final List<EclipseNode> fields, final FluentSetter setter, final EclipseType type) {
-		for (EclipseNode fieldNode : fields) {
-			generateSetter(setter, fieldNode, type);
-		}
-	}
-
-	private void generateSetter(final FluentSetter setter, final EclipseNode fieldNode, final EclipseType type) {
-		FieldDeclaration field = (FieldDeclaration) fieldNode.get();
-		String fieldName = fieldNode.getName();
-		TypeReference fieldType = field.type;
-		if (type.hasMethod(fieldName)) return;
-		List<lombok.ast.Annotation> nonNulls = findAnnotations(field, TransformationsUtil.NON_NULL_PATTERN);
-		List<lombok.ast.Annotation> nullables = findAnnotations(field, TransformationsUtil.NULLABLE_PATTERN);
-		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeArguments()), fieldName).withAccessLevel(setter.value()) //
-			.withArgument(Arg(Type(fieldType), fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
-		if (!nonNulls.isEmpty() && !isPrimitive(fieldType)) {
-			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
-		}
-		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-			.withStatement(Return(This()));
-		type.injectMethod(methodDecl);
-	}
-
-	private List<lombok.ast.Annotation> findAnnotations(final AbstractVariableDeclaration variable, final Pattern namePattern) {
-		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(variable.annotations)) for (Annotation annotation : variable.annotations) {
-			TypeReference typeRef = annotation.type;
-			char[][] typeName = typeRef.getTypeName();
-			String suspect = new String(typeName[typeName.length - 1]);
-			if (namePattern.matcher(suspect).matches()) {
-				result.add(Annotation(Type(typeRef)));
+			@Override protected EclipseField fieldOf(EclipseNode node, ASTNode ast) {
+				return EclipseField.fieldOf(node, ast);
 			}
-		}
-		return result;
+		}.handle(annotationInstance.value(), annotationInstance.getClass());
 	}
 }

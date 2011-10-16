@@ -21,25 +21,19 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.*;
-import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
-import lombok.core.DiagnosticsReceiver;
+import lombok.core.handlers.LazyGetterHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacField;
 import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 /**
  * Handles the {@code lombok.LazyGetter} annotation for javac.
@@ -51,68 +45,8 @@ public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 		deleteAnnotationIfNeccessary(annotationNode, LazyGetter.class);
 		deleteImportFromCompilationUnit(annotationNode, "lombok.AccessLevel");
 		JavacType type = JavacType.typeOf(annotationNode, ast);
-		Class<? extends java.lang.annotation.Annotation> annotationType = LazyGetter.class;
+		JavacField field = JavacField.fieldOf(annotationNode, ast);
 		LazyGetter annotationInstance = annotation.getInstance();
-		createLazyGetterForField(type, annotationInstance.value(), annotationNode.up(), annotationNode, annotationType);
-	}
-
-	private void createLazyGetterForField(final JavacType type, final AccessLevel level, final JavacNode fieldNode, final DiagnosticsReceiver diagnosticsReceiver,
-			final Class<? extends java.lang.annotation.Annotation> annotationType) {
-		if (fieldNode.getKind() != Kind.FIELD) {
-			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(annotationType));
-			return;
-		}
-
-		JCVariableDecl fieldDecl = (JCVariableDecl)fieldNode.get();
-		
-		if ((fieldDecl.mods.flags & Flags.PRIVATE) == 0 || (fieldDecl.mods.flags & Flags.FINAL) == 0) {
-			diagnosticsReceiver.addError(canBeUsedOnPrivateFinalFieldOnly(annotationType));
-			return;
-		}
-		if (fieldDecl.init == null) {
-			diagnosticsReceiver.addError(canBeUsedOnInitializedFieldOnly(annotationType));
-			return;
-		}
-
-		String methodName = toGetterName(fieldDecl);
-
-		for (String altName : toAllGetterNames(fieldDecl)) {
-			switch (methodExists(altName, fieldNode, false)) {
-			case EXISTS_BY_LOMBOK:
-				return;
-			case EXISTS_BY_USER:
-				String altNameExpl = "";
-				if (!altName.equals(methodName)) altNameExpl = String.format(" (%s)", altName);
-				diagnosticsReceiver.addWarning(String.format("Not generating %s(): A method with that name already exists%s", methodName, altNameExpl));
-				return;
-			default:
-			case NOT_EXISTS:
-				//continue scanning the other alt names.
-			}
-		}
-
-		createGetter(type, level, fieldDecl, methodName);
-	}
-
-	private void createGetter(final JavacType type, final AccessLevel level, final JCVariableDecl field, final String methodName) {
-		String fieldName = string(field.name);
-		String initializedFieldName = "$" + fieldName + "Initialized";
-		String lockFieldName = "$" + fieldName + "Lock";
-
-		Expression init = Expr(field.init);
-		field.init = null;
-		field.mods.flags &= ~Flags.FINAL;
-
-		type.injectField(FieldDecl(Type("boolean"), initializedFieldName).makePrivate().makeVolatile());
-		type.injectField(FieldDecl(Type("java.lang.Object").withDimensions(1), lockFieldName).makePrivate().makeFinal() //
-			.withInitialization(NewArray(Type("java.lang.Object")).withDimensionExpression(Number(0))));
-
-		type.injectMethod(MethodDecl(Type(field.vartype), methodName).withAccessLevel(level) //
-			.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
-				.withStatement(Synchronized(Field(lockFieldName)) //
-					.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
-						.withStatement(Assign(Field(fieldName), init)) //
-						.withStatement(Assign(Field(initializedFieldName), True()))))))) //
-			.withStatement(Return(Field(fieldName))));
+		new LazyGetterHandler<JavacType, JavacField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.getClass());
 	}
 }

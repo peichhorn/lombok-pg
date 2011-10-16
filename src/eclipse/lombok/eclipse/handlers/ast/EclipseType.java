@@ -132,7 +132,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	public List<EclipseField> fields() {
 		List<EclipseField> fields = new ArrayList<EclipseField>();
 		for (EclipseNode child : node().down()) {
-			if (child.getKind() != Kind.METHOD) continue;
+			if (child.getKind() != Kind.FIELD) continue;
 			fields.add(EclipseField.fieldOf(child, source));
 		}
 		return fields;

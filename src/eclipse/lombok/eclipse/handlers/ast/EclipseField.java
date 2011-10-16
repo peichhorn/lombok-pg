@@ -23,13 +23,22 @@ package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static lombok.ast.AST.*;
+import static lombok.core.util.Arrays.isNotEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 import lombok.eclipse.EclipseNode;
+import lombok.eclipse.handlers.EclipseHandlerUtil;
 
 public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNode, FieldDeclaration> {
 	private final EclipseNode fieldNode;
@@ -59,12 +68,24 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		return builder.build(nodes, extectedType);
 	}
 
+	public boolean isPrivate() {
+		return (get().modifiers & AccPrivate) != 0;
+	}
+
 	public boolean isFinal() {
 		return (get().modifiers & AccFinal) != 0;
 	}
 
 	public boolean isStatic() {
 		return (get().modifiers & AccStatic) != 0;
+	}
+
+	public boolean isInitialized() {
+		return get().initialization != null;
+	}
+
+	public boolean isPrimitive() {
+		return EclipseHandlerUtil.isPrimitive(get().type);
 	}
 
 	public FieldDeclaration get() {
@@ -79,12 +100,34 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		return Type(get().type);
 	}
 
+	public lombok.ast.TypeRef boxedType() {
+		return EclipseASTUtil.boxedType(get().type);
+	}
+
+	public boolean isOfType(final String typeName) {
+		TypeReference variableType = get().type;
+		if (variableType == null) return false;
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (char[] elem : variableType.getTypeName()) {
+			if (first) first = false;
+			else sb.append('.');
+			sb.append(elem);
+		}
+		String type = sb.toString();
+		return type.endsWith(typeName);
+	}
+
 	public String name() {
 		return node().getName();
 	}
 
 	public lombok.ast.Expression initialization() {
 		return get().initialization == null ? null : Expr(get().initialization);
+	}
+
+	public void replaceInitialization(lombok.ast.Expression initialization) {
+		get().initialization = (initialization == null) ? null : build(initialization, Expression.class);
 	}
 
 	public void makePrivate() {
@@ -104,6 +147,44 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 	public void makePublic() {
 		makePackagePrivate();
 		get().modifiers |= AccPublic;
+	}
+
+	public void makeNonFinal() {
+		get().modifiers &= ~AccFinal;
+	}
+
+	public List<lombok.ast.TypeRef> typeArguments() {
+		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
+		final TypeReference type = get().type;
+		if (type instanceof ParameterizedQualifiedTypeReference) {
+			ParameterizedQualifiedTypeReference typeRef = (ParameterizedQualifiedTypeReference) type;
+			if (isNotEmpty(typeRef.typeArguments)) for (TypeReference typeArgument : typeRef.typeArguments[typeRef.typeArguments.length - 1]) {
+				typeArguments.add(Type(typeArgument));
+			}
+		} else if (type instanceof ParameterizedSingleTypeReference) {
+			ParameterizedSingleTypeReference typeRef = (ParameterizedSingleTypeReference) type;
+			if (isNotEmpty(typeRef.typeArguments)) for (TypeReference typeArgument : typeRef.typeArguments) {
+				typeArguments.add(Type(typeArgument));
+			}
+		}
+		return typeArguments;
+	}
+
+	public List<lombok.ast.Annotation> annotations() {
+		return annotations(null);
+	}
+
+	public List<lombok.ast.Annotation> annotations(final Pattern namePattern) {
+		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
+		if (isNotEmpty(get().annotations)) for (Annotation annotation : get().annotations) {
+			TypeReference typeRef = annotation.type;
+			char[][] typeName = typeRef.getTypeName();
+			String suspect = new String(typeName[typeName.length - 1]);
+			if ((namePattern == null) || namePattern.matcher(suspect).matches()) {
+				result.add(Annotation(Type(typeRef)));
+			}
+		}
+		return result;
 	}
 
 	@Override

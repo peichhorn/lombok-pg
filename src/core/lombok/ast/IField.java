@@ -22,6 +22,7 @@
 package lombok.ast;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import lombok.core.LombokNode;
 
@@ -34,9 +35,15 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node> nodes, Class<T> extectedType);
 
+	public boolean isPrivate();
+
 	public boolean isFinal();
 
 	public boolean isStatic();
+
+	public boolean isInitialized();
+
+	public boolean isPrimitive();
 
 	public AST_VARIABLE_DECL_TYPE get();
 
@@ -44,9 +51,15 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public TypeRef type();
 
+	public TypeRef boxedType();
+
+	public boolean isOfType(final String typeName);
+
 	public String name();
 
 	public Expression initialization();
+	
+	public void replaceInitialization(Expression initialization);
 
 	public void makePrivate();
 
@@ -55,4 +68,12 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 	public void makeProtected();
 
 	public void makePublic();
+
+	public void makeNonFinal();
+
+	public List<TypeRef> typeArguments();
+
+	public List<Annotation> annotations();
+
+	public List<Annotation> annotations(final Pattern namePattern);
 }

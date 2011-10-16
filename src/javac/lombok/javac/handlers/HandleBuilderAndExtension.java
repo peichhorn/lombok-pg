@@ -39,16 +39,14 @@ import lombok.javac.Javac;
 import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.handlers.ast.JavacField;
 import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleBuilderAndExtension {
@@ -123,53 +121,17 @@ public class HandleBuilderAndExtension {
 		}
 	}
 
-	private static class JavacBuilderAndExtensionHandler extends BuilderAndExtensionHandler<JavacType, JavacMethod, JCVariableDecl> {
+	private static class JavacBuilderAndExtensionHandler extends BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField> {
 
 		@Override protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
 			method.node().traverse((JavacASTVisitor) collector);
 		}
-
-		@Override protected Object[] getTypeArguments(final Object type) {
-			if (type instanceof JCTypeApply) {
-				return ((JCTypeApply) type).arguments.toArray(new JCExpression[0]);
-			}
-			return null;
-		}
-
-		@Override protected String name(final Object object) {
-			if (object instanceof JCMethodDecl) {
-				return string(((JCMethodDecl)object).name);
-			} else if (object instanceof JCVariableDecl) {
-				return string(((JCVariableDecl)object).name);
-			}
-			return null;
-		}
-
-		@Override protected Object type(final JCVariableDecl field) {
-			return field.vartype;
-		}
-
-		@Override protected String typeStringOf(final JCVariableDecl field) {
-			if (field.vartype instanceof JCTypeApply) {
-				return ((JCTypeApply)field.vartype).clazz.type.toString();
-			} else {
-				return field.vartype.type.toString();
-			}
-		}
-
-		@Override protected Object getFieldInitialization(final JCVariableDecl field) {
-			return field.init;
-		}
-
-		@Override protected void setFieldInitialization(final JCVariableDecl field, final Object init) {
-			field.init = (JCExpression) init;
-		}
 	}
 
 	@Getter
-	private static class BuilderDataCollector extends JavacASTAdapterWithTypeDepth implements IBuilderData<JavacType, JavacMethod, JCVariableDecl> {
-		private final List<JCVariableDecl> requiredFields = new ArrayList<JCVariableDecl>();
-		private final List<JCVariableDecl> optionalFields = new ArrayList<JCVariableDecl>();
+	private static class BuilderDataCollector implements IBuilderData<JavacType, JavacMethod, JavacField> {
+		private final List<JavacField> requiredFields = new ArrayList<JavacField>();
+		private final List<JavacField> optionalFields = new ArrayList<JavacField>();
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
 		private final List<String> allRequiredFieldNames = new ArrayList<String>();
 		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
@@ -181,7 +143,6 @@ public class HandleBuilderAndExtension {
 		private final Set<String> excludes;
 
 		public BuilderDataCollector(final JavacType type, final Builder builder) {
-			super(1);
 			this.type = type;
 			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
 			generateConvenientMethodsEnabled = builder.convenientMethods();
@@ -194,23 +155,12 @@ public class HandleBuilderAndExtension {
 			return new ExtensionCollector();
 		}
 
-		public IBuilderData<JavacType, JavacMethod, JCVariableDecl> collect() {
-			type.node().traverse(this);
-			return this;
-		}
-
-		@Override public List<JCVariableDecl> getAllFields() {
-			List<JCVariableDecl> allFields = new ArrayList<JCVariableDecl>(getRequiredFields());
-			allFields.addAll(getOptionalFields());
-			return allFields;
-		}
-
-		@Override public void visitField(final JavacNode fieldNode, final JCVariableDecl field) {
-			if (isOfInterest()) {
-				if ((field.mods.flags & STATIC) != 0) return;
-				String fieldName = field.name.toString();
-				if (excludes.contains(fieldName)) return;
-				if ((field.init == null) && ((field.mods.flags & FINAL) != 0)) {
+		public IBuilderData<JavacType, JavacMethod, JavacField> collect() {
+			for (JavacField field : type.fields()) {
+				if (field.isStatic()) continue;
+				String fieldName = field.name();
+				if (excludes.contains(fieldName)) continue;
+				if ((!field.isInitialized()) && field.isFinal()) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
 					String typeName = camelCase("$", fieldName, "def");
@@ -218,9 +168,16 @@ public class HandleBuilderAndExtension {
 					requiredFieldDefTypes.add(Type(typeName));
 				}
 				boolean append = new JavacBuilderAndExtensionHandler().isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
-				append |= (field.mods.flags & FINAL) == 0;
+				append |= !field.isFinal();
 				if (append) optionalFields.add(field);
 			}
+			return this;
+		}
+
+		@Override public List<JavacField> getAllFields() {
+			List<JavacField> allFields = new ArrayList<JavacField>(getRequiredFields());
+			allFields.addAll(getOptionalFields());
+			return allFields;
 		}
 	}
 

@@ -137,14 +137,14 @@ public class HandleYield extends EclipseASTAdapter {
 				.withMethod(MethodDecl(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
 		}
 		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
-					.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
-						.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
-						.withStatement(Assign(Name("$nextDefined"), True())))) //
-					.withStatement(Return(Name("$hasNext")))) //
+				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
+					.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
+					.withStatement(Assign(Name("$nextDefined"), True())))) //
+				.withStatement(Return(Name("$hasNext")))) //
 			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
-					.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
-					.withStatement(Assign(Name("$nextDefined"), False())) //
-					.withStatement(Return(Name("$next")))) //
+				.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
+				.withStatement(Assign(Name("$nextDefined"), False())) //
+				.withStatement(Return(Name("$next")))) //
 			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException"))))) //
 			.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(switchStatement)));
 

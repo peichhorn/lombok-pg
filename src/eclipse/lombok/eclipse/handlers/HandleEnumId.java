@@ -21,21 +21,16 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.*;
-import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import lombok.*;
 import lombok.core.AnnotationValues;
-import lombok.core.AST.Kind;
 import lombok.core.handlers.EnumIdHandler;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.eclipse.handlers.ast.EclipseField;
 import lombok.eclipse.handlers.ast.EclipseType;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.mangosdk.spi.ProviderFor;
 
 /**
@@ -46,14 +41,13 @@ public class HandleEnumId extends EclipseAnnotationHandler<EnumId> {
 
 	@Override
 	public void handle(final AnnotationValues<EnumId> annotation, final Annotation source, final EclipseNode annotationNode) {
-		EclipseNode fieldNode = annotationNode.up();
-		if (fieldNode.getKind() != Kind.FIELD) {
+		EclipseType type = EclipseType.typeOf(annotationNode, source);
+		EclipseField field = EclipseField.fieldOf(annotationNode, source);
+		if (field == null) {
 			annotationNode.addError(canBeUsedOnFieldOnly(EnumId.class));
 			return;
 		}
-		FieldDeclaration fieldDecl = (FieldDeclaration) fieldNode.get();
 
-		new EnumIdHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(annotationNode, source), annotationNode).handle(string(fieldDecl.name), Type(fieldDecl.type),
-				boxedType(fieldDecl.type));
+		new EnumIdHandler<EclipseType, EclipseField>(type, field, annotationNode).handle();
 	}
 }
