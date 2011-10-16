@@ -61,7 +61,7 @@ public final class Functions {
 	/**
 	 * Encapsulates a method that has two parameters and returns a value of the type specified by the R parameter.
 	 *
-	 * @param <T1> The type of the parameter of the method that this delegate encapsulates.
+	 * @param <T1> The type of the first parameter of the method that this delegate encapsulates.
 	 * @param <T2> The type of the second parameter of the method that this delegate encapsulates.
 	 * @param <R> The type of the return value of the method that this delegate encapsulates.
 	 */

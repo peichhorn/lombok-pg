@@ -29,12 +29,12 @@ import java.util.*;
 import lombok.*;
 import lombok.ast.*;
 
-public final class FunctionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
+public final class ActionFunctionAndPredicateHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 
-	public void rebuildFunctionMethod(final METHOD_TYPE method, final TemplateData template, final IParameterValidator<METHOD_TYPE> validation,
+	public void rebuildMethod(final METHOD_TYPE method, final TemplateData template, final IParameterValidator<METHOD_TYPE> validation,
 			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		final TYPE_TYPE type = method.surroundingType();
-		final TypeRef boxedReturnType = method.boxedReturns();
+		final TypeRef returnType = (template.forcedReturnType == null) ? method.boxedReturns() : Type(template.forcedReturnType);
 		final List<TypeRef> boxedArgumentTypes = new ArrayList<TypeRef>();
 		final List<Argument> arguments = withUnderscoreName(method.arguments(INCLUDE_ANNOTATIONS));
 		final List<Argument> boxedArguments = method.arguments(BOXED_TYPES, INCLUDE_ANNOTATIONS);
@@ -42,24 +42,27 @@ public final class FunctionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?,
 		for (Argument argument : boxedArguments) {
 			boxedArgumentTypes.add(argument.getType());
 		}
-		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes).withTypeArgument(boxedReturnType);
-		if (method.returns("void")) {
+		if ((template.forcedReturnType == null) && method.returns("void")) {
 			method.replaceReturns(Return(Null()));
 		}
-		final MethodDecl innerMethod = MethodDecl(boxedReturnType, template.methodName).withArguments(boxedArguments).makePublic().implementing() //
+		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes);
+		if (template.forcedReturnType == null) {
+			interfaceType.withTypeArgument(returnType);
+		}
+		final MethodDecl innerMethod = MethodDecl(returnType, template.methodName).withArguments(boxedArguments).makePublic().implementing() //
 			.withStatements(validation.validateParameterOf(method)) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatements(method.statements());
-		if (method.returns("void")) {
+		if ((template.forcedReturnType == null) && method.returns("void")) {
 			innerMethod.withStatement(Return(Null()));
 		}
-		final MethodDecl functionMethod = MethodDecl(interfaceType, method.name()).withArguments(arguments).withTypeParameters(method.typeParameters())
+		final MethodDecl methodReplacement = MethodDecl(interfaceType, method.name()).withArguments(arguments).withTypeParameters(method.typeParameters())
 			.withAnnotations(method.annotations()) //
 			.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
 				.withMethod(innerMethod))));
-		if (method.isStatic()) functionMethod.makeStatic();
-		functionMethod.withAccessLevel(method.accessLevel());
-		type.injectMethod(functionMethod);
+		if (method.isStatic()) methodReplacement.makeStatic();
+		methodReplacement.withAccessLevel(method.accessLevel());
+		type.injectMethod(methodReplacement);
 		type.removeMethod(method);
 		type.rebuild();
 	}
@@ -78,5 +81,6 @@ public final class FunctionHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?,
 	public static class TemplateData {
 		private final String typeName;
 		private final String methodName;
+		private final String forcedReturnType;
 	}
 }

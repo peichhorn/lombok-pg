@@ -146,6 +146,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<fileset dir="build/lombok-pg">
 				<include name="*lombok/Actions*.class"/>
 				<include name="*lombok/Functions*.class"/>
+				<include name="*lombok/Predicates*.class"/>
 				<include name="*lombok/TypeArguments.class"/>
 			</fileset>
 			<fileset dir="." includes="LICENSE" />

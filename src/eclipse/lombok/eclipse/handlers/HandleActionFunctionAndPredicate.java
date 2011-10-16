@@ -22,18 +22,21 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.Arrays.isNotEmpty;
-import static lombok.core.util.ErrorMessages.*;
+import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.core.util.Lists.list;
 import static lombok.core.util.Names.string;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.poss;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.*;
+import lombok.Action;
+import lombok.Function;
+import lombok.Predicate;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.FunctionHandler;
-import lombok.core.handlers.FunctionHandler.TemplateData;
+import lombok.core.handlers.ActionFunctionAndPredicateHandler;
+import lombok.core.handlers.ActionFunctionAndPredicateHandler.TemplateData;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -48,39 +51,75 @@ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
-/**
- * Handles the {@link Function} annotation for eclipse.
- */
-// @ProviderFor(EclipseAnnotationHandler.class) // TODO
-public class HandleFunction extends EclipseAnnotationHandler<Function> {
+public class HandleActionFunctionAndPredicate {
 
-	@Override
-	public void handle(final AnnotationValues<Function> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Function.class;
+	/**
+	 * Handles the {@link Action} annotation for eclipse.
+	 */
+	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	public static class HandleAction extends EclipseAnnotationHandler<Action> {
+
+		@Override
+		public void handle(final AnnotationValues<Action> annotation, final Annotation source, final EclipseNode annotationNode) {
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, "void");
+		}
+	}
+
+	/**
+	 * Handles the {@link Function} annotation for eclipse.
+	 */
+	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	public static class HandleFunction extends EclipseAnnotationHandler<Function> {
+
+		@Override
+		public void handle(final AnnotationValues<Function> annotation, final Annotation source, final EclipseNode annotationNode) {
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, null);
+		}
+	}
+
+	/**
+	 * Handles the {@link Predicate} annotation for eclipse.
+	 */
+	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	public static class HandlePredicate extends EclipseAnnotationHandler<Predicate> {
+
+		@Override
+		public void handle(final AnnotationValues<Predicate> annotation, final Annotation source, final EclipseNode annotationNode) {
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, "boolean");
+		}
+	}
+
+	public void handle(final Class<?> templates, final Annotation source, final EclipseNode annotationNode, final String forcedReturnType) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = Action.class;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}
-
-		final Class<?> templates = annotation.getInstance().template();
-		final ReferenceBinding resolvedTemplates = resolveTemplates(method.node(), source, templates);
-		if (resolvedTemplates == null) {
-			annotationNode.addError("@Function unable to resolve template type");
+		if ((forcedReturnType != null) && !method.returns(forcedReturnType)) {
+			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType.getSimpleName(), forcedReturnType));
 			return;
 		}
-		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates);
+
+		final ReferenceBinding resolvedTemplates = resolveTemplates(method.node(), source, templates);
+		if (resolvedTemplates == null) {
+			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType.getSimpleName()));
+			return;
+		}
+		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates, forcedReturnType);
 		if (matchingTemplates.isEmpty()) {
-			annotationNode.addError("@Function no template found that matches the given method signature");
+			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType.getSimpleName()));
 			return;
 		}
 		if (matchingTemplates.size() > 1) {
-			annotationNode.addError("@Function more than one template found that matches the given method signature");
+			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType.getSimpleName()));
 			return;
 		}
-		new FunctionHandler<EclipseType, EclipseMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+		new ActionFunctionAndPredicateHandler<EclipseType, EclipseMethod>().rebuildMethod(method, matchingTemplates.get(0), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+	
 	}
 
 	private ReferenceBinding resolveTemplates(final EclipseNode node, final Annotation annotation, final Class<?> templatesDef) {
@@ -91,38 +130,51 @@ public class HandleFunction extends EclipseAnnotationHandler<Function> {
 		return (ReferenceBinding) typeRef.resolveType(blockScope);
 	}
 
-	private List<TemplateData> findTemplatesFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template) {
+	private List<TemplateData> findTemplatesFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template, final String forcedReturnType) {
 		final List<TemplateData> foundTemplates = new ArrayList<TemplateData>();
-		final TemplateData templateData = templateDataFor(methodDecl, template);
+		final TemplateData templateData = templateDataFor(methodDecl, template, forcedReturnType);
 		if (templateData != null) foundTemplates.add(templateData);
 		final ReferenceBinding[] memberTypes = template.memberTypes();
 		if (isNotEmpty(memberTypes)) for (ReferenceBinding memberType : memberTypes) {
 			if (!template.isInterface() && !memberType.isStatic()) continue;
-			foundTemplates.addAll(findTemplatesFor(methodDecl, memberType));
+			foundTemplates.addAll(findTemplatesFor(methodDecl, memberType, forcedReturnType));
 		}
 		return foundTemplates;
 	}
 
-	private TemplateData templateDataFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template) {
+	private TemplateData templateDataFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template, final String forcedReturnType) {
 		if (!template.isPublic()) return null;
 		if (!template.isInterface() && !template.isAbstract()) return null;
 		final List<TypeVariableBinding> templateTypeArguments = list(template.typeVariables());
 		final List<MethodBinding> enclosedMethods = enclosedMethodsOf(template);
 		if (enclosedMethods.size() != 1) return null;
 		final MethodBinding enclosedMethod = enclosedMethods.get(0);
+		if (!matchesReturnType(enclosedMethod, forcedReturnType)) return null;
 		final List<TypeBinding> methodTypeArguments = list(enclosedMethod.parameters);
-		methodTypeArguments.add(enclosedMethod.returnType);
+		if (forcedReturnType == null) methodTypeArguments.add(enclosedMethod.returnType);
 		if (!templateTypeArguments.equals(methodTypeArguments)) return null;
-		if ((numberOfFunctionParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
-		return new TemplateData(qualifiedName(template), string(enclosedMethod.selector));
+		if (forcedReturnType == null) {
+			if ((numberOfParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
+		} else {
+			if (numberOfParameters(methodDecl) != templateTypeArguments.size()) return null;
+		}
+		return new TemplateData(qualifiedName(template), string(enclosedMethod.selector), forcedReturnType);
 	}
 
-	private int numberOfFunctionParameters(final AbstractMethodDeclaration methodDecl) {
-		int numberOfFunctionParameters = 0;
+	// for now only works for void or boolean
+	private boolean matchesReturnType(final MethodBinding method, final String forcedReturnType) {
+		if (forcedReturnType == null) return true;
+		if ("void".equals(forcedReturnType)) return method.returnType.id == TypeIds.T_void;
+		if ("boolean".equals(forcedReturnType)) return method.returnType.id == TypeIds.T_boolean;
+		return false;
+	}
+
+	private int numberOfParameters(final AbstractMethodDeclaration methodDecl) {
+		int numberOfParameters = 0;
 		if (isNotEmpty(methodDecl.arguments)) for (Argument param : methodDecl.arguments) {
-			if (!string(param.name).startsWith("_")) numberOfFunctionParameters++;
+			if (!string(param.name).startsWith("_")) numberOfParameters++;
 		}
-		return numberOfFunctionParameters;
+		return numberOfParameters;
 	}
 
 	private String qualifiedName(final TypeBinding typeBinding) {

@@ -21,17 +21,22 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.*;
-import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
+import static lombok.core.util.Names.string;
+import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.ast.JavacResolver.CLASS;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.*;
+import org.mangosdk.spi.ProviderFor;
+
+import lombok.Action;
+import lombok.Function;
+import lombok.Predicate;
 import lombok.core.AnnotationValues;
-import lombok.core.handlers.FunctionHandler;
-import lombok.core.handlers.FunctionHandler.TemplateData;
+import lombok.core.handlers.ActionFunctionAndPredicateHandler;
+import lombok.core.handlers.ActionFunctionAndPredicateHandler.TemplateData;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.ResolutionBased;
@@ -40,51 +45,88 @@ import lombok.javac.handlers.ast.JavacType;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
-import org.mangosdk.spi.ProviderFor;
+public class HandleActionFunctionAndPredicate {
 
-/**
- * Handles the {@link Function} annotation for javac.
- */
-@ProviderFor(JavacAnnotationHandler.class)
-@ResolutionBased
-public class HandleFunction extends JavacAnnotationHandler<Function> {
+	/**
+	 * Handles the {@link Action} annotation for javac.
+	 */
+	@ProviderFor(JavacAnnotationHandler.class)
+	@ResolutionBased
+	public static class HandleAction extends JavacAnnotationHandler<Action> {
 
-	@Override
-	public void handle(final AnnotationValues<Function> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Function.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
+		@Override
+		public void handle(final AnnotationValues<Action> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			deleteAnnotationIfNeccessary(annotationNode, Action.class);
+			new HandleActionFunctionAndPredicate().handle(annotation, source, annotationNode, "void");
+		}
+	}
+
+	/**
+	 * Handles the {@link Function} annotation for javac.
+	 */
+	@ProviderFor(JavacAnnotationHandler.class)
+	@ResolutionBased
+	public static class HandleFunction extends JavacAnnotationHandler<Function> {
+
+		@Override
+		public void handle(final AnnotationValues<Function> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			deleteAnnotationIfNeccessary(annotationNode, Function.class);
+			new HandleActionFunctionAndPredicate().handle(annotation, source, annotationNode, null);
+		}
+	}
+
+	/**
+	 * Handles the {@link Predicate} annotation for javac.
+	 */
+	@ProviderFor(JavacAnnotationHandler.class)
+	@ResolutionBased
+	public static class HandlePredicate extends JavacAnnotationHandler<Predicate> {
+
+		@Override
+		public void handle(final AnnotationValues<Predicate> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			deleteAnnotationIfNeccessary(annotationNode, Predicate.class);
+			new HandleActionFunctionAndPredicate().handle(annotation, source, annotationNode, "boolean");
+		}
+	}
+
+	public void handle(final AnnotationValues<? extends java.lang.annotation.Annotation> annotation, final JCAnnotation source, final JavacNode annotationNode, final String forcedReturnType) {
+		final Class<? extends java.lang.annotation.Annotation> annotationType = annotation.getInstance().getClass();
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return;
+		}
+		if ((forcedReturnType != null) && !method.returns(forcedReturnType)) {
+			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType.getSimpleName(), forcedReturnType));
 			return;
 		}
 
 		final Object templates = annotation.getActualExpression("template");
 		final TypeSymbol resolvedTemplates = resolveTemplates(method.node(), source, templates);
 		if (resolvedTemplates == null) {
-			annotationNode.addError("@Function unable to resolve template type");
+			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType.getSimpleName()));
 			return;
 		}
-		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates);
+		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates, forcedReturnType);
 		if (matchingTemplates.isEmpty()) {
-			annotationNode.addError("@Function no template found that matches the given method signature");
+			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType.getSimpleName()));
 			return;
 		}
 		if (matchingTemplates.size() > 1) {
-			annotationNode.addError("@Function more than one template found that matches the given method signature");
+			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType.getSimpleName()));
 			return;
 		}
-		new FunctionHandler<JavacType, JavacMethod>().rebuildFunctionMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());
+		new ActionFunctionAndPredicateHandler<JavacType, JavacMethod>().rebuildMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());
 	}
 
 	private TypeSymbol resolveTemplates(final JavacNode node, final JCAnnotation annotation, final Object templatesDef) {
@@ -103,20 +145,20 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		}
 	}
 
-	private List<TemplateData> findTemplatesFor(final JCMethodDecl methodDecl, final TypeSymbol template) {
+	private List<TemplateData> findTemplatesFor(final JCMethodDecl methodDecl, final TypeSymbol template, final String forcedReturnType) {
 		final List<TemplateData> foundTemplates = new ArrayList<TemplateData>();
-		final TemplateData templateData = templateDataFor(methodDecl, template);
+		final TemplateData templateData = templateDataFor(methodDecl, template, forcedReturnType);
 		if (templateData != null) foundTemplates.add(templateData);
 		for (Symbol enclosedElement : template.getEnclosedElements()) {
 			if (!(enclosedElement instanceof TypeSymbol)) continue;
 			final TypeSymbol enclosedType = (TypeSymbol) enclosedElement;
 			if (!enclosedType.isInterface() && !enclosedType.isStatic()) continue;
-			foundTemplates.addAll(findTemplatesFor(methodDecl, enclosedType));
+			foundTemplates.addAll(findTemplatesFor(methodDecl, enclosedType, forcedReturnType));
 		}
 		return foundTemplates;
 	}
 
-	private TemplateData templateDataFor(final JCMethodDecl methodDecl, final TypeSymbol template) {
+	private TemplateData templateDataFor(final JCMethodDecl methodDecl, final TypeSymbol template, final String forcedReturnType) {
 		if ((template.flags() & (Flags.PUBLIC)) == 0) return null;
 		if (!template.isInterface() && ((template.flags() & (Flags.ABSTRACT)) == 0)) return null;
 		final List<Type> templateTypeArguments = new ArrayList<Type>(template.type.getTypeArguments());
@@ -124,19 +166,30 @@ public class HandleFunction extends JavacAnnotationHandler<Function> {
 		if (enclosedMethods.size() != 1) return null;
 		final MethodSymbol enclosedMethod = enclosedMethods.get(0);
 		final Type enclosedMethodType = enclosedMethod.type;
+		if (!matchesReturnType(enclosedMethodType, forcedReturnType)) return null;
 		final List<Type> methodTypeArguments = new ArrayList<Type>(enclosedMethodType.getParameterTypes());
-		methodTypeArguments.add(enclosedMethodType.getReturnType());
+		if (forcedReturnType == null) methodTypeArguments.add(enclosedMethodType.getReturnType());
 		if (!templateTypeArguments.equals(methodTypeArguments)) return null;
-		if ((numberOfFunctionParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
-		return new TemplateData(string(template.getQualifiedName()), string(enclosedMethod.name));
+		if (forcedReturnType == null) {
+			if ((numberOfParameters(methodDecl) + 1) != templateTypeArguments.size()) return null;
+		} else {
+			if (numberOfParameters(methodDecl) != templateTypeArguments.size()) return null;
+		}
+		return new TemplateData(string(template.getQualifiedName()), string(enclosedMethod.name), forcedReturnType);
 	}
 
-	private int numberOfFunctionParameters(final JCMethodDecl methodDecl) {
-		int numberOfFunctionParameters = 0;
+	// for now only works for primitive return types
+	private boolean matchesReturnType(final Type methodType, final String forcedReturnType) {
+		if (forcedReturnType == null) return true; 
+		return forcedReturnType.equals(methodType.getReturnType().toString());
+	}
+
+	private int numberOfParameters(final JCMethodDecl methodDecl) {
+		int numberOfParameters = 0;
 		for (JCVariableDecl param : methodDecl.params) {
-			if (!string(param.name).startsWith("_")) numberOfFunctionParameters++;
+			if (!string(param.name).startsWith("_")) numberOfParameters++;
 		}
-		return numberOfFunctionParameters;
+		return numberOfParameters;
 	}
 
 	private List<MethodSymbol> enclosedMethodsOf(final TypeSymbol type) {

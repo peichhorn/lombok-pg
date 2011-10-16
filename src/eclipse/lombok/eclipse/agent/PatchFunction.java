@@ -32,7 +32,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import lombok.*;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.HandleFunction;
+import lombok.eclipse.handlers.HandleActionFunctionAndPredicate.HandleFunction;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 import lombok.patcher.*;

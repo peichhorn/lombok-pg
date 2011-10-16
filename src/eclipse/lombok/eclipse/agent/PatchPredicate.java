@@ -32,15 +32,15 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import lombok.*;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.HandleActionFunctionAndPredicate.HandleAction;
+import lombok.eclipse.handlers.HandleActionFunctionAndPredicate.HandlePredicate;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PatchAction {
+public final class PatchPredicate {
 	static void addPatches(final ScriptManager sm, final boolean ecj) {
-		final String HOOK_NAME = PatchAction.class.getName();
+		final String HOOK_NAME = PatchPredicate.class.getName();
 		sm.addScript(exitEarly()
 				.target(new MethodTarget(CLASSSCOPE, "buildFieldsAndMethods", "void"))
 				.request(StackRequest.THIS)
@@ -54,11 +54,11 @@ public final class PatchAction {
 		if (typeNode != null) {
 			final EclipseType type = EclipseType.typeOf(typeNode, decl);
 			for (EclipseMethod method : type.methods()) {
-				final Annotation ann = getAnnotation(Action.class, method.get().annotations);
+				final Annotation ann = getAnnotation(Predicate.class, method.get().annotations);
 				if (ann != null) {
 					completeNode(typeNode);
 					EclipseNode annotationNode = typeNode.getNodeFor(ann);
-					new HandleAction().handle(Eclipse.createAnnotation(Action.class, annotationNode), ann, annotationNode);
+					new HandlePredicate().handle(Eclipse.createAnnotation(Predicate.class, annotationNode), ann, annotationNode);
 				}
 			}
 		}
