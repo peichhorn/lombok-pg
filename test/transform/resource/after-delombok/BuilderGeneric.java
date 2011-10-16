@@ -22,6 +22,9 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	public static interface $FooDef<K extends Comparable<K>, V extends List<K>> {
 		
 		$OptionalDef<K, V> foo(final String foo);
+		
+		@java.lang.SuppressWarnings("all")
+		$OptionalDef<K, V> foo(final Class<?> clazz);
 	}
 	
 	@java.lang.SuppressWarnings("all")
@@ -60,6 +63,12 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		
 		private $Builder() {
 			super();
+		}
+		
+		@java.lang.SuppressWarnings("all")
+		public $OptionalDef<K, V> foo(final Class<?> clazz) {
+			this.foo = clazz.getSimpleName();
+			return this;
 		}
 	}
 }

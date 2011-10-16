@@ -21,7 +21,6 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.Type;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
@@ -30,10 +29,8 @@ import static com.sun.tools.javac.code.Flags.*;
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BuilderAndExtensionHandler;
-import lombok.core.handlers.BuilderAndExtensionHandler.IBuilderData;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
 import lombok.javac.Javac;
 import lombok.javac.JavacASTVisitor;
@@ -78,7 +75,7 @@ public class HandleBuilderAndExtension {
 				//continue with creating the builder
 			}
 
-			new JavacBuilderAndExtensionHandler().handleBuilder(new BuilderDataCollector(type, annotation.getInstance()).collect());
+			new JavacBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
 		}
 	}
 
@@ -116,8 +113,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
 			}
 
-			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
-			new JavacBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new JavacParameterValidator(), new JavacParameterSanitizer());
+			new JavacBuilderAndExtensionHandler().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance());
 		}
 	}
 
@@ -126,58 +122,9 @@ public class HandleBuilderAndExtension {
 		@Override protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
 			method.node().traverse((JavacASTVisitor) collector);
 		}
-	}
-
-	@Getter
-	private static class BuilderDataCollector implements IBuilderData<JavacType, JavacMethod, JavacField> {
-		private final List<JavacField> requiredFields = new ArrayList<JavacField>();
-		private final List<JavacField> optionalFields = new ArrayList<JavacField>();
-		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
-		private final List<String> allRequiredFieldNames = new ArrayList<String>();
-		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
-		private final JavacType type;
-		private final String prefix;
-		private final List<String> callMethods;
-		private final boolean generateConvenientMethodsEnabled;
-		private final AccessLevel level;
-		private final Set<String> excludes;
-
-		public BuilderDataCollector(final JavacType type, final Builder builder) {
-			this.type = type;
-			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
-			generateConvenientMethodsEnabled = builder.convenientMethods();
-			prefix = builder.prefix();
-			callMethods = Arrays.asList(builder.callMethods());
-			level = builder.value();
-		}
 
 		@Override public IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
-		}
-
-		public IBuilderData<JavacType, JavacMethod, JavacField> collect() {
-			for (JavacField field : type.fields()) {
-				if (field.isStatic()) continue;
-				String fieldName = field.name();
-				if (excludes.contains(fieldName)) continue;
-				if ((!field.isInitialized()) && field.isFinal()) {
-					requiredFields.add(field);
-					allRequiredFieldNames.add(fieldName);
-					String typeName = camelCase("$", fieldName, "def");
-					requiredFieldDefTypeNames.add(typeName);
-					requiredFieldDefTypes.add(Type(typeName));
-				}
-				boolean append = new JavacBuilderAndExtensionHandler().isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
-				append |= !field.isFinal();
-				if (append) optionalFields.add(field);
-			}
-			return this;
-		}
-
-		@Override public List<JavacField> getAllFields() {
-			List<JavacField> allFields = new ArrayList<JavacField>(getRequiredFields());
-			allFields.addAll(getOptionalFields());
-			return allFields;
 		}
 	}
 

@@ -108,7 +108,7 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 		if (variableType == null) return false;
 		final String type;
 		if (variableType instanceof JCTypeApply) {
-			type = ((JCTypeApply) variableType).clazz.type.toString();
+			type = ((JCTypeApply) variableType).clazz.toString();
 		} else {
 			type = variableType.toString();
 		}

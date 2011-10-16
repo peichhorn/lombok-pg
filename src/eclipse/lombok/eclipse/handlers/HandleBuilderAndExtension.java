@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.Type;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static org.eclipse.jdt.core.dom.Modifier.*;
@@ -30,10 +29,8 @@ import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import java.util.*;
 
 import lombok.*;
-import lombok.ast.TypeRef;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BuilderAndExtensionHandler;
-import lombok.core.handlers.BuilderAndExtensionHandler.IBuilderData;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
 import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.Eclipse;
@@ -79,7 +76,7 @@ public class HandleBuilderAndExtension {
 				//continue with creating the builder
 			}
 
-			new EclispeBuilderAndExtensionHandler().handleBuilder(new BuilderDataCollector(type, annotation.getInstance()).collect());
+			new EclispeBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
 		}
 	}
 
@@ -117,70 +114,18 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
 			}
 
-			final BuilderDataCollector collector = new BuilderDataCollector(type, builderAnnotation.getInstance());
-			new EclispeBuilderAndExtensionHandler().handleExtension(collector.collect(), method, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+			new EclispeBuilderAndExtensionHandler().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance());
 		}
 	}
 	
 	private static class EclispeBuilderAndExtensionHandler extends BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField> {
 
-		@Override
-		protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
+		@Override protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
 			method.node().traverse((EclipseASTVisitor) collector);
-		}
-	}
-
-	@Getter
-	private static class BuilderDataCollector implements IBuilderData<EclipseType, EclipseMethod, EclipseField> {
-		private final List<EclipseField> requiredFields = new ArrayList<EclipseField>();
-		private final List<EclipseField> optionalFields = new ArrayList<EclipseField>();
-		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
-		private final List<String> allRequiredFieldNames = new ArrayList<String>();
-		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();
-		private final EclipseType type;
-		private final String prefix;
-		private final List<String> callMethods;
-		private final boolean generateConvenientMethodsEnabled;
-		private final AccessLevel level;
-		private final Set<String> excludes;
-
-		public BuilderDataCollector(final EclipseType type, final Builder builder) {
-			this.type = type;
-			excludes = new HashSet<String>(Arrays.asList(builder.exclude()));
-			generateConvenientMethodsEnabled = builder.convenientMethods();
-			prefix = builder.prefix();
-			callMethods = Arrays.asList(builder.callMethods());
-			level = builder.value();
 		}
 
 		@Override public IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
-		}
-
-		public IBuilderData<EclipseType, EclipseMethod, EclipseField> collect() {
-			for (EclipseField field : type.fields()) {
-				if (field.isStatic()) continue;
-				String fieldName = field.name();
-				if (excludes.contains(fieldName)) continue;
-				if ((!field.isInitialized()) && field.isFinal()) {
-					requiredFields.add(field);
-					allRequiredFieldNames.add(fieldName);
-					String typeName = camelCase("$", fieldName, "def");
-					requiredFieldDefTypeNames.add(typeName);
-					requiredFieldDefTypes.add(Type(typeName));
-				}
-				boolean append = new EclispeBuilderAndExtensionHandler().isInitializedMapOrCollection(field) && generateConvenientMethodsEnabled;
-				append |= !field.isFinal();
-				if (append) optionalFields.add(field);
-			}
-			return this;
-		}
-
-		@Override
-		public List<EclipseField> getAllFields() {
-			List<EclipseField> allFields = new ArrayList<EclipseField>(getRequiredFields());
-			allFields.addAll(getOptionalFields());
-			return allFields;
 		}
 	}
 

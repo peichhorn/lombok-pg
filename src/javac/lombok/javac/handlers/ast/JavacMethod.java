@@ -93,7 +93,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public boolean returns(final Class<?> clazz) {
-		return returns(clazz.getName());
+		return returns(clazz.getSimpleName());
 	}
 
 	public boolean returns(final String typeName) {
@@ -101,11 +101,11 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		if (returnType == null) return false;
 		final String type;
 		if (returnType instanceof JCTypeApply) {
-			type = ((JCTypeApply) returnType).clazz.type.toString();
+			type = ((JCTypeApply) returnType).clazz.toString();
 		} else {
 			type = returnType.toString();
 		}
-		return type.equals(typeName);
+		return type.endsWith(typeName);
 	}
 
 	private JCExpression returnType() {
