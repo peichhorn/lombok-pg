@@ -18,6 +18,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * 
+ * Credit where credit is due:
+ * ===========================
+ * 
+ *   Yield is based on the idea, algorithms and sources of
+ *   Arthur and Vladimir Nesterovsky (http://www.nesterovsky-bros.com/weblog),
+ *   who generously allowed me to use them.
  */
 package lombok.eclipse.handlers;
 
