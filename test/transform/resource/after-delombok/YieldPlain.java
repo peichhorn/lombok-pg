@@ -2,14 +2,16 @@ import java.util.Iterator;
 import java.lang.Iterable;
 
 class YieldPlain {
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterator<String> simple() {
+		
 		class $YielderSimple implements java.util.Iterator<java.lang.String> {
 			private int $state;
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.String $next;
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -17,7 +19,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.String next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -25,11 +27,11 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -44,74 +46,10 @@ class YieldPlain {
 		}
 		return new $YielderSimple();
 	}
-
-	@java.lang.SuppressWarnings("all")
-	public Iterable<String> testIfThenElse() {
-		class $YielderTestIfThenElse implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
-			private boolean b;
-			private int $state;
-			private boolean $hasNext;
-			private boolean $nextDefined;
-			private java.lang.String $next;
-			
-			public java.util.Iterator<java.lang.String> iterator() {
-				return new $YielderTestIfThenElse();
-			}
-			
-			public boolean hasNext() {
-				if (!$nextDefined) {
-					$hasNext = getNext();
-					$nextDefined = true;
-				}
-				return $hasNext;
-			}
-			
-			public java.lang.String next() {
-				if (!hasNext()) {
-					throw new java.util.NoSuchElementException();
-				}
-				$nextDefined = false;
-				return $next;
-			}
-			
-			public void remove() {
-				throw new java.lang.UnsupportedOperationException();
-			}
-			
-			private boolean getNext() {
-				while (true) switch ($state) {
-				case 0: 
-					b = true;
-				case 1: 
-					if (!(b)) {
-						$state = 3;
-						continue;
-					}
-					$next = "foo";
-					$state = 2;
-					return true;
-				case 2: 
-					$state = 4;
-					continue;
-				case 3: 
-					$next = "bar";
-					$state = 4;
-					return true;
-				case 4: 
-					b = !b;
-					$state = 1;
-					continue;
-				case 5: 
-				default: 
-					return false;
-				}
-			}
-		}
-		return new $YielderTestIfThenElse();
-	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while() {
+		
 		class $YielderFibWhile implements java.util.Iterator<java.lang.Long> {
 			private long a;
 			private long b;
@@ -120,7 +58,7 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.Long $next;
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -128,7 +66,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.Long next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -136,11 +74,11 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -171,9 +109,10 @@ class YieldPlain {
 		}
 		return new $YielderFibWhile();
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while_2() {
+		
 		class $YielderFibWhile2 implements java.util.Iterator<java.lang.Long> {
 			private long a;
 			private long b;
@@ -182,7 +121,7 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.Long $next;
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -190,7 +129,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.Long next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -198,11 +137,11 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -230,9 +169,10 @@ class YieldPlain {
 		}
 		return new $YielderFibWhile2();
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterable<Long> fib_for() {
+		
 		class $YielderFibFor implements java.util.Iterator<java.lang.Long>, java.lang.Iterable<java.lang.Long> {
 			private long a;
 			private long b;
@@ -241,11 +181,11 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.Long $next;
-
+			
 			public java.util.Iterator<java.lang.Long> iterator() {
 				return new $YielderFibFor();
 			}
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -253,7 +193,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.Long next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -261,11 +201,11 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -293,9 +233,10 @@ class YieldPlain {
 		}
 		return new $YielderFibFor();
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterable<String> complex_foreach(final Iterable<Object> objects) {
+		
 		class $YielderComplexForeach implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
 			private Object object;
 			private Class<?> c;
@@ -305,11 +246,11 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.String $next;
-
+			
 			public java.util.Iterator<java.lang.String> iterator() {
 				return new $YielderComplexForeach();
 			}
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -317,7 +258,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.String next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -325,23 +266,23 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
 					$objectIter = objects.iterator();
 				case 1: 
 					if (!$objectIter.hasNext()) {
-						$state = 6;
+						$state = 4;
 						continue;
 					}
 					object = (Object)$objectIter.next();
 					if (!(object instanceof Class<?>)) {
-						$state = 4;
+						$state = 3;
 						continue;
 					}
 					c = (Class<?>)object;
@@ -350,23 +291,17 @@ class YieldPlain {
 					return true;
 				case 2: 
 					$next = c.getName();
-					$state = 3;
+					$state = 4;
 					return true;
 				case 3: 
-					$state = 6;
-					continue;
-				case 4: 
 					$next = object.toString();
+					$state = 1;
+					return true;
+				case 4: 
+					$next = "Another String";
 					$state = 5;
 					return true;
 				case 5: 
-					$state = 1;
-					continue;
-				case 6: 
-					$next = "Another String";
-					$state = 7;
-					return true;
-				case 7: 
 				default: 
 					return false;
 				}
@@ -374,9 +309,10 @@ class YieldPlain {
 		}
 		return new $YielderComplexForeach();
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	public Iterator<String> complex(final Iterator<Object> objects) {
+		
 		class $YielderComplex implements java.util.Iterator<java.lang.String> {
 			private Object object;
 			private Class<?> c;
@@ -384,7 +320,7 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.String $next;
-
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -392,7 +328,7 @@ class YieldPlain {
 				}
 				return $hasNext;
 			}
-
+			
 			public java.lang.String next() {
 				if (!hasNext()) {
 					throw new java.util.NoSuchElementException();
@@ -400,11 +336,11 @@ class YieldPlain {
 				$nextDefined = false;
 				return $next;
 			}
-
+			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
 			}
-
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -413,12 +349,12 @@ class YieldPlain {
 					return true;
 				case 1: 
 					if (!(objects.hasNext())) {
-						$state = 6;
+						$state = 4;
 						continue;
 					}
 					object = objects.next();
 					if (!(object instanceof Class<?>)) {
-						$state = 4;
+						$state = 3;
 						continue;
 					}
 					c = (Class<?>)object;
@@ -427,23 +363,17 @@ class YieldPlain {
 					return true;
 				case 2: 
 					$next = c.getName();
-					$state = 3;
+					$state = 4;
 					return true;
 				case 3: 
-					$state = 6;
-					continue;
-				case 4: 
 					$next = object.toString();
+					$state = 1;
+					return true;
+				case 4: 
+					$next = "Another String";
 					$state = 5;
 					return true;
 				case 5: 
-					$state = 1;
-					continue;
-				case 6: 
-					$next = "Another String";
-					$state = 7;
-					return true;
-				case 7: 
 				default: 
 					return false;
 				}
