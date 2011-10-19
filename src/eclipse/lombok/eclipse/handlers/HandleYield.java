@@ -254,11 +254,8 @@ public class HandleYield extends EclipseASTAdapter {
 			this.stateName = state;
 			this.nextName = next;
 			this.errorName = errorName;
-			try {
-				if (scan()) {
-					refactor();
-				}
-			} catch (final Exception ignore) {
+			if (scan()) {
+				refactor();
 			}
 		}
 
@@ -340,6 +337,23 @@ public class HandleYield extends EclipseASTAdapter {
 				return invoke.arguments[0];
 			}
 			return null;
+		}
+
+		private lombok.ast.Expression getStateIdOfAssignment(lombok.ast.Statement statement) {
+			if (statement instanceof lombok.ast.Assignment) {
+				lombok.ast.Assignment assign = (lombok.ast.Assignment) statement;
+				if (assign.getLeft() instanceof lombok.ast.NameRef) {
+					lombok.ast.NameRef field = (lombok.ast.NameRef) assign.getLeft();
+					if (stateName.equals(field.getName())) {
+						return assign.getRight();
+					}
+				}
+			}
+			return null;
+		}
+
+		private lombok.ast.Case getLabel(lombok.ast.Expression expression) {
+			return labelLiterals.get(expression);
 		}
 
 		private boolean isTrueLiteral(final Expression expression) {
@@ -434,26 +448,65 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private void optimizeStates() {
-			int diff = 0;
-			lombok.ast.Case previous = null;
-			for (int i = 1; i < cases.size(); i++) {
-				lombok.ast.Case label = cases.get(i);
-				lombok.ast.NumberLiteral literal = (lombok.ast.NumberLiteral) label.getPattern();
-				literal.setNumber((Integer) literal.getNumber() - diff);
-				if (!usedLabels.contains(label)) {
+			int count = cases.size();
+			for (Map.Entry<lombok.ast.NumberLiteral, lombok.ast.Case> entry : labelLiterals.entrySet()) {
+				lombok.ast.Case label = entry.getValue();
+				while (label.getPattern() != null) {
 					if (label.getStatements().isEmpty()) {
-						cases.set(i, null);
-						diff++;
-					} else if ((previous != null) && isNoneOf(previous.getStatements().get(previous.getStatements().size() - 1), lombok.ast.Continue.class, lombok.ast.Return.class)) {
-						previous.withStatements(label.getStatements());
-						cases.set(i, null);
-						diff++;
+						lombok.ast.NumberLiteral literal = (lombok.ast.NumberLiteral) label.getPattern();
+						int i = (Integer) literal.getNumber() + 1;
+						if (i < count) {
+							label = cases.get(i);
+						} else {
+							break;
+						}
 					} else {
-						previous = label;
+						lombok.ast.Case next = getLabel(getStateIdOfAssignment(label.getStatements().get(0)));
+						int numberOfStatements = label.getStatements().size();
+						if ((next != null) && (numberOfStatements == 1) || ((numberOfStatements > 1) && (label.getStatements().get(1) instanceof lombok.ast.Continue))) {
+							label = next;
+						} else {
+							break;
+						}
 					}
-				} else {
-					previous = label;
 				}
+				entry.setValue(label);
+				if (label.getPattern() != null) {
+					usedLabels.add(label);
+				}
+			}
+
+			int id = 0;
+			lombok.ast.Case previous = null;
+			for (int i = 0; i < count; i++) {
+				lombok.ast.Case label = cases.get(i);
+				if (!usedLabels.contains(label) && (previous != null)) {
+					lombok.ast.Statement last = previous.getStatements().get(previous.getStatements().size() - 1);
+					if (!label.getStatements().isEmpty() && isNoneOf(last, lombok.ast.Continue.class, lombok.ast.Return.class)) {
+						previous.withStatements(label.getStatements());
+					}
+					cases.set(i, null);
+					continue;
+				}
+				lombok.ast.NumberLiteral literal = (lombok.ast.NumberLiteral) label.getPattern();
+				literal.setNumber(id++);
+				if (previous == null) {
+					previous = label;
+					continue;
+				}
+				boolean found = false;
+				boolean remove = false;
+				List<lombok.ast.Statement> list = previous.getStatements();
+				for (Iterator<lombok.ast.Statement> iter = list.iterator(); iter.hasNext();) {
+					lombok.ast.Statement statement = iter.next();
+					if (remove || (found && (statement instanceof lombok.ast.Continue))) {
+						remove = true;
+						iter.remove();
+					} else {
+						found = getLabel(getStateIdOfAssignment(statement)) == label;
+					}
+				}
+				previous = label;
 			}
 		}
 
@@ -731,7 +784,7 @@ public class HandleYield extends EclipseASTAdapter {
 							finallyLabel = getFinallyLabel(this);
 							finallyBlocks++;
 							finallyErrorName = errorName + finallyBlocks;
-							labelName = "$id" + finallyBlocks;
+							labelName = "$state" + finallyBlocks;
 							
 							stateVariables.add(FieldDecl(Type(Throwable.class), finallyErrorName).makePrivate());
 							stateVariables.add(FieldDecl(Type("int"), labelName).makePrivate());

@@ -8,7 +8,7 @@ class YieldTryBlock {
       private boolean b;
       private @java.lang.SuppressWarnings("unused") RuntimeException e;
       private java.lang.Throwable $yieldException1;
-      private int $id1;
+      private int $state1;
       private int $state;
       private boolean $hasNext;
       private boolean $nextDefined;
@@ -48,26 +48,21 @@ class YieldTryBlock {
                     b = true;
                 case 1 : ;
                     $yieldException1 = null;
-                    $id1 = 6;
+                    $state1 = 1;
                     $state = 2;
+                case 2 : ;
                     if (b)
                         {
                           throw new RuntimeException();
                         }
                     $next = "bar";
-                    $state = 2;
+                    $state = 4;
                     return true;
-                case 2 : ;
-                    $state = 5;
-                    continue ;
                 case 3 : ;
                     $next = "foo";
                     $state = 4;
                     return true;
                 case 4 : ;
-                    $state = 5;
-                    continue ;
-                case 5 : ;
                     {
                       b = (! b);
                     }
@@ -76,12 +71,9 @@ class YieldTryBlock {
                           $yieldException = $yieldException1;
                           break ;
                         }
-                    $state = $id1;
+                    $state = $state1;
                     continue ;
-                case 6 : ;
-                    $state = 1;
-                    continue ;
-                case 7 : ;
+                case 5 : ;
                 default : ;
                     return false;
                 }
@@ -97,12 +89,11 @@ class YieldTryBlock {
                           continue ;
                         }
                 case 3 : ;
-                case 4 : ;
                     $yieldException1 = $yieldException;
-                    $state = 5;
+                    $state = 4;
                     continue ;
                 default : ;
-                    $state = 7;
+                    $state = 5;
                     java.util.ConcurrentModificationException $yieldExceptionUnhandled = new java.util.ConcurrentModificationException();
                     $yieldExceptionUnhandled.initCause($yieldException);
                     throw $yieldExceptionUnhandled;
