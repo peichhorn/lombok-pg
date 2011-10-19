@@ -33,6 +33,7 @@ import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.core.util.Types.*;
+import static lombok.core.util.Lists.list;
 
 import java.util.*;
 
@@ -55,7 +56,6 @@ import org.eclipse.jdt.internal.compiler.ast.LabeledStatement;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
 import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
@@ -64,15 +64,14 @@ import org.eclipse.jdt.internal.compiler.ast.SuperReference;
 import org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
+import org.eclipse.jdt.internal.compiler.ast.TryStatement;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
 import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
 
 import lombok.*;
-import lombok.ast.*;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -110,7 +109,7 @@ public class HandleYield extends EclipseASTAdapter {
 		final boolean returnsIterable = method.returns(Iterable.class);
 		final boolean returnsIterator = method.returns(Iterator.class);
 		if (!(returnsIterable || returnsIterator)) {
-			method.node().addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable");
+			method.node().addError("Method that contain yield() can only return java.util.Iterator or java.lang.Iterable.");
 			return true;
 		}
 		if (method.hasNonFinalArgument()) {
@@ -118,26 +117,28 @@ public class HandleYield extends EclipseASTAdapter {
 			return true;
 		}
 
-
+		final String stateName = "$state";
+		final String nextName = "$next";
+		final String errorName = "$yieldException";
 		YieldDataCollector collector = new YieldDataCollector();
-		collector.collect(method, "$state", "$next");
+		collector.collect(method, stateName, nextName, errorName);
 
 		if (!collector.hasYields()) {
 			return true;
 		}
 
-		final String yielderName = yielderName(method.node());
-		final String elementType = elementType(method.node());
+		final String yielderName = yielderName(method);
+		final String elementType = elementType(method);
+		final List<lombok.ast.FieldDecl> variables = collector.getStateVariables();
+		final lombok.ast.Switch stateSwitch= collector.getStateSwitch();
+		final lombok.ast.Statement errorHandler = collector.getErrorHandler();
 
-		lombok.ast.Statement switchStatement = Stat(collector.getStateSwitch());
-		List<FieldDecl> variables = collector.getStateVariables();
-
-		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
+		lombok.ast.ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
 			.withFields(variables) //
-			.withField(FieldDecl(Type("int"), "$state").makePrivate()) //
+			.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
 			.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
 			.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
-			.withField(FieldDecl(Type(elementType), "$next").makePrivate()) //
+			.withField(FieldDecl(Type(elementType), nextName).makePrivate()) //
 			.withMethod(ConstructorDecl(yielderName).withImplicitSuper().makePrivate()); //
 		if (returnsIterable) {
 			yielder.implementing(Type("java.lang.Iterable").withTypeArgument(Type(elementType))) //
@@ -151,26 +152,33 @@ public class HandleYield extends EclipseASTAdapter {
 			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
 				.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
 				.withStatement(Assign(Name("$nextDefined"), False())) //
-				.withStatement(Return(Name("$next")))) //
-			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException"))))) //
-			.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(switchStatement)));
-
+				.withStatement(Return(Name(nextName)))) //
+			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")))));
+		if (errorHandler != null) {
+			String caughtErrorName = errorName + "Caught";
+			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
+				.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
+				.withStatement(While(True()).Do(Block().withStatement(Try(Block().withStatement(stateSwitch)) //
+					.Catch(Arg(Type(Throwable.class), caughtErrorName), Block().withStatement(Assign(Name(errorName), Name(caughtErrorName))).withStatement(errorHandler))))));
+		} else {
+			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(stateSwitch)));
+		}
 		method.replaceBody(yielder, Return(New(Type(yielderName))));
 		method.rebuild();
 
 		return true;
 	}
 
-	private String yielderName(final EclipseNode methodNode) {
-		String[] parts = methodNode.getName().split("_");
+	private String yielderName(final EclipseMethod method) {
+		String[] parts = method.name().split("_");
 		String[] newParts = new String[parts.length + 1];
 		newParts[0] = "yielder";
 		System.arraycopy(parts, 0, newParts, 1, parts.length);
 		return camelCase("$", newParts);
 	}
 
-	private String elementType(final EclipseNode methodNode) {
-		MethodDeclaration methodDecl = (MethodDeclaration)methodNode.get();
+	private String elementType(final EclipseMethod method) {
+		MethodDeclaration methodDecl = (MethodDeclaration)method.get();
 		TypeReference type = methodDecl.returnType;
 		if (type instanceof ParameterizedSingleTypeReference) {
 			ParameterizedSingleTypeReference paramType = (ParameterizedSingleTypeReference)type;
@@ -183,40 +191,69 @@ public class HandleYield extends EclipseASTAdapter {
 
 	private static class YieldDataCollector {
 		private EclipseMethod method;
-		private MethodDeclaration declaration;
 		private Set<String> names = new HashSet<String>();
 		private List<Scope> yields = new ArrayList<Scope>();
 		private List<Scope> breaks = new ArrayList<Scope>();
 		private List<Scope> variableDecls = new ArrayList<Scope>();
 		@Getter
-		private List<FieldDecl> stateVariables = new ArrayList<FieldDecl>();
+		private List<lombok.ast.FieldDecl> stateVariables = new ArrayList<lombok.ast.FieldDecl>();
 		private Scope root;
 		private Map<ASTNode, Scope> allScopes = new HashMap<ASTNode, Scope>();
-		private List<Statement> statements = new ArrayList<Statement>();
-		private Map<Expression, Label> labelLiterals = new HashMap<Expression, Label>();
-		private Set<Label> usedLabels = new HashSet<Label>();
+		private List<lombok.ast.Case> cases = new ArrayList<lombok.ast.Case>();
+		private List<lombok.ast.Statement> statements = new ArrayList<lombok.ast.Statement>();
+		private List<ErrorHandler> errorHandlers = new ArrayList<ErrorHandler>();
+		private int finallyBlocks;
+		private Map<lombok.ast.NumberLiteral, lombok.ast.Case> labelLiterals = new HashMap<lombok.ast.NumberLiteral, lombok.ast.Case>();
+		private Set<lombok.ast.Case> usedLabels = new HashSet<lombok.ast.Case>();
 		private String stateName;
 		private String nextName;
+		private String errorName;
 
-		public SwitchStatement getStateSwitch() {
-			List<Statement> switchStatements = new ArrayList<Statement>(statements);
-			switchStatements.add(new CaseStatement(null, 0, 0));
-			switchStatements.add(method.build(Return(False()), Statement.class));
-			SwitchStatement switchStatement = new SwitchStatement();
-			switchStatement.expression = method.build(Name(stateName));
-			switchStatement.statements = switchStatements.toArray(new Statement[switchStatements.size()]);
-			return switchStatement;
+		public lombok.ast.Switch getStateSwitch() {
+			final List<lombok.ast.Case> switchCases = new ArrayList<lombok.ast.Case>();
+			for (lombok.ast.Case label : cases) if (label != null) switchCases.add(label);
+			return Switch(Name(stateName)).withCases(switchCases).withCase(Case().withStatement(Return(False())));
+		}
+
+		public lombok.ast.Statement getErrorHandler() {
+			if (errorHandlers.isEmpty()) {
+				return null;
+			} else {
+				final List<lombok.ast.Case> switchCases = new ArrayList<lombok.ast.Case>();
+				final Set<lombok.ast.Case> labels = new HashSet<lombok.ast.Case>();
+				for (ErrorHandler handler: errorHandlers) {
+					lombok.ast.Case lastCase = null;
+					for(int i = handler.begin; i < handler.end; i++) {
+						lombok.ast.Case label = cases.get(i);
+						if ((label != null) && labels.add(label)) {
+							lastCase = Case(label.getPattern());
+							switchCases.add(lastCase);
+						}
+					}
+					if (lastCase != null) {
+						lastCase.withStatements(handler.statements);
+					}
+				}
+				
+				final String unhandledErrorName = errorName + "Unhandled";
+				switchCases.add(Case() //
+					.withStatement(setState(literal(getBreakLabel(root)))) //
+					.withStatement(LocalDecl(Type(ConcurrentModificationException.class), unhandledErrorName).withInitialization(New(Type(ConcurrentModificationException.class)))) //
+					.withStatement(Call(Name(unhandledErrorName), "initCause").withArgument(Name(errorName))) //
+					.withStatement(Throw(Name(unhandledErrorName))));
+				return Switch(Name(stateName)).withCases(switchCases);
+			}
 		}
 
 		public boolean hasYields() {
 			return !yields.isEmpty();
 		}
 
-		public void collect(final EclipseMethod eclipseMethod, final String state, final String next) {
-			this.method = eclipseMethod;
-			this.declaration = (MethodDeclaration)eclipseMethod.get();
-			stateName = state;
-			nextName = next;
+		public void collect(final EclipseMethod method, final String state, final String next, final String errorName) {
+			this.method = method;
+			this.stateName = state;
+			this.nextName = next;
+			this.errorName = errorName;
 			try {
 				if (scan()) {
 					refactor();
@@ -227,14 +264,14 @@ public class HandleYield extends EclipseASTAdapter {
 
 		private boolean scan() {
 			try {
-				declaration.traverse(new YieldQuickScanner(), (ClassScope)null);
+				method.get().traverse(new YieldQuickScanner(), (ClassScope)null);
 				return false;
 			} catch (final IllegalStateException ignore) {
 				// this means there are unhandled yields left
 			}
 
 			ValidationScanner scanner = new ValidationScanner();
-			declaration.traverse(scanner, (ClassScope)null);
+			method.get().traverse(scanner, (ClassScope)null);
 
 			for (Scope scope : yields) {
 				Scope yieldScope = scope;
@@ -264,26 +301,36 @@ public class HandleYield extends EclipseASTAdapter {
 				boolean stateVariable = false;
 				if (allScopes.containsKey(scope.parent.node)) {
 					stateVariable = true;
+				} else {
+					if ((scope.parent.node instanceof TryStatement) && allScopes.containsKey(scope.parent.parent.node)) {
+						stateVariable = true;
+					}
 				}
+
 				if (stateVariable) {
 					LocalDeclaration variable = (LocalDeclaration) scope.node;
 					allScopes.put(scope.node, scope);
-					stateVariables.add(FieldDecl(Type(variable.type), new String(variable.name)).makePrivate());
+					lombok.ast.FieldDecl field = FieldDecl(Type(variable.type), string(variable.name)).makePrivate();
+					if (scope.parent.node instanceof TryStatement) {
+						field.withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("unused")));
+					}
+					stateVariables.add(field);
 				}
 			}
-
 			return true;
 		}
 
 		private void refactor() {
-			root = allScopes.get(declaration);
-			Label iteratorLabel = getIterationLabel(root);
+			root = allScopes.get(method.get());
+			lombok.ast.Case iteratorLabel = getIterationLabel(root);
 
 			usedLabels.add(iteratorLabel);
 			usedLabels.add(getBreakLabel(root));
 
-			addStatement(iteratorLabel);
+			addLabel(iteratorLabel);
 			root.refactor();
+			endCase();
+
 			optimizeStates();
 			synchronizeLiteralsAndLabels();
 		}
@@ -295,47 +342,83 @@ public class HandleYield extends EclipseASTAdapter {
 			return null;
 		}
 
-		private Label label() {
-			return new Label();
+		private boolean isTrueLiteral(final Expression expression) {
+			return expression instanceof TrueLiteral;
 		}
 
-		private void addStatement(final Label label) {
-			if (label != null) {
-				label.id = statements.size();
-				statements.add(label);
+		private void endCase() {
+			if (!cases.isEmpty()) {
+				lombok.ast.Case lastCase = cases.get(cases.size() - 1);
+				if (lastCase.getStatements().isEmpty() && !statements.isEmpty()) {
+					lastCase.withStatements(statements);
+					statements.clear();
+				}
 			}
 		}
 
+		private void addLabel(final lombok.ast.Case label) {
+			endCase();
+			label.withPattern(Number(cases.size()));
+			cases.add(label);
+		}
+
 		private void addStatement(final lombok.ast.Statement statement) {
-			statements.add(method.build(statement, Statement.class));
+			statements.add(statement);
 		}
 
-		private Expression labelLiteral(final Label label) {
-			Expression literal = new UnaryExpression(label.constantExpression != null ? label.constantExpression : method.build(Number(Integer.valueOf(-1)), Expression.class), OperatorIds.PLUS);
-			labelLiterals.put(literal, label);
-			return literal;
-		}
-
-		public Label getBreakLabel(final Scope scope) {
-			Label label = scope.breakLabel;
+		private lombok.ast.Case getBreakLabel(final Scope scope) {
+			lombok.ast.Case label = scope.breakLabel;
 			if (label == null) {
-				label = label();
+				label = Case();
 				scope.breakLabel = label;
 			}
 			return label;
 		}
 
-		public Label getIterationLabel(final Scope scope) {
-			Label label = scope.iterationLabel;
+		private lombok.ast.Case getIterationLabel(final Scope scope) {
+			lombok.ast.Case label = scope.iterationLabel;
 			if (label == null) {
-				label = label();
+				label = Case();
 				scope.iterationLabel = label;
 			}
 			return label;
 		}
 
-		private lombok.ast.Statement setStateId(final Expression expression) {
-			return Assign(Name(stateName), Expr(expression));
+		private lombok.ast.Case getFinallyLabel(Scope scope) {
+			lombok.ast.Case label = scope.finallyLabel;
+			if (label == null) {
+				label = Case();
+				scope.finallyLabel = label;
+			}
+			return label;
+		}
+
+		private Scope getFinallyScope(Scope scope, Scope top) {
+			ASTNode previous = null;
+			while(scope != null) {
+				ASTNode tree = scope.node;
+				if (tree instanceof TryStatement) {
+					TryStatement statement = (TryStatement) tree;
+					if ((statement.finallyBlock != null) && (statement.finallyBlock != previous)) {
+						return scope;
+					}
+				}
+				if (scope == top) break;
+				previous = tree;
+				scope = scope.parent;
+			}
+			return null;
+		}
+
+		private lombok.ast.Expression literal(final lombok.ast.Case label) {
+			lombok.ast.NumberLiteral pattern = (lombok.ast.NumberLiteral) label.getPattern();
+			lombok.ast.NumberLiteral literal = Number(pattern == null ? -1 : pattern.getNumber());
+			labelLiterals.put(literal, label);
+			return literal;
+		}
+
+		private lombok.ast.Statement setState(final lombok.ast.Expression expression) {
+			return Assign(Name(stateName), expression);
 		}
 
 		private void refactorStatement(final Statement statement) {
@@ -351,41 +434,47 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private void optimizeStates() {
-			int id = 0;
-			int labelCounter = 0;
-			Statement previous = null;
-			for (int i = 0; i < statements.size(); i++) {
-				Statement statement = statements.get(i);
-				if (statement instanceof Label) {
-					labelCounter++;
-					Label label = (Label) statement;
-					if ((previous != null) && (labelCounter > 2) && isNoneOf(previous, ContinueStatement.class, ReturnStatement.class)) {
-						id--;
-						statements.remove(i--);
+			int diff = 0;
+			lombok.ast.Case previous = null;
+			for (int i = 1; i < cases.size(); i++) {
+				lombok.ast.Case label = cases.get(i);
+				lombok.ast.NumberLiteral literal = (lombok.ast.NumberLiteral) label.getPattern();
+				literal.setNumber((Integer) literal.getNumber() - diff);
+				if (!usedLabels.contains(label)) {
+					if (label.getStatements().isEmpty()) {
+						cases.set(i, null);
+						diff++;
+					} else if ((previous != null) && isNoneOf(previous.getStatements().get(previous.getStatements().size() - 1), lombok.ast.Continue.class, lombok.ast.Return.class)) {
+						previous.withStatements(label.getStatements());
+						cases.set(i, null);
+						diff++;
+					} else {
+						previous = label;
 					}
-					label.id = id++;
-					label.constantExpression = method.build(Number(Integer.valueOf(label.id)));
+				} else {
+					previous = label;
 				}
-				previous = statement;
 			}
 		}
 
 		private void synchronizeLiteralsAndLabels() {
-			for (Map.Entry<Expression, Label> entry : labelLiterals.entrySet()) {
-				UnaryExpression expression = (UnaryExpression) entry.getKey();
-				Label label = entry.getValue();
-				expression.expression = method.build(Number(Integer.valueOf(label.id)));
+			for (Map.Entry<lombok.ast.NumberLiteral, lombok.ast.Case> entry : labelLiterals.entrySet()) {
+				lombok.ast.Case label = entry.getValue();
+				if (label != null) {
+					lombok.ast.NumberLiteral literal = (lombok.ast.NumberLiteral) label.getPattern();
+					entry.getKey().setNumber(literal.getNumber());
+				}
 			}
 		}
 
 		private class YieldQuickScanner extends ASTVisitor {
 			@Override
-			public boolean visit(final MessageSend messageSend, final BlockScope scope) {
-				final Expression expression = getYieldExpression(messageSend);
+			public boolean visit(final MessageSend tree, final BlockScope scope) {
+				final Expression expression = getYieldExpression(tree);
 				if (expression != null) {
 					throw new IllegalStateException();
 				} else {
-					return super.visit(messageSend, scope);
+					return super.visit(tree, scope);
 				}
 			}
 		}
@@ -394,289 +483,368 @@ public class HandleYield extends EclipseASTAdapter {
 			private Scope current;
 
 			@Override
-			public boolean visit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
-				current = new Scope(current, methodDeclaration) {
+			public boolean visit(final MethodDeclaration tree, final ClassScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						if (methodDeclaration.statements != null) {
-							for (Statement statement : methodDeclaration.statements) {
-								refactorStatement(statement);
-							}
+						for (Statement statement : list(tree.statements)) {
+							refactorStatement(statement);
 						}
-						addStatement(getBreakLabel(this));
+						addLabel(getBreakLabel(this));
 					}
 				};
 
-				return super.visit(methodDeclaration, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
+			public void endVisit(final MethodDeclaration tree, final ClassScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final Block block, final BlockScope scope) {
-				current = new Scope(current, block) {
+			public boolean visit(final Block tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						if (block.statements != null) {
-							for (Statement statement : block.statements) {
-								refactorStatement(statement);
-							}
+						for (Statement statement : list(tree.statements)) {
+							refactorStatement(statement);
 						}
-						addStatement(getBreakLabel(this));
+						addLabel(getBreakLabel(this));
 					}
 				};
 
-				return super.visit(block, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final Block block, final BlockScope scope) {
+			public void endVisit(final Block tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final LabeledStatement labeledStatement, final BlockScope scope) {
-				current = new Scope(current, labeledStatement) {
+			public boolean visit(final LabeledStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						refactorStatement(labeledStatement.statement);
+						refactorStatement(tree.statement);
 					}
 				};
 
-				return super.visit(labeledStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final LabeledStatement labeledStatement, final BlockScope scope) {
+			public void endVisit(final LabeledStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final ForStatement forStatement, final BlockScope scope) {
-				current = new Scope(current, forStatement) {
+			public boolean visit(final ForStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						if (forStatement.initializations != null) {
-							for (Statement statement : forStatement.initializations) {
-								refactorStatement(statement);
-							}
+						for (Statement statement : list(tree.initializations)) {
+							refactorStatement(statement);
 						}
-						Label label = label();
-						Label breakLabel = getBreakLabel(this);
-						addStatement(label);
-						if ((forStatement.condition != null) && !(forStatement.condition instanceof TrueLiteral)) {
-							addStatement(If(Not(Expr(forStatement.condition))).Then(Block() //
-								.withStatement(setStateId(labelLiteral(breakLabel))) //
-								.withStatement(Continue()) //
-							));
+						lombok.ast.Case label = Case();
+						lombok.ast.Case breakLabel = getBreakLabel(this);
+						addLabel(label);
+						if ((tree.condition != null) && !isTrueLiteral(tree.condition)) {
+							addStatement(If(Not(Expr(tree.condition))).Then(Block().withStatement(setState(literal(breakLabel))).withStatement(Continue())));
 						}
-						refactorStatement(forStatement.action);
-						addStatement(getIterationLabel(this));
-						if (forStatement.increments != null) {
-							for (Statement statement : forStatement.increments) {
-								refactorStatement(statement);
-							}
+						refactorStatement(tree.action);
+						addLabel(getIterationLabel(this));
+						for (Statement statement : list(tree.increments)) {
+							refactorStatement(statement);
 						}
-						addStatement(setStateId(labelLiteral(label)));
+						addStatement(setState(literal(label)));
 						addStatement(Continue());
-						addStatement(breakLabel);
+						addLabel(breakLabel);
 					}
 				};
 
-				return super.visit(forStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final ForStatement forStatement, final BlockScope scope) {
+			public void endVisit(final ForStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final ForeachStatement forStatement, final BlockScope scope) {
-				current = new Scope(current, forStatement) {
+			public boolean visit(final ForeachStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						String iteratorVarName = "$" + new String(forStatement.elementVariable.name) + "Iter";
-						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVarName).makePrivate());
-						addStatement(Assign(Name(iteratorVarName), Call(Expr(forStatement.collection), "iterator")));
-						addStatement(getIterationLabel(this));
-						addStatement(If(Not(Call(Name(iteratorVarName), "hasNext"))).Then(Block() //
-							.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
-							.withStatement(Continue()) //
-						));
-						addStatement(Assign(Name(string(forStatement.elementVariable.name)), Cast(Type(forStatement.elementVariable.type), Call(Name(iteratorVarName), "next"))));
-						refactorStatement(forStatement.action);
-						addStatement(setStateId(labelLiteral(getIterationLabel(this))));
+						String iteratorVar = "$" + string(tree.elementVariable.name) + "Iter";
+						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
+
+						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.collection), "iterator")));
+						addLabel(getIterationLabel(this));
+						addStatement(If(Not(Call(Name(iteratorVar), "hasNext"))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
+						addStatement(Assign(Name(string(tree.elementVariable.name)), Cast(Type(tree.elementVariable.type), Call(Name(iteratorVar), "next"))));
+
+						refactorStatement(tree.action);
+						addStatement(setState(literal(getIterationLabel(this))));
 						addStatement(Continue());
-						addStatement(getBreakLabel(this));
+						addLabel(getBreakLabel(this));
 					}
 				};
 
-				return super.visit(forStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final ForeachStatement forStatement, final BlockScope scope) {
+			public void endVisit(final ForeachStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final DoStatement doStatement, final BlockScope scope) {
-				current = new Scope(current, doStatement) {
+			public boolean visit(final DoStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						addStatement(getIterationLabel(this));
-						refactorStatement(doStatement.action);
-						addStatement(If(Expr(doStatement.condition)).Then(Block() //
-							.withStatement(setStateId(labelLiteral(breakLabel))) //
-							.withStatement(Continue()) //
-						));
-						addStatement(getBreakLabel(this));
+						addLabel(getIterationLabel(this));
+						refactorStatement(tree.action);
+						addStatement(If(Expr(tree.condition)).Then(Block().withStatement(setState(literal(breakLabel))).withStatement(Continue())));
+						addLabel(getBreakLabel(this));
 					}
 				};
 
-				return super.visit(doStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final DoStatement doStatement, final BlockScope scope) {
+			public void endVisit(final DoStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final WhileStatement whileStatement, final BlockScope scope) {
-				current = new Scope(current, whileStatement) {
+			public boolean visit(final WhileStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						addStatement(getIterationLabel(this));
-						if (!(whileStatement.condition instanceof TrueLiteral)) {
-							addStatement(If(Not(Expr(whileStatement.condition))).Then(Block() //
-								.withStatement(setStateId(labelLiteral(getBreakLabel(this)))) //
-								.withStatement(Continue()) //
-							));
+						addLabel(getIterationLabel(this));
+						if (!isTrueLiteral(tree.condition)) {
+							addStatement(If(Not(Expr(tree.condition))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
 						}
-						refactorStatement(whileStatement.action);
-						addStatement(setStateId(labelLiteral(getIterationLabel(this))));
+						refactorStatement(tree.action);
+						addStatement(setState(literal(getIterationLabel(this))));
 						addStatement(Continue());
-						addStatement(getBreakLabel(this));
+						addLabel(getBreakLabel(this));
 					}
 				};
 
-				return super.visit(whileStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final WhileStatement whileStatement, final BlockScope scope) {
+			public void endVisit(final WhileStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final IfStatement ifStatement, final BlockScope scope) {
-				current = new Scope(current, ifStatement) {
+			public boolean visit(final IfStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						Label label = ifStatement.elseStatement == null ? getBreakLabel(this) : label();
-						addStatement(If(Not(Expr(ifStatement.condition))).Then(Block() //
-							.withStatement(setStateId(labelLiteral(label))) //
-							.withStatement(Continue()) //
-						));
-						if (ifStatement.elseStatement != null) {
-							refactorStatement(ifStatement.thenStatement);
-							addStatement(setStateId(labelLiteral(getBreakLabel(this))));
+						lombok.ast.Case label = tree.elseStatement == null ? getBreakLabel(this) : Case();
+						addStatement(If(Not(Expr(tree.condition))).Then(Block().withStatement(setState(literal(label))).withStatement(Continue())));
+						if (tree.elseStatement != null) {
+							refactorStatement(tree.thenStatement);
+							addStatement(setState(literal(getBreakLabel(this))));
 							addStatement(Continue());
-							addStatement(label);
-							refactorStatement(ifStatement.elseStatement);
-							addStatement(getBreakLabel(this));
+							addLabel(label);
+							refactorStatement(tree.elseStatement);
+							addLabel(getBreakLabel(this));
 						} else {
-							refactorStatement(ifStatement.thenStatement);
-							addStatement(getBreakLabel(this));
+							refactorStatement(tree.thenStatement);
+							addLabel(getBreakLabel(this));
 						}
 					}
 				};
 
-				return super.visit(ifStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final IfStatement ifStatement, final BlockScope scope) {
+			public void endVisit(final IfStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final SwitchStatement switchStatement, final BlockScope scope) {
-				current = new Scope(current, switchStatement) {
+			public boolean visit(final SwitchStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						Label breakLabel = getBreakLabel(this);
-						SwitchStatement newSwitchStatement = new SwitchStatement();
-						newSwitchStatement.expression = switchStatement.expression;
-						addStatement(Stat(newSwitchStatement));
-						if (switchStatement.statements != null) {
+						lombok.ast.Case breakLabel = getBreakLabel(this);
+						lombok.ast.Switch switchStatement = Switch(Expr(tree.expression));
+						addStatement(switchStatement);
+						if (list(tree.statements).isEmpty()) {
 							boolean hasDefault = false;
-							ArrayList<Statement> cases = new ArrayList<Statement>();
-							for (Statement statement : switchStatement.statements) {
+							for (Statement statement : tree.statements) {
 								if (statement instanceof CaseStatement) {
 									CaseStatement caseStatement = (CaseStatement) statement;
 									if (caseStatement.constantExpression == null) {
 										hasDefault = true;
 									}
-									Label label = label();
-									cases.add(caseStatement);
-									cases.add(method.build(setStateId(labelLiteral(label)), Statement.class));
-									cases.add(new ContinueStatement(null, 0, 0));
-									addStatement(label);
+									lombok.ast.Case label = Case();
+									switchStatement.withCase(Case(Expr(caseStatement.constantExpression)).withStatement(setState(literal(label))).withStatement(Continue()));
+									addLabel(label);
 								} else {
 									refactorStatement(statement);
 								}
 							}
 							if (!hasDefault) {
-								cases.add(new CaseStatement(null, 0, 0));
-								cases.add(method.build(setStateId(labelLiteral(breakLabel)), Statement.class));
-								cases.add(new ContinueStatement(null, 0, 0));
+								switchStatement.withCase(Case().withStatement(setState(literal(breakLabel))).withStatement(Continue()));
 							}
-							newSwitchStatement.statements = cases.toArray(new Statement[cases.size()]);
 						}
-						addStatement(breakLabel);
+						addLabel(breakLabel);
 					}
 				};
 
-				return super.visit(switchStatement, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final SwitchStatement switchStatement, final BlockScope scope) {
+			public void endVisit(final SwitchStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final LocalDeclaration localDeclaration, final BlockScope scope) {
-				variableDecls.add(new Scope(current, localDeclaration) {
+			public boolean visit(final TryStatement tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						if (localDeclaration.initialization != null) {
-							if (localDeclaration.initialization instanceof ArrayInitializer) {
-								ArrayInitializer initializer = (ArrayInitializer) localDeclaration.initialization;
-								ArrayAllocationExpression allocation = new ArrayAllocationExpression();
-								allocation.type = method.build(Type(localDeclaration.type.toString()));
-								allocation.initializer = initializer;
-								allocation.dimensions = new Expression[localDeclaration.type.dimensions()];
-								addStatement(Assign(Name(new String(localDeclaration.name)), Expr(allocation)));
+						boolean hasFinally = tree.finallyBlock != null;
+						boolean hasCatch = !list(tree.catchArguments).isEmpty();
+						ErrorHandler catchHandler = null;
+						ErrorHandler finallyHandler = null;
+						lombok.ast.Case tryLabel = Case();
+						lombok.ast.Case finallyLabel;
+						lombok.ast.Case breakLabel = getBreakLabel(this);
+						String finallyErrorName = null;
+						
+						if (hasFinally) {
+							finallyHandler = new ErrorHandler();
+							finallyLabel = getFinallyLabel(this);
+							finallyBlocks++;
+							finallyErrorName = errorName + finallyBlocks;
+							labelName = "$id" + finallyBlocks;
+							
+							stateVariables.add(FieldDecl(Type(Throwable.class), finallyErrorName).makePrivate());
+							stateVariables.add(FieldDecl(Type("int"), labelName).makePrivate());
+							
+							addStatement(Assign(Name(finallyErrorName), Null()));
+							addStatement(Assign(Name(labelName), literal(breakLabel)));
+						} else {
+							finallyLabel = breakLabel;
+						}
+						
+						addStatement(setState(literal(tryLabel)));
+						
+						if (hasCatch) {
+							catchHandler = new ErrorHandler();
+							catchHandler.begin = cases.size();
+						} else if (hasFinally) {
+							finallyHandler.begin = cases.size();
+						}
+						
+						addLabel(tryLabel);
+						refactorStatement(tree.tryBlock);
+						addStatement(setState(literal(finallyLabel)));
+						
+						if (hasCatch) {
+							addStatement(Continue());
+							catchHandler.end = cases.size();
+							int numberOfCatchBlocks = tree.catchArguments.length;
+							for(int i = 0; i < numberOfCatchBlocks; i++) {
+								Argument argument = tree.catchArguments[i];
+								Block block = tree.catchBlocks[i];
+								
+								lombok.ast.Case label = Case();
+								usedLabels.add(label);
+								addLabel(label);
+								refactorStatement(block);
+								addStatement(setState(literal(finallyLabel)));
+								addStatement(Continue());
+								
+								catchHandler.statements.add(If(InstanceOf(Name(errorName), Type(argument.type))).Then(Block() //
+									.withStatement(Assign(Name(string(argument.name)), Cast(Type(argument.type), Name(errorName)))) //
+									.withStatement(setState(literal(label))).withStatement(Continue())));
+							}
+							
+							errorHandlers.add(catchHandler);
+							
+							if (hasFinally) {
+								finallyHandler.begin = catchHandler.end;
+							}
+						}
+						
+						if (hasFinally) {
+							finallyHandler.end = cases.size();
+							addLabel(finallyLabel);
+							refactorStatement(tree.finallyBlock);
+							
+							addStatement(If(NotEqual(Name(finallyErrorName), Null())).Then(Block().withStatement(Assign(Name(errorName), Name(finallyErrorName))).withStatement(Break())));
+							
+							Scope next = getFinallyScope(parent, null);
+							if (next != null) {
+								lombok.ast.Case label = getFinallyLabel(next);
+								addStatement(If(Binary(Name(labelName), ">", literal(label))).Then(Block() //
+									.withStatement(Assign(Name(next.labelName), Name(labelName))) //
+									.withStatement(setState(literal(label))).withStatement(setState(Name(labelName)))));
 							} else {
-								addStatement(Assign(Name(new String(localDeclaration.name)), Expr(localDeclaration.initialization)));
+								addStatement(setState(Name(labelName)));
+							}
+							
+							addStatement(Continue());
+							
+							finallyHandler.statements.add(Assign(Name(finallyErrorName), Name(errorName)));
+							finallyHandler.statements.add(setState(literal(finallyLabel)));
+							finallyHandler.statements.add(Continue());
+							
+							usedLabels.add(finallyLabel);
+							errorHandlers.add(finallyHandler);
+						}
+						addLabel(breakLabel);
+					}
+				};
+				return super.visit(tree, scope);
+			}
+
+			@Override
+			public void endVisit(final TryStatement tree, final BlockScope scope) {
+				current = current.parent;
+			}
+
+			@Override
+			public boolean visit(final LocalDeclaration tree, final BlockScope scope) {
+				variableDecls.add(new Scope(current, tree) {
+					@Override
+					public void refactor() {
+						if (tree.initialization != null) {
+							if (tree.initialization instanceof ArrayInitializer) {
+								ArrayInitializer initializer = (ArrayInitializer) tree.initialization;
+								ArrayAllocationExpression allocation = new ArrayAllocationExpression();
+								allocation.type = method.build(Type(tree.type.toString()));
+								allocation.initializer = initializer;
+								allocation.dimensions = new Expression[tree.type.dimensions()];
+								addStatement(Assign(Name(string(tree.name)), Expr(allocation)));
+							} else {
+								addStatement(Assign(Name(string(tree.name)), Expr(tree.initialization)));
 							}
 						}
 					}
 				});
 
-				return super.visit(localDeclaration, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public boolean visit(final Argument argument, final BlockScope scope) {
-				current = new Scope(current, argument) {
+			public boolean visit(final Argument tree, final BlockScope scope) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
 					}
@@ -685,28 +853,28 @@ public class HandleYield extends EclipseASTAdapter {
 					variableDecls.add(current);
 				}
 
-				return super.visit(argument, scope);
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public void endVisit(final Argument argument, final BlockScope scope) {
+			public void endVisit(final Argument tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final ReturnStatement returnStatement, final BlockScope scope) {
+			public boolean visit(final ReturnStatement tree, final BlockScope scope) {
 				method.node().addError("The 'return' expression is permitted.");
 				return false;
 			}
 
 			@Override
-			public void endVisit(final ReturnStatement returnStatement, final BlockScope scope) {
+			public void endVisit(final ReturnStatement tree, final BlockScope scope) {
 			}
 
 			@Override
-			public boolean visit(final BreakStatement breakStatement, final BlockScope scope) {
+			public boolean visit(final BreakStatement tree, final BlockScope scope) {
 				Scope target = null;
-				char[] label = breakStatement.label;
+				char[] label = tree.label;
 				if (label != null) {
 					Scope labelScope = current;
 					while (labelScope != null) {
@@ -736,29 +904,37 @@ public class HandleYield extends EclipseASTAdapter {
 					method.node().addError("Invalid break.");
 				}
 
-				current = new Scope(current, breakStatement) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						addStatement(setStateId(labelLiteral(getBreakLabel(target))));
-						addStatement(Continue());
+						Scope next = getFinallyScope(parent, target);
+						lombok.ast.Case label = getBreakLabel(target);
+						
+						if (next == null) {
+							addStatement(setState(literal(label)));
+							addStatement(Continue());
+						} else {
+							addStatement(Assign(Name(next.labelName), literal(label)));
+							addStatement(setState(literal(getFinallyLabel(next))));
+							addStatement(Continue());
+						}
 					}
 				};
 
 				current.target = target;
 				breaks.add(current);
-
 				return false;
 			}
 
 			@Override
-			public void endVisit(final BreakStatement breakStatement, final BlockScope scope) {
+			public void endVisit(final BreakStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final ContinueStatement continueStatement, final BlockScope scope) {
+			public boolean visit(final ContinueStatement tree, final BlockScope scope) {
 				Scope target = null;
-				char[] label = continueStatement.label;
+				char[] label = tree.label;
 				if (label != null) {
 					Scope labelScope = current;
 					while (labelScope != null) {
@@ -768,7 +944,7 @@ public class HandleYield extends EclipseASTAdapter {
 								if (target != null) {
 									method.node().addError("Invalid label.");
 								}
-								if (isOneOf(labelScope, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
+								if (isOneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
 									target = labelScope;
 								} else {
 									method.node().addError("Invalid continue.");
@@ -780,7 +956,7 @@ public class HandleYield extends EclipseASTAdapter {
 				} else {
 					Scope labelScope = current;
 					while (labelScope != null) {
-						if (isOneOf(labelScope, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
+						if (isOneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
 							target = labelScope;
 							break;
 						}
@@ -792,11 +968,20 @@ public class HandleYield extends EclipseASTAdapter {
 					method.node().addError("Invalid continue.");
 				}
 
-				current = new Scope(current, continueStatement) {
+				current = new Scope(current, tree) {
 					@Override
 					public void refactor() {
-						addStatement(setStateId(labelLiteral(getIterationLabel(target))));
-						addStatement(Continue());
+						Scope next = getFinallyScope(parent, target);
+						lombok.ast.Case label = getIterationLabel(target);
+						
+						if (next == null) {
+							addStatement(setState(literal(label)));
+							addStatement(Continue());
+						} else {
+							addStatement(Assign(Name(next.labelName), literal(label)));
+							addStatement(setState(literal(getFinallyLabel(next))));
+							addStatement(Continue());
+						}
 					}
 				};
 
@@ -806,78 +991,76 @@ public class HandleYield extends EclipseASTAdapter {
 			}
 
 			@Override
-			public void endVisit(final ContinueStatement continueStatement, final BlockScope scope) {
+			public void endVisit(final ContinueStatement tree, final BlockScope scope) {
 				current = current.parent;
 			}
 
 			@Override
-			public boolean visit(final ThisReference thisReference, final BlockScope scope) {
-				if (!thisReference.isImplicitThis()) {
+			public boolean visit(final ThisReference tree, final BlockScope scope) {
+				if (!tree.isImplicitThis()) {
 					method.node().addError("No unqualified 'this' expression is permitted.");
 				}
 				return false;
 			}
 
 			@Override
-			public boolean visit(final SuperReference thisReference, final BlockScope scope) {
+			public boolean visit(final SuperReference tree, final BlockScope scope) {
 				method.node().addError("No unqualified 'super' expression is permitted.");
 				return false;
 			}
 
 			@Override
-			public boolean visit(final SingleNameReference singleNameReference, final BlockScope scope) {
-				names.add(new String(singleNameReference.token));
-				return super.visit(singleNameReference, scope);
+			public boolean visit(final SingleNameReference tree, final BlockScope scope) {
+				names.add(new String(tree.token));
+				return super.visit(tree, scope);
 			}
 
 			@Override
-			public boolean visit(final MessageSend messageSend, final BlockScope scope) {
-				final Expression expression = getYieldExpression(messageSend);
+			public boolean visit(final MessageSend tree, final BlockScope scope) {
+				final Expression expression = getYieldExpression(tree);
 				if (expression != null) {
-					yields.add(new Scope(current, messageSend) {
+					current = new Scope(current, tree) {
 						@Override
 						public void refactor() {
-							Label label = getBreakLabel(this);
+							lombok.ast.Case label = getBreakLabel(this);
 							addStatement(Assign(Name(nextName), Expr(expression)));
-							addStatement(setStateId(labelLiteral(label)));
+							addStatement(setState(literal(label)));
 							addStatement(Return(True()));
-							addStatement(label);
+							addLabel(label);
 						}
-					});
+					};
+					yields.add(current);
 					expression.traverse(this, scope);
+					current = current.parent;
 					return false;
 				} else {
-					if (messageSend.receiver.isImplicitThis()) {
-						String name = new String(messageSend.selector);
-						if ("hasNext".equals(name) || "next".equals(name) || "remove".equals(name)) {
-							method.node().addError("Cannot call method " + name + "(), as it is hidden.");
+					if (tree.receiver.isImplicitThis()) {
+						String name = string(tree.selector);
+						if (isOneOf(name, "hasNext", "next", "remove")) {
+							method.node().addError(String.format("Cannot call method %s(), as it is hidden.", name));
 						}
 					}
-					return super.visit(messageSend, scope);
+					return super.visit(tree, scope);
 				}
 			}
 		}
 	}
 
-	private static class Label extends CaseStatement {
-		public int id = -1;
-
-		public Label() {
-			super(null, 0, 0);
-		}
+	private static class ErrorHandler {
+		public int begin;
+		public int end;
+		public List<lombok.ast.Statement> statements = new ArrayList<lombok.ast.Statement>();
 	}
 
+	@RequiredArgsConstructor
 	private abstract static class Scope {
-		public ASTNode node;
-		public Scope parent;
+		public final Scope parent;
+		public final ASTNode node;
 		public Scope target;
-		public Label iterationLabel;
-		public Label breakLabel;
-
-		public Scope(final Scope parent, final ASTNode node) {
-			this.parent = parent;
-			this.node = node;
-		}
+		public String labelName;
+		public lombok.ast.Case iterationLabel;
+		public lombok.ast.Case breakLabel;
+		public lombok.ast.Case finallyLabel;
 
 		public abstract void refactor();
 	}

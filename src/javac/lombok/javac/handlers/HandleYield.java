@@ -135,31 +135,31 @@ public class HandleYield extends JavacASTAdapter {
 		final Statement errorHandler = collector.getErrorHandler();
 
 		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type("java.util.Iterator").withTypeArgument(Type(elementType))) //
-				.withFields(variables) //
-				.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
-				.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
-				.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
-				.withField(FieldDecl(Type(elementType), nextName).makePrivate()); //
+			.withFields(variables) //
+			.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
+			.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
+			.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
+			.withField(FieldDecl(Type(elementType), nextName).makePrivate()); //
 		if (returnsIterable) {
 			yielder.implementing(Type("java.lang.Iterable").withTypeArgument(Type(elementType))) //
-					.withMethod(MethodDecl(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
+				.withMethod(MethodDecl(Type("java.util.Iterator").withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
 		}
 		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
 				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
-						.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
-						.withStatement(Assign(Name("$nextDefined"), True())))) //
+					.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
+					.withStatement(Assign(Name("$nextDefined"), True())))) //
 				.withStatement(Return(Name("$hasNext")))) //
-				.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
-						.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
-						.withStatement(Assign(Name("$nextDefined"), False())) //
-						.withStatement(Return(Name(nextName)))) //
-				.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")))));
+			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
+				.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type("java.util.NoSuchElementException")))))) //
+				.withStatement(Assign(Name("$nextDefined"), False())) //
+				.withStatement(Return(Name(nextName)))) //
+			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type("java.lang.UnsupportedOperationException")))));
 		if (errorHandler != null) {
 			String caughtErrorName = errorName + "Caught";
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
-					.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
-					.withStatement(While(True()).Do(Block().withStatement(Try(Block().withStatement(stateSwitch)) //
-							.Catch(Arg(Type(Throwable.class), caughtErrorName), Block().withStatement(Assign(Name(errorName), Name(caughtErrorName))).withStatement(errorHandler))))));
+				.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
+				.withStatement(While(True()).Do(Block().withStatement(Try(Block().withStatement(stateSwitch)) //
+					.Catch(Arg(Type(Throwable.class), caughtErrorName), Block().withStatement(Assign(Name(errorName), Name(caughtErrorName))).withStatement(errorHandler))))));
 		} else {
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(stateSwitch)));
 		}
@@ -211,7 +211,7 @@ public class HandleYield extends JavacASTAdapter {
 			for (Case label : cases) if (label != null) switchCases.add(label);
 			return Switch(Name(stateName)).withCases(switchCases).withCase(Case().withStatement(Return(False())));
 		}
-		
+
 		public Statement getErrorHandler() {
 			if (errorHandlers.isEmpty()) {
 				return null;
@@ -234,10 +234,10 @@ public class HandleYield extends JavacASTAdapter {
 				
 				final String unhandledErrorName = errorName + "Unhandled";
 				switchCases.add(Case() //
-						.withStatement(setState(literal(getBreakLabel(root)))) //
-						.withStatement(LocalDecl(Type(ConcurrentModificationException.class), unhandledErrorName).withInitialization(New(Type(ConcurrentModificationException.class)))) //
-						.withStatement(Call(Name(unhandledErrorName), "initCause").withArgument(Name(errorName))) //
-						.withStatement(Throw(Name(unhandledErrorName))));
+					.withStatement(setState(literal(getBreakLabel(root)))) //
+					.withStatement(LocalDecl(Type(ConcurrentModificationException.class), unhandledErrorName).withInitialization(New(Type(ConcurrentModificationException.class)))) //
+					.withStatement(Call(Name(unhandledErrorName), "initCause").withArgument(Name(errorName))) //
+					.withStatement(Throw(Name(unhandledErrorName))));
 				return Switch(Name(stateName)).withCases(switchCases);
 			}
 		}
@@ -303,7 +303,7 @@ public class HandleYield extends JavacASTAdapter {
 						stateVariable = true;
 					}
 				}
-				
+
 				if (stateVariable) {
 					JCVariableDecl variable = (JCVariableDecl) scope.node;
 					allScopes.put(scope.node, scope);
@@ -320,14 +320,14 @@ public class HandleYield extends JavacASTAdapter {
 		private void refactor() {
 			root = allScopes.get(method.get().body);
 			Case iteratorLabel = getIterationLabel(root);
-			
+
 			usedLabels.add(iteratorLabel);
 			usedLabels.add(getBreakLabel(root));
-			
+
 			addLabel(iteratorLabel);
 			root.refactor();
 			endCase();
-			
+
 			optimizeStates();
 			synchronizeLiteralsAndLabels();
 		}
@@ -388,7 +388,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 			return label;
 		}
-		
+
 		private Case getFinallyLabel(Scope scope) {
 			Case label = scope.finallyLabel;
 			if (label == null) {
@@ -397,7 +397,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 			return label;
 		}
-		
+
 		private Scope getFinallyScope(Scope scope, Scope top) {
 			JCTree previous = null;
 			while(scope != null) {
@@ -414,7 +414,7 @@ public class HandleYield extends JavacASTAdapter {
 			}
 			return null;
 		}
-		
+
 		private Expression literal(final Case label) {
 			NumberLiteral pattern = (NumberLiteral) label.getPattern();
 			NumberLiteral literal = Number(pattern == null ? -1 : pattern.getNumber());
@@ -552,12 +552,12 @@ public class HandleYield extends JavacASTAdapter {
 					public void refactor() {
 						String iteratorVar = "$" + string(tree.var.name) + "Iter";
 						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
-						
+
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.expr), "iterator")));
 						addLabel(getIterationLabel(this));
 						addStatement(If(Not(Call(Name(iteratorVar), "hasNext"))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
-						addStatement(Assign(Name(tree.var.name.toString()), Cast(Type(tree.var.vartype), Call(Name(iteratorVar), "next"))));
-						
+						addStatement(Assign(Name(string(tree.var.name)), Cast(Type(tree.var.vartype), Call(Name(iteratorVar), "next"))));
+
 						refactorStatement(tree.body);
 						addStatement(setState(literal(getIterationLabel(this))));
 						addStatement(Continue());
@@ -718,8 +718,8 @@ public class HandleYield extends JavacASTAdapter {
 								addStatement(Continue());
 								
 								catchHandler.statements.add(If(InstanceOf(Name(errorName), Type(catcher.param.vartype))).Then(Block() //
-										.withStatement(Assign(Name(string(catcher.param.name)), Cast(Type(catcher.param.vartype), Name(errorName)))) //
-										.withStatement(setState(literal(label))).withStatement(Continue())));
+									.withStatement(Assign(Name(string(catcher.param.name)), Cast(Type(catcher.param.vartype), Name(errorName)))) //
+									.withStatement(setState(literal(label))).withStatement(Continue())));
 							}
 							
 							errorHandlers.add(catchHandler);
@@ -740,8 +740,8 @@ public class HandleYield extends JavacASTAdapter {
 							if (next != null) {
 								Case label = getFinallyLabel(next);
 								addStatement(If(Binary(Name(labelName), ">", literal(label))).Then(Block() //
-										.withStatement(Assign(Name(next.labelName), Name(labelName))) //
-										.withStatement(setState(literal(label))).withStatement(setState(Name(labelName)))));
+									.withStatement(Assign(Name(next.labelName), Name(labelName))) //
+									.withStatement(setState(literal(label))).withStatement(setState(Name(labelName)))));
 							} else {
 								addStatement(setState(Name(labelName)));
 							}
@@ -958,19 +958,15 @@ public class HandleYield extends JavacASTAdapter {
 		public List<Statement> statements = new ArrayList<Statement>();
 	}
 
+	@RequiredArgsConstructor
 	private abstract static class Scope {
-		public JCTree node;
-		public Scope parent;
+		public final Scope parent;
+		public final JCTree node;
 		public Scope target;
 		public String labelName;
 		public Case iterationLabel;
 		public Case breakLabel;
 		public Case finallyLabel;
-
-		public Scope(final Scope parent, final JCTree node) {
-			this.parent = parent;
-			this.node = node;
-		}
 
 		public abstract void refactor();
 	}

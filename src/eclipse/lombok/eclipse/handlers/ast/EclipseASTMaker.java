@@ -318,7 +318,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 
 	@Override
 	public ASTNode visitCase(final lombok.ast.Case node, final Void p) {
-		return null;
+		throw new IllegalStateException("");
 	}
 
 	@Override
