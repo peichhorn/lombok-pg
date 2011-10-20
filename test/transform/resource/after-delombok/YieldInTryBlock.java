@@ -16,6 +16,10 @@ class YieldTryBlock {
 			private boolean $nextDefined;
 			private java.lang.String $next;
 			
+			private $YielderTest() {
+				super();
+			}
+			
 			public java.util.Iterator<java.lang.String> iterator() {
 				return new $YielderTest();
 			}

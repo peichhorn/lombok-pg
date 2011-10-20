@@ -12,6 +12,10 @@ class YieldPlain {
 			private boolean $nextDefined;
 			private java.lang.String $next;
 			
+			private $YielderSimple() {
+				super();
+			}
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -58,6 +62,10 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.Long $next;
+			
+			private $YielderFibWhile() {
+				super();
+			}
 			
 			public boolean hasNext() {
 				if (!$nextDefined) {
@@ -122,6 +130,10 @@ class YieldPlain {
 			private boolean $nextDefined;
 			private java.lang.Long $next;
 			
+			private $YielderFibWhile2() {
+				super();
+			}
+			
 			public boolean hasNext() {
 				if (!$nextDefined) {
 					$hasNext = getNext();
@@ -181,6 +193,10 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.Long $next;
+			
+			private $YielderFibFor() {
+				super();
+			}
 			
 			public java.util.Iterator<java.lang.Long> iterator() {
 				return new $YielderFibFor();
@@ -246,6 +262,10 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.String $next;
+			
+			private $YielderComplexForeach() {
+				super();
+			}
 			
 			public java.util.Iterator<java.lang.String> iterator() {
 				return new $YielderComplexForeach();
@@ -320,6 +340,10 @@ class YieldPlain {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private java.lang.String $next;
+			
+			private $YielderComplex() {
+				super();
+			}
 			
 			public boolean hasNext() {
 				if (!$nextDefined) {

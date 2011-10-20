@@ -20,6 +20,10 @@ class YieldNestedLoop<T, K, V> {
 			private boolean $nextDefined;
 			private V $next;
 			
+			private $YielderValues() {
+				super();
+			}
+			
 			public java.util.Iterator<V> iterator() {
 				return new $YielderValues();
 			}
