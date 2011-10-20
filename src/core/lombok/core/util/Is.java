@@ -21,21 +21,54 @@
  */
 package lombok.core.util;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import java.util.*;
+
+import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Types {
+public final class Is {
 
-	public static boolean isOneOf(final Object o, final Class<?>... clazzes) {
-		if (clazzes != null) for (Class<?> clazz : clazzes) {
+	public static boolean empty(final String s) {
+		if (s == null) return true;
+		return s.isEmpty();
+	}
+
+	public static boolean empty(final Collection<?> collection) {
+		return (collection == null) || collection.isEmpty();
+	}
+
+	public static boolean empty(final Object[] array) {
+		return (array == null) || (array.length == 0);
+	}
+
+	public static boolean notEmpty(final String s) {
+		return !empty(s);
+	}
+
+	public static boolean notEmpty(final Collection<?> collection) {
+		return (collection != null) && !collection.isEmpty();
+	}
+
+	public static boolean notEmpty(final Object[] array) {
+		return (array != null) && (array.length > 0);
+	}
+
+	public static boolean oneOf(final String s, final String... candidates) {
+		for (String candidate : Each.elementIn(candidates)) {
+			if (candidate.equals(s)) return true;
+		}
+		return false;
+	}
+
+	public static boolean oneOf(final Object o, final Class<?>... clazzes) {
+		for (Class<?> clazz : Each.elementIn(clazzes)) {
 			if (clazz.isInstance(o)) return true;
 		}
 		return false;
 	}
 
-	public static boolean isNoneOf(final Object o, final Class<?>... clazzes) {
-		if (clazzes != null) for (Class<?> clazz : clazzes) {
+	public static boolean noneOf(final Object o, final Class<?>... clazzes) {
+		for (Class<?> clazz : Each.elementIn(clazzes)) {
 			if (clazz.isInstance(o)) return false;
 		}
 		return true;

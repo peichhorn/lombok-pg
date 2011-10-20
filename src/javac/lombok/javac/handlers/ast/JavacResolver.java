@@ -21,7 +21,7 @@
  */
 package lombok.javac.handlers.ast;
 
-import static lombok.core.util.Types.isNoneOf;
+import lombok.core.util.Is;
 import lombok.javac.JavacNode;
 import lombok.javac.JavacResolution;
 
@@ -59,7 +59,7 @@ public enum JavacResolver {
 			Type type = METHOD.resolveMember(node, expr);
 			if (type == null) {
 				JavacNode classNode = node;
-				while ((classNode != null) && isNoneOf(classNode.get(), JCBlock.class, JCMethodDecl.class, JCVariableDecl.class)) {
+				while ((classNode != null) && Is.noneOf(classNode.get(), JCBlock.class, JCMethodDecl.class, JCVariableDecl.class)) {
 					classNode = classNode.up();
 				}
 				if (classNode != null) {

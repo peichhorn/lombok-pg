@@ -22,13 +22,13 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Lists.unmodifiableList;
 
 import java.text.Normalizer;
 import java.util.List;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.util.As;
 
 public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	public List<Statement> sanitizeParameterOf(METHOD_TYPE method);
@@ -51,7 +51,7 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			}
 		};
 
-		public static final Iterable<SanitizerStrategy> IN_ORDER = unmodifiableList(WITH, NORMALIZE);
+		public static final Iterable<SanitizerStrategy> IN_ORDER = As.unmodifiableList(WITH, NORMALIZE);
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 

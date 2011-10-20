@@ -14,6 +14,5 @@ class ExtensionMethodGenericList {
 		public static <T> List<T> orElse(List<T> value, List<T> orElse) {
 			return value == null ? orElse : value;
 		}
-		
 	}
 }

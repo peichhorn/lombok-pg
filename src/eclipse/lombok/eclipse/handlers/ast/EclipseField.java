@@ -23,7 +23,6 @@ package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +36,9 @@ import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
+import lombok.core.util.As;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
 
@@ -158,12 +160,12 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		final TypeReference type = get().type;
 		if (type instanceof ParameterizedQualifiedTypeReference) {
 			ParameterizedQualifiedTypeReference typeRef = (ParameterizedQualifiedTypeReference) type;
-			if (isNotEmpty(typeRef.typeArguments)) for (TypeReference typeArgument : typeRef.typeArguments[typeRef.typeArguments.length - 1]) {
+			if (Is.notEmpty(typeRef.typeArguments)) for (TypeReference typeArgument : Each.elementIn(typeRef.typeArguments[typeRef.typeArguments.length - 1])) {
 				typeArguments.add(Type(typeArgument));
 			}
 		} else if (type instanceof ParameterizedSingleTypeReference) {
 			ParameterizedSingleTypeReference typeRef = (ParameterizedSingleTypeReference) type;
-			if (isNotEmpty(typeRef.typeArguments)) for (TypeReference typeArgument : typeRef.typeArguments) {
+			for (TypeReference typeArgument : Each.elementIn(typeRef.typeArguments)) {
 				typeArguments.add(Type(typeArgument));
 			}
 		}
@@ -176,10 +178,10 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 
 	public List<lombok.ast.Annotation> annotations(final Pattern namePattern) {
 		List<lombok.ast.Annotation> result = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(get().annotations)) for (Annotation annotation : get().annotations) {
+		for (Annotation annotation : Each.elementIn(get().annotations)) {
 			TypeReference typeRef = annotation.type;
 			char[][] typeName = typeRef.getTypeName();
-			String suspect = new String(typeName[typeName.length - 1]);
+			String suspect = As.string(typeName[typeName.length - 1]);
 			if ((namePattern == null) || namePattern.matcher(suspect).matches()) {
 				result.add(Annotation(Type(typeRef)));
 			}

@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.Eclipse.setGeneratedBy;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.createSuppressWarningsAll;
 
@@ -29,6 +28,8 @@ import java.util.*;
 
 import lombok.*;
 import lombok.core.AST.*;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
@@ -134,7 +135,7 @@ public final class Eclipse {
 	public static void deleteImport(final EclipseNode node, final String name, final boolean deleteStatic) {
 		CompilationUnitDeclaration unit = (CompilationUnitDeclaration) node.top().get();
 		List<ImportReference> newImports = new ArrayList<ImportReference>();
-		for (ImportReference imp0rt : unit.imports) {
+		for (ImportReference imp0rt : Each.elementIn(unit.imports)) {
 			boolean delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.toString().equals(name));
 			if (!delete) newImports.add(imp0rt);
 		}
@@ -173,7 +174,7 @@ public final class Eclipse {
 	}
 
 	public static boolean hasAnnotations(final TypeDeclaration decl) {
-		return (decl != null) && isNotEmpty(decl.annotations);
+		return (decl != null) && Is.notEmpty(decl.annotations);
 	}
 
 	public static Annotation getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType, final Annotation[] annotations) {
@@ -181,7 +182,7 @@ public final class Eclipse {
 	}
 
 	public static Annotation getAnnotation(final String typeName, final Annotation[] annotations) {
-		if (isNotEmpty(annotations)) for (Annotation ann : annotations) {
+		for (Annotation ann : Each.elementIn(annotations)) {
 			if (matchesType(ann, typeName)) return ann;
 		}
 		return null;

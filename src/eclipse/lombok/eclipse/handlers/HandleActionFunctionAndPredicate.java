@@ -21,10 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.Lists.list;
-import static lombok.core.util.Names.string;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.poss;
 
@@ -37,6 +34,8 @@ import lombok.Predicate;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.ActionFunctionAndPredicateHandler;
 import lombok.core.handlers.ActionFunctionAndPredicateHandler.TemplateData;
+import lombok.core.util.As;
+import lombok.core.util.Each;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -134,8 +133,7 @@ public class HandleActionFunctionAndPredicate {
 		final List<TemplateData> foundTemplates = new ArrayList<TemplateData>();
 		final TemplateData templateData = templateDataFor(methodDecl, template, forcedReturnType);
 		if (templateData != null) foundTemplates.add(templateData);
-		final ReferenceBinding[] memberTypes = template.memberTypes();
-		if (isNotEmpty(memberTypes)) for (ReferenceBinding memberType : memberTypes) {
+		for (ReferenceBinding memberType : Each.elementIn(template.memberTypes())) {
 			if (!template.isInterface() && !memberType.isStatic()) continue;
 			foundTemplates.addAll(findTemplatesFor(methodDecl, memberType, forcedReturnType));
 		}
@@ -145,12 +143,12 @@ public class HandleActionFunctionAndPredicate {
 	private TemplateData templateDataFor(final AbstractMethodDeclaration methodDecl, final ReferenceBinding template, final String forcedReturnType) {
 		if (!template.isPublic()) return null;
 		if (!template.isInterface() && !template.isAbstract()) return null;
-		final List<TypeVariableBinding> templateTypeArguments = list(template.typeVariables());
+		final List<TypeVariableBinding> templateTypeArguments = As.list(template.typeVariables());
 		final List<MethodBinding> enclosedMethods = enclosedMethodsOf(template);
 		if (enclosedMethods.size() != 1) return null;
 		final MethodBinding enclosedMethod = enclosedMethods.get(0);
 		if (!matchesReturnType(enclosedMethod, forcedReturnType)) return null;
-		final List<TypeBinding> methodTypeArguments = list(enclosedMethod.parameters);
+		final List<TypeBinding> methodTypeArguments = As.list(enclosedMethod.parameters);
 		if (forcedReturnType == null) methodTypeArguments.add(enclosedMethod.returnType);
 		if (!templateTypeArguments.equals(methodTypeArguments)) return null;
 		if (forcedReturnType == null) {
@@ -158,7 +156,7 @@ public class HandleActionFunctionAndPredicate {
 		} else {
 			if (numberOfParameters(methodDecl) != templateTypeArguments.size()) return null;
 		}
-		return new TemplateData(qualifiedName(template), string(enclosedMethod.selector), forcedReturnType);
+		return new TemplateData(qualifiedName(template), As.string(enclosedMethod.selector), forcedReturnType);
 	}
 
 	// for now only works for void or boolean
@@ -171,16 +169,16 @@ public class HandleActionFunctionAndPredicate {
 
 	private int numberOfParameters(final AbstractMethodDeclaration methodDecl) {
 		int numberOfParameters = 0;
-		if (isNotEmpty(methodDecl.arguments)) for (Argument param : methodDecl.arguments) {
-			if (!string(param.name).startsWith("_")) numberOfParameters++;
+		for (Argument param : Each.elementIn(methodDecl.arguments)) {
+			if (!As.string(param.name).startsWith("_")) numberOfParameters++;
 		}
 		return numberOfParameters;
 	}
 
 	private String qualifiedName(final TypeBinding typeBinding) {
-		String qualifiedName = string(typeBinding.qualifiedPackageName());
+		String qualifiedName = As.string(typeBinding.qualifiedPackageName());
 		if (!qualifiedName.isEmpty()) qualifiedName += ".";
-		qualifiedName += string(typeBinding.qualifiedSourceName());
+		qualifiedName += As.string(typeBinding.qualifiedSourceName());
 		return qualifiedName;
 	}
 
@@ -188,7 +186,7 @@ public class HandleActionFunctionAndPredicate {
 		final List<MethodBinding> enclosedMethods = new ArrayList<MethodBinding>();
 		if (type instanceof ReferenceBinding) {
 			ReferenceBinding rb = (ReferenceBinding) type;
-			for (MethodBinding enclosedElement : list(rb.availableMethods())) {
+			for (MethodBinding enclosedElement : Each.elementIn(rb.availableMethods())) {
 				if (!enclosedElement.isAbstract()) continue;
 				enclosedMethods.add(enclosedElement);
 			}

@@ -23,7 +23,6 @@ package lombok.javac.handlers.ast;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
-import static lombok.core.util.Names.string;
 import static lombok.javac.handlers.JavacHandlerUtil.fieldExists;
 import static lombok.javac.handlers.JavacHandlerUtil.methodExists;
 
@@ -45,6 +44,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
 import lombok.core.AST.Kind;
+import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.Javac;
@@ -222,7 +222,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	public List<lombok.ast.TypeRef> typeArguments() {
 		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
 		for (JCTypeParameter typaram : get().typarams) {
-			typeArguments.add(Type(string(typaram.name)));
+			typeArguments.add(Type(As.string(typaram.name)));
 		}
 		return typeArguments;
 	}
@@ -230,7 +230,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	public List<lombok.ast.TypeParam> typeParameters() {
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
 		for (JCTypeParameter typaram : get().typarams) {
-			final lombok.ast.TypeParam typeParam = TypeParam(string(typaram.name));
+			final lombok.ast.TypeParam typeParam = TypeParam(As.string(typaram.name));
 			for (JCExpression expr : typaram.bounds) {
 				typeParam.withBound(Type(expr));
 			}

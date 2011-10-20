@@ -22,9 +22,6 @@
 package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Lists.*;
-import static lombok.core.util.Names.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
@@ -51,7 +48,9 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 import lombok.AccessLevel;
 import lombok.core.AST.Kind;
-import lombok.core.util.Arrays;
+import lombok.core.util.As;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.replace.ReturnStatementReplaceVisitor;
@@ -163,7 +162,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public boolean isEmpty() {
-		return Arrays.isEmpty(get().statements);
+		return Is.empty(get().statements);
 	}
 
 	public AbstractMethodDeclaration get() {
@@ -190,17 +189,16 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public boolean hasNonFinalArgument() {
-		if (hasArguments())
-			for (Argument arg : get().arguments) {
-				if ((arg.modifiers & AccFinal) == 0) {
-					return true;
-				}
+		for (Argument arg : Each.elementIn(get().arguments)) {
+			if ((arg.modifiers & AccFinal) == 0) {
+				return true;
 			}
+		}
 		return false;
 	}
 
 	public boolean hasArguments() {
-		return isNotEmpty(get().arguments);
+		return Is.notEmpty(get().arguments);
 	}
 
 	public String name() {
@@ -227,7 +225,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public void replaceBody(final lombok.ast.Statement... statements) {
-		replaceBody(list(statements));
+		replaceBody(As.list(statements));
 	}
 
 	public void replaceBody(final List<lombok.ast.Statement> statements) {
@@ -236,7 +234,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		get().statements = build(statements).toArray(new Statement[0]);
 		final List<Annotation> annotations = new ArrayList<Annotation>();
 		Annotation[] originalAnnotations = get().annotations;
-		if (originalAnnotations != null) for (Annotation originalAnnotation : originalAnnotations) {
+		for (Annotation originalAnnotation : Each.elementIn(originalAnnotations)) {
 			if (!originalAnnotation.type.toString().endsWith("SuppressWarnings")) {
 				annotations.add(originalAnnotation);
 			}
@@ -259,7 +257,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public List<lombok.ast.Statement> statements() {
 		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
-		if (isNotEmpty(get().statements)) for (Object statement : get().statements) {
+		for (Object statement : Each.elementIn(get().statements)) {
 			methodStatements.add(Stat(statement));
 		}
 		return methodStatements;
@@ -271,13 +269,13 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
+		for (Annotation annotation : Each.elementIn(anns)) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : ((NormalAnnotation) annotation).memberValuePairs) {
-					ann.withValue(string(pair.name), Expr(pair.value));
+					ann.withValue(As.string(pair.name), Expr(pair.value));
 				}
 			}
 			annotations.add(ann);
@@ -286,11 +284,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public java.util.List<lombok.ast.Argument> arguments(final ArgumentStyle... style) {
-		final List<ArgumentStyle> styles = list(style);
+		final List<ArgumentStyle> styles = As.list(style);
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
-		if (isNotEmpty(get().arguments)) for (Argument argument : get().arguments) {
+		for (Argument argument : Each.elementIn(get().arguments)) {
 			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type) : Type(argument.type);
-			lombok.ast.Argument arg = Arg(argType, string(argument.name));
+			lombok.ast.Argument arg = Arg(argType, As.string(argument.name));
 			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(argument.annotations));
 			methodArguments.add(arg);
 		}
@@ -301,10 +299,10 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
 		if (isConstructor()) return typeParameters;
 		MethodDeclaration methodDecl = (MethodDeclaration) get();
-		if (isNotEmpty(methodDecl.typeParameters)) for (TypeParameter typaram : methodDecl.typeParameters) {
-			lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
+		for (TypeParameter typaram : Each.elementIn(methodDecl.typeParameters)) {
+			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name));
 			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
-			if (isNotEmpty(typaram.bounds)) for (TypeReference bound : typaram.bounds) {
+			for (TypeReference bound : Each.elementIn(typaram.bounds)) {
 				typeParameter.withBound(Type(bound));
 			}
 			typeParameters.add(typeParameter);
@@ -314,7 +312,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public List<lombok.ast.TypeRef> thrownExceptions() {
 		final List<lombok.ast.TypeRef> thrownExceptions = new ArrayList<lombok.ast.TypeRef>();
-		if (isNotEmpty(get().thrownExceptions)) for (Object thrownException : get().thrownExceptions) {
+		for (Object thrownException : Each.elementIn(get().thrownExceptions)) {
 			thrownExceptions.add(Type(thrownException));
 		}
 		return thrownExceptions;

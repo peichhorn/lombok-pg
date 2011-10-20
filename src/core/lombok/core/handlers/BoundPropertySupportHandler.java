@@ -22,7 +22,6 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.array;
 import static lombok.core.util.ErrorMessages.*;
 
 import java.beans.*;
@@ -30,12 +29,13 @@ import java.beans.*;
 import lombok.*;
 import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
+import lombok.core.util.As;
 
 @RequiredArgsConstructor
 public class BoundPropertySupportHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?, ?>> {
 	private static final String PROPERTY_SUPPORT_FIELD_NAME = "propertySupport";
 	private static final String LISTENER_ARG_NAME = "listener";
-	private static final String[] PROPERTY_CHANGE_METHOD_NAMES = array("addPropertyChangeListener", "removePropertyChangeListener");
+	private static final String[] PROPERTY_CHANGE_METHOD_NAMES = As.array("addPropertyChangeListener", "removePropertyChangeListener");
 
 	private final TYPE_TYPE type;
 	private final DiagnosticsReceiver diagnosticsReceiver;

@@ -21,31 +21,31 @@
  */
 package lombok.core.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Lists {
-	
-	public static <T> List<T> notNull(final List<T> list) {
-		return (list == null) ? Collections.<T>emptyList() : list;
-	}
-	
-	public static boolean isEmpty(final List<?> list) {
-		return (list == null) || list.isEmpty();
+public class As {
+	public static <T> T[] array(final T... elements) {
+		return elements;
 	}
 
-	public static <T> List<T> list(final T... a) {
+	public static <T> List<T> list(final T... elements) {
 		List<T> results = new ArrayList<T>();
-		if (a != null) Collections.addAll(results, a);
+		if (elements != null) Collections.addAll(results, elements);
 		return results;
 	}
-	
+
 	public static <T> List<T> unmodifiableList(final T... a) {
-		return Collections.unmodifiableList(list(a));
+		return Collections.unmodifiableList(As.list(a));
+	}
+
+	public static String string(final char[] s) {
+		return new String(s);
+	}
+
+	public static String string(final Object s) {
+		return s.toString();
 	}
 }

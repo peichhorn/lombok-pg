@@ -22,7 +22,6 @@
 package lombok.javac.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 import static lombok.javac.handlers.ast.JavacResolver.CLASS;
@@ -35,6 +34,7 @@ import lombok.ast.Argument;
 import lombok.ast.Expression;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.ListenerSupportHandler;
+import lombok.core.util.As;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.ResolutionBased;
@@ -88,7 +88,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof JCFieldAccess) {
 				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
-				if ("class".equals(string(interfaze.name))) {
+				if ("class".equals(As.string(interfaze.name))) {
 					Type interfaceType = CLASS.resolveMember(annotationNode, interfaze.selected);
 					if (interfaceType == null) continue;
 					if (interfaceType.isInterface()) {
@@ -134,7 +134,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 
 		@Override
 		protected String name(final Object object) {
-			return string(((Symbol)object).name);
+			return As.string(((Symbol)object).name);
 		}
 
 		@Override

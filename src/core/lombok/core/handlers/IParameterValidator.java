@@ -23,12 +23,12 @@ package lombok.core.handlers;
 
 import static java.util.Collections.singletonList;
 import static lombok.ast.AST.*;
-import static lombok.core.util.Lists.unmodifiableList;
 
 import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.util.As;
 
 public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	public List<Statement> validateParameterOf(METHOD_TYPE method);
@@ -64,7 +64,7 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			}
 		};
 
-		public static final Iterable<ValidationStrategy> IN_ORDER = unmodifiableList(WITH, NOT_NULL, NOT_EMPTY);
+		public static final Iterable<ValidationStrategy> IN_ORDER = As.unmodifiableList(WITH, NOT_NULL, NOT_EMPTY);
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 

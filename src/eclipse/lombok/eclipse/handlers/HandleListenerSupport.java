@@ -22,8 +22,6 @@
 package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Names.*;
 import static lombok.core.util.ErrorMessages.*;
 
 import java.lang.reflect.Method;
@@ -34,6 +32,8 @@ import lombok.ast.Argument;
 import lombok.ast.Expression;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.ListenerSupportHandler;
+import lombok.core.util.As;
+import lombok.core.util.Each;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
@@ -72,7 +72,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
 				if (binding == null) continue;
 				if (!binding.isInterface()) {
-					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), string(binding.readableName())));
+					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), As.string(binding.readableName())));
 					continue;
 				}
 				handler.addListenerField(type, binding);
@@ -104,13 +104,13 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		if (binding instanceof ReferenceBinding) {
 			ReferenceBinding rb = (ReferenceBinding) binding;
 			MethodBinding[] availableMethods = rb.availableMethods();
-			if (isNotEmpty(availableMethods)) for (MethodBinding mb : availableMethods) {
-				String sig = string(mb.readableName());
+			for (MethodBinding mb : Each.elementIn(availableMethods)) {
+				String sig = As.string(mb.readableName());
 				if (!banList.add(sig)) continue;
 				methods.add(mb);
 			}
 			ReferenceBinding[] interfaces = rb.superInterfaces();
-			if (isNotEmpty(interfaces)) for (ReferenceBinding iface : interfaces) {
+			for (ReferenceBinding iface : Each.elementIn(interfaces)) {
 				getInterfaceMethods(iface, methods, banList);
 			}
 		}
@@ -151,9 +151,8 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		@Override
 		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression> args) {
 			MethodBinding methodBinding = (MethodBinding)method;
-			if (isEmpty(methodBinding.parameters)) return;
 			int argCounter = 0;
-			for (TypeBinding parameter : methodBinding.parameters) {
+			for (TypeBinding parameter : Each.elementIn(methodBinding.parameters)) {
 				String arg = "arg" + argCounter++;
 				params.add(Arg(Type(parameter), arg));
 				args.add(Name(arg));
@@ -163,9 +162,9 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		@Override
 		protected String name(final Object object) {
 			if (object instanceof MethodBinding) {
-				return string(((MethodBinding)object).selector);
+				return As.string(((MethodBinding)object).selector);
 			} else {
-				return string(((Binding)object).shortReadableName());
+				return As.string(((Binding)object).shortReadableName());
 			}
 		}
 

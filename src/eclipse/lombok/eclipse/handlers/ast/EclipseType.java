@@ -23,7 +23,6 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Names.string;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
 import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
@@ -54,7 +53,10 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
 import lombok.core.AST.Kind;
+import lombok.core.util.As;
 import lombok.core.util.Cast;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.Eclipse;
 import lombok.eclipse.handlers.EclipseHandlerUtil;
@@ -139,8 +141,8 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	}
 
 	public boolean hasMultiArgumentConstructor() {
-		if (isNotEmpty(get().methods)) for (AbstractMethodDeclaration def : get().methods) {
-			if ((def instanceof ConstructorDeclaration) && isNotEmpty(def.arguments)) return true;
+		for (AbstractMethodDeclaration def : Each.elementIn(get().methods)) {
+			if ((def instanceof ConstructorDeclaration) && Is.notEmpty(def.arguments)) return true;
 		}
 		return false;
 	}
@@ -248,18 +250,18 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	public List<lombok.ast.TypeRef> typeArguments() {
 		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
-		if (isNotEmpty(get().typeParameters)) for (TypeParameter typaram : get().typeParameters) {
-			typeArguments.add(Type(string(typaram.name)));
+		for (TypeParameter typaram : Each.elementIn(get().typeParameters)) {
+			typeArguments.add(Type(As.string(typaram.name)));
 		}
 		return typeArguments;
 	}
 
 	public List<lombok.ast.TypeParam> typeParameters() {
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
-		if (isNotEmpty(get().typeParameters)) for (TypeParameter typaram : get().typeParameters) {
-			lombok.ast.TypeParam typeParameter = TypeParam(string(typaram.name));
+		for (TypeParameter typaram : Each.elementIn(get().typeParameters)) {
+			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name));
 			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
-			if (isNotEmpty(typaram.bounds)) for (TypeReference bound : typaram.bounds) {
+			for (TypeReference bound : Each.elementIn(typaram.bounds)) {
 				typeParameter.withBound(Type(bound));
 			}
 			typeParameters.add(typeParameter);
@@ -273,13 +275,13 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
-		if (isNotEmpty(anns)) for (Annotation annotation : anns) {
+		for (Annotation annotation : Each.elementIn(anns)) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : ((NormalAnnotation)annotation).memberValuePairs) {
-					ann.withValue(new String(pair.name), Expr(pair.value));
+					ann.withValue(As.string(pair.name), Expr(pair.value));
 				}
 			}
 			annotations.add(ann);

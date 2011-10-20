@@ -25,8 +25,6 @@ import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
 import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
-import static lombok.core.util.Lists.*;
-import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.ast.JavacASTUtil.boxedType;
 import static lombok.javac.handlers.ast.JavacResolver.METHOD;
@@ -36,6 +34,7 @@ import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.core.AST.Kind;
+import lombok.core.util.As;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.replace.*;
@@ -216,7 +215,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public void replaceBody(final lombok.ast.Statement... statements) {
-		replaceBody(list(statements));
+		replaceBody(As.list(statements));
 	}
 
 	public void replaceBody(final List<lombok.ast.Statement> statements) {
@@ -282,11 +281,11 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public List<lombok.ast.Argument> arguments(final ArgumentStyle... style) {
-		final List<ArgumentStyle> styles = list(style);
+		final List<ArgumentStyle> styles = As.list(style);
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
 		for (JCVariableDecl param : get().params) {
 			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(param.vartype) : Type(param.vartype);
-			lombok.ast.Argument arg = Arg(argType, string(param.name));
+			lombok.ast.Argument arg = Arg(argType, As.string(param.name));
 			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(param.mods));
 			methodArguments.add(arg);
 		}
@@ -297,7 +296,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
 		if (isConstructor()) return typeParameters;
 		for (JCTypeParameter typaram : get().typarams) {
-			final lombok.ast.TypeParam typeParam = TypeParam(string(typaram.name));
+			final lombok.ast.TypeParam typeParam = TypeParam(As.string(typaram.name));
 			for (JCExpression expr : typaram.bounds) {
 				typeParam.withBound(Type(expr));
 			}

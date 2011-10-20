@@ -18,17 +18,24 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ * 
+ * Credit where credit is due:
+ * ===========================
+ * 
+ *   Yield is based on the idea, algorithms and sources of
+ *   Arthur and Vladimir Nesterovsky (http://www.nesterovsky-bros.com/weblog),
+ *   who generously allowed me to use them.
  */
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
-import static lombok.core.util.Types.*;
 
 import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.util.Is;
 
 public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE> {
 
@@ -68,7 +75,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			.withMethod(ConstructorDecl(yielderName).withImplicitSuper().makePrivate()); //
 		if (returnsIterable) {
 			yielder.implementing(Type(Iterable.class).withTypeArgument(Type(elementType))) //
-				.withMethod(MethodDecl(Type(Iterator.class).withTypeArgument(Type(elementType)), "iterator").makePublic().withStatement(Return(New(Type(yielderName)))));
+				.withMethod(MethodDecl(Type(Iterator.class).withTypeArgument(Type(elementType)), "iterator").makePublic() //
+					.withStatement(Return(New(Type(yielderName)))));
 		}
 		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
 				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
@@ -76,18 +84,25 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 					.withStatement(Assign(Name("$nextDefined"), True())))) //
 				.withStatement(Return(Name("$hasNext")))) //
 			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
-				.withStatement(If(Not(Call("hasNext"))).Then(Block().withStatement(Throw(New(Type(NoSuchElementException.class)))))) //
+				.withStatement(If(Not(Call("hasNext"))).Then(Block() //
+					.withStatement(Throw(New(Type(NoSuchElementException.class)))))) //
 				.withStatement(Assign(Name("$nextDefined"), False())) //
 				.withStatement(Return(Name(nextName)))) //
-			.withMethod(MethodDecl(Type("void"), "remove").makePublic().withStatement(Throw(New(Type(UnsupportedOperationException.class)))));
+			.withMethod(MethodDecl(Type("void"), "remove").makePublic() //
+				.withStatement(Throw(New(Type(UnsupportedOperationException.class)))));
 		if (errorHandler != null) {
 			String caughtErrorName = errorName + "Caught";
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
 				.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
-				.withStatement(While(True()).Do(Block().withStatement(Try(Block().withStatement(stateSwitch)) //
-					.Catch(Arg(Type(Throwable.class), caughtErrorName), Block().withStatement(Assign(Name(errorName), Name(caughtErrorName))).withStatement(errorHandler))))));
+				.withStatement(While(True()).Do(Block() //
+					.withStatement(Try(Block() //
+							.withStatement(stateSwitch)) //
+						.Catch(Arg(Type(Throwable.class), caughtErrorName), Block() //
+							.withStatement(Assign(Name(errorName), Name(caughtErrorName))) //
+							.withStatement(errorHandler))))));
 		} else {
-			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate().withStatement(While(True()).Do(stateSwitch)));
+			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
+				.withStatement(While(True()).Do(stateSwitch)));
 		}
 		method.replaceBody(yielder, Return(New(Type(yielderName))));
 		method.rebuild();
@@ -301,7 +316,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 				Case label = cases.get(i);
 				if (!usedLabels.contains(label) && (previous != null)) {
 					Statement last = previous.getStatements().get(previous.getStatements().size() - 1);
-					if (!label.getStatements().isEmpty() && isNoneOf(last, Continue.class, Return.class)) {
+					if (!label.getStatements().isEmpty() && Is.noneOf(last, Continue.class, Return.class)) {
 						previous.withStatements(label.getStatements());
 					}
 					cases.set(i, null);

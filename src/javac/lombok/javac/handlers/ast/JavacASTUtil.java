@@ -28,6 +28,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 
 import lombok.*;
+import lombok.core.util.Is;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JavacASTUtil {
@@ -41,7 +42,7 @@ public final class JavacASTUtil {
 				boxedType = Type(Integer.class);
 			} else if ("char".equals(name)) {
 				boxedType = Type(Character.class);
-			} else if (isOneOf(name, "void", "boolean", "float", "double", "byte", "short", "long")) {
+			} else if (Is.oneOf(name, "void", "boolean", "float", "double", "byte", "short", "long")) {
 				boxedType = Type("java.lang." + capitalize(name));
 			}
 		}

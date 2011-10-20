@@ -1,8 +1,8 @@
 package lombok.eclipse.handlers.replace;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Names.string;
 
+import lombok.core.util.As;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.internal.compiler.ast.*;
@@ -17,6 +17,6 @@ public class VariableNameReplaceVisitor extends ExpressionReplaceVisitor {
 
 	@Override
 	protected boolean needsReplacing(final Expression node) {
-		return (node instanceof SingleNameReference) && oldName.equals(string(((SingleNameReference) node).token));
+		return (node instanceof SingleNameReference) && oldName.equals(As.string(((SingleNameReference) node).token));
 	}
 }

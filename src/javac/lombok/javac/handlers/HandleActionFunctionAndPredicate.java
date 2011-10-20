@@ -22,7 +22,6 @@
 package lombok.javac.handlers;
 
 import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
-import static lombok.core.util.Names.string;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.ast.JavacResolver.CLASS;
 
@@ -37,6 +36,7 @@ import lombok.Predicate;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.ActionFunctionAndPredicateHandler;
 import lombok.core.handlers.ActionFunctionAndPredicateHandler.TemplateData;
+import lombok.core.util.As;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.ResolutionBased;
@@ -132,7 +132,7 @@ public class HandleActionFunctionAndPredicate {
 	private TypeSymbol resolveTemplates(final JavacNode node, final JCAnnotation annotation, final Object templatesDef) {
 		if (templatesDef instanceof JCFieldAccess) {
 			final JCFieldAccess templates = (JCFieldAccess) templatesDef;
-			if (!"class".equals(string(templates.name))) return null;
+			if (!"class".equals(As.string(templates.name))) return null;
 			final Type templatesType = CLASS.resolveMember(node, templates.selected);
 			return (templatesType == null) ? null : templatesType.asElement();
 		} else {
@@ -175,7 +175,7 @@ public class HandleActionFunctionAndPredicate {
 		} else {
 			if (numberOfParameters(methodDecl) != templateTypeArguments.size()) return null;
 		}
-		return new TemplateData(string(template.getQualifiedName()), string(enclosedMethod.name), forcedReturnType);
+		return new TemplateData(As.string(template.getQualifiedName()), As.string(enclosedMethod.name), forcedReturnType);
 	}
 
 	// for now only works for primitive return types
@@ -187,7 +187,7 @@ public class HandleActionFunctionAndPredicate {
 	private int numberOfParameters(final JCMethodDecl methodDecl) {
 		int numberOfParameters = 0;
 		for (JCVariableDecl param : methodDecl.params) {
-			if (!string(param.name).startsWith("_")) numberOfParameters++;
+			if (!As.string(param.name).startsWith("_")) numberOfParameters++;
 		}
 		return numberOfParameters;
 	}

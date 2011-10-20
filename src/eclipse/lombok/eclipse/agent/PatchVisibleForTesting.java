@@ -21,8 +21,6 @@
  */
 package lombok.eclipse.agent;
 
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Names.string;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
@@ -40,6 +38,8 @@ import org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 import lombok.*;
+import lombok.core.util.As;
+import lombok.core.util.Each;
 import lombok.patcher.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -81,30 +81,25 @@ public final class PatchVisibleForTesting {
 
 	private static MethodBinding handleVisibleForTestingOnMethod(final Scope scope, final MethodBinding methodBinding) {
 		if ((methodBinding == null) || (methodBinding.declaringClass == null)) return methodBinding;
-		
-		final AnnotationBinding[] annotations = methodBinding.getAnnotations();
-		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
-			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
+		for (AnnotationBinding annotation : Each.elementIn(methodBinding.getAnnotations())) {
+			if (!As.string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
 			ClassScope classScope = scope.outerMostClassScope();
 			if (classScope == null) continue;
 			TypeDeclaration decl = classScope.referenceContext;
-			if ((methodBinding.declaringClass == decl.binding) || string(decl.name).contains("Test")) continue;
+			if ((methodBinding.declaringClass == decl.binding) || As.string(decl.name).contains("Test")) continue;
 			return new ProblemMethodBinding(methodBinding, methodBinding.selector, methodBinding.parameters, ProblemReasons.NotVisible);
 		}
 		return methodBinding;
 	}
 
 	private static ReferenceBinding handleVisibleForTestingOnType(final Scope scope, final ReferenceBinding typeBinding) {
-		if (typeBinding == null) {
-			return null;
-		}
-		final AnnotationBinding[] annotations = typeBinding.getAnnotations();
-		if (isNotEmpty(annotations)) for (AnnotationBinding annotation : annotations) {
-			if (!string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
+		if (typeBinding == null) return typeBinding;
+		for (AnnotationBinding annotation : Each.elementIn(typeBinding.getAnnotations())) {
+			if (!As.string(annotation.getAnnotationType()).contains("VisibleForTesting")) continue;
 			ClassScope classScope = scope.outerMostClassScope();
 			if (classScope == null) continue;
 			TypeDeclaration decl = classScope.referenceContext;
-			if (string(decl.name).contains("Test")) continue;
+			if (As.string(decl.name).contains("Test")) continue;
 			return new ProblemReferenceBinding(typeBinding.compoundName, typeBinding, ProblemReasons.NotVisible);
 		}
 		return typeBinding;

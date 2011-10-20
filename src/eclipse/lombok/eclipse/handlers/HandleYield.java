@@ -31,9 +31,6 @@ package lombok.eclipse.handlers;
 import static lombok.eclipse.handlers.Eclipse.*;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
-import static lombok.core.util.Names.*;
-import static lombok.core.util.Types.*;
-import static lombok.core.util.Lists.list;
 
 import java.util.*;
 
@@ -76,6 +73,9 @@ import lombok.core.handlers.YieldHandler;
 import lombok.core.handlers.YieldHandler.AbstractYieldDataCollector;
 import lombok.core.handlers.YieldHandler.ErrorHandler;
 import lombok.core.handlers.YieldHandler.Scope;
+import lombok.core.util.As;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -171,7 +171,7 @@ public class HandleYield extends EclipseASTAdapter {
 				if (stateVariable) {
 					LocalDeclaration variable = (LocalDeclaration) scope.node;
 					allScopes.put(scope.node, scope);
-					lombok.ast.FieldDecl field = FieldDecl(Type(variable.type), string(variable.name)).makePrivate();
+					lombok.ast.FieldDecl field = FieldDecl(Type(variable.type), As.string(variable.name)).makePrivate();
 					if (scope.parent.node instanceof TryStatement) {
 						field.withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("unused")));
 					}
@@ -197,7 +197,7 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private Expression getYieldExpression(final MessageSend invoke) {
-			if ("yield".equals(new String(invoke.selector)) && (invoke.arguments != null) && (invoke.arguments.length == 1)) {
+			if ("yield".equals(As.string(invoke.selector)) && (invoke.arguments != null) && (invoke.arguments.length == 1)) {
 				return invoke.arguments[0];
 			}
 			return null;
@@ -208,8 +208,7 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private Scope<ASTNode> getFinallyScope(Scope<ASTNode> scope, Scope<ASTNode> top) {
-			ASTNode previous = null;
-			while(scope != null) {
+			for (ASTNode previous = null; scope != null; scope = scope.parent) {
 				ASTNode tree = scope.node;
 				if (tree instanceof TryStatement) {
 					TryStatement statement = (TryStatement) tree;
@@ -219,7 +218,6 @@ public class HandleYield extends EclipseASTAdapter {
 				}
 				if (scope == top) break;
 				previous = tree;
-				scope = scope.parent;
 			}
 			return null;
 		}
@@ -244,7 +242,7 @@ public class HandleYield extends EclipseASTAdapter {
 				current = new Scope<ASTNode>(current, tree) {
 					@Override
 					public void refactor() {
-						for (Statement statement : list(tree.statements)) {
+						for (Statement statement : Each.elementIn(tree.statements)) {
 							refactorStatement(statement);
 						}
 						addLabel(getBreakLabel(this));
@@ -264,7 +262,7 @@ public class HandleYield extends EclipseASTAdapter {
 				current = new Scope<ASTNode>(current, tree) {
 					@Override
 					public void refactor() {
-						for (Statement statement : list(tree.statements)) {
+						for (Statement statement : Each.elementIn(tree.statements)) {
 							refactorStatement(statement);
 						}
 						addLabel(getBreakLabel(this));
@@ -301,7 +299,7 @@ public class HandleYield extends EclipseASTAdapter {
 				current = new Scope<ASTNode>(current, tree) {
 					@Override
 					public void refactor() {
-						for (Statement statement : list(tree.initializations)) {
+						for (Statement statement : Each.elementIn(tree.initializations)) {
 							refactorStatement(statement);
 						}
 						lombok.ast.Case label = Case();
@@ -312,7 +310,7 @@ public class HandleYield extends EclipseASTAdapter {
 						}
 						refactorStatement(tree.action);
 						addLabel(getIterationLabel(this));
-						for (Statement statement : list(tree.increments)) {
+						for (Statement statement : Each.elementIn(tree.increments)) {
 							refactorStatement(statement);
 						}
 						addStatement(setState(literal(label)));
@@ -334,13 +332,13 @@ public class HandleYield extends EclipseASTAdapter {
 				current = new Scope<ASTNode>(current, tree) {
 					@Override
 					public void refactor() {
-						String iteratorVar = "$" + string(tree.elementVariable.name) + "Iter";
+						String iteratorVar = "$" + As.string(tree.elementVariable.name) + "Iter";
 						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
 
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.collection), "iterator")));
 						addLabel(getIterationLabel(this));
 						addStatement(If(Not(Call(Name(iteratorVar), "hasNext"))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
-						addStatement(Assign(Name(string(tree.elementVariable.name)), Cast(Type(tree.elementVariable.type), Call(Name(iteratorVar), "next"))));
+						addStatement(Assign(Name(As.string(tree.elementVariable.name)), Cast(Type(tree.elementVariable.type), Call(Name(iteratorVar), "next"))));
 
 						refactorStatement(tree.action);
 						addStatement(setState(literal(getIterationLabel(this))));
@@ -438,7 +436,7 @@ public class HandleYield extends EclipseASTAdapter {
 						lombok.ast.Case breakLabel = getBreakLabel(this);
 						lombok.ast.Switch switchStatement = Switch(Expr(tree.expression));
 						addStatement(switchStatement);
-						if (list(tree.statements).isEmpty()) {
+						if (Is.notEmpty(tree.statements)) {
 							boolean hasDefault = false;
 							for (Statement statement : tree.statements) {
 								if (statement instanceof CaseStatement) {
@@ -475,7 +473,7 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						boolean hasFinally = tree.finallyBlock != null;
-						boolean hasCatch = !list(tree.catchArguments).isEmpty();
+						boolean hasCatch = Is.notEmpty(tree.catchArguments);
 						ErrorHandler catchHandler = null;
 						ErrorHandler finallyHandler = null;
 						lombok.ast.Case tryLabel = Case();
@@ -528,7 +526,7 @@ public class HandleYield extends EclipseASTAdapter {
 								addStatement(Continue());
 								
 								catchHandler.statements.add(If(InstanceOf(Name(errorName), Type(argument.type))).Then(Block() //
-									.withStatement(Assign(Name(string(argument.name)), Cast(Type(argument.type), Name(errorName)))) //
+									.withStatement(Assign(Name(As.string(argument.name)), Cast(Type(argument.type), Name(errorName)))) //
 									.withStatement(setState(literal(label))).withStatement(Continue())));
 							}
 
@@ -588,9 +586,9 @@ public class HandleYield extends EclipseASTAdapter {
 								allocation.type = method.build(Type(tree.type.toString()));
 								allocation.initializer = initializer;
 								allocation.dimensions = new Expression[tree.type.dimensions()];
-								addStatement(Assign(Name(string(tree.name)), Expr(allocation)));
+								addStatement(Assign(Name(As.string(tree.name)), Expr(allocation)));
 							} else {
-								addStatement(Assign(Name(string(tree.name)), Expr(tree.initialization)));
+								addStatement(Assign(Name(As.string(tree.name)), Expr(tree.initialization)));
 							}
 						}
 					}
@@ -633,8 +631,7 @@ public class HandleYield extends EclipseASTAdapter {
 				Scope<ASTNode> target = null;
 				char[] label = tree.label;
 				if (label != null) {
-					Scope<ASTNode> labelScope = current;
-					while (labelScope != null) {
+					for (Scope<ASTNode> labelScope = current; labelScope != null; labelScope = labelScope.parent) {
 						if (labelScope.node instanceof LabeledStatement) {
 							LabeledStatement labeledStatement = (LabeledStatement) labelScope.node;
 							if (Arrays.equals(label, labeledStatement.label)) {
@@ -644,16 +641,13 @@ public class HandleYield extends EclipseASTAdapter {
 								target = labelScope;
 							}
 						}
-						labelScope = labelScope.parent;
 					}
 				} else {
-					Scope<ASTNode> labelScope = current;
-					while (labelScope != null) {
-						if (isOneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class, SwitchStatement.class)) {
+					for (Scope<ASTNode> labelScope = current; labelScope != null; labelScope = labelScope.parent) {
+						if (Is.oneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class, SwitchStatement.class)) {
 							target = labelScope;
 							break;
 						}
-						labelScope = labelScope.parent;
 					}
 				}
 
@@ -693,31 +687,27 @@ public class HandleYield extends EclipseASTAdapter {
 				Scope<ASTNode> target = null;
 				char[] label = tree.label;
 				if (label != null) {
-					Scope<ASTNode> labelScope = current;
-					while (labelScope != null) {
+					for (Scope<ASTNode> labelScope = current; labelScope != null; labelScope = labelScope.parent) {
 						if (labelScope.node instanceof LabeledStatement) {
 							LabeledStatement labeledStatement = (LabeledStatement) labelScope.node;
 							if (label == labeledStatement.label) {
 								if (target != null) {
 									method.node().addError("Invalid label.");
 								}
-								if (isOneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
+								if (Is.oneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
 									target = labelScope;
 								} else {
 									method.node().addError("Invalid continue.");
 								}
 							}
 						}
-						labelScope = labelScope.parent;
 					}
 				} else {
-					Scope<ASTNode> labelScope = current;
-					while (labelScope != null) {
-						if (isOneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
+					for (Scope<ASTNode> labelScope = current; labelScope != null; labelScope = labelScope.parent) {
+						if (Is.oneOf(labelScope.node, ForStatement.class, ForeachStatement.class, WhileStatement.class, DoStatement.class)) {
 							target = labelScope;
 							break;
 						}
-						labelScope = labelScope.parent;
 					}
 				}
 
@@ -768,7 +758,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 			@Override
 			public boolean visit(final SingleNameReference tree, final BlockScope scope) {
-				names.add(new String(tree.token));
+				names.add(As.string(tree.token));
 				return super.visit(tree, scope);
 			}
 
@@ -792,8 +782,8 @@ public class HandleYield extends EclipseASTAdapter {
 					return false;
 				} else {
 					if (tree.receiver.isImplicitThis()) {
-						String name = string(tree.selector);
-						if (isOneOf(name, "hasNext", "next", "remove")) {
+						String name = As.string(tree.selector);
+						if (Is.oneOf(name, "hasNext", "next", "remove")) {
 							method.node().addError(String.format("Cannot call method %s(), as it is hidden.", name));
 						}
 					}

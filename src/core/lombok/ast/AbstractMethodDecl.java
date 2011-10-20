@@ -64,8 +64,7 @@ public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
 		case PUBLIC: return makePublic();
 		case PROTECTED: return makeProtected();
 		case PRIVATE: return makePrivate();
-		default:
-			return self();
+		default: return self();
 		}
 	}
 

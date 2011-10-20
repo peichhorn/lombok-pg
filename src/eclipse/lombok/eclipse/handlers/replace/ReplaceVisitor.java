@@ -21,8 +21,8 @@
  */
 package lombok.eclipse.handlers.replace;
 
-import static lombok.core.util.Arrays.*;
 import lombok.*;
+import lombok.core.util.Is;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
@@ -44,7 +44,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisit
 	}
 
 	protected final void replace(final NODE_TYPE[] nodes) {
-		if (isNotEmpty(nodes)) for (int i = 0, iend = nodes.length; i < iend; i++) {
+		if (Is.notEmpty(nodes)) for (int i = 0, iend = nodes.length; i < iend; i++) {
 			if (needsReplacing(nodes[i])) {
 				nodes[i] = method.<NODE_TYPE>build(replacement);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2011 Philipp Eichhorn
+ * Copyright © 2011 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,18 @@
  */
 package lombok.core.util;
 
-import static java.util.Arrays.copyOf;
+import java.util.*;
 
 import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Arrays {
+public class Each {
 
-	public static <T> T[] copy(final T[] array) {
-		return copyOf(array, array.length);
+	public static <T> Iterable<T> elementIn(final Collection<T> elements) {
+		return elements == null ? Collections.<T>emptyList() : elements;
 	}
 
-	public static boolean sameSize(final Object[] array1, final Object[] array2) {
-		if ((array1 == null) || (array2 == null)) {
-			return false;
-		} else {
-			return array1.length == array2.length;
-		}
-	}
-
-	public static <T> T[] resize(final T[] array, final int newSize) {
-		return copyOf(array, newSize);
+	public static <T> Iterable<T> elementIn(final T... elements) {
+		return elements == null ? Collections.<T>emptyList() : java.util.Arrays.asList(elements);
 	}
 }

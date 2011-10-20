@@ -50,6 +50,8 @@ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.mangosdk.spi.ProviderFor;
 
 import lombok.*;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -91,7 +93,7 @@ public class HandleWith extends EclipseASTAdapter {
 	}
 
 	public boolean handle(final EclipseNode methodCallNode, final MessageSend withCall) {
-		if (isEmpty(withCall.arguments) || (withCall.arguments.length < 2)) {
+		if (Is.empty(withCall.arguments) || (withCall.arguments.length < 2)) {
 			return true;
 		}
 
@@ -126,7 +128,7 @@ public class HandleWith extends EclipseASTAdapter {
 			if (methodCall.receiver == withCall) {
 				methodCall.receiver = withExpr;
 			} else {
-				if (isNotEmpty(methodCall.arguments)) for (int i = 0; i < methodCall.arguments.length; i++) {
+				if (Is.notEmpty(methodCall.arguments)) for (int i = 0; i < methodCall.arguments.length; i++) {
 					if (methodCall.arguments[i] == withCall) methodCall.arguments[i] = withExpr;
 				}
 			}
@@ -177,7 +179,7 @@ public class HandleWith extends EclipseASTAdapter {
 
 	private static Statement[] injectStatements(final Statement[] statements, final Statement statement, final boolean wasNoMethodCall, final List<Statement> withCallStatements) {
 		final List<Statement> newStatements = new ArrayList<Statement>();
-		for (Statement stat : statements) {
+		for (Statement stat : Each.elementIn(statements)) {
 			if (stat == statement) {
 				newStatements.addAll(withCallStatements);
 				if (wasNoMethodCall) newStatements.add(stat);
@@ -223,7 +225,7 @@ public class HandleWith extends EclipseASTAdapter {
 
 		private Expression[] tryToReplace(final Expression[] expressions) {
 			Expression[] newExpressions = expressions;
-			if (isNotEmpty(newExpressions)) {
+			if (Is.notEmpty(newExpressions)) {
 				newExpressions = copy(expressions);
 				for (int i = 0, iend = expressions.length; i < iend; i++) {
 					newExpressions[i] = tryToReplace(newExpressions[i]);

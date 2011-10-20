@@ -29,8 +29,6 @@ import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.Ac
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccImplementing;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Names.isEmpty;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.makeType;
@@ -125,7 +123,10 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 import lombok.*;
+import lombok.core.util.As;
 import lombok.core.util.Cast;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 
@@ -341,7 +342,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			typeDeclaration.sourceEnd = 0;
 			typeDeclaration.bodyEnd = source.sourceEnd + 2;
 		}
-		if (isEmpty(node.getName())) {
+		if (Is.empty(node.getName())) {
 			typeDeclaration.name = CharOperation.NO_CHAR;
 		} else {
 			typeDeclaration.name = node.getName().toCharArray();
@@ -623,7 +624,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		}
 		final TypeReference type = build(returnType);
 		if (type instanceof SingleTypeReference) {
-			final String name = new String(type.getLastToken());
+			final String name = As.string(type.getLastToken());
 			if ("int".equals(name)) {
 				returnDefault = Return(Number(Integer.valueOf(0)));
 			} else if ("byte".equals(name)) {
@@ -736,7 +737,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			typeReference = new SingleTypeReference(TypeBinding.VOID.simpleName, 0);
 		} else if (node.getTypeName().contains(".")) {
 			final char[][] typeNameTokens = fromQualifiedName(node.getTypeName());
-			if (isNotEmpty(paramTypes)) {
+			if (Is.notEmpty(paramTypes)) {
 				final TypeReference[][] typeArguments = new TypeReference[typeNameTokens.length][];
 				typeArguments[typeNameTokens.length - 1] = paramTypes;
 				typeReference = new ParameterizedQualifiedTypeReference(typeNameTokens, typeArguments, 0, poss(source, typeNameTokens.length));
@@ -749,7 +750,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			}
 		} else {
 			final char[] typeNameToken = node.getTypeName().toCharArray();
-			if (isNotEmpty(paramTypes)) {
+			if (Is.notEmpty(paramTypes)) {
 				typeReference = new ParameterizedSingleTypeReference(typeNameToken, paramTypes, 0, 0);
 			} else {
 				if (node.getDims() > 0) {
@@ -824,17 +825,16 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (node.getReturnType() == null) {
 			node.withReturnType(Type(abstractMethod.returnType));
 		}
-		if (node.getThrownExceptions().isEmpty() && isNotEmpty(abstractMethod.thrownExceptions)) for (int i = 0; i < abstractMethod.thrownExceptions.length; i++) {
-			node.withThrownException(Type(abstractMethod.thrownExceptions[i]));
+		if (node.getThrownExceptions().isEmpty()) for (ReferenceBinding thrownException : Each.elementIn(abstractMethod.thrownExceptions)) {
+			node.withThrownException(Type(thrownException));
 		}
-		if (node.getArguments().isEmpty() && isNotEmpty(abstractMethod.parameters)) for (int i = 0; i < abstractMethod.parameters.length; i++) {
+		if (node.getArguments().isEmpty() && Is.notEmpty(abstractMethod.parameters)) for (int i = 0; i < abstractMethod.parameters.length; i++) {
 			node.withArgument(Arg(Type(abstractMethod.parameters[i]), "arg" + i));
 		}
-		if (node.getTypeParameters().isEmpty() && isNotEmpty(abstractMethod.typeVariables)) for (int i = 0; i < abstractMethod.typeVariables.length; i++) {
-			TypeVariableBinding binding = abstractMethod.typeVariables[i];
+		if (node.getTypeParameters().isEmpty()) for (TypeVariableBinding binding : Each.elementIn(abstractMethod.typeVariables)) {
 			ReferenceBinding super1 = binding.superclass;
 			ReferenceBinding[] super2 = binding.superInterfaces;
-			lombok.ast.TypeParam typeParameter = TypeParam(new String(binding.sourceName));
+			lombok.ast.TypeParam typeParameter = TypeParam(As.string(binding.sourceName));
 			if (super2 == null) super2 = new ReferenceBinding[0];
 			if (super1 != null || super2.length > 0) {
 				if (super1 != null) typeParameter.withBound(Type(super1));

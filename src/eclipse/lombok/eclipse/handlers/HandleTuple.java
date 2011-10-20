@@ -29,6 +29,8 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import java.util.*;
 
 import lombok.*;
+import lombok.core.util.Each;
+import lombok.core.util.Is;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -117,7 +119,7 @@ public class HandleTuple extends EclipseASTAdapter {
 	}
 
 	public boolean handle(final EclipseNode tupleInitNode, final MessageSend initTupleCall) {
-		if (isEmpty(initTupleCall.arguments)) {
+		if (Is.empty(initTupleCall.arguments)) {
 			return true;
 		}
 		int numberOfArguments = initTupleCall.arguments.length;
@@ -157,7 +159,7 @@ public class HandleTuple extends EclipseASTAdapter {
 		if (sameSize(leftTupleCall.arguments, rightTupleCall.arguments)) {
 			Iterator<String> varnameIter = varnames.listIterator();
 			final Set<String> blacklistedNames = new HashSet<String>();
-			if (rightTupleCall.arguments != null) for (Expression arg : rightTupleCall.arguments) {
+			for (Expression arg : Each.elementIn(rightTupleCall.arguments)) {
 				String varname = varnameIter.next();
 				final boolean canUseSimpleAssignment = new SimpleAssignmentAnalyser(blacklistedNames).scan(arg);
 				blacklistedNames.add(varname);

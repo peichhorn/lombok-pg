@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.core.util.Names.*;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.Eclipse.*;
@@ -34,6 +33,7 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 
 import lombok.core.handlers.IParameterSanitizer;
+import lombok.core.util.Each;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -42,7 +42,7 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 	@Override
 	public List<lombok.ast.Statement> sanitizeParameterOf(final EclipseMethod method) {
 		final List<lombok.ast.Statement> sanitizeStatements = new ArrayList<lombok.ast.Statement>();
-		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
+		for (Argument argument : Each.elementIn(method.get().arguments)) {
 			final String argumentName = new String(argument.name);
 			final String newArgumentName = camelCase("sanitized",argumentName);
 			for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {

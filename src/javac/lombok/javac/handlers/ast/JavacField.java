@@ -23,12 +23,12 @@ package lombok.javac.handlers.ast;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
-import static lombok.core.util.Names.string;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import lombok.core.util.As;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.JavacHandlerUtil;
 
@@ -156,7 +156,7 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 		if (type instanceof JCTypeApply) {
 			JCTypeApply typeRef = (JCTypeApply) type;
 			for (JCExpression typeArgument : typeRef.arguments) {
-				typeArguments.add(Type(string(typeArgument)));
+				typeArguments.add(Type(As.string(typeArgument)));
 			}
 		}
 		return typeArguments;

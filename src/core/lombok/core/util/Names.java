@@ -29,14 +29,7 @@ import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Names {
-	
-	public static String string(final char[] s) {
-		return new String(s);
-	}
-	
-	public static String string(final Object s) {
-		return s.toString();
-	}
+
 	/**
 	 * <pre>
 	 * null        -> null
@@ -49,7 +42,7 @@ public class Names {
 	 * <pre>
 	 */
 	public static String interfaceName(final String s) {
-		if (isEmpty(s) || (s.length() <= 2)) return s;
+		if (Is.empty(s) || (s.length() <= 2)) return s;
 		return ((s.charAt(0) == 'I') && isUpperCase(s.charAt(1)) && isLowerCase(s.charAt(2))) ? s.substring(1) : s;
 	}
 
@@ -61,22 +54,6 @@ public class Names {
 	public static String capitalize(final String s) {
 		if (s == null) return "";
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
-	}
-
-	public static boolean isEmpty(final String s) {
-		if (s == null) return true;
-		return s.isEmpty();
-	}
-
-	public static boolean isNotEmpty(final String s) {
-		return !isEmpty(s);
-	}
-
-	public static boolean isOneOf(final String s, final String... candidates) {
-		if (candidates != null) for (String candidate : candidates) {
-			if (candidate.equals(s)) return true;
-		}
-		return false;
 	}
 
 	/**
@@ -96,7 +73,7 @@ public class Names {
 	}
 
 	public static String camelCaseToConstant(final String fieldName) {
-		if (isEmpty(fieldName)) return "";
+		if (Is.empty(fieldName)) return "";
 		char[] chars = fieldName.toCharArray();
 		StringBuilder b = new StringBuilder();
 		b.append(toUpperCase(chars[0]));
@@ -114,15 +91,15 @@ public class Names {
 
 	public static String camelCase(final String first, final String... rest) {
 		List<String> nonEmptyStrings = new ArrayList<String>();
-		if (isNotEmpty(first)) nonEmptyStrings.add(first);
-		if (Arrays.isNotEmpty(rest)) for (String s : rest) {
-			if (isNotEmpty(s)) nonEmptyStrings.add(s);
+		if (Is.notEmpty(first)) nonEmptyStrings.add(first);
+		for (String s : Each.elementIn(rest)) {
+			if (Is.notEmpty(s)) nonEmptyStrings.add(s);
 		}
 		return camelCase0(nonEmptyStrings.toArray(new String[nonEmptyStrings.size()]));
 	}
 
 	private static String camelCase0(final String[] s) {
-		if (Arrays.isEmpty(s)) return "";
+		if (Is.empty(s)) return "";
 		StringBuilder builder = new StringBuilder();
 		builder.append(s[0]);
 		for (int i = 1, iend = s.length; i < iend; i++) {

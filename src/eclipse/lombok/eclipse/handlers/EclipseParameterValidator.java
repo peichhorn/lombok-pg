@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.isNotEmpty;
 import static lombok.eclipse.Eclipse.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 
@@ -32,6 +31,7 @@ import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 
 import lombok.core.handlers.IParameterValidator;
+import lombok.core.util.Each;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -41,7 +41,7 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 	public List<lombok.ast.Statement> validateParameterOf(final EclipseMethod method) {
 		final List<lombok.ast.Statement> validateStatements = new ArrayList<lombok.ast.Statement>();
 		int argumentIndex = 0;
-		if (isNotEmpty(method.get().arguments)) for (Argument argument : method.get().arguments) {
+		for (Argument argument : Each.elementIn(method.get().arguments)) {
 			final String argumentName = new String(argument.name);
 			argumentIndex++;
 			for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {

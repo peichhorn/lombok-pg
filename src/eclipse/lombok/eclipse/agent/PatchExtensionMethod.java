@@ -22,8 +22,6 @@
 package lombok.eclipse.agent;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
-import static lombok.core.util.Names.*;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
@@ -50,6 +48,7 @@ import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldReference;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.NameReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
@@ -58,7 +57,6 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ProblemBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
@@ -73,7 +71,8 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import lombok.*;
 import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
-import lombok.core.util.Types;
+import lombok.core.util.As;
+import lombok.core.util.Is;
 import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
@@ -132,33 +131,31 @@ public final class PatchExtensionMethod {
 				extensionMethods.addAll(0, getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType));
 				if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
 			}
-			if (!extensionMethods.isEmpty()) {
-				for (MethodBinding extensionMethod : extensionMethods) {
-					if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
-					ERRORS.remove(methodCall);
-					if (methodCall.receiver instanceof ThisReference) {
-						if ((methodCall.receiver.bits & ASTNode.IsImplicitThis) != 0) {
-							methodCall.receiver.bits &= ~ASTNode.IsImplicitThis;
-						}
+			for (MethodBinding extensionMethod : extensionMethods) {
+				if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
+				ERRORS.remove(methodCall);
+				if (methodCall.receiver instanceof ThisReference) {
+					if ((methodCall.receiver.bits & ASTNode.IsImplicitThis) != 0) {
+						methodCall.receiver.bits &= ~ASTNode.IsImplicitThis;
 					}
-					List<Expression> arguments = new ArrayList<Expression>();
-					arguments.add(methodCall.receiver);
-					if (isNotEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
-					List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
-					argumentTypes.add(methodCall.receiver.resolvedType);
-					argumentTypes.addAll(Arrays.asList(methodCall.binding.parameters));
-					MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
-					if (fixedBinding instanceof ProblemMethodBinding) {
-						scope.problemReporter().invalidMethod(methodCall, fixedBinding);
-					} else {
-						methodCall.arguments = arguments.toArray(new Expression[0]);
-						methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
-						methodCall.actualReceiverType = extensionMethod.declaringClass;
-						methodCall.binding = fixedBinding;
-						methodCall.resolvedType = methodCall.binding.returnType;
-					}
-					return methodCall.resolvedType;
 				}
+				List<Expression> arguments = new ArrayList<Expression>();
+				arguments.add(methodCall.receiver);
+				if (Is.notEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
+				List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
+				argumentTypes.add(methodCall.receiver.resolvedType);
+				argumentTypes.addAll(Arrays.asList(methodCall.binding.parameters));
+				MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
+				if (fixedBinding instanceof ProblemMethodBinding) {
+					scope.problemReporter().invalidMethod(methodCall, fixedBinding);
+				} else {
+					methodCall.arguments = arguments.toArray(new Expression[0]);
+					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
+					methodCall.actualReceiverType = extensionMethod.declaringClass;
+					methodCall.binding = fixedBinding;
+					methodCall.resolvedType = methodCall.binding.returnType;
+				}
+				return methodCall.resolvedType;
 			}
 		}
 		PostponedError error = ERRORS.get(methodCall);
@@ -170,9 +167,9 @@ public final class PatchExtensionMethod {
 	}
 
 	private static String qualifiedName(final TypeBinding typeBinding) {
-		String qualifiedName = string(typeBinding.qualifiedPackageName());
+		String qualifiedName = As.string(typeBinding.qualifiedPackageName());
 		if (!qualifiedName.isEmpty()) qualifiedName += ".";
-		qualifiedName += string(typeBinding.qualifiedSourceName());
+		qualifiedName += As.string(typeBinding.qualifiedSourceName());
 		return qualifiedName;
 	}
 
@@ -244,7 +241,7 @@ public final class PatchExtensionMethod {
 		for (MethodBinding method : extensionMethodProviderBinding.methods()) {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
-			if (isEmpty(method.parameters)) continue;
+			if (Is.empty(method.parameters)) continue;
 			TypeBinding firstArgType = method.parameters[0].erasure();
 			if (!receiverType.isCompatibleWith(firstArgType)) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
@@ -258,20 +255,18 @@ public final class PatchExtensionMethod {
 		TypeBinding firstParameterType = null;
 		ASTNode node = getAssistNode(completionProposalCollector);
 		if (node == null) return null;
-		if( Types.isNoneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
+		if (Is.noneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
 		if (node instanceof NameReference) {
 			Binding binding = ((NameReference)node).binding;
-			if (binding instanceof ProblemBinding) return null;
-			if (binding instanceof VariableBinding) {
+			if ((node instanceof SingleNameReference) && (((SingleNameReference) node).token.length == 0)) {
+				firstParameterType = decl.binding;
+			} else if (binding instanceof VariableBinding) {
 				firstParameterType = ((VariableBinding)binding).type;
-			} else {
-				firstParameterType = (TypeBinding)binding;
+			} else if (binding instanceof TypeBinding) {
+				firstParameterType = (TypeBinding) binding;
 			}
 		} else if (node instanceof FieldReference) {
 			firstParameterType = ((FieldReference)node).actualReceiverType;
-		}
-		if (firstParameterType == null) {
-			firstParameterType = decl.binding;
 		}
 		return firstParameterType;
 	}
@@ -350,7 +345,7 @@ public final class PatchExtensionMethod {
 				method.original().parameters = Arrays.copyOfRange(method.original().parameters, 1, method.original().parameters.length);
 			}
 			
-			int length = isEmpty(method.parameters) ? 0 : method.parameters.length;
+			int length = Is.empty(method.parameters) ? 0 : method.parameters.length;
 			char[][] parameterPackageNames = new char[length][];
 			char[][] parameterTypeNames = new char[length][];
 

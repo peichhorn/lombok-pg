@@ -22,7 +22,6 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.util.Arrays.*;
 import static lombok.core.util.ErrorMessages.*;
 
 import java.util.ArrayList;
@@ -33,7 +32,8 @@ import java.util.regex.Pattern;
 import lombok.*;
 import lombok.ast.*;
 import lombok.core.DiagnosticsReceiver;
-import lombok.core.util.Lists;
+import lombok.core.util.As;
+import lombok.core.util.Is;
 
 @RequiredArgsConstructor
 public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
@@ -102,10 +102,10 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 	}
 
 	public static List<Class<?>> classNames(final Class<?>[] classes) {
-		if (isEmpty(classes)) {
-			return Lists.<Class<?>> list(RethrowData.class, Exception.class);
+		if (Is.empty(classes)) {
+			return As.<Class<?>>list(RethrowData.class, Exception.class);
 		}
-		return Lists.list(classes);
+		return As.list(classes);
 	}
 
 	@RequiredArgsConstructor

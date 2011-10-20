@@ -21,11 +21,10 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.Arrays.*;
-
 import lombok.*;
 import lombok.core.handlers.EntrypointHandler;
 import lombok.core.handlers.EntrypointHandler.*;
+import lombok.core.util.Each;
 import lombok.eclipse.EclipseASTAdapter;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
@@ -75,7 +74,7 @@ public class HandleEntrypoint {
 		@Override public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
-			if (isNotEmpty(type.superInterfaces)) for (TypeReference ref : type.superInterfaces) {
+			for (TypeReference ref : Each.elementIn(type.superInterfaces)) {
 				if (ref.toString().equals(interfaze.getName()) || (isAnImport && ref.toString().equals(interfaze.getSimpleName()))) {
 					implementsInterface = true;
 					break;
