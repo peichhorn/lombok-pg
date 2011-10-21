@@ -14,7 +14,13 @@ class YieldIfThenElse {
         super();
       }
       public java.util.Iterator<String> iterator() {
-        return new $YielderTest();
+        if (($state == 0))
+            {
+              $state = 1;
+              return this;
+            }
+        else
+            return new $YielderTest();
       }
       public boolean hasNext() {
         if ((! $nextDefined))
@@ -38,25 +44,27 @@ class YieldIfThenElse {
       private boolean getNext() {
         while (true)          switch ($state) {
           case 0 : ;
-              b = true;
+              $state = 1;
           case 1 : ;
+              b = true;
+          case 2 : ;
               if ((! b))
                   {
-                    $state = 2;
+                    $state = 3;
                     continue ;
                   }
               $next = "foo";
-              $state = 3;
-              return true;
-          case 2 : ;
-              $next = "bar";
-              $state = 3;
+              $state = 4;
               return true;
           case 3 : ;
-              b = (! b);
-              $state = 1;
-              continue ;
+              $next = "bar";
+              $state = 4;
+              return true;
           case 4 : ;
+              b = (! b);
+              $state = 2;
+              continue ;
+          case 5 : ;
           default : ;
               return false;
           }

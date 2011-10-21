@@ -20,7 +20,13 @@ class YieldNestedLoop<T, K, V> {
         super();
       }
       public java.util.Iterator<V> iterator() {
-        return new $YielderValues();
+        if (($state == 0))
+            {
+              $state = 1;
+              return this;
+            }
+        else
+            return new $YielderValues();
       }
       public boolean hasNext() {
         if ((! $nextDefined))
@@ -44,26 +50,28 @@ class YieldNestedLoop<T, K, V> {
       private boolean getNext() {
         while (true)          switch ($state) {
           case 0 : ;
-              $entryIter = map.entrySet().iterator();
+              $state = 1;
           case 1 : ;
+              $entryIter = map.entrySet().iterator();
+          case 2 : ;
               if ((! $entryIter.hasNext()))
                   {
-                    $state = 3;
+                    $state = 4;
                     continue ;
                   }
               entry = (Map.Entry<T, Map<K, V>>) $entryIter.next();
               $subEntryIter = entry.getValue().entrySet().iterator();
-          case 2 : ;
+          case 3 : ;
               if ((! $subEntryIter.hasNext()))
                   {
-                    $state = 1;
+                    $state = 2;
                     continue ;
                   }
               subEntry = (Map.Entry<K, V>) $subEntryIter.next();
               $next = subEntry.getValue();
-              $state = 2;
+              $state = 3;
               return true;
-          case 3 : ;
+          case 4 : ;
           default : ;
               return false;
           }

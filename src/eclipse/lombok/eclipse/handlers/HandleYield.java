@@ -181,19 +181,8 @@ public class HandleYield extends EclipseASTAdapter {
 			return true;
 		}
 
-		public void refactor() {
+		public void prepareRefactor() {
 			root = allScopes.get(method.get());
-			lombok.ast.Case iteratorLabel = getIterationLabel(root);
-
-			usedLabels.add(iteratorLabel);
-			usedLabels.add(getBreakLabel(root));
-
-			addLabel(iteratorLabel);
-			root.refactor();
-			endCase();
-
-			optimizeStates();
-			synchronizeLiteralsAndLabels();
 		}
 
 		private Expression getYieldExpression(final MessageSend invoke) {

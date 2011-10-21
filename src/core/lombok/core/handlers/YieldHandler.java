@@ -76,7 +76,10 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		if (returnsIterable) {
 			yielder.implementing(Type(Iterable.class).withTypeArgument(Type(elementType))) //
 				.withMethod(MethodDecl(Type(Iterator.class).withTypeArgument(Type(elementType)), "iterator").makePublic() //
-					.withStatement(Return(New(Type(yielderName)))));
+					.withStatement(If(Equal(Name(stateName), Number(0))).Then(Block() //
+							.withStatement(Assign(Name(stateName), Number(1))) //
+							.withStatement(Return(This()))) //
+						.Else(Return(New(Type(yielderName))))));
 		}
 		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
 				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
@@ -175,7 +178,9 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			this.stateName = state;
 			this.nextName = next;
 			this.errorName = errorName;
+
 			if (scan()) {
+				prepareRefactor();
 				refactor();
 			}
 		}
@@ -192,7 +197,25 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 
 		public abstract boolean scan();
 
-		public abstract void refactor();
+		public abstract void prepareRefactor();
+
+		public void refactor() {
+			Case begin = Case();
+			Case iteratorLabel = getIterationLabel(root);
+
+			usedLabels.add(begin);
+			usedLabels.add(iteratorLabel);
+			usedLabels.add(getBreakLabel(root));
+
+			addLabel(begin);
+			addStatement(setState(literal(iteratorLabel)));
+			addLabel(iteratorLabel);
+			root.refactor();
+			endCase();
+
+			optimizeStates();
+			synchronizeLiteralsAndLabels();
+		}
 
 		public Expression getStateIdOfAssignment(Statement statement) {
 			if (statement instanceof Assignment) {

@@ -17,7 +17,13 @@ class YieldTryBlock {
         super();
       }
       public java.util.Iterator<String> iterator() {
-        return new $YielderTest();
+        if (($state == 0))
+            {
+              $state = 1;
+              return this;
+            }
+        else
+            return new $YielderTest();
       }
       public boolean hasNext() {
         if ((! $nextDefined))
@@ -45,24 +51,26 @@ class YieldTryBlock {
               {
                 switch ($state) {
                 case 0 : ;
-                    b = true;
+                    $state = 1;
                 case 1 : ;
-                    $yieldException1 = null;
-                    $state1 = 1;
-                    $state = 2;
+                    b = true;
                 case 2 : ;
+                    $yieldException1 = null;
+                    $state1 = 2;
+                    $state = 3;
+                case 3 : ;
                     if (b)
                         {
                           throw new RuntimeException();
                         }
                     $next = "bar";
-                    $state = 4;
-                    return true;
-                case 3 : ;
-                    $next = "foo";
-                    $state = 4;
+                    $state = 5;
                     return true;
                 case 4 : ;
+                    $next = "foo";
+                    $state = 5;
+                    return true;
+                case 5 : ;
                     {
                       b = (! b);
                     }
@@ -73,7 +81,7 @@ class YieldTryBlock {
                         }
                     $state = $state1;
                     continue ;
-                case 5 : ;
+                case 6 : ;
                 default : ;
                     return false;
                 }
@@ -81,19 +89,19 @@ class YieldTryBlock {
             catch (final java.lang.Throwable $yieldExceptionCaught)               {
                 $yieldException = $yieldExceptionCaught;
                 switch ($state) {
-                case 2 : ;
+                case 3 : ;
                     if (($yieldException instanceof RuntimeException))
                         {
                           e = (RuntimeException) $yieldException;
-                          $state = 3;
+                          $state = 4;
                           continue ;
                         }
-                case 3 : ;
+                case 4 : ;
                     $yieldException1 = $yieldException;
-                    $state = 4;
+                    $state = 5;
                     continue ;
                 default : ;
-                    $state = 5;
+                    $state = 6;
                     java.util.ConcurrentModificationException $yieldExceptionUnhandled = new java.util.ConcurrentModificationException();
                     $yieldExceptionUnhandled.initCause($yieldException);
                     throw $yieldExceptionUnhandled;

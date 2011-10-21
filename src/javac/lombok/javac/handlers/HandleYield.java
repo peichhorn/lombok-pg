@@ -179,19 +179,8 @@ public class HandleYield extends JavacASTAdapter {
 			return true;
 		}
 
-		public void refactor() {
+		public void prepareRefactor() {
 			root = allScopes.get(method.get().body);
-			Case iteratorLabel = getIterationLabel(root);
-
-			usedLabels.add(iteratorLabel);
-			usedLabels.add(getBreakLabel(root));
-
-			addLabel(iteratorLabel);
-			root.refactor();
-			endCase();
-
-			optimizeStates();
-			synchronizeLiteralsAndLabels();
 		}
 
 		private JCExpression getYieldExpression(final JCExpression expr) {
