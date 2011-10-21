@@ -396,7 +396,7 @@ public class HandleYield extends JavacASTAdapter {
 						Case breakLabel = getBreakLabel(this);
 						Switch switchStatement = Switch(Expr(tree.selector));
 						addStatement(switchStatement);
-						if (!Is.empty(tree.cases)) {
+						if (Is.notEmpty(tree.cases)) {
 							boolean hasDefault = false;
 							for (JCCase item : tree.cases) {
 								if (item.pat == null) {
@@ -427,7 +427,7 @@ public class HandleYield extends JavacASTAdapter {
 					@Override
 					public void refactor() {
 						boolean hasFinally = tree.finalizer != null;
-						boolean hasCatch = !Is.empty(tree.catchers);
+						boolean hasCatch = Is.notEmpty(tree.catchers);
 						ErrorHandler catchHandler = null;
 						ErrorHandler finallyHandler = null;
 						Case tryLabel = Case();
