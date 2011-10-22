@@ -6,7 +6,7 @@ public class YieldExample {
 	}
 	
 	public Iterable<Long> fibunacci() {
-		class $YielderFibunacci implements Iterator<Long>, Iterable<Long> {
+		class $YielderFibunacci implements Iterator<Long>, Iterable<Long>, Closeable {
 			private long a;
 			private long b;
 			private long c;
@@ -14,9 +14,12 @@ public class YieldExample {
 			private boolean $hasNext;
 			private boolean $nextDefined;
 			private Long $next;
-
+			
 			public Iterator<Long> iterator() {
-				return new $YielderFibunacci();
+				if ($state == 0) {
+					$state = 1;
+					return this;
+				} else return new $YielderFibunacci();
 			}
 			
 			public boolean hasNext() {
@@ -37,26 +40,32 @@ public class YieldExample {
 				throw new UnsupportedOperationException();
 			}
 			
+			public void close() {
+				$state = 4;
+			}
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0:
+					$state = 1;
+				case 1:
 					a = 0;
 					b = 1;
-				case 1:
+				case 2:
 					if (!(b <= 0)) {
-						$state = 3;
+						$state = 4;
 						continue;
 					}
 					$next = a;
-					$state = 2;
+					$state = 3;
 					return true;
-				case 2:
+				case 3:
 					c = a + b;
 					a = b;
 					b = c;
-					$state = 1;
+					$state = 2;
 					continue;
-				case 3: 
+				case 4: 
 				default: 
 					return false;
 				}
@@ -66,7 +75,7 @@ public class YieldExample {
 	}
 	
 	public Iterable<Long> filterMod(final long mod, final Iterable<Long> values) {
-		class $YielderFilterMod implements Iterator<Long>, Iterable<Long> {
+		class $YielderFilterMod implements Iterator<Long>, Iterable<Long>, Closeable {
 			private Long value;
 			private Iterator $valueIter;
 			private int $state;
@@ -75,7 +84,10 @@ public class YieldExample {
 			private Long $next;
 			
 			public Iterator<Long> iterator() {
-				return new $YielderFilterMod();
+				if ($state == 0) {
+					$state = 1;
+					return this;
+				} else return new $YielderFilterMod();
 			}
 			
 			public boolean hasNext() {
@@ -96,27 +108,33 @@ public class YieldExample {
 				throw new UnsupportedOperationException();
 			}
 			
+			public void close() {
+				$state = 3;
+			}
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0:
-					$valueIter = values.iterator();
+					$state = 1;
 				case 1:
+					$valueIter = values.iterator();
+				case 2:
 					if (!$valueIter.hasNext()) {
-						$state = 3;
+						$state = 4;
 						continue;
 					}
 					value = (Long)$valueIter.next();
 					if (!((value.longValue() % mod) == 0)) {
-						$state = 2;
+						$state = 3;
 						continue;
 					}
 					$next = value;
-					$state = 2;
+					$state = 3;
 					return true;
-				case 2:
-					$state = 1;
+				case 3:
+					$state = 2;
 					continue;
-				case 3: 
+				case 4: 
 				default: 
 					return false;
 				}

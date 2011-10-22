@@ -648,7 +648,7 @@ public class HandleYield extends JavacASTAdapter {
 			public void visitApply(final JCMethodInvocation tree) {
 				if (tree.meth instanceof JCIdent) {
 					String name = As.string(tree.meth);
-					if (Is.oneOf(name, "hasNext", "next", "remove")) {
+					if (Is.oneOf(name, "hasNext", "next", "remove", "close")) {
 						method.node().addError("Cannot call method " + name + "(), as it is hidden.");
 					}
 				}
@@ -668,6 +668,14 @@ public class HandleYield extends JavacASTAdapter {
 							addStatement(setState(literal(label)));
 							addStatement(Return(True()));
 							addLabel(label);
+
+							Scope<JCTree> next = getFinallyScope(parent, null);
+							if (next != null) {
+ 								breakCases.add(new Case(literal(label)) //
+									.withStatement(Assign(Name(next.labelName), literal(getBreakLabel(root)))) //
+									.withStatement(setState(literal(getFinallyLabel(next)))) //
+									.withStatement(Continue()));
+							}
 						}
 					};
 					yields.add(current);

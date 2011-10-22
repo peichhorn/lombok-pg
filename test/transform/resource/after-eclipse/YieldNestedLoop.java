@@ -7,7 +7,7 @@ class YieldNestedLoop<T, K, V> {
     super();
   }
   public @java.lang.SuppressWarnings("all") Iterable<V> values() {
-    class $YielderValues implements java.util.Iterator<V>, java.lang.Iterable<V> {
+    class $YielderValues implements java.util.Iterator<V>, java.lang.Iterable<V>, java.io.Closeable {
       private Map.Entry<T, Map<K, V>> entry;
       private Map.Entry<K, V> subEntry;
       private @java.lang.SuppressWarnings("all") java.util.Iterator $entryIter;
@@ -46,6 +46,9 @@ class YieldNestedLoop<T, K, V> {
       }
       public void remove() {
         throw new java.lang.UnsupportedOperationException();
+      }
+      public void close() {
+        $state = 4;
       }
       private boolean getNext() {
         while (true)          switch ($state) {

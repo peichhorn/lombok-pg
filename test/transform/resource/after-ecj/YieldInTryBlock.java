@@ -4,7 +4,7 @@ class YieldTryBlock {
     super();
   }
   public @java.lang.SuppressWarnings("all") Iterable<String> test() {
-    class $YielderTest implements java.util.Iterator<String>, java.lang.Iterable<String> {
+    class $YielderTest implements java.util.Iterator<String>, java.lang.Iterable<String>, java.io.Closeable {
       private boolean b;
       private @java.lang.SuppressWarnings("unused") RuntimeException e;
       private java.lang.Throwable $yieldException1;
@@ -43,6 +43,19 @@ class YieldTryBlock {
       }
       public void remove() {
         throw new java.lang.UnsupportedOperationException();
+      }
+      public void close() {
+        do
+          switch ($state) {
+          case 5 : ;
+              $state1 = 6;
+              $state = 5;
+              continue ;
+          default : ;
+              $state = 6;
+              return ;
+          }
+while (getNext());
       }
       private boolean getNext() {
         java.lang.Throwable $yieldException;

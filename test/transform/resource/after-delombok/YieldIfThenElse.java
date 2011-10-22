@@ -5,7 +5,7 @@ class YieldIfThenElse {
 	@java.lang.SuppressWarnings("all")
 	public Iterable<String> test() {
 		
-		class $YielderTest implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
+		class $YielderTest implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String>, java.io.Closeable {
 			private boolean b;
 			private int $state;
 			private boolean $hasNext;
@@ -41,6 +41,10 @@ class YieldIfThenElse {
 			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
+			}
+			
+			public void close() {
+				$state = 5;
 			}
 			
 			private boolean getNext() {

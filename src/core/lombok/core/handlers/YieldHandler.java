@@ -31,6 +31,7 @@ package lombok.core.handlers;
 import static lombok.ast.AST.*;
 import static lombok.core.util.Names.*;
 
+import java.io.Closeable;
 import java.util.*;
 
 import lombok.*;
@@ -64,7 +65,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		final String elementType = collector.elementType(method);
 		final List<FieldDecl> variables = collector.getStateVariables();
 		final Switch stateSwitch = collector.getStateSwitch();
-		final Statement errorHandler = collector.getErrorHandler();
+		final Switch errorHandlerSwitch = collector.getErrorHandlerSwitch();
+		final Statement closeStatement = collector.getCloseStatement();
 
 		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type(Iterator.class).withTypeArgument(Type(elementType))) //
 			.withFields(variables) //
@@ -81,7 +83,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 							.withStatement(Return(This()))) //
 						.Else(Return(New(Type(yielderName))))));
 		}
-		yielder.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
+		yielder.implementing(Type(Closeable.class)) //
+			.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
 				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
 					.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
 					.withStatement(Assign(Name("$nextDefined"), True())))) //
@@ -92,8 +95,10 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 				.withStatement(Assign(Name("$nextDefined"), False())) //
 				.withStatement(Return(Name(nextName)))) //
 			.withMethod(MethodDecl(Type("void"), "remove").makePublic() //
-				.withStatement(Throw(New(Type(UnsupportedOperationException.class)))));
-		if (errorHandler != null) {
+				.withStatement(Throw(New(Type(UnsupportedOperationException.class))))) //
+			.withMethod(MethodDecl(Type("void"), "close").makePublic() //
+						.withStatement(closeStatement));
+		if (errorHandlerSwitch != null) {
 			String caughtErrorName = errorName + "Caught";
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
 				.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
@@ -102,7 +107,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 							.withStatement(stateSwitch)) //
 						.Catch(Arg(Type(Throwable.class), caughtErrorName), Block() //
 							.withStatement(Assign(Name(errorName), Name(caughtErrorName))) //
-							.withStatement(errorHandler))))));
+							.withStatement(errorHandlerSwitch))))));
 		} else {
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
 				.withStatement(While(True()).Do(stateSwitch)));
@@ -125,6 +130,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		protected Map<AST_BASE_TYPE, Scope<AST_BASE_TYPE>> allScopes = new HashMap<AST_BASE_TYPE, Scope<AST_BASE_TYPE>>();
 		protected List<Case> cases = new ArrayList<Case>();
 		protected List<Statement> statements = new ArrayList<Statement>();
+		protected List<Case> breakCases = new ArrayList<Case>();
 		protected List<ErrorHandler> errorHandlers = new ArrayList<ErrorHandler>();
 		protected int finallyBlocks;
 		protected Map<NumberLiteral, Case> labelLiterals = new HashMap<NumberLiteral, Case>();
@@ -139,7 +145,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			return Switch(Name(stateName)).withCases(switchCases).withCase(Case().withStatement(Return(False())));
 		}
 
-		public Statement getErrorHandler() {
+		public Switch getErrorHandlerSwitch() {
 			if (errorHandlers.isEmpty()) {
 				return null;
 			} else {
@@ -166,6 +172,24 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 					.withStatement(Call(Name(unhandledErrorName), "initCause").withArgument(Name(errorName))) //
 					.withStatement(Throw(Name(unhandledErrorName))));
 				return Switch(Name(stateName)).withCases(switchCases);
+			}
+		}
+
+		public Statement getCloseStatement() {
+			final Statement statement = setState(literal(getBreakLabel(root)));
+			if (breakCases.isEmpty()) {
+				return statement;
+			} else {
+				final List<Case> switchCases = new ArrayList<Case>();
+				final Set<Number> states = new HashSet<Number>();
+				for (final Case breakCase : breakCases) {
+					final Number state = ((NumberLiteral)breakCase.getPattern()).getNumber();
+					if (states.add(state)) switchCases.add(breakCase);
+				}
+				switchCases.add(Case() //
+					.withStatement(statement) //
+					.withStatement(Return()));
+				return Do(Switch(Name(stateName)).withCases(switchCases)).While(Call("getNext"));
 			}
 		}
 
@@ -217,7 +241,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			synchronizeLiteralsAndLabels();
 		}
 
-		public Expression getStateIdOfAssignment(Statement statement) {
+		public Expression getStateFromAssignment(Statement statement) {
 			if (statement instanceof Assignment) {
 				Assignment assign = (Assignment) statement;
 				if (assign.getLeft() instanceof NameRef) {
@@ -231,7 +255,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		}
 
 		public Case getLabel(Expression expression) {
-			return labelLiterals.get(expression);
+			return expression == null ? null : labelLiterals.get(expression);
 		}
 
 		public void endCase() {
@@ -293,9 +317,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		}
 
 		public void refactorStatement(final Object statement) {
-			if (statement == null) {
-				return;
-			}
+			if (statement == null) return;
 			Scope<AST_BASE_TYPE> scope = allScopes.get(statement);
 			if (scope != null) {
 				scope.refactor();
@@ -305,6 +327,30 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		}
 
 		public void optimizeStates() {
+			optimizeStateChanges();
+			optimizeSuccessiveStates();
+		}
+
+		/**
+		 * Handles the following scenarios:
+		 * <ol>
+		 * <li><pre>
+		 * case 2:
+		 * case 3:                  => merge 2 and 3 into 4
+		 * case 4:
+		 *   bodyOf4();
+		 * </pre></li>
+		 * <li><pre>
+		 * case 2:
+		 *   $state = 5;            => merge 2 into 5
+		 *   continue;
+		 * // case 3-4
+		 * case 5:
+		 *   bodyOf5();
+		 * </pre></li>
+		 * </ol>
+		 */
+		public void optimizeStateChanges() {
 			int count = cases.size();
 			for (Map.Entry<NumberLiteral, Case> entry : labelLiterals.entrySet()) {
 				Case label = entry.getValue();
@@ -318,9 +364,9 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 							break;
 						}
 					} else {
-						Case next = getLabel(getStateIdOfAssignment(label.getStatements().get(0)));
+						Case next = getLabel(getStateFromAssignment(label.getStatements().get(0)));
 						int numberOfStatements = label.getStatements().size();
-						if ((next != null) && (numberOfStatements == 1) || ((numberOfStatements > 1) && (label.getStatements().get(1) instanceof Continue))) {
+						if ((next != null) && ((numberOfStatements == 1) || ((numberOfStatements > 1) && (label.getStatements().get(1) instanceof Continue)))) {
 							label = next;
 						} else {
 							break;
@@ -332,10 +378,32 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 					usedLabels.add(label);
 				}
 			}
+		}
 
-			int id = 0;
+		/**
+		 * Handles the following scenarios:
+		 * <ol>
+		 * <li><pre>
+		 * case 2:
+		 *   bodyOf2();
+		 *   // doesn't end with
+		 *   //continue;
+		 *   // or                  => case 2:
+		 *   //return true;              bodyOf2();
+		 * case 3:                       bodyOf3();
+		 *   bodyOf3();
+		 * </pre></li>
+		 * <li><pre>
+		 * case 2:
+		 *   bodyOf2();             => case 2:
+		 *   continue;                   bodyOf2();
+		 *   unreachableBodyOf2();       continue;
+		 * </pre></li>
+		 * </ol>
+		 */
+		public void optimizeSuccessiveStates() {
 			Case previous = null;
-			for (int i = 0; i < count; i++) {
+			for (int i = 0, id = 0, iend = cases.size(); i < iend; i++) {
 				Case label = cases.get(i);
 				if (!usedLabels.contains(label) && (previous != null)) {
 					Statement last = previous.getStatements().get(previous.getStatements().size() - 1);
@@ -360,7 +428,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 						remove = true;
 						iter.remove();
 					} else {
-						found = getLabel(getStateIdOfAssignment(statement)) == label;
+						found = getLabel(getStateFromAssignment(statement)) == label;
 					}
 				}
 				previous = label;

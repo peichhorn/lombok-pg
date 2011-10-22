@@ -69,6 +69,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.mangosdk.spi.ProviderFor;
 
 import lombok.*;
+import lombok.ast.Case;
 import lombok.core.handlers.YieldHandler;
 import lombok.core.handlers.YieldHandler.AbstractYieldDataCollector;
 import lombok.core.handlers.YieldHandler.ErrorHandler;
@@ -763,6 +764,14 @@ public class HandleYield extends EclipseASTAdapter {
 							addStatement(setState(literal(label)));
 							addStatement(Return(True()));
 							addLabel(label);
+							
+							Scope<ASTNode> next = getFinallyScope(parent, null);
+							if (next != null) {
+								breakCases.add(new Case(literal(label)) //
+									.withStatement(Assign(Name(next.labelName), literal(getBreakLabel(root)))) //
+									.withStatement(setState(literal(getFinallyLabel(next)))) //
+									.withStatement(Continue()));
+							}
 						}
 					};
 					yields.add(current);
@@ -772,7 +781,7 @@ public class HandleYield extends EclipseASTAdapter {
 				} else {
 					if (tree.receiver.isImplicitThis()) {
 						String name = As.string(tree.selector);
-						if (Is.oneOf(name, "hasNext", "next", "remove")) {
+						if (Is.oneOf(name, "hasNext", "next", "remove", "close")) {
 							method.node().addError(String.format("Cannot call method %s(), as it is hidden.", name));
 						}
 					}

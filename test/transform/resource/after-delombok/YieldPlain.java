@@ -6,7 +6,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterator<String> simple() {
 		
-		class $YielderSimple implements java.util.Iterator<java.lang.String> {
+		class $YielderSimple implements java.util.Iterator<java.lang.String>, java.io.Closeable {
 			private int $state;
 			private boolean $hasNext;
 			private boolean $nextDefined;
@@ -36,6 +36,10 @@ class YieldPlain {
 				throw new java.lang.UnsupportedOperationException();
 			}
 			
+			public void close() {
+				$state = 2;
+			}
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -56,7 +60,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while() {
 		
-		class $YielderFibWhile implements java.util.Iterator<java.lang.Long> {
+		class $YielderFibWhile implements java.util.Iterator<java.lang.Long>, java.io.Closeable {
 			private long a;
 			private long b;
 			private long c;
@@ -87,6 +91,10 @@ class YieldPlain {
 			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
+			}
+			
+			public void close() {
+				$state = 5;
 			}
 			
 			private boolean getNext() {
@@ -125,7 +133,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterator<Long> fib_while_2() {
 		
-		class $YielderFibWhile2 implements java.util.Iterator<java.lang.Long> {
+		class $YielderFibWhile2 implements java.util.Iterator<java.lang.Long>, java.io.Closeable {
 			private long a;
 			private long b;
 			private long c;
@@ -156,6 +164,10 @@ class YieldPlain {
 			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
+			}
+			
+			public void close() {
+				$state = 4;
 			}
 			
 			private boolean getNext() {
@@ -191,7 +203,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterable<Long> fib_for() {
 		
-		class $YielderFibFor implements java.util.Iterator<java.lang.Long>, java.lang.Iterable<java.lang.Long> {
+		class $YielderFibFor implements java.util.Iterator<java.lang.Long>, java.lang.Iterable<java.lang.Long>, java.io.Closeable {
 			private long a;
 			private long b;
 			private long c;
@@ -231,6 +243,10 @@ class YieldPlain {
 				throw new java.lang.UnsupportedOperationException();
 			}
 			
+			public void close() {
+				$state = 4;
+			}
+			
 			private boolean getNext() {
 				while (true) switch ($state) {
 				case 0: 
@@ -264,7 +280,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterable<String> complex_foreach(final Iterable<Object> objects) {
 		
-		class $YielderComplexForeach implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String> {
+		class $YielderComplexForeach implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String>, java.io.Closeable {
 			private Object object;
 			private Class<?> c;
 			@java.lang.SuppressWarnings("all")
@@ -303,6 +319,10 @@ class YieldPlain {
 			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
+			}
+			
+			public void close() {
+				$state = 6;
 			}
 			
 			private boolean getNext() {
@@ -349,7 +369,7 @@ class YieldPlain {
 	@java.lang.SuppressWarnings("all")
 	public Iterator<String> complex(final Iterator<Object> objects) {
 		
-		class $YielderComplex implements java.util.Iterator<java.lang.String> {
+		class $YielderComplex implements java.util.Iterator<java.lang.String>, java.io.Closeable {
 			private Object object;
 			private Class<?> c;
 			private int $state;
@@ -379,6 +399,10 @@ class YieldPlain {
 			
 			public void remove() {
 				throw new java.lang.UnsupportedOperationException();
+			}
+			
+			public void close() {
+				$state = 6;
 			}
 			
 			private boolean getNext() {
