@@ -121,17 +121,26 @@ public final class PatchExtensionMethod {
 		ERRORS.put(messageSend, new PostponedInvalidMethodError(problemReporter, messageSend, method));
 	}
 
+	@RequiredArgsConstructor
+	@Getter
+	private static class Extension {
+		private final List<MethodBinding> extensionMethods;
+		private final TypeBinding extensionProvider;
+		private final boolean suppressBaseMethods;
+	}
+
 	public static TypeBinding resolveType(final TypeBinding resolvedType, final MessageSend methodCall, final BlockScope scope) {
-		if (methodCall.binding instanceof ProblemMethodBinding) {
-			List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
-			TypeDeclaration decl = scope.classScope().referenceContext;
-			EclipseType type = null;
-			for (EclipseNode typeNode = getTypeNode(decl); typeNode != null; typeNode = upToType(typeNode)) {
-				Annotation ann = getAnnotation(ExtensionMethod.class, (TypeDeclaration) typeNode.get());
-				extensionMethods.addAll(0, getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType));
-				if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
-			}
-			for (MethodBinding extensionMethod : extensionMethods) {
+		List<Extension> extensions = new ArrayList<Extension>();
+		TypeDeclaration decl = scope.classScope().referenceContext;
+		EclipseType type = null;
+		for (EclipseNode typeNode = getTypeNode(decl); typeNode != null; typeNode = upToType(typeNode)) {
+			Annotation ann = getAnnotation(ExtensionMethod.class, (TypeDeclaration) typeNode.get());
+			if (ann != null) extensions.addAll(0, getApplicableExtensionMethods(typeNode, ann, methodCall.receiver.resolvedType));
+			if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
+		}
+		for (Extension extension : extensions) {
+			if (!extension.isSuppressBaseMethods() && !(methodCall.binding instanceof ProblemMethodBinding)) continue;
+			for (MethodBinding extensionMethod : extension.getExtensionMethods()) {
 				if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
 				ERRORS.remove(methodCall);
 				if (methodCall.receiver instanceof ThisReference) {
@@ -158,6 +167,7 @@ public final class PatchExtensionMethod {
 				return methodCall.resolvedType;
 			}
 		}
+		
 		PostponedError error = ERRORS.get(methodCall);
 		if (error != null) {
 			error.fire();
@@ -179,12 +189,14 @@ public final class PatchExtensionMethod {
 		if (canExtendCodeAssist(proposals)) {
 			IJavaCompletionProposal firstProposal = proposals.get(0);
 			int replacementOffset = getReplacementOffset(firstProposal);
-			for (MethodBinding method : getExtensionMethods(completionProposalCollector)) {
-				ExtensionMethodCompletionProposal newProposal = new ExtensionMethodCompletionProposal(replacementOffset);
-				copyNameLookupAndCompletionEngine(completionProposalCollector, firstProposal, newProposal);
-				ASTNode node = getAssistNode(completionProposalCollector);
-				newProposal.setMethodBinding(method, node);
-				createAndAddJavaCompletionProposal(completionProposalCollector, newProposal, proposals);
+			for (Extension extension : getExtensionMethods(completionProposalCollector)) {
+				for (MethodBinding method : extension.getExtensionMethods()) {
+					ExtensionMethodCompletionProposal newProposal = new ExtensionMethodCompletionProposal(replacementOffset);
+					copyNameLookupAndCompletionEngine(completionProposalCollector, firstProposal, newProposal);
+					ASTNode node = getAssistNode(completionProposalCollector);
+					newProposal.setMethodBinding(method, node);
+					createAndAddJavaCompletionProposal(completionProposalCollector, newProposal, proposals);
+				}
 			}
 		}
 		return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
@@ -194,18 +206,18 @@ public final class PatchExtensionMethod {
 		return !proposals.isEmpty() && Reflection.isComplete();
 	}
 	
-	private static List<MethodBinding> getExtensionMethods(final CompletionProposalCollector completionProposalCollector) {
-		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
+	private static List<Extension> getExtensionMethods(final CompletionProposalCollector completionProposalCollector) {
+		List<Extension> extensions = new ArrayList<Extension>();
 		ClassScope classScope = getClassScope(completionProposalCollector);
 		if (classScope != null) {
 			TypeDeclaration decl = classScope.referenceContext;
 			TypeBinding firstParameterType = getFirstParameterType(decl, completionProposalCollector);
 			for (EclipseNode typeNode = getTypeNode(decl); typeNode != null; typeNode = upToType(typeNode)) {
 				Annotation ann = getAnnotation(ExtensionMethod.class, (TypeDeclaration) typeNode.get());
-				extensionMethods.addAll(0, getApplicableExtensionMethods(typeNode, ann, firstParameterType));
+				extensions.addAll(0, getApplicableExtensionMethods(typeNode, ann, firstParameterType));
 			}
 		}
-		return extensionMethods;
+		return extensions;
 	}
 	
 	private static EclipseNode upToType(final EclipseNode typeNode) {
@@ -216,22 +228,23 @@ public final class PatchExtensionMethod {
 		return node;
 	}
 	
-	private static List<MethodBinding> getApplicableExtensionMethods(final EclipseNode typeNode, final Annotation ann, final TypeBinding receiverType) {
-		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
+	private static List<Extension> getApplicableExtensionMethods(final EclipseNode typeNode, final Annotation ann, final TypeBinding receiverType) {
+		List<Extension> extensions = new ArrayList<Extension>();
 		if ((typeNode != null) && (ann != null) && (receiverType != null)) {
 			BlockScope blockScope = ((TypeDeclaration) typeNode.get()).initializerScope;
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
 			AnnotationValues<ExtensionMethod> annotation = Eclipse.createAnnotation(ExtensionMethod.class, annotationNode);
+			boolean suppressBaseMethods = annotation.getInstance().suppressBaseMethods();
 			for (Object extensionMethodProvider : annotation.getActualExpressions("value")) {
 				if (extensionMethodProvider instanceof ClassLiteralAccess) {
 					TypeBinding binding = ((ClassLiteralAccess)extensionMethodProvider).type.resolveType(blockScope);
 					if (binding == null) continue;
 					if (!binding.isClass() && !binding.isEnum()) continue;
-					extensionMethods.addAll(getApplicableExtensionMethodsDefinedInProvider(typeNode, (ReferenceBinding) binding, receiverType));
+					extensions.add(new Extension(getApplicableExtensionMethodsDefinedInProvider(typeNode, (ReferenceBinding) binding, receiverType), binding, suppressBaseMethods));
 				}
 			}
 		}
-		return extensionMethods;
+		return extensions;
 	}
 	
 	private static List<MethodBinding> getApplicableExtensionMethodsDefinedInProvider(final EclipseNode typeNode, final ReferenceBinding extensionMethodProviderBinding,

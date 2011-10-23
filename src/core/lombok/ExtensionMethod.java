@@ -55,4 +55,6 @@ import java.lang.annotation.*;
 public @interface ExtensionMethod {
 	/** All types whose static methods will be exposed as extension methods. */
 	Class<?>[] value();
+	
+	boolean suppressBaseMethods() default true;
 }

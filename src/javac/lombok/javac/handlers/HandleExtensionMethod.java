@@ -77,23 +77,25 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			return;
 		}
 
+		boolean suppressBaseMethods = annotation.getInstance().suppressBaseMethods();
+
 		List<Object> extensionProviders = annotation.getActualExpressions("value");
 		if (extensionProviders.isEmpty()) {
 			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", annotationType.getName()));
 			return;
 		}
 
-		final List<Extension> extensions = getExtensions(type.node(), annotation);
+		final List<Extension> extensions = getExtensions(type.node(), extensionProviders);
 		if (extensions.isEmpty()) return;
 
-		new ExtensionMethodReplaceVisitor(type, extensions).replace();
+		new ExtensionMethodReplaceVisitor(type, extensions, suppressBaseMethods).replace();
 
 		type.rebuild();
 	}
 
-	private List<Extension> getExtensions(final JavacNode typeNode, final AnnotationValues<ExtensionMethod> annotation) {
+	private List<Extension> getExtensions(final JavacNode typeNode, final List<Object> extensionProviders) {
 		List<Extension> extensions = new ArrayList<Extension>();
-		for (Object extensionProvider : annotation.getActualExpressions("value")) {
+		for (Object extensionProvider : extensionProviders) {
 			if (extensionProvider instanceof JCFieldAccess) {
 				JCFieldAccess provider = (JCFieldAccess) extensionProvider;
 				if ("class".equals(As.string(provider.name))) {
@@ -128,15 +130,11 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		private final TypeSymbol extensionProvider;
 	}
 
+	@RequiredArgsConstructor
 	private static class ExtensionMethodReplaceVisitor extends TreeScanner<Void, Void> {
 		private final JavacType type;
 		private final List<Extension> extensions;
-
-		public ExtensionMethodReplaceVisitor(final JavacType type, final List<Extension> extensions) {
-			super();
-			this.type = type;
-			this.extensions = extensions;
-		}
+		private final boolean suppressBaseMethods;
 
 		public void replace() {
 			type.get().accept(this, null);
@@ -150,14 +148,19 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 
 		private void handleMethodCall(final JCMethodInvocation methodCall) {
 			JavacNode methodCallNode = type.node().getAst().get(methodCall);
+			JavacType surroundingType = JavacType.typeOf(methodCallNode, methodCall);
+			TypeSymbol surroundingTypeSymbol = surroundingType.get().sym;
 			JCExpression receiver = receiverOf(methodCall);
 			String methodName = methodNameOf(methodCall);
 			if (Is.oneOf(methodName, "this", "super")) return;
 			Type resolvedMethodCall = CLASS_AND_METHOD.resolveMember(methodCallNode, methodCall);
-			if (!(resolvedMethodCall instanceof ErrorType)) return;
+			if (!suppressBaseMethods && !(resolvedMethodCall instanceof ErrorType)) return;
 			Type receiverType = CLASS_AND_METHOD.resolveMember(methodCallNode, receiver);
+			if (receiverType.tsym.toString().endsWith(receiver.toString())) return;
 			Types types = Types.instance(type.node().getContext());
 			for (Extension extension : extensions) {
+				TypeSymbol extensionProvider = extension.getExtensionProvider();
+				if (surroundingTypeSymbol == extensionProvider) continue;
 				for (MethodSymbol extensionMethod : extension.getExtensionMethods()) {
 					if (!methodName.equals(As.string(extensionMethod.name))) continue;
 					Type extensionMethodType = extensionMethod.type;
@@ -165,7 +168,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 					Type firstArgType = types.erasure(extensionMethodType.asMethodType().argtypes.get(0));
 					if (!types.isAssignable(receiverType, firstArgType)) continue;
 					methodCall.args = methodCall.args.prepend(receiver);
-					methodCall.meth = type.build(Call(Name(As.string(extension.getExtensionProvider())), methodName), JCMethodInvocation.class).meth;
+					methodCall.meth = type.build(Call(Name(As.string(extensionProvider)), methodName), JCMethodInvocation.class).meth;
 					return;
 				}
 			}

@@ -54,7 +54,7 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
 		final Statement statement;
 		if (annotation.getInstance().throwException()) {
-			statement = Throw(New(Type("java.lang.UnsupportedOperationException")).withArgument(String("This method is not implemented yet.")));
+			statement = Throw(New(Type(UnsupportedOperationException.class)).withArgument(String("This method is not implemented yet.")));
 		} else {
 			statement = ReturnDefault();
 		}
