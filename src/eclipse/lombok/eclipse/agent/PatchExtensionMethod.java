@@ -71,6 +71,7 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import lombok.*;
 import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
+import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.core.util.As;
 import lombok.core.util.Is;
 import lombok.eclipse.Eclipse;
@@ -234,7 +235,12 @@ public final class PatchExtensionMethod {
 			BlockScope blockScope = ((TypeDeclaration) typeNode.get()).initializerScope;
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
 			AnnotationValues<ExtensionMethod> annotation = Eclipse.createAnnotation(ExtensionMethod.class, annotationNode);
-			boolean suppressBaseMethods = annotation.getInstance().suppressBaseMethods();
+			boolean suppressBaseMethods = false;
+			try {
+				suppressBaseMethods = annotation.getInstance().suppressBaseMethods();
+			} catch (AnnotationValueDecodeFail fail) {
+				fail.owner.setError(fail.getMessage(), fail.idx);
+			}
 			for (Object extensionMethodProvider : annotation.getActualExpressions("value")) {
 				if (extensionMethodProvider instanceof ClassLiteralAccess) {
 					TypeBinding binding = ((ClassLiteralAccess)extensionMethodProvider).type.resolveType(blockScope);
