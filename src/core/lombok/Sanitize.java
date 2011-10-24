@@ -52,7 +52,7 @@ public @interface Sanitize {
 	/**
 	 * {@link String} parameter gets normalized using
 	 * {@link Normalizer#normalize(CharSequence, Normalizer.Form)}
-	 * with default form being {@link Normalizer.Form#NFKC NFKC}
+	 * with default form being {@link java.text.Normalizer.Form#NFKC NFKC}
 	 * <p>
 	 * <b>Note:</b> This works only on {@link String Strings}.
 	 */

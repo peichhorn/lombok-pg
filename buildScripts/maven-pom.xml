@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.github.peichhorn</groupId>
+	<artifactId>lombok-pg</artifactId>
+	<packaging>jar</packaging>
+	<name>lombok-pg</name>
+	<version>@VERSION@</version>
+	<description>lombok-pg is a collection of extensions to Project Lombok</description>
+	<url>https://github.com/peichhorn/lombok-pg</url>
+	<licenses>
+		<license>
+			<name>The MIT License (MIT)</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:git@github.com:peichhorn/lombok-pg.git</connection>
+		<url>git@github.com:peichhorn/lombok-pg.git</url>
+	</scm>
+	<developers>
+		<developer>
+			<id>peichhorn</id>
+			<name>Philipp Eichhorn</name>
+			<email>peichhor@web.de</email>
+		</developer>
+	</developers>
+</project>
