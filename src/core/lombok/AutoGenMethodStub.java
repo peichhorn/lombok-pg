@@ -27,7 +27,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Put on any type to make lombok create default implementations for all methods you forgot to implement.
+ * With this annotation you can avoid cluttering your code with empty methods that an interface forces you to implement.
+ * Just implement the ones you need and lombok will create empty stubs for the rest.
  * <p>
  * Before:
  * <pre>
@@ -63,17 +64,17 @@ import java.lang.annotation.*;
  * }
  * </pre>
  * <p>
- * If you rather prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} thrown instead of the default value returned, try
- * {@code @AutoGenMethodStub(throwException = true)}.
+ * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown rather than
+ * the default value being returned, use: {@code @AutoGenMethodStub(throwException = true)}.
  * <p>
  * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.
- * But in few cases it may remove massive amounts of boilerplate.
+ * But in some cases it removes massive amounts of boilerplate.
  */
 @Target(TYPE) @Retention(SOURCE)
 public @interface AutoGenMethodStub {
 	/**
-	 * If you rather prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} thrown instead of the default value returned, try
-	 * {@code @AutoGenMethodStub(throwException = true)}.
+	 * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown rather than
+	 * the default value being returned, use {@code @AutoGenMethodStub(throwException = true)}.
 	 */
 	boolean throwException() default false;
 }

@@ -109,7 +109,7 @@ public class YieldExample {
 			}
 			
 			public void close() {
-				$state = 3;
+				$state = 4;
 			}
 			
 			private boolean getNext() {

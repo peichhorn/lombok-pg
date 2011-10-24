@@ -1,6 +1,4 @@
 import lombok.ReadLock;
-import lombok.Validate.NotEmpty;
-import lombok.Validate.NotNull;
 import lombok.WriteLock;
 
 import java.util.HashMap;
@@ -10,12 +8,12 @@ class LockExample {
 	private Map<String, String> dictionary = new HashMap<String, String>();
 	
 	@WriteLock("dictionaryLock")
-	public void put(@NotEmpty String key, @NotNull String value) {
+	public void put(String key, String value) {
 		dictionary.put(key, value);
 	}
 	
 	@ReadLock("dictionaryLock")
-	public String get(@NotEmpty String key) {
+	public String get(String key) {
 		return dictionary.get(key);
 	}
 }

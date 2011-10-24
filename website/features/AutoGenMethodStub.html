@@ -15,7 +15,8 @@
 		<div class="overview">
 			<h3>Overview</h3>
 			<p>
-			With this annotation you can avoid cluttering your code with empty methods that an interface forces you to implement. Just implement the ones you need and lombok will create empty stubs for the rest.
+			With this annotation you can avoid cluttering your code with empty methods that an interface forces you to implement. Just implement the ones you need and lombok will create empty stubs for the rest.<br />
+			If you prefer an <code>java.lang.UnsupportedOperationException</code> being thrown rather than the default value being returned, use: <code>@AutoGenMethodStub(throwException = true)</code>.
 			</p>
 		</div>
 		<div class="snippets">
