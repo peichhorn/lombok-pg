@@ -106,8 +106,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 					.withStatement(Try(Block() //
 							.withStatement(stateSwitch)) //
 						.Catch(Arg(Type(Throwable.class), caughtErrorName), Block() //
-							.withStatement(Assign(Name(errorName), Name(caughtErrorName))) //
-							.withStatement(errorHandlerSwitch))))));
+							.withStatement(Assign(Name(errorName), Name(caughtErrorName))))) //
+					.withStatement(errorHandlerSwitch))));
 		} else {
 			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
 				.withStatement(While(True()).Do(stateSwitch)));
@@ -180,11 +180,14 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			if (breakCases.isEmpty()) {
 				return statement;
 			} else {
+				Number prev = null;
 				final List<Case> switchCases = new ArrayList<Case>();
-				final Set<Number> states = new HashSet<Number>();
 				for (final Case breakCase : breakCases) {
-					final Number state = ((NumberLiteral)breakCase.getPattern()).getNumber();
-					if (states.add(state)) switchCases.add(breakCase);
+					NumberLiteral literal = (NumberLiteral)breakCase.getPattern();
+					Number value = literal.getNumber();
+					if ((prev != null) && prev.equals(value)) continue;
+					switchCases.add(breakCase);
+					prev = value;
 				}
 				switchCases.add(Case() //
 					.withStatement(statement) //

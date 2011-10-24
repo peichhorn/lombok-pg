@@ -102,23 +102,23 @@ class YieldTryBlock {
 						}
 					} catch (final java.lang.Throwable $yieldExceptionCaught) {
 						$yieldException = $yieldExceptionCaught;
-						switch ($state) {
-						case 3: 
-							if ($yieldException instanceof RuntimeException) {
-								e = (RuntimeException)$yieldException;
-								$state = 4;
-								continue;
-							}
-						case 4: 
-							$yieldException1 = $yieldException;
-							$state = 5;
+					}
+					switch ($state) {
+					case 3: 
+						if ($yieldException instanceof RuntimeException) {
+							e = (RuntimeException)$yieldException;
+							$state = 4;
 							continue;
-						default: 
-							$state = 6;
-							java.util.ConcurrentModificationException $yieldExceptionUnhandled = new java.util.ConcurrentModificationException();
-							$yieldExceptionUnhandled.initCause($yieldException);
-							throw $yieldExceptionUnhandled;
 						}
+					case 4: 
+						$yieldException1 = $yieldException;
+						$state = 5;
+						continue;
+					default: 
+						$state = 6;
+						java.util.ConcurrentModificationException $yieldExceptionUnhandled = new java.util.ConcurrentModificationException();
+						$yieldExceptionUnhandled.initCause($yieldException);
+						throw $yieldExceptionUnhandled;
 					}
 				}
 			}
