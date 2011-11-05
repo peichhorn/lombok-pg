@@ -152,11 +152,15 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			TypeSymbol surroundingTypeSymbol = surroundingType.get().sym;
 			JCExpression receiver = receiverOf(methodCall);
 			String methodName = methodNameOf(methodCall);
+
 			if (Is.oneOf(methodName, "this", "super")) return;
 			Type resolvedMethodCall = CLASS_AND_METHOD.resolveMember(methodCallNode, methodCall);
+			if (resolvedMethodCall == null) return;
 			if (!suppressBaseMethods && !(resolvedMethodCall instanceof ErrorType)) return;
 			Type receiverType = CLASS_AND_METHOD.resolveMember(methodCallNode, receiver);
+			if (receiverType == null) return;
 			if (receiverType.tsym.toString().endsWith(receiver.toString())) return;
+
 			Types types = Types.instance(type.node().getContext());
 			for (Extension extension : extensions) {
 				TypeSymbol extensionProvider = extension.getExtensionProvider();

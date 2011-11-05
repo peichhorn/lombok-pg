@@ -37,8 +37,11 @@ public enum JavacResolver {
 		public Type resolveMember(JavacNode node, JCExpression expr) {
 			Type type = expr.type;
 			if (type == null) {
-				new JavacResolution(node.getContext()).resolveClassMember(node);
-				type = expr.type;
+				try {
+					new JavacResolution(node.getContext()).resolveClassMember(node);
+					type = expr.type;
+				} catch (Exception ignore) {
+				}
 			}
 			return type;
 		}
@@ -47,8 +50,11 @@ public enum JavacResolver {
 		public Type resolveMember(JavacNode node, JCExpression expr) {
 			Type type = expr.type;
 			if (type == null) {
-				JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr));
-				if (resolvedExpression != null) type = resolvedExpression.type;
+				try {
+					JCExpression resolvedExpression = ((JCExpression) new JavacResolution(node.getContext()).resolveMethodMember(node).get(expr));
+					if (resolvedExpression != null) type = resolvedExpression.type;
+				} catch (Exception ignore) {
+				}
 			}
 			return type;
 		}
