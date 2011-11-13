@@ -1,12 +1,11 @@
 class LazyGetterPlain {
+	private volatile boolean $fieldNameInitialized;
+	private final java.lang.Object[] $fieldNameLock = new java.lang.Object[0];
 
 	static class ValueType {
-
 	}
 
 	private ValueType fieldName;
-	private volatile boolean $fieldNameInitialized;
-	private final java.lang.Object[] $fieldNameLock = new java.lang.Object[0];
 
 	@java.lang.SuppressWarnings("all")
 	public ValueType getFieldName() {

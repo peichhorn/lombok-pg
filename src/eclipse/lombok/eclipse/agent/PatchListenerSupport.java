@@ -22,6 +22,7 @@
 package lombok.eclipse.agent;
 
 import static lombok.eclipse.agent.Patches.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -29,7 +30,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 import lombok.*;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleListenerSupport;
 import lombok.patcher.*;
@@ -51,7 +51,7 @@ public final class PatchListenerSupport {
 		EclipseNode typeNode = getTypeNode(decl);
 		if ((ann != null) && (typeNode != null)) {
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
-			new HandleListenerSupport().handle(Eclipse.createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
+			new HandleListenerSupport().handle(createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
 		}
 		return false;
 	}

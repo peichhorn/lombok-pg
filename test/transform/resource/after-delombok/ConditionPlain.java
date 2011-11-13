@@ -1,4 +1,6 @@
 class ConditionPlain {
+	private final java.util.concurrent.locks.Lock $canResumeLock = new java.util.concurrent.locks.ReentrantLock();
+	private final java.util.concurrent.locks.Condition canResume = $canResumeLock.newCondition();
 	private volatile boolean paused;
 	
 	@java.lang.SuppressWarnings("all")
@@ -30,7 +32,4 @@ class ConditionPlain {
 	private boolean isPaused() {
 		return this.paused;
 	}
-	
-	private final java.util.concurrent.locks.Lock $canResumeLock = new java.util.concurrent.locks.ReentrantLock();
-	private final java.util.concurrent.locks.Condition canResume = $canResumeLock.newCondition();
 }

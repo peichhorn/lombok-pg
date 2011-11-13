@@ -22,8 +22,9 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.util.Names.*;
-import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,6 @@ import org.eclipse.jdt.internal.compiler.ast.Argument;
 
 import lombok.core.handlers.IParameterSanitizer;
 import lombok.core.util.Each;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
@@ -50,7 +50,7 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
-				final java.lang.annotation.Annotation annotation = Eclipse.createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
+				final java.lang.annotation.Annotation annotation = createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.type, argumentName, newArgumentName, annotation));
 				method.replaceVariableName(argumentName, newArgumentName);
 				setGeneratedBy(ann, ann);

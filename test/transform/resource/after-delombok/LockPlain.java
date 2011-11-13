@@ -1,6 +1,7 @@
 import java.util.Map;
 import java.util.HashMap;
 class LockPlain {
+	private final java.util.concurrent.locks.ReadWriteLock dictionaryLock = new java.util.concurrent.locks.ReentrantReadWriteLock();
 	private Map<String, String> dictionary = new HashMap<String, String>();
 	
 	@java.lang.SuppressWarnings("all")
@@ -41,6 +42,4 @@ class LockPlain {
 		// do something;
 		return key;
 	}
-	
-	private final java.util.concurrent.locks.ReadWriteLock dictionaryLock = new java.util.concurrent.locks.ReentrantReadWriteLock();
 }

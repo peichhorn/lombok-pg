@@ -22,6 +22,7 @@
 package lombok.eclipse.agent;
 
 import static lombok.eclipse.agent.Patches.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -32,7 +33,6 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
 import lombok.*;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleAutoGenMethodStub;
 import lombok.patcher.*;
@@ -68,7 +68,7 @@ public final class PatchAutoGenMethodStub {
 		EclipseNode typeNode = getTypeNode(decl);
 		if ((ann != null) && (typeNode != null)) {
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
-			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, Eclipse.createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
+			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
 			ISSUE_WAS_FIXED.set(true);
 			return method;
 		}

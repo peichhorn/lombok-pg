@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers;
 
 import static lombok.core.handlers.RethrowAndRethrowsHandler.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.*;
 
@@ -33,7 +34,6 @@ import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.InitializableEclipseNode;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -67,7 +67,7 @@ public class HandleRethrowAndRethrows {
 			RethrowAndRethrowsHandler<EclipseMethod> handler = new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode);
 			for (Object rethrow : annotation.getActualExpressions("value")) {
 				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
-				Rethrow ann = Eclipse.createAnnotation(Rethrow.class, rethrowNode).getInstance();
+				Rethrow ann = createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
 			handler.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());

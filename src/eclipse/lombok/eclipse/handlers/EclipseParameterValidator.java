@@ -21,8 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.Eclipse.*;
+import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,6 @@ import org.eclipse.jdt.internal.compiler.ast.Argument;
 
 import lombok.core.handlers.IParameterValidator;
 import lombok.core.util.Each;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
@@ -49,7 +49,7 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 				if (ann == null) continue;
 				if (isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
-				final java.lang.annotation.Annotation annotation = Eclipse.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
+				final java.lang.annotation.Annotation annotation = createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
 				validateStatements.addAll(validationStrategy.getStatementsFor(argumentName, argumentIndex, annotation));
 				setGeneratedBy(ann, ann);
 				argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;

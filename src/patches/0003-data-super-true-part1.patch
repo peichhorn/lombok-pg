@@ -1,5 +1,18 @@
+060230a0081b413166b1e08aaf7b6ff60d367000
+ src/core/lombok/AllArgsConstructor.java            |    2 ++
+ src/core/lombok/Data.java                          |    9 +++++++++
+ src/core/lombok/NoArgsConstructor.java             |    2 ++
+ src/core/lombok/RequiredArgsConstructor.java       |    2 ++
+ src/core/lombok/eclipse/handlers/HandleData.java   |   11 ++++++++---
+ .../eclipse/handlers/HandleEqualsAndHashCode.java  |    4 ++--
+ .../lombok/eclipse/handlers/HandleToString.java    |    6 +++---
+ src/core/lombok/javac/handlers/HandleData.java     |    9 ++++++---
+ .../javac/handlers/HandleEqualsAndHashCode.java    |    4 ++--
+ src/core/lombok/javac/handlers/HandleToString.java |    4 ++--
+ 10 files changed, 38 insertions(+), 15 deletions(-)
+
 diff --git a/src/core/lombok/AllArgsConstructor.java b/src/core/lombok/AllArgsConstructor.java
-index f0e0e3f..b6179c9 100644
+index 7e55e4d..778980e 100644
 --- a/src/core/lombok/AllArgsConstructor.java
 +++ b/src/core/lombok/AllArgsConstructor.java
 @@ -44,6 +44,8 @@ public @interface AllArgsConstructor {
@@ -12,7 +25,7 @@ index f0e0e3f..b6179c9 100644
  	 * Sets the access level of the constructor. By default, generated constructors are {@code public}.
  	 */
 diff --git a/src/core/lombok/Data.java b/src/core/lombok/Data.java
-index 488de64..61e13c6 100644
+index 5902950..bdbbc4f 100644
 --- a/src/core/lombok/Data.java
 +++ b/src/core/lombok/Data.java
 @@ -45,6 +45,7 @@ import java.lang.annotation.Target;
@@ -37,7 +50,7 @@ index 488de64..61e13c6 100644
 +	boolean callSuper() default false;
  }
 diff --git a/src/core/lombok/NoArgsConstructor.java b/src/core/lombok/NoArgsConstructor.java
-index 1a885b6..42059ea 100644
+index 985225f..78a72c9 100644
 --- a/src/core/lombok/NoArgsConstructor.java
 +++ b/src/core/lombok/NoArgsConstructor.java
 @@ -47,6 +47,8 @@ public @interface NoArgsConstructor {
@@ -50,7 +63,7 @@ index 1a885b6..42059ea 100644
  	 * Sets the access level of the constructor. By default, generated constructors are {@code public}.
  	 */
 diff --git a/src/core/lombok/RequiredArgsConstructor.java b/src/core/lombok/RequiredArgsConstructor.java
-index ba56726..9042fe8 100644
+index da2d1e1..1687fe5 100644
 --- a/src/core/lombok/RequiredArgsConstructor.java
 +++ b/src/core/lombok/RequiredArgsConstructor.java
 @@ -44,6 +44,8 @@ public @interface RequiredArgsConstructor {
@@ -63,18 +76,19 @@ index ba56726..9042fe8 100644
  	 * Sets the access level of the constructor. By default, generated constructors are {@code public}.
  	 */
 diff --git a/src/core/lombok/eclipse/handlers/HandleData.java b/src/core/lombok/eclipse/handlers/HandleData.java
-index 71027c0..2a44cf4 100644
+index ba29b30..79cd2b1 100644
 --- a/src/core/lombok/eclipse/handlers/HandleData.java
 +++ b/src/core/lombok/eclipse/handlers/HandleData.java
-@@ -58,10 +57,15 @@ public class HandleData extends EclipseAnnotationHandler<Data> {
+@@ -57,11 +57,16 @@ public class HandleData extends EclipseAnnotationHandler<Data> {
+ 		//most useful of the many methods built by @Data. This trick won't work for the non-static constructor,
  		//for whatever reason, though you can find callers of that one by focusing on the class name itself
  		//and hitting 'find callers'.
- 		
 +		Data data = annotation.getInstance();
 +		String staticConstructorName = data.staticConstructor();
 +		Boolean callSuper = data.callSuper();
 +		if (!annotation.isExplicit("callSuper")) callSuper = null;
 +		
+ 		
  		new HandleGetter().generateGetterForType(typeNode, annotationNode, AccessLevel.PUBLIC, true);
  		new HandleSetter().generateSetterForType(typeNode, annotationNode, AccessLevel.PUBLIC, true);
 -		new HandleEqualsAndHashCode().generateEqualsAndHashCodeForType(typeNode, annotationNode);
@@ -86,10 +100,10 @@ index 71027c0..2a44cf4 100644
  	}
  }
 diff --git a/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java b/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
-index bbb1d56..3227fc1 100644
+index 83e7828..f1dcf95 100644
 --- a/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
 +++ b/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
-@@ -103,7 +103,7 @@ public class HandleEqualsAndHashCode extends EclipseAnnotationHandler<EqualsAndH
+@@ -101,7 +101,7 @@ public class HandleEqualsAndHashCode extends EclipseAnnotationHandler<EqualsAndH
  		}
  	}
  	
@@ -97,8 +111,8 @@ index bbb1d56..3227fc1 100644
 +	public void generateEqualsAndHashCodeForType(EclipseNode typeNode, EclipseNode errorNode, Boolean callSuper) {
  		for (EclipseNode child : typeNode.down()) {
  			if (child.getKind() == Kind.ANNOTATION) {
- 				if (Eclipse.annotationTypeMatches(EqualsAndHashCode.class, child)) {
-@@ -113,7 +113,7 @@ public class HandleEqualsAndHashCode extends EclipseAnnotationHandler<EqualsAndH
+ 				if (annotationTypeMatches(EqualsAndHashCode.class, child)) {
+@@ -111,7 +111,7 @@ public class HandleEqualsAndHashCode extends EclipseAnnotationHandler<EqualsAndH
  			}
  		}
  		
@@ -108,10 +122,10 @@ index bbb1d56..3227fc1 100644
  	
  	@Override public void handle(AnnotationValues<EqualsAndHashCode> annotation,
 diff --git a/src/core/lombok/eclipse/handlers/HandleToString.java b/src/core/lombok/eclipse/handlers/HandleToString.java
-index f167916..9be572e 100644
+index 07d88f5..d6ab6c0 100644
 --- a/src/core/lombok/eclipse/handlers/HandleToString.java
 +++ b/src/core/lombok/eclipse/handlers/HandleToString.java
-@@ -81,7 +81,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
+@@ -80,7 +80,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
  		}
  	}
  	
@@ -119,8 +133,8 @@ index f167916..9be572e 100644
 +	public void generateToStringForType(EclipseNode typeNode, EclipseNode errorNode, Boolean callSuper) {
  		for (EclipseNode child : typeNode.down()) {
  			if (child.getKind() == Kind.ANNOTATION) {
- 				if (Eclipse.annotationTypeMatches(ToString.class, child)) {
-@@ -95,7 +95,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
+ 				if (annotationTypeMatches(ToString.class, child)) {
+@@ -94,7 +94,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
  		try {
  			includeFieldNames = ((Boolean)ToString.class.getMethod("includeFieldNames").getDefaultValue()).booleanValue();
  		} catch (Exception ignore) {}
@@ -129,7 +143,7 @@ index f167916..9be572e 100644
  	}
  	
  	public void handle(AnnotationValues<ToString> annotation, Annotation ast, EclipseNode annotationNode) {
-@@ -286,7 +286,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
+@@ -285,7 +285,7 @@ public class HandleToString extends EclipseAnnotationHandler<ToString> {
  	private String getTypeName(EclipseNode type) {
  		String typeName = getSingleTypeName(type);
  		EclipseNode upType = type.up();
@@ -139,7 +153,7 @@ index f167916..9be572e 100644
  			upType = upType.up();
  		}
 diff --git a/src/core/lombok/javac/handlers/HandleData.java b/src/core/lombok/javac/handlers/HandleData.java
-index 79fdf76..619ef91 100644
+index bec9896..9b092c4 100644
 --- a/src/core/lombok/javac/handlers/HandleData.java
 +++ b/src/core/lombok/javac/handlers/HandleData.java
 @@ -52,13 +52,16 @@ public class HandleData extends JavacAnnotationHandler<Data> {
@@ -163,7 +177,7 @@ index 79fdf76..619ef91 100644
  	}
  }
 diff --git a/src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java b/src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java
-index afd299e..8af6f9d 100644
+index 0a9d4cc..911ec8e 100644
 --- a/src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java
 +++ b/src/core/lombok/javac/handlers/HandleEqualsAndHashCode.java
 @@ -100,7 +100,7 @@ public class HandleEqualsAndHashCode extends JavacAnnotationHandler<EqualsAndHas
@@ -174,7 +188,7 @@ index afd299e..8af6f9d 100644
 +	public void generateEqualsAndHashCodeForType(JavacNode typeNode, JavacNode source, Boolean callSuper) {
  		for (JavacNode child : typeNode.down()) {
  			if (child.getKind() == Kind.ANNOTATION) {
- 				if (Javac.annotationTypeMatches(EqualsAndHashCode.class, child)) {
+ 				if (annotationTypeMatches(EqualsAndHashCode.class, child)) {
 @@ -110,7 +110,7 @@ public class HandleEqualsAndHashCode extends JavacAnnotationHandler<EqualsAndHas
  			}
  		}
@@ -185,10 +199,10 @@ index afd299e..8af6f9d 100644
  	
  	private void generateMethods(JavacNode typeNode, JavacNode source, List<String> excludes, List<String> includes,
 diff --git a/src/core/lombok/javac/handlers/HandleToString.java b/src/core/lombok/javac/handlers/HandleToString.java
-index 06e70e7..3c53a12 100644
+index a5fb099..9004617 100644
 --- a/src/core/lombok/javac/handlers/HandleToString.java
 +++ b/src/core/lombok/javac/handlers/HandleToString.java
-@@ -95,7 +95,7 @@ public class HandleToString extends JavacAnnotationHandler<ToString> {
+@@ -94,7 +94,7 @@ public class HandleToString extends JavacAnnotationHandler<ToString> {
  		generateToString(typeNode, annotationNode, excludes, includes, ann.includeFieldNames(), callSuper, true, fieldAccess);
  	}
  	
@@ -196,8 +210,8 @@ index 06e70e7..3c53a12 100644
 +	public void generateToStringForType(JavacNode typeNode, JavacNode errorNode, Boolean callSuper) {
  		for (JavacNode child : typeNode.down()) {
  			if (child.getKind() == Kind.ANNOTATION) {
- 				if (Javac.annotationTypeMatches(ToString.class, child)) {
-@@ -109,7 +109,7 @@ public class HandleToString extends JavacAnnotationHandler<ToString> {
+ 				if (annotationTypeMatches(ToString.class, child)) {
+@@ -108,7 +108,7 @@ public class HandleToString extends JavacAnnotationHandler<ToString> {
  		try {
  			includeFieldNames = ((Boolean)ToString.class.getMethod("includeFieldNames").getDefaultValue()).booleanValue();
  		} catch (Exception ignore) {}

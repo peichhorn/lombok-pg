@@ -32,6 +32,7 @@ import lombok.*;
 import lombok.ast.*;
 import lombok.core.LombokNode;
 import lombok.core.AST.Kind;
+import lombok.core.TransformationsUtil;
 
 @RequiredArgsConstructor
 public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {

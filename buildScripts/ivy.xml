@@ -18,7 +18,7 @@
 		<dependency org="org.easytesting" name="fest-util" rev="1.1.6" conf="test->default; contrib->sources" />
 		<dependency org="projectlombok.org" name="lombok-test-core" rev="0.10.0" conf="test; contrib->sources" />
 
-		<dependency org="projectlombok.org" name="lombok" rev="0.10.1" conf="build; contrib->sources" />
+		<dependency org="projectlombok.org" name="lombok" rev="0.10.3" conf="build; contrib->sources" />
 		<dependency org="org.netbeans.api" name="org-openide-filesystems" rev="0.1-CAP" conf="build" />
 		<dependency org="projectlombok.org" name="spi" rev="0.2.4" conf="build" />
 		<dependency org="projectlombok.org" name="javac" rev="1.6.0.18" conf="build->runtime; contrib->sources" />

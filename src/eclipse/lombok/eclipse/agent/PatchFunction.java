@@ -23,6 +23,7 @@ package lombok.eclipse.agent;
 
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.eclipse.handlers.Eclipse.getAnnotation;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -30,7 +31,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 import lombok.*;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleActionFunctionAndPredicate.HandleFunction;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -58,7 +58,7 @@ public final class PatchFunction {
 				if (ann != null) {
 					completeNode(typeNode);
 					EclipseNode annotationNode = typeNode.getNodeFor(ann);
-					new HandleFunction().handle(Eclipse.createAnnotation(Function.class, annotationNode), ann, annotationNode);
+					new HandleFunction().handle(createAnnotation(Function.class, annotationNode), ann, annotationNode);
 				}
 			}
 		}

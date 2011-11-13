@@ -209,14 +209,12 @@ public class HandleWith extends JavacASTAdapter {
 
 	public static class WithReferenceReplaceVisitor extends TreeCopier<Void> {
 		private final JavacNode node;
-		private final TreeMaker maker;
 		private final String withExprName;
 		private boolean isMethodName;
 
 		public WithReferenceReplaceVisitor(final JavacNode node, final String withExprName) {
 			super(node.getTreeMaker());
 			this.node = node;
-			this.maker = node.getTreeMaker();
 			this.withExprName = withExprName;
 		}
 
@@ -257,13 +255,13 @@ public class HandleWith extends JavacASTAdapter {
 		private JCExpression tryToReplace(final JCExpression expr) {
 			if (expr instanceof JCIdent) {
 				String s = expr.toString();
-				if ("_".equals(s)) return chainDotsString(maker, node, withExprName);
-				if (!"this".equals(s) && isMethodName) return chainDotsString(maker, node, withExprName + "." + s);
+				if ("_".equals(s)) return chainDotsString(node, withExprName);
+				if (!"this".equals(s) && isMethodName) return chainDotsString(node, withExprName + "." + s);
 			} else if (expr instanceof JCFieldAccess) {
 				String[] s = expr.toString().split("\\.");
 				if (s.length == 2) {
-					if ("this".equals(s[0])) return chainDotsString(maker, node, s[1]);
-					if ("_".equals(s[0])) return chainDotsString(maker, node, withExprName + "." + s[1]);
+					if ("this".equals(s[0])) return chainDotsString(node, s[1]);
+					if ("_".equals(s[0])) return chainDotsString(node, withExprName + "." + s[1]);
 				}
 			}
 			return expr;

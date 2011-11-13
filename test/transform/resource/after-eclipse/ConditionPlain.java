@@ -1,9 +1,9 @@
 import lombok.AccessLevel;
 
 class ConditionPlain {
-  private volatile @lombok.Getter(AccessLevel.PRIVATE) boolean paused;
   private final java.util.concurrent.locks.Lock $canResumeLock = new java.util.concurrent.locks.ReentrantLock();
   private final java.util.concurrent.locks.Condition canResume = $canResumeLock.newCondition();
+  private volatile @lombok.Getter(AccessLevel.PRIVATE) boolean paused;
   
   private @java.lang.SuppressWarnings("all") boolean isPaused() {
     return this.paused;

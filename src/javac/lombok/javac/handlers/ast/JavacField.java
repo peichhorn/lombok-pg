@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import lombok.core.util.As;
+import lombok.javac.Javac;
 import lombok.javac.JavacNode;
-import lombok.javac.handlers.JavacHandlerUtil;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
@@ -84,7 +84,7 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 	}
 
 	public boolean isPrimitive() {
-		return JavacHandlerUtil.isPrimitive(get().vartype);
+		return Javac.isPrimitive(get().vartype);
 	}
 
 	public JCVariableDecl get() {

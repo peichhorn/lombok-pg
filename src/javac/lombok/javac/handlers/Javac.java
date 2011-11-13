@@ -59,7 +59,7 @@ public final class Javac {
 
 	public static void addSuppressWarningsAll(final JCModifiers mods, final JavacNode node, final int pos) {
 		TreeMaker maker = node.getTreeMaker();
-		JCExpression suppressWarningsType = chainDotsString(maker, node, "java.lang.SuppressWarnings").setPos(pos);
+		JCExpression suppressWarningsType = chainDotsString(node, "java.lang.SuppressWarnings").setPos(pos);
 		JCExpression allLiteral = maker.Literal("all").setPos(pos);
 		ListBuffer<JCAnnotation> newAnnotations = ListBuffer.lb();
 		for (JCAnnotation annotation : mods.annotations) {

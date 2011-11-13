@@ -1,9 +1,50 @@
+a640b0017a882bd8113915c4f2118af285ec5922
+ src/core/lombok/eclipse/DeferUntilPostDiet.java    |   32 ++++++++++++++++++++
+ src/core/lombok/eclipse/EclipseASTVisitor.java     |    7 ----
+ .../lombok/eclipse/EclipseAnnotationHandler.java   |    9 -----
+ src/core/lombok/eclipse/EclipseNode.java           |    2 +-
+ src/core/lombok/eclipse/HandlerLibrary.java        |    2 +-
+ src/core/lombok/eclipse/TransformEclipseAST.java   |    4 --
+ .../lombok/eclipse/handlers/HandlePrintAST.java    |    7 ++--
+ .../eclipse/handlers/HandleSneakyThrows.java       |    8 ++---
+ .../eclipse/handlers/HandleSynchronized.java       |    8 ++---
+ src/core/lombok/eclipse/handlers/HandleVal.java    |    5 +--
+ src/core/lombok/javac/HandlerLibrary.java          |    7 ++--
+ src/core/lombok/javac/JavacASTAdapter.java         |    6 +---
+ src/core/lombok/javac/JavacASTVisitor.java         |   11 +------
+ src/core/lombok/javac/JavacAnnotationHandler.java  |    7 ----
+ src/core/lombok/javac/ResolutionBased.java         |   32 ++++++++++++++++++++
+ src/core/lombok/javac/handlers/HandleDelegate.java |    7 ++--
+ src/core/lombok/javac/handlers/HandleVal.java      |    7 ++--
+ 17 files changed, 89 insertions(+), 72 deletions(-)
+
 diff --git a/src/core/lombok/eclipse/DeferUntilPostDiet.java b/src/core/lombok/eclipse/DeferUntilPostDiet.java
 new file mode 100644
-index 0000000..64d2444
+index 0000000..f3285d1
 --- /dev/null
 +++ b/src/core/lombok/eclipse/DeferUntilPostDiet.java
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (C) 2011 The Project Lombok Authors.
++ * 
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ * 
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ * 
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ * THE SOFTWARE.
++ */
 +package lombok.eclipse;
 +
 +import java.lang.annotation.ElementType;
@@ -17,10 +58,10 @@ index 0000000..64d2444
 +}
 \ No newline at end of file
 diff --git a/src/core/lombok/eclipse/EclipseASTVisitor.java b/src/core/lombok/eclipse/EclipseASTVisitor.java
-index 7f9faf4..d76bb5c 100644
+index e09602e..b939733 100644
 --- a/src/core/lombok/eclipse/EclipseASTVisitor.java
 +++ b/src/core/lombok/eclipse/EclipseASTVisitor.java
-@@ -43,13 +43,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
+@@ -45,13 +45,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
   */
  public interface EclipseASTVisitor {
  	/**
@@ -35,7 +76,7 @@ index 7f9faf4..d76bb5c 100644
  	 */
  	void visitCompilationUnit(EclipseNode top, CompilationUnitDeclaration unit);
 diff --git a/src/core/lombok/eclipse/EclipseAnnotationHandler.java b/src/core/lombok/eclipse/EclipseAnnotationHandler.java
-index aa8fbc2..2693b81 100644
+index 55175ce..b5e5694 100644
 --- a/src/core/lombok/eclipse/EclipseAnnotationHandler.java
 +++ b/src/core/lombok/eclipse/EclipseAnnotationHandler.java
 @@ -59,13 +59,4 @@ public abstract class EclipseAnnotationHandler<T extends java.lang.annotation.An
@@ -53,7 +94,7 @@ index aa8fbc2..2693b81 100644
 -	}
  }
 diff --git a/src/core/lombok/eclipse/EclipseNode.java b/src/core/lombok/eclipse/EclipseNode.java
-index d281b51..0d436be 100644
+index 835020c..729db47 100644
 --- a/src/core/lombok/eclipse/EclipseNode.java
 +++ b/src/core/lombok/eclipse/EclipseNode.java
 @@ -50,7 +50,7 @@ public class EclipseNode extends lombok.core.LombokNode<EclipseAST, EclipseNode,
@@ -66,10 +107,10 @@ index d281b51..0d436be 100644
  		switch (getKind()) {
  		case COMPILATION_UNIT:
 diff --git a/src/core/lombok/eclipse/HandlerLibrary.java b/src/core/lombok/eclipse/HandlerLibrary.java
-index f3d5568..836aa22 100644
+index 197d7a7..783fce8 100644
 --- a/src/core/lombok/eclipse/HandlerLibrary.java
 +++ b/src/core/lombok/eclipse/HandlerLibrary.java
-@@ -80,7 +80,7 @@ public class HandlerLibrary {
+@@ -81,7 +81,7 @@ public class HandlerLibrary {
  		}
  		
  		public boolean deferUntilPostDiet() {
@@ -79,10 +120,10 @@ index f3d5568..836aa22 100644
  	}
  	
 diff --git a/src/core/lombok/eclipse/TransformEclipseAST.java b/src/core/lombok/eclipse/TransformEclipseAST.java
-index c91299b..bc86875 100644
+index d67434b..19f9f41 100644
 --- a/src/core/lombok/eclipse/TransformEclipseAST.java
 +++ b/src/core/lombok/eclipse/TransformEclipseAST.java
-@@ -175,10 +175,6 @@ public class TransformEclipseAST {
+@@ -177,10 +177,6 @@ public class TransformEclipseAST {
  			this.skipPrintAst = skipAllButPrintAST;
  		}
  		
@@ -94,7 +135,7 @@ index c91299b..bc86875 100644
  			CompilationUnitDeclaration top = (CompilationUnitDeclaration) annotationNode.top().get();
  			handlers.handleAnnotation(top, annotationNode, annotation, skipPrintAst);
 diff --git a/src/core/lombok/eclipse/handlers/HandlePrintAST.java b/src/core/lombok/eclipse/handlers/HandlePrintAST.java
-index 95db4e1..2a90b1c 100644
+index bbb7ff4..3998a09 100644
 --- a/src/core/lombok/eclipse/handlers/HandlePrintAST.java
 +++ b/src/core/lombok/eclipse/handlers/HandlePrintAST.java
 @@ -31,6 +31,7 @@ import org.mangosdk.spi.ProviderFor;
@@ -120,18 +161,18 @@ index 95db4e1..2a90b1c 100644
  		PrintStream stream = System.out;
  		String fileName = annotation.getInstance().outfile();
 diff --git a/src/core/lombok/eclipse/handlers/HandleSneakyThrows.java b/src/core/lombok/eclipse/handlers/HandleSneakyThrows.java
-index 95c11c2..0147ea9 100644
+index b0e8ca0..84e71b6 100644
 --- a/src/core/lombok/eclipse/handlers/HandleSneakyThrows.java
 +++ b/src/core/lombok/eclipse/handlers/HandleSneakyThrows.java
-@@ -28,6 +28,7 @@ import java.util.List;
+@@ -30,6 +30,7 @@ import java.util.List;
  
  import lombok.SneakyThrows;
  import lombok.core.AnnotationValues;
 +import lombok.eclipse.DeferUntilPostDiet;
- import lombok.eclipse.Eclipse;
  import lombok.eclipse.EclipseAnnotationHandler;
  import lombok.eclipse.EclipseNode;
-@@ -55,6 +56,7 @@ import org.mangosdk.spi.ProviderFor;
+ 
+@@ -56,6 +57,7 @@ import org.mangosdk.spi.ProviderFor;
   * Handles the {@code lombok.HandleSneakyThrows} annotation for eclipse.
   */
  @ProviderFor(EclipseAnnotationHandler.class)
@@ -139,7 +180,7 @@ index 95c11c2..0147ea9 100644
  public class HandleSneakyThrows extends EclipseAnnotationHandler<SneakyThrows> {
  	
  	private static class DeclaredException {
-@@ -66,11 +68,7 @@ public class HandleSneakyThrows extends EclipseAnnotationHandler<SneakyThrows> {
+@@ -67,11 +69,7 @@ public class HandleSneakyThrows extends EclipseAnnotationHandler<SneakyThrows> {
  			this.node = node;
  		}
  	}
@@ -153,7 +194,7 @@ index 95c11c2..0147ea9 100644
  		List<String> exceptionNames = annotation.getRawExpressions("value");
  		List<DeclaredException> exceptions = new ArrayList<DeclaredException>();
 diff --git a/src/core/lombok/eclipse/handlers/HandleSynchronized.java b/src/core/lombok/eclipse/handlers/HandleSynchronized.java
-index ce1ac31..74bee70 100644
+index cf9a05e..f27c1d3 100644
 --- a/src/core/lombok/eclipse/handlers/HandleSynchronized.java
 +++ b/src/core/lombok/eclipse/handlers/HandleSynchronized.java
 @@ -28,6 +28,7 @@ import java.lang.reflect.Modifier;
@@ -161,10 +202,10 @@ index ce1ac31..74bee70 100644
  import lombok.core.AnnotationValues;
  import lombok.core.AST.Kind;
 +import lombok.eclipse.DeferUntilPostDiet;
- import lombok.eclipse.Eclipse;
  import lombok.eclipse.EclipseAnnotationHandler;
  import lombok.eclipse.EclipseNode;
-@@ -52,14 +53,11 @@ import org.mangosdk.spi.ProviderFor;
+ 
+@@ -50,14 +51,11 @@ import org.mangosdk.spi.ProviderFor;
   * Handles the {@code lombok.Synchronized} annotation for eclipse.
   */
  @ProviderFor(EclipseAnnotationHandler.class)
@@ -182,7 +223,7 @@ index ce1ac31..74bee70 100644
  		EclipseNode methodNode = annotationNode.up();
  		if (methodNode == null || methodNode.getKind() != Kind.METHOD || !(methodNode.get() instanceof MethodDeclaration)) return;
 diff --git a/src/core/lombok/eclipse/handlers/HandleVal.java b/src/core/lombok/eclipse/handlers/HandleVal.java
-index cca5d69..16c6b16 100644
+index 41c34ae..e514d46 100644
 --- a/src/core/lombok/eclipse/handlers/HandleVal.java
 +++ b/src/core/lombok/eclipse/handlers/HandleVal.java
 @@ -22,6 +22,7 @@
@@ -190,10 +231,10 @@ index cca5d69..16c6b16 100644
  
  import lombok.val;
 +import lombok.eclipse.DeferUntilPostDiet;
- import lombok.eclipse.Eclipse;
  import lombok.eclipse.EclipseASTAdapter;
  import lombok.eclipse.EclipseASTVisitor;
-@@ -36,10 +37,8 @@ import org.mangosdk.spi.ProviderFor;
+ import lombok.eclipse.EclipseNode;
+@@ -35,10 +36,8 @@ import org.mangosdk.spi.ProviderFor;
   * This class just handles 2 basic error cases. The real meat of eclipse 'val' support is in {@code EclipsePatcher}'s {@code patchHandleVal} method.
   */
  @ProviderFor(EclipseASTVisitor.class)
@@ -204,12 +245,12 @@ index cca5d69..16c6b16 100644
 -	}
  	
  	@Override public void visitLocal(EclipseNode localNode, LocalDeclaration local) {
- 		if (!Eclipse.typeMatches(val.class, localNode, local.type)) return;
+ 		if (!EclipseHandlerUtil.typeMatches(val.class, localNode, local.type)) return;
 diff --git a/src/core/lombok/javac/HandlerLibrary.java b/src/core/lombok/javac/HandlerLibrary.java
-index 6bfe3fd..a92aa2f 100644
+index 17684a7..4f5461c 100644
 --- a/src/core/lombok/javac/HandlerLibrary.java
 +++ b/src/core/lombok/javac/HandlerLibrary.java
-@@ -73,7 +73,7 @@ public class HandlerLibrary {
+@@ -74,7 +74,7 @@ public class HandlerLibrary {
  		}
  		
  		public boolean isResolutionBased() {
@@ -218,7 +259,7 @@ index 6bfe3fd..a92aa2f 100644
  		}
  		
  		public void handle(final JavacNode node) {
-@@ -204,8 +204,9 @@ public class HandlerLibrary {
+@@ -205,8 +205,9 @@ public class HandlerLibrary {
  	 */
  	public void callASTVisitors(JavacAST ast) {
  		for (JavacASTVisitor visitor : visitorHandlers) try {
@@ -231,7 +272,7 @@ index 6bfe3fd..a92aa2f 100644
  			javacError(String.format("Lombok visitor handler %s failed", visitor.getClass()), t);
  		}
 diff --git a/src/core/lombok/javac/JavacASTAdapter.java b/src/core/lombok/javac/JavacASTAdapter.java
-index cb8f04b..4ba0cbb 100644
+index e15ed04..3057cd2 100644
 --- a/src/core/lombok/javac/JavacASTAdapter.java
 +++ b/src/core/lombok/javac/JavacASTAdapter.java
 @@ -34,11 +34,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -248,7 +289,7 @@ index cb8f04b..4ba0cbb 100644
  	@Override public void visitCompilationUnit(JavacNode top, JCCompilationUnit unit) {}
  	
 diff --git a/src/core/lombok/javac/JavacASTVisitor.java b/src/core/lombok/javac/JavacASTVisitor.java
-index 1837603..c4ddd23 100644
+index e406340..e5221d7 100644
 --- a/src/core/lombok/javac/JavacASTVisitor.java
 +++ b/src/core/lombok/javac/JavacASTVisitor.java
 @@ -37,12 +37,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -277,7 +318,7 @@ index 1837603..c4ddd23 100644
  		 * @param printContent if true, bodies are printed directly, as java code,
  		 * instead of a tree listing of every AST node inside it.
 diff --git a/src/core/lombok/javac/JavacAnnotationHandler.java b/src/core/lombok/javac/JavacAnnotationHandler.java
-index 57180d2..1f7023f 100644
+index 5a2305b..bd8c8ae 100644
 --- a/src/core/lombok/javac/JavacAnnotationHandler.java
 +++ b/src/core/lombok/javac/JavacAnnotationHandler.java
 @@ -53,11 +53,4 @@ public abstract class JavacAnnotationHandler<T extends Annotation> {
@@ -294,10 +335,31 @@ index 57180d2..1f7023f 100644
  }
 diff --git a/src/core/lombok/javac/ResolutionBased.java b/src/core/lombok/javac/ResolutionBased.java
 new file mode 100644
-index 0000000..3ee6beb
+index 0000000..7b70609
 --- /dev/null
 +++ b/src/core/lombok/javac/ResolutionBased.java
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (C) 2011 The Project Lombok Authors.
++ * 
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ * 
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ * 
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ * THE SOFTWARE.
++ */
 +package lombok.javac;
 +
 +import java.lang.annotation.ElementType;
@@ -311,10 +373,10 @@ index 0000000..3ee6beb
 +}
 \ No newline at end of file
 diff --git a/src/core/lombok/javac/handlers/HandleDelegate.java b/src/core/lombok/javac/handlers/HandleDelegate.java
-index 0294171..7a8116e 100644
+index ffc1f39..30c2c87 100644
 --- a/src/core/lombok/javac/handlers/HandleDelegate.java
 +++ b/src/core/lombok/javac/handlers/HandleDelegate.java
-@@ -48,6 +48,7 @@ import lombok.javac.JavacAnnotationHandler;
+@@ -47,6 +47,7 @@ import lombok.javac.JavacAnnotationHandler;
  import lombok.javac.JavacNode;
  import lombok.javac.JavacResolution;
  import lombok.javac.JavacResolution.TypeNotConvertibleException;
@@ -322,7 +384,7 @@ index 0294171..7a8116e 100644
  
  import org.mangosdk.spi.ProviderFor;
  
-@@ -74,11 +75,9 @@ import com.sun.tools.javac.util.ListBuffer;
+@@ -73,11 +74,9 @@ import com.sun.tools.javac.util.ListBuffer;
  import com.sun.tools.javac.util.Name;
  
  @ProviderFor(JavacAnnotationHandler.class)
@@ -337,10 +399,10 @@ index 0294171..7a8116e 100644
  			"hashCode()",
  			"canEqual(java.lang.Object)",  //Not in j.l.Object, but it goes with hashCode and equals so if we ignore those two, we should ignore this one.
 diff --git a/src/core/lombok/javac/handlers/HandleVal.java b/src/core/lombok/javac/handlers/HandleVal.java
-index bc70899..c545738 100644
+index cb5d33b..0907fbb 100644
 --- a/src/core/lombok/javac/handlers/HandleVal.java
 +++ b/src/core/lombok/javac/handlers/HandleVal.java
-@@ -27,6 +27,7 @@ import lombok.javac.JavacASTAdapter;
+@@ -28,6 +28,7 @@ import lombok.javac.JavacASTAdapter;
  import lombok.javac.JavacASTVisitor;
  import lombok.javac.JavacNode;
  import lombok.javac.JavacResolution;
@@ -348,7 +410,7 @@ index bc70899..c545738 100644
  
  import org.mangosdk.spi.ProviderFor;
  
-@@ -41,11 +42,9 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+@@ -42,11 +43,9 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
  import com.sun.tools.javac.util.List;
  
  @ProviderFor(JavacASTVisitor.class)
@@ -362,6 +424,3 @@ index bc70899..c545738 100644
  	@Override public void visitLocal(JavacNode localNode, JCVariableDecl local) {
  		if (local.vartype == null || (!local.vartype.toString().equals("val") && !local.vartype.toString().equals("lombok.val"))) return;
  		
--- 
-1.7.0.2.msysgit.0
-

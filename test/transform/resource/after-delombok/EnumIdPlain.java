@@ -5,14 +5,13 @@ class EnumIdPlain {
 		SKIPPED(-1),
 		COMPLETED(5);
 		
+		private static final java.util.Map<java.lang.Integer, Status> $CODE_LOOKUP = new java.util.HashMap<java.lang.Integer, Status>();
 		private final int code;
 		
 		@java.lang.SuppressWarnings("all")
 		private Status(final int code) {
 			this.code = code;
 		}
-		
-		private static final java.util.Map<java.lang.Integer, Status> $CODE_LOOKUP = new java.util.HashMap<java.lang.Integer, Status>();
 		
 		static {
 			for (Status status : Status.values()) {

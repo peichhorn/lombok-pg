@@ -23,6 +23,7 @@ package lombok.javac.handlers;
 
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.Javac.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,6 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import lombok.Sanitize;
 import lombok.core.handlers.IParameterSanitizer;
-import lombok.javac.Javac;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
 
@@ -52,7 +52,7 @@ public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod>
 				final JCAnnotation ann = getAnnotation(sanitizerStrategy.getType(), argument.mods);
 				if (ann == null) continue;
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
-				final java.lang.annotation.Annotation annotation = Javac.createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
+				final java.lang.annotation.Annotation annotation = createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.vartype, argumentName, newArgumentName, annotation));
 				method.replaceVariableName(argumentName, newArgumentName);
 				argument.mods.flags |= Flags.FINAL;

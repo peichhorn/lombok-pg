@@ -1,5 +1,6 @@
 class ListenerSupportPlain1 {
 	private final java.util.List<java.awt.event.KeyListener> $registeredKeyListener = new java.util.concurrent.CopyOnWriteArrayList<java.awt.event.KeyListener>();
+	private final java.util.List<java.awt.event.MouseWheelListener> $registeredMouseWheelListener = new java.util.concurrent.CopyOnWriteArrayList<java.awt.event.MouseWheelListener>();
 	
 	@java.lang.SuppressWarnings("all")
 	public void addKeyListener(final java.awt.event.KeyListener l) {
@@ -25,8 +26,6 @@ class ListenerSupportPlain1 {
 	protected void fireKeyReleased(final java.awt.event.KeyEvent arg0) {
 		for (java.awt.event.KeyListener l : $registeredKeyListener) l.keyReleased(arg0);
 	}
-	
-	private final java.util.List<java.awt.event.MouseWheelListener> $registeredMouseWheelListener = new java.util.concurrent.CopyOnWriteArrayList<java.awt.event.MouseWheelListener>();
 	
 	@java.lang.SuppressWarnings("all")
 	public void addMouseWheelListener(final java.awt.event.MouseWheelListener l) {

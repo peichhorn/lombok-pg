@@ -30,7 +30,6 @@ import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.handlers.RethrowAndRethrowsHandler;
-import lombok.javac.Javac;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
@@ -67,7 +66,7 @@ public class HandleRethrowAndRethrows {
 			RethrowAndRethrowsHandler<JavacMethod> handler = prepareRethrowAndRethrowsHandler(annotationNode, ast, Rethrow.class);
 			for (Object rethrow: annotation.getActualExpressions("value")) {
 				JavacNode rethrowNode = new JavacNode(annotationNode.getAst(), (JCTree)rethrow, new ArrayList<JavacNode>(), Kind.ANNOTATION);
-				Rethrow ann = Javac.createAnnotation(Rethrow.class, rethrowNode).getInstance();
+				Rethrow ann = createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
 			handler.handle(Rethrow.class, new JavacParameterValidator(), new JavacParameterSanitizer());

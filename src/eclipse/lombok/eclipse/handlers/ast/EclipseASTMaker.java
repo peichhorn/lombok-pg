@@ -31,9 +31,8 @@ import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.Ac
 import static lombok.ast.AST.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
-import static lombok.eclipse.Eclipse.makeType;
 import static lombok.eclipse.Eclipse.poss;
-import static lombok.eclipse.Eclipse.setGeneratedBy;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.lang.reflect.Constructor;
@@ -127,7 +126,6 @@ import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.core.util.Each;
 import lombok.core.util.Is;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 
 @RequiredArgsConstructor
@@ -875,7 +873,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (node.getWrappedObject() instanceof TypeBinding) {
 			typeReference = makeType((TypeBinding) node.getWrappedObject(), source, false);
 		} else if (node.getWrappedObject() instanceof TypeReference) {
-			typeReference = Eclipse.copyType((TypeReference) node.getWrappedObject(), source);
+			typeReference = copyType((TypeReference) node.getWrappedObject(), source);
 		}
 		setGeneratedBy(typeReference, source);
 		if (node.isSuperType()) typeReference.bits |= IsSuperType;

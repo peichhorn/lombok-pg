@@ -22,6 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.javac.handlers.Javac.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,6 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import lombok.Validate;
 import lombok.core.handlers.IParameterValidator;
-import lombok.javac.Javac;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
 
@@ -51,7 +51,7 @@ public class JavacParameterValidator implements IParameterValidator<JavacMethod>
 				final JCAnnotation ann = getAnnotation(validationStrategy.getType(), argument.mods);
 				if (ann == null) continue;
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
-				final java.lang.annotation.Annotation annotation = Javac.createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
+				final java.lang.annotation.Annotation annotation = createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
 				validateStatements.addAll(validationStrategy.getStatementsFor(argumentName, argumentIndex, annotation));
 				argument.mods.annotations = remove(argument.mods.annotations, ann);
 				break;

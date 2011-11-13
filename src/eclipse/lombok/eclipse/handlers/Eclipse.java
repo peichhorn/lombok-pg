@@ -21,8 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.eclipse.Eclipse.setGeneratedBy;
-import static lombok.eclipse.handlers.EclipseHandlerUtil.createSuppressWarningsAll;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.*;
 

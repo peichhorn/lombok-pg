@@ -1,0 +1,235 @@
+5705f948644d19a822262cc89248d6c83f63c22a
+ AUTHORS                                            |    1 +
+ .../lombok/eclipse/handlers/HandleConstructor.java |    1 +
+ .../eclipse/handlers/HandleEqualsAndHashCode.java  |    2 +-
+ src/core/lombok/eclipse/handlers/HandleSetter.java |    2 +-
+ .../lombok/eclipse/agent/EclipsePatcher.java       |   55 +++++++++++++++++++-
+ .../lombok/eclipse/agent/PatchFixes.java           |   45 ++++++++++++++++
+ 6 files changed, 103 insertions(+), 3 deletions(-)
+
+diff --git a/AUTHORS b/AUTHORS
+index 61844dc..ebcaa91 100644
+--- a/AUTHORS
++++ b/AUTHORS
+@@ -5,5 +5,6 @@ Reinier Zwitserloot <reinier@zwitserloot.com>
+ Robbert Jan Grootjans <grootjans@gmail.com>
+ Roel Spilker <r.spilker@gmail.com>
+ Sander Koning <askoning@gmail.com>
++Jappe van der Hel <jappe.vanderhel@gmail.com>
+ 
+ By adding your name to this list, you grant full and irrevocable copyright and patent indemnity to Project Lombok and all use of Project Lombok, and you certify that you have the right to do so for all commits you add to Project Lombok.
+diff --git a/src/core/lombok/eclipse/handlers/HandleConstructor.java b/src/core/lombok/eclipse/handlers/HandleConstructor.java
+index 63b04f4..5b7cdca 100644
+--- a/src/core/lombok/eclipse/handlers/HandleConstructor.java
++++ b/src/core/lombok/eclipse/handlers/HandleConstructor.java
+@@ -249,6 +249,7 @@ public class HandleConstructor {
+ 			SingleNameReference assignmentNameRef = new SingleNameReference(field.name, p);
+ 			setGeneratedBy(assignmentNameRef, source);
+ 			Assignment assignment = new Assignment(thisX, assignmentNameRef, (int)p);
++			assignment.sourceStart = (int)(p >> 32); assignment.sourceEnd = assignment.statementEnd = (int)(p >> 32);
+ 			setGeneratedBy(assignment, source);
+ 			assigns.add(assignment);
+ 			long fieldPos = (((long)field.sourceStart) << 32) | field.sourceEnd;
+diff --git a/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java b/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
+index f1dcf95..f401724 100644
+--- a/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
++++ b/src/core/lombok/eclipse/handlers/HandleEqualsAndHashCode.java
+@@ -391,7 +391,7 @@ public class HandleEqualsAndHashCode extends EclipseAnnotationHandler<EqualsAndH
+ 				resultRef = new SingleNameReference(RESULT, p);
+ 				setGeneratedBy(resultRef, source);
+ 				Assignment assignment = new Assignment(resultRef, addItem, pE);
+-				assignment.sourceStart = pS; assignment.sourceEnd = pE;
++				assignment.sourceStart = pS; assignment.sourceEnd = assignment.statementEnd = pE;
+ 				setGeneratedBy(assignment, source);
+ 				statements.add(assignment);
+ 			}
+diff --git a/src/core/lombok/eclipse/handlers/HandleSetter.java b/src/core/lombok/eclipse/handlers/HandleSetter.java
+index a32d45f..ea81965 100644
+--- a/src/core/lombok/eclipse/handlers/HandleSetter.java
++++ b/src/core/lombok/eclipse/handlers/HandleSetter.java
+@@ -198,7 +198,7 @@ public class HandleSetter extends EclipseAnnotationHandler<Setter> {
+ 		NameReference fieldNameRef = new SingleNameReference(field.name, p);
+ 		setGeneratedBy(fieldNameRef, source);
+ 		Assignment assignment = new Assignment(fieldRef, fieldNameRef, (int)p);
+-		assignment.sourceStart = pS; assignment.sourceEnd = pE;
++		assignment.sourceStart = pS; assignment.sourceEnd = assignment.statementEnd = pE;
+ 		setGeneratedBy(assignment, source);
+ 		method.bodyStart = method.declarationSourceStart = method.sourceStart = source.sourceStart;
+ 		method.bodyEnd = method.declarationSourceEnd = method.sourceEnd = source.sourceEnd;
+diff --git a/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java b/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
+index b52a3b2..f838eb9 100644
+--- a/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
++++ b/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
+@@ -84,11 +84,14 @@ public class EclipsePatcher extends Agent {
+ 			patchCatchReparse(sm);
+ 			patchIdentifierEndReparse(sm);
+ 			patchRetrieveEllipsisStartPosition(sm);
++			patchRetrieveRightBraceOrSemiColonPosition(sm);
+ 			patchSetGeneratedFlag(sm);
+ 			patchDomAstReparseIssues(sm);
+ 			patchHideGeneratedNodes(sm);
+ 			patchPostCompileHookEclipse(sm);
+ 			patchFixSourceTypeConverter(sm);
++			patchDisableLombokForCodeFormatterAndCleanup(sm);
++			patchListRewriteHandleGeneratedMethods(sm);
+ 		} else {
+ 			patchPostCompileHookEcj(sm);
+ 		}
+@@ -99,6 +102,33 @@ public class EclipsePatcher extends Agent {
+ 		if (reloadExistingClasses) sm.reloadClasses(instrumentation);
+ 	}
+ 	
++	private static void patchDisableLombokForCodeFormatterAndCleanup(ScriptManager sm) {
++		sm.addScript(ScriptBuilder.setSymbolDuringMethodCall()
++				.target(new MethodTarget("org.eclipse.jdt.internal.formatter.DefaultCodeFormatter", "formatCompilationUnit"))
++				.callToWrap(new Hook("org.eclipse.jdt.internal.core.util.CodeSnippetParsingUtil", "parseCompilationUnit", "org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration", "char[]", "java.util.Map", "boolean"))
++				.symbol("lombok.disable")
++				.build());
++		
++		sm.addScript(ScriptBuilder.exitEarly()
++			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.DoStatement"))
++			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.EnhancedForStatement"))
++			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.ForStatement"))
++			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.IfStatement"))
++			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.WhileStatement"))
++			.decisionMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.Statement"))
++			.request(StackRequest.PARAM1)
++			.valueMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.Statement"))
++			.build());
++	}
++	
++	private static void patchListRewriteHandleGeneratedMethods(ScriptManager sm) {
++		sm.addScript(ScriptBuilder.replaceMethodCall()
++				.target(new MethodTarget("org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer$ListRewriter", "rewriteList"))
++				.methodToReplace(new Hook("org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent", "getChildren", "org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent[]"))
++				.replacementMethod(new Hook("lombok.eclipse.agent.PatchFixes", "listRewriteHandleGeneratedMethods", "org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent[]", "org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent"))
++				.build());
++	}
++
+ 	private static void patchDomAstReparseIssues(ScriptManager sm) {
+ 		sm.addScript(ScriptBuilder.replaceMethodCall()
+ 				.target(new MethodTarget("org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer", "visit"))
+@@ -193,6 +223,14 @@ public class EclipsePatcher extends Agent {
+ 				.transplant().request(StackRequest.RETURN_VALUE, StackRequest.PARAM2).build());
+ 	}
+ 	
++	private static void patchRetrieveRightBraceOrSemiColonPosition(ScriptManager sm) {
++		sm.addScript(ScriptBuilder.wrapReturnValue()
++				.target(new MethodTarget("org.eclipse.jdt.core.dom.ASTConverter", "retrieveRightBraceOrSemiColonPosition"))
++				.target(new MethodTarget("org.eclipse.jdt.core.dom.ASTConverter", "retrieveRightBrace"))
++				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "fixRetrieveRightBraceOrSemiColonPosition", "int", "int", "int"))
++				.transplant().request(StackRequest.RETURN_VALUE, StackRequest.PARAM2).build());
++	}
++
+ 	private static void patchSetGeneratedFlag(ScriptManager sm) {
+ 		sm.addScript(ScriptBuilder.addField()
+ 				.targetClass("org.eclipse.jdt.internal.compiler.ast.ASTNode")
+@@ -225,6 +263,13 @@ public class EclipsePatcher extends Agent {
+ 						"org.eclipse.jdt.core.dom.ASTNode", "org.eclipse.jdt.internal.compiler.ast.ASTNode"))
+ 				.transplant().build());
+ 		
++		sm.addScript(ScriptBuilder.wrapReturnValue()
++				.target(new MethodTarget("org.eclipse.jdt.core.dom.ASTConverter", "convert", "org.eclipse.jdt.core.dom.ASTNode", "boolean", "org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration"))
++				.request(StackRequest.PARAM2, StackRequest.RETURN_VALUE)
++				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "setIsGeneratedFlag", "void",
++						"org.eclipse.jdt.core.dom.ASTNode", "org.eclipse.jdt.internal.compiler.ast.ASTNode"))
++				.transplant().build());
++		
+ 		sm.addScript(ScriptBuilder.wrapMethodCall()
+ 				.target(new TargetMatcher() {
+ 					@Override public boolean matches(String classSpec, String methodName, String descriptor) {
+@@ -245,6 +290,14 @@ public class EclipsePatcher extends Agent {
+ 				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "setIsGeneratedFlagForSimpleName", "void",
+ 						"org.eclipse.jdt.core.dom.SimpleName", "java.lang.Object"))
+ 				.transplant().build());
++
++		sm.addScript(ScriptBuilder.wrapMethodCall()
++				.target(new MethodTarget("org.eclipse.jdt.core.dom.ASTConverter", "convert", "org.eclipse.jdt.core.dom.ASTNode", "boolean", "org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration"))
++				.methodToWrap(new Hook("org.eclipse.jdt.core.dom.SimpleName", "<init>", "void", "org.eclipse.jdt.core.dom.AST"))
++				.requestExtra(StackRequest.PARAM2)
++				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "setIsGeneratedFlagForSimpleName", "void",
++						"org.eclipse.jdt.core.dom.SimpleName", "java.lang.Object"))
++				.transplant().build());
+ 	}
+ 	
+ 	private static void patchAvoidReparsingGeneratedCode(ScriptManager sm) {
+@@ -399,4 +452,4 @@ public class EclipsePatcher extends Agent {
+ 				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "convertAnnotations", ANNOTATION_SIG + "[]", ANNOTATION_SIG + "[]", I_ANNOTATABLE_SIG))
+ 				.request(StackRequest.PARAM1, StackRequest.RETURN_VALUE).build());
+ 	}
+-}
++}
+\ No newline at end of file
+diff --git a/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java b/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
+index 6d5fdae..69024af 100644
+--- a/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
++++ b/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
+@@ -38,9 +38,21 @@ import org.eclipse.jdt.core.IAnnotation;
+ import org.eclipse.jdt.core.IMethod;
+ import org.eclipse.jdt.core.dom.SimpleName;
+ import org.eclipse.jdt.internal.compiler.ast.Annotation;
++import org.eclipse.jdt.internal.core.dom.rewrite.NodeRewriteEvent;
++import org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent;
+ import org.eclipse.jdt.internal.core.dom.rewrite.TokenScanner;
+ 
+ public class PatchFixes {
++	public static boolean isGenerated(org.eclipse.jdt.core.dom.Statement statement) {
++		boolean result = false;
++		try {
++			result =  ((Boolean)statement.getClass().getField("$isGenerated").get(statement)).booleanValue();
++		} catch (Exception e) {
++			// better to assume it isn't generated
++		}
++		return result;
++	}
++
+ 	public static int fixRetrieveStartingCatchPosition(int original, int start) {
+ 		return original == -1 ? start : original;
+ 	}
+@@ -52,6 +64,10 @@ public class PatchFixes {
+ 	public static int fixRetrieveEllipsisStartPosition(int original, int end) {
+ 		return original == -1 ? end : original;
+ 	}
++
++	public static int fixRetrieveRightBraceOrSemiColonPosition(int original, int end) {
++		return original == -1 ? end : original;
++	}
+ 	
+ 	public static final int ALREADY_PROCESSED_FLAG = 0x800000;	//Bit 24
+ 	
+@@ -82,6 +98,35 @@ public class PatchFixes {
+ 		}
+ 	}
+ 	
++	public static RewriteEvent[] listRewriteHandleGeneratedMethods(RewriteEvent parent) {
++		RewriteEvent[] children = parent.getChildren();
++		List<RewriteEvent> newChildren = new ArrayList<RewriteEvent>();
++		List<RewriteEvent> modifiedChildren = new ArrayList<RewriteEvent>();
++		for (int i=0; i<children.length; i++) {
++			RewriteEvent child = children[i];
++			boolean isGenerated = false;
++			try {
++				org.eclipse.jdt.core.dom.ASTNode originalValue = (org.eclipse.jdt.core.dom.ASTNode)child.getOriginalValue();
++				isGenerated = (Boolean) originalValue.getClass().getField("$isGenerated").get(originalValue);
++			} catch (Exception e) {
++				// If this fails, better to break some refactor scripts than to crash eclipse.
++			}
++			if (isGenerated
++				&& (child.getChangeKind() == RewriteEvent.REPLACED || child.getChangeKind() == RewriteEvent.REMOVED) 
++				&& child.getOriginalValue() instanceof org.eclipse.jdt.core.dom.MethodDeclaration
++			) {
++				if (child.getNewValue() != null)
++					modifiedChildren.add(new NodeRewriteEvent(null, child.getNewValue()));
++			} else {
++				newChildren.add(child);
++			}
++		}
++		// Since Eclipse doesn't honor the "insert at specified location" for already existing members,
++		// we'll just add them last
++		newChildren.addAll(modifiedChildren);
++		return newChildren.toArray(new RewriteEvent[newChildren.size()]);
++	}
++
+ 	public static int getTokenEndOffsetFixed(TokenScanner scanner, int token, int startOffset, Object domNode) throws CoreException {
+ 		boolean isGenerated = false;
+ 		try {

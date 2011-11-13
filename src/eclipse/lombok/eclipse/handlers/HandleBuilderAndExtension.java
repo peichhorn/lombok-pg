@@ -33,7 +33,6 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.BuilderAndExtensionHandler;
 import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
 import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -108,7 +107,7 @@ public class HandleBuilderAndExtension {
 				annotationNode.addError("@Builder.Extension is only allowed in types annotated with @Builder");
 				return;
 			}
-			AnnotationValues<Builder> builderAnnotation = Eclipse.createAnnotation(Builder.class, builderNode);
+			AnnotationValues<Builder> builderAnnotation = createAnnotation(Builder.class, builderNode);
 
 			if (!type.hasMethod(decapitalize(type.name()))) {
 				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);

@@ -1,8 +1,8 @@
 import java.util.Map;
 import java.util.HashMap;
 class LockPlain {
-  private Map<String, String> dictionary = new HashMap<String, String>();
   private final java.util.concurrent.locks.ReadWriteLock dictionaryLock = new java.util.concurrent.locks.ReentrantReadWriteLock();
+  private Map<String, String> dictionary = new HashMap<String, String>();
   
   LockPlain() {
     super();

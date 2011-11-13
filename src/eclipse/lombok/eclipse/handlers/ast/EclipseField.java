@@ -39,8 +39,8 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import lombok.core.util.As;
 import lombok.core.util.Each;
 import lombok.core.util.Is;
+import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.EclipseHandlerUtil;
 
 public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNode, FieldDeclaration> {
 	private final EclipseNode fieldNode;
@@ -87,7 +87,7 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 	}
 
 	public boolean isPrimitive() {
-		return EclipseHandlerUtil.isPrimitive(get().type);
+		return Eclipse.isPrimitive(get().type);
 	}
 
 	public FieldDeclaration get() {

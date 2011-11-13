@@ -22,7 +22,7 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
-import static lombok.core.handlers.TransformationsUtil.*;
+import static lombok.core.TransformationsUtil.*;
 import static lombok.core.util.ErrorMessages.*;
 
 import lombok.*;

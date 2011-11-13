@@ -23,6 +23,7 @@ package lombok.eclipse.agent;
 
 import static lombok.ast.AST.*;
 import static lombok.eclipse.agent.Patches.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
 import java.lang.reflect.AccessibleObject;
@@ -74,7 +75,6 @@ import lombok.core.AnnotationValues;
 import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.core.util.As;
 import lombok.core.util.Is;
-import lombok.eclipse.Eclipse;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
 import lombok.patcher.*;
@@ -234,7 +234,7 @@ public final class PatchExtensionMethod {
 		if ((typeNode != null) && (ann != null) && (receiverType != null)) {
 			BlockScope blockScope = ((TypeDeclaration) typeNode.get()).initializerScope;
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
-			AnnotationValues<ExtensionMethod> annotation = Eclipse.createAnnotation(ExtensionMethod.class, annotationNode);
+			AnnotationValues<ExtensionMethod> annotation = createAnnotation(ExtensionMethod.class, annotationNode);
 			boolean suppressBaseMethods = false;
 			try {
 				suppressBaseMethods = annotation.getInstance().suppressBaseMethods();

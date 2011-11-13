@@ -2,17 +2,17 @@ import lombok.AccessLevel;
 import lombok.BoundPropertySupport;
 import lombok.BoundSetter;
 @BoundPropertySupport class BoundPropertySupportPlain {
-  @BoundSetter int i;
-  @BoundSetter(AccessLevel.PUBLIC) String s;
-  @BoundSetter(AccessLevel.PROTECTED) float f;
-  @BoundSetter(AccessLevel.PACKAGE) Object o;
-  @BoundSetter(AccessLevel.PRIVATE) double d;
   public static final java.lang.String PROP_I = new java.lang.String("i");
   public static final java.lang.String PROP_S = new java.lang.String("s");
   public static final java.lang.String PROP_F = new java.lang.String("f");
   public static final java.lang.String PROP_O = new java.lang.String("o");
   public static final java.lang.String PROP_D = new java.lang.String("d");
   private final java.beans.PropertyChangeSupport propertySupport = new java.beans.PropertyChangeSupport(this);
+  @BoundSetter int i;
+  @BoundSetter(AccessLevel.PUBLIC) String s;
+  @BoundSetter(AccessLevel.PROTECTED) float f;
+  @BoundSetter(AccessLevel.PACKAGE) Object o;
+  @BoundSetter(AccessLevel.PRIVATE) double d;
   <clinit>() {
   }
   public @java.lang.SuppressWarnings("all") void setI(final int i) {

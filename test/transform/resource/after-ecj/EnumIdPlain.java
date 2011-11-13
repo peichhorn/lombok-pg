@@ -7,8 +7,8 @@ class EnumIdPlain {
     READY(1),
     SKIPPED((- 1)),
     COMPLETED(5),
-    private final @EnumId @Getter int code;
     private static final java.util.Map<java.lang.Integer, Status> $CODE_LOOKUP = new java.util.HashMap<java.lang.Integer, Status>();
+    private final @EnumId @Getter int code;
     static {
       for (Status status : Status.values()) 
         {

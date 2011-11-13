@@ -5,9 +5,9 @@ class LazyGetterPlain {
     }
   }
 
-  private @lombok.LazyGetter ValueType fieldName;
   private volatile boolean $fieldNameInitialized;
   private final java.lang.Object[] $fieldNameLock = new java.lang.Object[0];
+  private @lombok.LazyGetter ValueType fieldName;
 
   public @java.lang.SuppressWarnings("all") ValueType getFieldName() {
     if ((! this.$fieldNameInitialized))
