@@ -25,11 +25,11 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public final class Switch extends Statement {
+public final class Switch extends Statement<Switch> {
 	private final List<Case> cases = new ArrayList<Case>();
-	private final Expression expression;
+	private final Expression<?> expression;
 
-	public Switch(final Expression expression) {
+	public Switch(final Expression<?> expression) {
 		this.expression = child(expression);
 	}
 

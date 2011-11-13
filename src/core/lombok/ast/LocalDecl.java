@@ -25,7 +25,7 @@ import lombok.*;
 
 @Getter
 public final class LocalDecl extends AbstractVariableDecl<LocalDecl> {
-	private Expression initialization;
+	private Expression<?> initialization;
 
 	public LocalDecl(final TypeRef type, final String name) {
 		super(type, name);
@@ -35,7 +35,7 @@ public final class LocalDecl extends AbstractVariableDecl<LocalDecl> {
 		return type;
 	}
 
-	public LocalDecl withInitialization(final Expression initialization) {
+	public LocalDecl withInitialization(final Expression<?> initialization) {
 		this.initialization = child(initialization);
 		return this;
 	}

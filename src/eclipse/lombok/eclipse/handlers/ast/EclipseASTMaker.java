@@ -21,8 +21,6 @@
  */
 package lombok.eclipse.handlers.ast;
 
-import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.EQUAL_EQUAL;
-import static org.eclipse.jdt.internal.compiler.ast.OperatorIds.NOT_EQUAL;
 import static org.eclipse.jdt.internal.compiler.ast.ASTNode.IsSuperType;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static org.eclipse.jdt.internal.compiler.lookup.ExtraCompilerModifiers.AccSemicolonBody;
@@ -133,23 +131,23 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	private final EclipseNode sourceNode;
 	private final ASTNode source;
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
 		return this.<T>build(node, null);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		if (node == null) return null;
 		return Cast.<T>uncheckedCast(node.accept(this, null));
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return this.<T>build(nodes, null);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		if (nodes == null) return null;
-		List<T> list = new ArrayList<T>();
-		for (lombok.ast.Node node : nodes) {
+		final List<T> list = new ArrayList<T>();
+		for (lombok.ast.Node<?> node : nodes) {
 			list.add(build(node, extectedType));
 		}
 		return list;
@@ -191,7 +189,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		} else {
 			ann = new NormalAnnotation(build(node.getType(), TypeReference.class), 0);
 			List<MemberValuePair> valuePairs = new ArrayList<MemberValuePair>();
-			for (Entry<String, lombok.ast.Expression> entry : node.getValues().entrySet()) {
+			for (Entry<String, lombok.ast.Expression<?>> entry : node.getValues().entrySet()) {
 				MemberValuePair valuePair = new MemberValuePair(entry.getKey().toCharArray(), 0, 0, build(entry.getValue(), Expression.class));
 				setGeneratedByAndCopyPos(valuePair, source);
 				valuePairs.add(valuePair);
@@ -243,6 +241,10 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			opCode = OperatorIds.OR_OR;
 		} else if ("&&".equals(operator)) {
 			opCode = OperatorIds.AND_AND;
+		} else if ("==".equals(operator)) {
+			opCode = OperatorIds.EQUAL_EQUAL;
+		} else if ("!=".equals(operator)) {
+			opCode = OperatorIds.NOT_EQUAL;
 		} else {
 			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
@@ -251,6 +253,8 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			binaryExpression = new OR_OR_Expression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
 		} else if ("&&".equals(operator)) {
 			binaryExpression = new AND_AND_Expression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
+		} else if (Is.oneOf(operator, "==", "!=")) {
+			binaryExpression = new EqualExpression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
 		} else {
 			binaryExpression = new BinaryExpression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), opCode);
 		}
@@ -337,8 +341,8 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (node.isLocal()) typeDeclaration.bits |= ASTNode.IsLocalType;
 		if (node.isAnonymous()) {
 			typeDeclaration.bits |= ASTNode.IsAnonymousType;
+			typeDeclaration.bodyEnd = typeDeclaration.sourceEnd + 2;
 			typeDeclaration.sourceEnd = 0;
-			typeDeclaration.bodyEnd = source.sourceEnd + 2;
 		}
 		if (Is.empty(node.getName())) {
 			typeDeclaration.name = CharOperation.NO_CHAR;
@@ -400,14 +404,6 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		setGeneratedByAndCopyPos(allocationExpression.enumConstant, source);
 		allocationExpression.enumConstant.initialization = allocationExpression;
 		return allocationExpression.enumConstant;
-	}
-
-	@Override
-	public ASTNode visitEqual(final lombok.ast.Equal node, final Void p) {
-		final int operator = node.isNotEqual() ? NOT_EQUAL : EQUAL_EQUAL;
-		final EqualExpression equalExpression = new EqualExpression(build(node.getLeft(), Expression.class), build(node.getRight(), Expression.class), operator);
-		setGeneratedByAndCopyPos(equalExpression, source);
-		return equalExpression;
 	}
 
 	@Override

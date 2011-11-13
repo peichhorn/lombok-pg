@@ -26,9 +26,8 @@ import static lombok.ast.Modifier.*;
 import java.util.*;
 
 import lombok.*;
-import lombok.core.util.Cast;
 
-public abstract class AbstractVariableDecl<SELF_TYPE> extends Statement {
+public abstract class AbstractVariableDecl<SELF_TYPE extends AbstractVariableDecl<SELF_TYPE>> extends Statement<SELF_TYPE> {
 	@Getter
 	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
 	@Getter
@@ -40,10 +39,6 @@ public abstract class AbstractVariableDecl<SELF_TYPE> extends Statement {
 	public AbstractVariableDecl(final TypeRef type, final String name) {
 		this.type = child(type);
 		this.name = name;
-	}
-
-	protected final SELF_TYPE self() {
-		return Cast.<SELF_TYPE>uncheckedCast(this);
 	}
 
 	public SELF_TYPE makeFinal() {

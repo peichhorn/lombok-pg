@@ -29,17 +29,17 @@ import lombok.*;
 
 @NoArgsConstructor
 @Getter
-public class Initializer extends Statement {
-	private final List<Statement> statements = new ArrayList<Statement>();
+public class Initializer extends Statement<Initializer> {
+	private final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
 
-	public Initializer withStatement(final Statement statement) {
+	public Initializer withStatement(final Statement<?> statement) {
 		statements.add(child(statement));
 		return this;
 	}
 
-	public Initializer withStatements(final List<Statement> statements) {
-		for (Statement statement : statements) withStatement(statement);
+	public Initializer withStatements(final List<Statement<?>> statements) {
+		for (Statement<?> statement : statements) withStatement(statement);
 		return this;
 	}
 	

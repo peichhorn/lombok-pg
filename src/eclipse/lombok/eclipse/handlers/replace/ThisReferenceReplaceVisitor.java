@@ -30,7 +30,7 @@ import org.eclipse.jdt.internal.compiler.ast.*;
  */
 public class ThisReferenceReplaceVisitor extends ExpressionReplaceVisitor {
 
-	public ThisReferenceReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
+	public ThisReferenceReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

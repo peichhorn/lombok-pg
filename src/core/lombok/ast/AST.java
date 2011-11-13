@@ -25,11 +25,11 @@ import lombok.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AST {
-	public static Binary Add(final Expression left, final Expression right) {
+	public static Binary Add(final Expression<?> left, final Expression<?> right) {
 		return new Binary(left, "+", right);
 	}
 
-	public static Binary And(final Expression left, final Expression right) {
+	public static Binary And(final Expression<?> left, final Expression<?> right) {
 		return new Binary(left, "&&", right);
 	}
 
@@ -41,11 +41,11 @@ public final class AST {
 		return new Argument(type, name).makeFinal();
 	}
 
-	public static Assignment Assign(final Expression left, final Expression right) {
+	public static Assignment Assign(final Expression<?> left, final Expression<?> right) {
 		return new Assignment(left, right);
 	}
 
-	public static Binary Binary(final Expression left, final String operator, final Expression right) {
+	public static Binary Binary(final Expression<?> left, final String operator, final Expression<?> right) {
 		return new Binary(left, operator, right);
 	}
 
@@ -65,15 +65,15 @@ public final class AST {
 		return new Call(name);
 	}
 
-	public static Call Call(final Expression receiver, final String name) {
+	public static Call Call(final Expression<?> receiver, final String name) {
 		return new Call(receiver, name);
 	}
 
-	public static Cast Cast(final TypeRef type, final Expression expression) {
+	public static Cast Cast(final TypeRef type, final Expression<?> expression) {
 		return new Cast(type, expression);
 	}
 
-	public static Case Case(final Expression expression) {
+	public static Case Case(final Expression<?> expression) {
 		return new Case(expression);
 	}
 
@@ -101,7 +101,7 @@ public final class AST {
 		return new Continue(label);
 	}
 
-	public static DoWhile Do(final Statement action) {
+	public static DoWhile Do(final Statement<?> action) {
 		return new DoWhile(action);
 	}
 
@@ -109,15 +109,15 @@ public final class AST {
 		return new EnumConstant(name);
 	}
 
-	public static Equal Equal(final Expression left, final Expression right) {
-		return new Equal(left, right, false);
+	public static Binary Equal(final Expression<?> left, final Expression<?> right) {
+		return new Binary(left, "==", right);
 	}
 
-	public static Equal NotEqual(final Expression left, final Expression right) {
-		return new Equal(left, right, true);
+	public static Binary NotEqual(final Expression<?> left, final Expression<?> right) {
+		return new Binary(left, "!=", right);
 	}
 
-	public static Expression Expr(final Object wrappedObject) {
+	public static Expression<?> Expr(final Object wrappedObject) {
 		return new WrappedExpression(wrappedObject);
 	}
 
@@ -125,7 +125,7 @@ public final class AST {
 		return new BooleanLiteral(false);
 	}
 
-	public static FieldRef Field(final Expression receiver, final String name) {
+	public static FieldRef Field(final Expression<?> receiver, final String name) {
 		return new FieldRef(receiver, name);
 	}
 
@@ -141,7 +141,7 @@ public final class AST {
 		return new Foreach(elementVariable);
 	}
 
-	public static If If(final Expression condition) {
+	public static If If(final Expression<?> condition) {
 		return new If(condition);
 	}
 
@@ -149,11 +149,11 @@ public final class AST {
 		return new Initializer();
 	}
 
-	public static InstanceOf InstanceOf(final Expression expression, final TypeRef type) {
+	public static InstanceOf InstanceOf(final Expression<?> expression, final TypeRef type) {
 		return new InstanceOf(expression, type);
 	}
 
-	public static ArrayRef ArrayRef(final Expression indexed, final Expression index) {
+	public static ArrayRef ArrayRef(final Expression<?> indexed, final Expression<?> index) {
 		return new ArrayRef(indexed, index);
 	}
 
@@ -185,7 +185,7 @@ public final class AST {
 		return new NewArray(type, dimensions);
 	}
 
-	public static Unary Not(final Expression condition) {
+	public static Unary Not(final Expression<?> condition) {
 		return new Unary("!", condition);
 	}
 
@@ -209,7 +209,7 @@ public final class AST {
 		return new NumberLiteral(number);
 	}
 
-	public static Binary Or(final Expression left, final Expression right) {
+	public static Binary Or(final Expression<?> left, final Expression<?> right) {
 		return new Binary(left, "||", right);
 	}
 
@@ -217,7 +217,7 @@ public final class AST {
 		return new Return();
 	}
 
-	public static Return Return(final Expression expression) {
+	public static Return Return(final Expression<?> expression) {
 		return new Return(expression);
 	}
 
@@ -225,7 +225,7 @@ public final class AST {
 		return new ReturnDefault();
 	}
 
-	public static Statement Stat(final Object wrappedObject) {
+	public static Statement<?> Stat(final Object wrappedObject) {
 		return new WrappedStatement(wrappedObject);
 	}
 
@@ -233,7 +233,7 @@ public final class AST {
 		return new StringLiteral(value);
 	}
 
-	public static Switch Switch(final Expression expression) {
+	public static Switch Switch(final Expression<?> expression) {
 		return new Switch(expression);
 	}
 
@@ -245,7 +245,7 @@ public final class AST {
 		return new This(type);
 	}
 
-	public static Throw Throw(final Expression init) {
+	public static Throw Throw(final Expression<?> init) {
 		return new Throw(init);
 	}
 
@@ -253,7 +253,7 @@ public final class AST {
 		return new BooleanLiteral(true);
 	}
 
-	public static Synchronized Synchronized(final Expression lock) {
+	public static Synchronized Synchronized(final Expression<?> lock) {
 		return new Synchronized(lock);
 	}
 
@@ -277,7 +277,7 @@ public final class AST {
 		return new TypeParam(name);
 	}
 
-	public static While While(final Expression condition) {
+	public static While While(final Expression<?> condition) {
 		return new While(condition);
 	}
 

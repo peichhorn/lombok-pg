@@ -24,11 +24,11 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class InstanceOf extends Expression {
-	private final Expression expression;
+public final class InstanceOf extends Expression<InstanceOf> {
+	private final Expression<?> expression;
 	private final TypeRef type;
 
-	public InstanceOf(final Expression expression, final TypeRef type) {
+	public InstanceOf(final Expression<?> expression, final TypeRef type) {
 		this.expression = child(expression);
 		this.type = child(type);
 	}

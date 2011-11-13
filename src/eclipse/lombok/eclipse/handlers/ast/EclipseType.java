@@ -76,19 +76,19 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 		builder = new EclipseASTMaker(typeNode, source);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 

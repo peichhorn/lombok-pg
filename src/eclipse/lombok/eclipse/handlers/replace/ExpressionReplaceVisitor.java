@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.compiler.lookup.*;
 
 public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression> {
 
-	protected ExpressionReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
+	protected ExpressionReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

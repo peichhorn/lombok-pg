@@ -6,21 +6,21 @@ import java.util.List;
 import lombok.Getter;
 
 @Getter
-public class Synchronized extends Statement {
-	private final Expression lock;
-	private final List<Statement> statements = new ArrayList<Statement>();
+public class Synchronized extends Statement<Synchronized> {
+	private final Expression<?> lock;
+	private final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 
-	public Synchronized(final Expression lock) {
+	public Synchronized(final Expression<?> lock) {
 		this.lock = child(lock);
 	}
 
-	public Synchronized withStatement(final Statement statement) {
+	public Synchronized withStatement(final Statement<?> statement) {
 		statements.add(child(statement));
 		return this;
 	}
 
-	public Synchronized withStatements(final List<Statement> statements) {
-		for (Statement statement : statements) withStatement(statement);
+	public Synchronized withStatements(final List<Statement<?>> statements) {
+		for (Statement<?> statement : statements) withStatement(statement);
 		return this;
 	}
 

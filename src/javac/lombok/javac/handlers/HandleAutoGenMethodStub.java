@@ -72,7 +72,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 		}
 
 		AutoGenMethodStub autoGenMethodStub = annotation.getInstance();
-		final Statement statement;
+		final Statement<?> statement;
 		if (autoGenMethodStub.throwException()) {
 			statement = Throw(New(Type(UnsupportedOperationException.class)).withArgument(String("This method is not implemented yet.")));
 		} else {

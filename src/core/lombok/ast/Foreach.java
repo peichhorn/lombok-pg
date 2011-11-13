@@ -24,21 +24,21 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class Foreach extends Statement {
+public final class Foreach extends Statement<Foreach> {
 	private final LocalDecl elementVariable;
-	private Expression collection;
-	private Statement action;
+	private Expression<?> collection;
+	private Statement<?> action;
 
 	public Foreach(final LocalDecl elementVariable) {
 		this.elementVariable = child(elementVariable);
 	}
 
-	public Foreach In(final Expression collection) {
+	public Foreach In(final Expression<?> collection) {
 		this.collection = child(collection);
 		return this;
 	}
 
-	public Foreach Do(final Statement action) {
+	public Foreach Do(final Statement<?> action) {
 		this.action = child(action);
 		return this;
 	}

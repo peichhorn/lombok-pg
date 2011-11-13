@@ -121,7 +121,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	private static class JavacListenerSupportHandler extends ListenerSupportHandler<JavacType> {
 
 		@Override
-		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression> args) {
+		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression<?>> args) {
 			MethodType mtype = (MethodType) type(method);
 			if (mtype.argtypes.isEmpty()) return;
 			int argCounter = 0;

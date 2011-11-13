@@ -24,10 +24,10 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class Throw extends Statement {
-	private final Expression expression;
+public final class Throw extends Statement<Throw> {
+	private final Expression<?> expression;
 
-	public Throw(final Expression expression) {
+	public Throw(final Expression<?> expression) {
 		this.expression = child(expression);
 	}
 

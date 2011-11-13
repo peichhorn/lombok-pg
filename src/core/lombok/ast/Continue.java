@@ -26,7 +26,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class Continue extends Statement {
+public class Continue extends Statement<Continue> {
 	private String label;
 
 	@Override

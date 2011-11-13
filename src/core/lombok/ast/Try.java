@@ -25,7 +25,7 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public final class Try extends Statement {
+public final class Try extends Statement<Try> {
 	private final List<Argument> catchArguments = new ArrayList<Argument>();
 	private final List<Block> catchBlocks = new ArrayList<Block>();
 	private final Block tryBlock;

@@ -37,12 +37,12 @@ import lombok.javac.handlers.ast.JavacMethod;
 
 public class JavacParameterValidator implements IParameterValidator<JavacMethod> {
 	@Override
-	public List<lombok.ast.Statement> validateParameterOf(final JavacMethod method) {
+	public List<lombok.ast.Statement<?>> validateParameterOf(final JavacMethod method) {
 		deleteImport(method.node(), Validate.class);
 		for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {
 			deleteImport(method.node(), validationStrategy.getType());
 		}
-		final List<lombok.ast.Statement> validateStatements = new ArrayList<lombok.ast.Statement>();
+		final List<lombok.ast.Statement<?>> validateStatements = new ArrayList<lombok.ast.Statement<?>>();
 		int argumentIndex = 0;
 		for (JCVariableDecl argument : method.get().params) {
 			final String argumentName = argument.name.toString();

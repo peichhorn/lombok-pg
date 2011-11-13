@@ -25,10 +25,10 @@ import lombok.*;
 
 @NoArgsConstructor
 @Getter
-public final class Return extends Statement {
-	private Expression expression;
+public final class Return extends Statement<Return> {
+	private Expression<?> expression;
 
-	public Return(final Expression expression) {
+	public Return(final Expression<?> expression) {
 		this.expression = child(expression);
 	}
 

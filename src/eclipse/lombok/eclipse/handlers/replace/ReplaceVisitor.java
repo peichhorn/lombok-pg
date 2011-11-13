@@ -33,7 +33,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ReplaceVisitor<NODE_TYPE extends ASTNode> extends ASTVisitor {
 	private final EclipseMethod method;
-	private final lombok.ast.Statement replacement;
+	private final lombok.ast.Statement<?> replacement;
 
 	public void visit(final ASTNode astNode) {
 		if (astNode instanceof MethodDeclaration) {

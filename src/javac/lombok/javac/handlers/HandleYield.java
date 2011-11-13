@@ -232,7 +232,6 @@ public class HandleYield extends JavacASTAdapter {
 		}
 
 		private class YieldScanner extends TreeScanner {
-			private Scope<JCTree> current;
 
 			@Override
 			public void visitBlock(final JCBlock tree) {

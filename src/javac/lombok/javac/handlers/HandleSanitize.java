@@ -21,14 +21,13 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.ast.AST.Block;
-import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.SanitizeHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacMethod;
@@ -45,21 +44,7 @@ public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 	public void handle(final AnnotationValues<Sanitize> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
 		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		method.replaceBody(Block() //
-				.withStatements(new JavacParameterSanitizer().sanitizeParameterOf(method)) //
-				.withStatements(method.statements()));
-		method.rebuild();
+		new SanitizeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new JavacParameterSanitizer());
 	}
 }
 

@@ -27,13 +27,13 @@ import java.util.regex.Pattern;
 import lombok.core.LombokNode;
 
 public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
-	public <T extends AST_BASE_TYPE> T build(Node node);
+	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-	public <T extends AST_BASE_TYPE> T build(Node node, Class<T> extectedType);
+	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
 
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node> nodes);
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
 
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node> nodes, Class<T> extectedType);
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
 	public boolean isPrivate();
 
@@ -57,9 +57,9 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public String name();
 
-	public Expression initialization();
+	public Expression<?> initialization();
 	
-	public void replaceInitialization(Expression initialization);
+	public void replaceInitialization(Expression<?> initialization);
 
 	public void makePrivate();
 

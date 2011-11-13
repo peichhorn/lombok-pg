@@ -93,8 +93,8 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		String annotationTypeName = annotationType.getSimpleName();
 		String completeLockName = createCompleteLockName(lockName, isReadWriteLock);
 
-		List<Statement> beforeMethodBlock = new ArrayList<Statement>();
-		List<Statement> afterMethodBlock = new ArrayList<Statement>();
+		List<Statement<?>> beforeMethodBlock = new ArrayList<Statement<?>>();
+		List<Statement<?>> afterMethodBlock = new ArrayList<Statement<?>>();
 
 		if (!isReadWriteLock) {
 			if (!getConditionStatements(await, completeLockName, annotationTypeName, beforeMethodBlock, afterMethodBlock)) return;
@@ -111,7 +111,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			unLockCall = Call(Field(completeLockName), "unlock");
 		}
 
-		method.replaceBody(Block() //
+		method.replaceBody(Block().source(method.get()) //
 			.withStatements(validation.validateParameterOf(method)) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatement(lockCall) //
@@ -137,8 +137,8 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		return completeLockName;
 	}
 	
-	private boolean getConditionStatements(final ConditionData condition, final String lockName, final String annotationTypeName, final List<Statement> before,
-			final List<Statement> after) {
+	private boolean getConditionStatements(final ConditionData condition, final String lockName, final String annotationTypeName, final List<Statement<?>> before,
+			final List<Statement<?>> after) {
 		if (condition == null) {
 			return true;
 		}
@@ -200,7 +200,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 
 		@Override
-		public Statement toStatement() {
+		public Statement<?> toStatement() {
 			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(condition), "await")))) //
 				.Catch(Arg(Type(InterruptedException.class), "e"), Block().withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("e")))));
 		}
@@ -212,7 +212,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 
 		@Override
-		public Statement toStatement() {
+		public Statement<?> toStatement() {
 			return Call(Field(condition), "signal");
 		}
 	}
@@ -222,6 +222,6 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		protected final String condition;
 		protected final Position pos;
 
-		public abstract Statement toStatement();
+		public abstract Statement<?> toStatement();
 	}
 }

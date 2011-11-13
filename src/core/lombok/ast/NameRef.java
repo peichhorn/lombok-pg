@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public final class NameRef extends Expression {
+public final class NameRef extends Expression<NameRef> {
 	private final String name;
 
 	public NameRef(final Class<?> clazz) {

@@ -21,7 +21,7 @@
  */
 package lombok.ast;
 
-public final class ReturnDefault extends Expression {
+public final class ReturnDefault extends Expression<ReturnDefault> {
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitReturnDefault(this, p);

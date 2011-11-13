@@ -32,7 +32,7 @@ import com.sun.tools.javac.util.ListBuffer;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScanner<Void, Void> {
 	private final JavacMethod method;
-	private final lombok.ast.Statement replacement;
+	private final lombok.ast.Statement<?> replacement;
 
 	public void visit(final JCTree node) {
 		node.accept(this, null);

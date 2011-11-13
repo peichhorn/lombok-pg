@@ -26,26 +26,26 @@ import lombok.*;
 
 @NoArgsConstructor
 @Getter
-public class Case extends Statement {
-	private final List<Statement> statements = new ArrayList<Statement>();
-	private Expression pattern;
+public class Case extends Statement<Case> {
+	private final List<Statement<?>> statements = new ArrayList<Statement<?>>();
+	private Expression<?> pattern;
 
-	public Case(final Expression pattern) {
+	public Case(final Expression<?> pattern) {
 		this.pattern = child(pattern);
 	}
 
-	public Case withPattern(final Expression pattern) {
+	public Case withPattern(final Expression<?> pattern) {
 		this.pattern = child(pattern);
 		return this;
 	}
 
-	public Case withStatement(final Statement statement) {
+	public Case withStatement(final Statement<?> statement) {
 		statements.add(child(statement));
 		return this;
 	}
 
-	public Case withStatements(final List<Statement> statements) {
-		for (Statement statement : statements) withStatement(statement);
+	public Case withStatements(final List<Statement<?>> statements) {
+		for (Statement<?> statement : statements) withStatement(statement);
 		return this;
 	}
 

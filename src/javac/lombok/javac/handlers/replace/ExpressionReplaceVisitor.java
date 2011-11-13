@@ -28,7 +28,7 @@ import com.sun.tools.javac.tree.JCTree.*;
 
 public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<JCExpression> {
 
-	protected ExpressionReplaceVisitor(final JavacMethod method, final lombok.ast.Statement replacement) {
+	protected ExpressionReplaceVisitor(final JavacMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

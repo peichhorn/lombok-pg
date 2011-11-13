@@ -26,22 +26,17 @@ import static lombok.ast.Modifier.*;
 import java.util.*;
 
 import lombok.*;
-import lombok.core.util.Cast;
 
 @RequiredArgsConstructor
 @Getter
-public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
+public abstract class AbstractMethodDecl<SELF_TYPE extends AbstractMethodDecl<SELF_TYPE>> extends Node<SELF_TYPE> {
 	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
 	protected final List<Annotation> annotations = new ArrayList<Annotation>();
 	protected final List<TypeParam> typeParameters = new ArrayList<TypeParam>();
 	protected final List<Argument> arguments = new ArrayList<Argument>();
 	protected final List<TypeRef> thrownExceptions = new ArrayList<TypeRef>();
-	protected final List<Statement> statements = new ArrayList<Statement>();
+	protected final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 	protected final String name;
-
-	protected final SELF_TYPE self() {
-		return Cast.<SELF_TYPE>uncheckedCast(this);
-	}
 
 	public SELF_TYPE makePrivate() {
 		return withModifier(PRIVATE);
@@ -93,13 +88,13 @@ public abstract class AbstractMethodDecl<SELF_TYPE> extends Node {
 		return self();
 	}
 
-	public SELF_TYPE withStatement(final Statement statement) {
+	public SELF_TYPE withStatement(final Statement<?> statement) {
 		statements.add(child(statement));
 		return self();
 	}
 
-	public SELF_TYPE withStatements(final List<Statement> statements) {
-		for (Statement statement : statements) withStatement(statement);
+	public SELF_TYPE withStatements(final List<Statement<?>> statements) {
+		for (Statement<?> statement : statements) withStatement(statement);
 		return self();
 	}
 

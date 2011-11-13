@@ -67,19 +67,19 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		builder = new JavacASTMaker(methodNode, source);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node node) {
+	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
 		return builder.<T> build(node);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		return builder.build(node, extectedType);
 	}
 
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -116,7 +116,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		get().restype = build(returnType);
 	}
 
-	public void replaceReturns(final lombok.ast.Statement replacement) {
+	public void replaceReturns(final lombok.ast.Statement<?> replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
 	}
 
@@ -214,11 +214,11 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		get().mods.flags |= PUBLIC;
 	}
 
-	public void replaceBody(final lombok.ast.Statement... statements) {
+	public void replaceBody(final lombok.ast.Statement<?>... statements) {
 		replaceBody(As.list(statements));
 	}
 
-	public void replaceBody(final List<lombok.ast.Statement> statements) {
+	public void replaceBody(final List<lombok.ast.Statement<?>> statements) {
 		replaceBody(Block().withStatements(statements));
 	}
 
@@ -241,8 +241,8 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		return JavacType.typeOf(node(), source);
 	}
 
-	public List<lombok.ast.Statement> statements() {
-		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
+	public List<lombok.ast.Statement<?>> statements() {
+		final List<lombok.ast.Statement<?>> methodStatements = new ArrayList<lombok.ast.Statement<?>>();
 		for (JCStatement statement : get().body.stats) {
 			if (isSuperConstructorCall(statement)) continue;
 			methodStatements.add(Stat(statement));

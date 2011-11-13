@@ -55,63 +55,14 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		final String stateName = "$state";
 		final String nextName = "$next";
 		final String errorName = "$yieldException";
-		collector.collect(method, stateName, nextName, errorName);
+		collector.collect(method, stateName, nextName, errorName, returnsIterable);
 
 		if (!collector.hasYields()) {
 			return true;
 		}
 
 		final String yielderName = collector.yielderName(method);
-		final String elementType = collector.elementType(method);
-		final List<FieldDecl> variables = collector.getStateVariables();
-		final Switch stateSwitch = collector.getStateSwitch();
-		final Switch errorHandlerSwitch = collector.getErrorHandlerSwitch();
-		final Statement closeStatement = collector.getCloseStatement();
-
-		ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type(Iterator.class).withTypeArgument(Type(elementType))) //
-			.withFields(variables) //
-			.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
-			.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
-			.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
-			.withField(FieldDecl(Type(elementType), nextName).makePrivate()) //
-			.withMethod(ConstructorDecl(yielderName).withImplicitSuper().makePrivate()); //
-		if (returnsIterable) {
-			yielder.implementing(Type(Iterable.class).withTypeArgument(Type(elementType))) //
-				.withMethod(MethodDecl(Type(Iterator.class).withTypeArgument(Type(elementType)), "iterator").makePublic() //
-					.withStatement(If(Equal(Name(stateName), Number(0))).Then(Block() //
-							.withStatement(Assign(Name(stateName), Number(1))) //
-							.withStatement(Return(This()))) //
-						.Else(Return(New(Type(yielderName))))));
-		}
-		yielder.implementing(Type(Closeable.class)) //
-			.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
-				.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
-					.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
-					.withStatement(Assign(Name("$nextDefined"), True())))) //
-				.withStatement(Return(Name("$hasNext")))) //
-			.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
-				.withStatement(If(Not(Call("hasNext"))).Then(Block() //
-					.withStatement(Throw(New(Type(NoSuchElementException.class)))))) //
-				.withStatement(Assign(Name("$nextDefined"), False())) //
-				.withStatement(Return(Name(nextName)))) //
-			.withMethod(MethodDecl(Type("void"), "remove").makePublic() //
-				.withStatement(Throw(New(Type(UnsupportedOperationException.class))))) //
-			.withMethod(MethodDecl(Type("void"), "close").makePublic() //
-						.withStatement(closeStatement));
-		if (errorHandlerSwitch != null) {
-			String caughtErrorName = errorName + "Caught";
-			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
-				.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
-				.withStatement(While(True()).Do(Block() //
-					.withStatement(Try(Block() //
-							.withStatement(stateSwitch)) //
-						.Catch(Arg(Type(Throwable.class), caughtErrorName), Block() //
-							.withStatement(Assign(Name(errorName), Name(caughtErrorName))))) //
-					.withStatement(errorHandlerSwitch))));
-		} else {
-			yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
-				.withStatement(While(True()).Do(stateSwitch)));
-		}
+		ClassDecl yielder = collector.getYielder();
 		method.replaceBody(yielder, Return(New(Type(yielderName))));
 		method.rebuild();
 
@@ -127,9 +78,10 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		@Getter
 		protected List<FieldDecl> stateVariables = new ArrayList<FieldDecl>();
 		protected Scope<AST_BASE_TYPE> root;
+		protected Scope<AST_BASE_TYPE> current;
 		protected Map<AST_BASE_TYPE, Scope<AST_BASE_TYPE>> allScopes = new HashMap<AST_BASE_TYPE, Scope<AST_BASE_TYPE>>();
 		protected List<Case> cases = new ArrayList<Case>();
-		protected List<Statement> statements = new ArrayList<Statement>();
+		protected List<Statement<?>> statements = new ArrayList<Statement<?>>();
 		protected List<Case> breakCases = new ArrayList<Case>();
 		protected List<ErrorHandler> errorHandlers = new ArrayList<ErrorHandler>();
 		protected int finallyBlocks;
@@ -138,6 +90,62 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		protected String stateName;
 		protected String nextName;
 		protected String errorName;
+		protected boolean returnsIterable;
+
+		public ClassDecl getYielder() {
+			final String yielderName = yielderName(method);
+			final String elementType = elementType(method);
+			final List<FieldDecl> variables = getStateVariables();
+			final Switch stateSwitch = getStateSwitch();
+			final Switch errorHandlerSwitch = getErrorHandlerSwitch();
+			final Statement<?> closeStatement = getCloseStatement();
+
+			ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type(Iterator.class).withTypeArgument(Type(elementType))) //
+				.withFields(variables) //
+				.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
+				.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //
+				.withField(FieldDecl(Type("boolean"), "$nextDefined").makePrivate()) //
+				.withField(FieldDecl(Type(elementType), nextName).makePrivate()) //
+				.withMethod(ConstructorDecl(yielderName).withImplicitSuper().makePrivate()); //
+			if (returnsIterable) {
+				yielder.implementing(Type(Iterable.class).withTypeArgument(Type(elementType))) //
+					.withMethod(MethodDecl(Type(Iterator.class).withTypeArgument(Type(elementType)), "iterator").makePublic() //
+						.withStatement(If(Equal(Name(stateName), Number(0))).Then(Block() //
+								.withStatement(Assign(Name(stateName), Number(1))) //
+								.withStatement(Return(This()))) //
+							.Else(Return(New(Type(yielderName))))));
+			}
+			yielder.implementing(Type(Closeable.class)) //
+				.withMethod(MethodDecl(Type("boolean"), "hasNext").makePublic() //
+					.withStatement(If(Not(Name("$nextDefined"))).Then(Block() //
+						.withStatement(Assign(Name("$hasNext"), Call("getNext"))) //
+						.withStatement(Assign(Name("$nextDefined"), True())))) //
+					.withStatement(Return(Name("$hasNext")))) //
+				.withMethod(MethodDecl(Type(elementType), "next").makePublic() //
+					.withStatement(If(Not(Call("hasNext"))).Then(Block() //
+						.withStatement(Throw(New(Type(NoSuchElementException.class)))))) //
+					.withStatement(Assign(Name("$nextDefined"), False())) //
+					.withStatement(Return(Name(nextName)))) //
+				.withMethod(MethodDecl(Type("void"), "remove").makePublic() //
+					.withStatement(Throw(New(Type(UnsupportedOperationException.class))))) //
+				.withMethod(MethodDecl(Type("void"), "close").makePublic() //
+							.withStatement(closeStatement));
+			if (errorHandlerSwitch != null) {
+				String caughtErrorName = errorName + "Caught";
+				yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
+					.withStatement(LocalDecl(Type(Throwable.class), errorName)) //
+					.withStatement(While(True()).Do(Block() //
+						.withStatement(Try(Block() //
+								.withStatement(stateSwitch)) //
+							.Catch(Arg(Type(Throwable.class), caughtErrorName), Block() //
+								.withStatement(Assign(Name(errorName), Name(caughtErrorName))))) //
+						.withStatement(errorHandlerSwitch))));
+			} else {
+				yielder.withMethod(MethodDecl(Type("boolean"), "getNext").makePrivate() //
+					.withStatement(While(True()).Do(stateSwitch)));
+			}
+			return yielder;
+		}
 
 		public Switch getStateSwitch() {
 			final List<Case> switchCases = new ArrayList<Case>();
@@ -175,8 +183,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			}
 		}
 
-		public Statement getCloseStatement() {
-			final Statement statement = setState(literal(getBreakLabel(root)));
+		public Statement<?> getCloseStatement() {
+			final Statement<?> statement = setState(literal(getBreakLabel(root)));
 			if (breakCases.isEmpty()) {
 				return statement;
 			} else {
@@ -200,11 +208,12 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			return !yields.isEmpty();
 		}
 
-		public void collect(final METHOD_TYPE method, final String state, final String next, final String errorName) {
+		public void collect(final METHOD_TYPE method, final String state, final String next, final String errorName, final boolean returnsIterable) {
 			this.method = method;
 			this.stateName = state;
 			this.nextName = next;
 			this.errorName = errorName;
+			this.returnsIterable = returnsIterable;
 
 			if (scan()) {
 				prepareRefactor();
@@ -227,6 +236,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 		public abstract void prepareRefactor();
 
 		public void refactor() {
+			current = root;
+			
 			Case begin = Case();
 			Case iteratorLabel = getIterationLabel(root);
 
@@ -244,7 +255,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			synchronizeLiteralsAndLabels();
 		}
 
-		public Expression getStateFromAssignment(Statement statement) {
+		public Expression<?> getStateFromAssignment(Statement<?> statement) {
 			if (statement instanceof Assignment) {
 				Assignment assign = (Assignment) statement;
 				if (assign.getLeft() instanceof NameRef) {
@@ -257,7 +268,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			return null;
 		}
 
-		public Case getLabel(Expression expression) {
+		public Case getLabel(Expression<?> expression) {
 			return expression == null ? null : labelLiterals.get(expression);
 		}
 
@@ -277,7 +288,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			cases.add(label);
 		}
 
-		public void addStatement(final Statement statement) {
+		public void addStatement(final Statement<?> statement) {
 			statements.add(statement);
 		}
 
@@ -308,14 +319,14 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			return label;
 		}
 
-		public Expression literal(final Case label) {
+		public Expression<?> literal(final Case label) {
 			NumberLiteral pattern = (NumberLiteral) label.getPattern();
 			NumberLiteral literal = Number(pattern == null ? -1 : pattern.getNumber());
 			labelLiterals.put(literal, label);
 			return literal;
 		}
 
-		public Statement setState(final Expression expression) {
+		public Statement<?> setState(final Expression<?> expression) {
 			return Assign(Name(stateName), expression);
 		}
 
@@ -323,7 +334,10 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			if (statement == null) return;
 			Scope<AST_BASE_TYPE> scope = allScopes.get(statement);
 			if (scope != null) {
+				Scope<AST_BASE_TYPE> previous = current;
+				current = scope;
 				scope.refactor();
+				current = previous;
 			} else {
 				addStatement(Stat(statement));
 			}
@@ -409,7 +423,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			for (int i = 0, id = 0, iend = cases.size(); i < iend; i++) {
 				Case label = cases.get(i);
 				if (!usedLabels.contains(label) && (previous != null)) {
-					Statement last = previous.getStatements().get(previous.getStatements().size() - 1);
+					Statement<?> last = previous.getStatements().get(previous.getStatements().size() - 1);
 					if (!label.getStatements().isEmpty() && Is.noneOf(last, Continue.class, Return.class)) {
 						previous.withStatements(label.getStatements());
 					}
@@ -424,9 +438,9 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 				}
 				boolean found = false;
 				boolean remove = false;
-				List<Statement> list = previous.getStatements();
-				for (Iterator<Statement> iter = list.iterator(); iter.hasNext();) {
-					Statement statement = iter.next();
+				List<Statement<?>> list = previous.getStatements();
+				for (Iterator<Statement<?>> iter = list.iterator(); iter.hasNext();) {
+					Statement<?> statement = iter.next();
 					if (remove || (found && (statement instanceof Continue))) {
 						remove = true;
 						iter.remove();
@@ -452,7 +466,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 	public static class ErrorHandler {
 		public int begin;
 		public int end;
-		public List<Statement> statements = new ArrayList<Statement>();
+		public List<Statement<?>> statements = new ArrayList<Statement<?>>();
 	}
 
 	@RequiredArgsConstructor

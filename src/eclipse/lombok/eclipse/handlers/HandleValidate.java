@@ -21,10 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.ast.AST.Block;
-import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
 import lombok.core.AnnotationValues;
+import lombok.core.handlers.ValidateHandler;
 import lombok.eclipse.DeferUntilPostDiet;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
@@ -43,20 +42,6 @@ public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 	@Override
 	public void handle(final AnnotationValues<Validate> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
-		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
-		if (method == null) {
-			annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
-			return;
-		}
-
-		if (method.isAbstract() || method.isEmpty()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
-			return;
-		}
-
-		method.replaceBody(Block() //
-			.withStatements(new EclipseParameterValidator().validateParameterOf(method)) //
-			.withStatements(method.statements()));
-		method.rebuild();
+		new ValidateHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new EclipseParameterValidator());
 	}
 }

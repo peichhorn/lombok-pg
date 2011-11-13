@@ -21,6 +21,6 @@
  */
 package lombok.ast;
 
-public abstract class Expression extends Statement {
+public abstract class Expression<SELF_TYPE extends Expression<SELF_TYPE>> extends Statement<SELF_TYPE> {
 
 }

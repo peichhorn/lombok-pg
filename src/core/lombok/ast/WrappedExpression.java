@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public class WrappedExpression extends Expression {
+public class WrappedExpression extends Expression<WrappedExpression> {
 	private final Object wrappedObject;
 
 	@Override

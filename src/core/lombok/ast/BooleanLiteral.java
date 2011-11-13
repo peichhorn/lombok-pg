@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public final class BooleanLiteral extends Expression {
+public final class BooleanLiteral extends Expression<BooleanLiteral> {
 	private final boolean isTrue;
 
 	@Override

@@ -77,7 +77,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
 						.withArgument(Name(varname)))));
 				} else {
-					final List<Expression> arguments = new ArrayList<Expression>();
+					final List<Expression<?>> arguments = new ArrayList<Expression<?>>();
 					message = manipulateMessage(message, arguments);
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
 						.withArgument(Call(Name(String.class), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
@@ -89,7 +89,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 		method.rebuild();
 	}
 
-	private String manipulateMessage(final String message, final List<Expression> arguments) {
+	private String manipulateMessage(final String message, final List<Expression<?>> arguments) {
 		final Matcher matcher = Pattern.compile("\\$([a-zA-Z0-9_]+)").matcher(message);
 		final StringBuilder manipulatedMessage = new StringBuilder();
 		int start = 0;

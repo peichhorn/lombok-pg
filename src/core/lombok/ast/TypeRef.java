@@ -26,7 +26,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public class TypeRef extends Expression {
+public class TypeRef extends Expression<TypeRef> {
 	private final List<TypeRef> typeArgs = new ArrayList<TypeRef>();
 	private final String typeName;
 	private boolean superType;

@@ -24,12 +24,12 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public class Binary extends Expression {
-	private final Expression left;
+public class Binary extends Expression<Binary> {
+	private final Expression<?> left;
 	private final String operator;
-	private final Expression right;
+	private final Expression<?> right;
 
-	public Binary(final Expression left, final String operator, final Expression right) {
+	public Binary(final Expression<?> left, final String operator, final Expression<?> right) {
 		this.left = child(left);
 		this.operator = operator;
 		this.right = child(right);

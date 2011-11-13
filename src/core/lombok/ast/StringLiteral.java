@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public final class StringLiteral extends Expression {
+public final class StringLiteral extends Expression<StringLiteral> {
 	private final String string;
 
 	@Override

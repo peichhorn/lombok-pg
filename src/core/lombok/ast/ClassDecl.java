@@ -28,7 +28,7 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public class ClassDecl extends Statement {
+public class ClassDecl extends Statement<ClassDecl> {
 	protected final EnumSet<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
 	private final List<Annotation> annotations = new ArrayList<Annotation>();
 	private final List<TypeParam> typeParameters = new ArrayList<TypeParam>();

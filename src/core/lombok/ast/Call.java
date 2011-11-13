@@ -25,13 +25,13 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public class Call extends Expression {
-	private final List<Expression> args = new ArrayList<Expression>();
+public class Call extends Expression<Call> {
+	private final List<Expression<?>> args = new ArrayList<Expression<?>>();
 	private final List<TypeRef> typeArgs = new ArrayList<TypeRef>();
-	private final Expression receiver;
+	private final Expression<?> receiver;
 	private final String name;
 
-	public Call(final Expression receiver, final String name) {
+	public Call(final Expression<?> receiver, final String name) {
 		this.receiver = child(receiver);
 		this.name = name;
 	}
@@ -40,13 +40,13 @@ public class Call extends Expression {
 		this(null, name);
 	}
 
-	public Call withArgument(final Expression argument) {
+	public Call withArgument(final Expression<?> argument) {
 		args.add(child(argument));
 		return this;
 	}
 
-	public Call withArguments(final List<Expression> arguments) {
-		for (Expression argument : arguments) withArgument(argument);
+	public Call withArguments(final List<Expression<?>> arguments) {
+		for (Expression<?> argument : arguments) withArgument(argument);
 		return this;
 	}
 

@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public final class CharLiteral extends Expression {
+public final class CharLiteral extends Expression<CharLiteral> {
 	private final String character;
 
 	@Override

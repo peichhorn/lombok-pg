@@ -24,11 +24,11 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class FieldRef extends Expression {
-	private Expression receiver;
+public final class FieldRef extends Expression<FieldRef> {
+	private Expression<?> receiver;
 	private final String name;
 
-	public FieldRef(final Expression receiver, final String name) {
+	public FieldRef(final Expression<?> receiver, final String name) {
 		this.receiver = child(receiver);
 		this.name = name;
 	}

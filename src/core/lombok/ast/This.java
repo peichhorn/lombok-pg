@@ -25,7 +25,7 @@ import lombok.*;
 
 @NoArgsConstructor
 @Getter
-public final class This extends Expression {
+public final class This extends Expression<This> {
 	private TypeRef type;
 	private boolean implicit;
 

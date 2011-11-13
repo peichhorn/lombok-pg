@@ -26,7 +26,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public final class TypeParam extends Statement {
+public final class TypeParam extends Statement<TypeParam> {
 	protected final List<TypeRef> bounds = new ArrayList<TypeRef>();
 	protected final String name;
 

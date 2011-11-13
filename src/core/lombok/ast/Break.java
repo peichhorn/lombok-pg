@@ -26,7 +26,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class Break extends Statement {
+public class Break extends Statement<Break> {
 	private String label;
 
 	@Override

@@ -83,8 +83,8 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		method.rebuild();
 	}
 
-	private List<Statement> rethrowStatements(final METHOD_TYPE method) {
-		final List<Statement> rethrowStatements = new ArrayList<Statement>();
+	private List<Statement<?>> rethrowStatements(final METHOD_TYPE method) {
+		final List<Statement<?>> rethrowStatements = new ArrayList<Statement<?>>();
 		for (lombok.ast.TypeRef thrownException : method.thrownExceptions()) {
 			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
 				.Then(Throw(Cast(thrownException, Name("$cause")))));

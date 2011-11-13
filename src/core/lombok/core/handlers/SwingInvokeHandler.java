@@ -56,7 +56,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		Call elseStatementRun = Call(Name(EventQueue.class), methodName).withArgument(Name(field));
 
-		Statement elseStatement;
+		Statement<?> elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
 			elseStatement =  Block().withStatement(generateTryCatchBlock(elseStatementRun, method));
 		} else {
@@ -87,8 +87,8 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 				.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))));
 	}
 
-	private List<Statement> rethrowStatements(final METHOD_TYPE method) {
-		final List<Statement> rethrowStatements = new ArrayList<Statement>();
+	private List<Statement<?>> rethrowStatements(final METHOD_TYPE method) {
+		final List<Statement<?>> rethrowStatements = new ArrayList<Statement<?>>();
 		for (TypeRef thrownException : method.thrownExceptions()) {
 			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
 				.Then(Throw(Cast(thrownException, Name("$cause")))));

@@ -26,7 +26,7 @@ import lombok.*;
 
 @Getter
 public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
-	private Expression initialization;
+	private Expression<?> initialization;
 
 	public FieldDecl(final TypeRef type, final String name) {
 		super(type, name);
@@ -52,7 +52,7 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 		return withModifier(VOLATILE);
 	}
 
-	public FieldDecl withInitialization(final Expression initialization) {
+	public FieldDecl withInitialization(final Expression<?> initialization) {
 		this.initialization = child(initialization);
 		return this;
 	}

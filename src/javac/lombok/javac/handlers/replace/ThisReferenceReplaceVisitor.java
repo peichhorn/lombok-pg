@@ -30,7 +30,7 @@ import com.sun.tools.javac.tree.JCTree.*;
  */
 public class ThisReferenceReplaceVisitor extends ExpressionReplaceVisitor {
 
-	public ThisReferenceReplaceVisitor(final JavacMethod method, final lombok.ast.Statement replacement) {
+	public ThisReferenceReplaceVisitor(final JavacMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

@@ -19,29 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.eclipse.handlers;
+package lombok.core.handlers;
 
+import static lombok.ast.AST.*;
+import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
-import lombok.core.AnnotationValues;
-import lombok.core.handlers.SanitizeHandler;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseAnnotationHandler;
-import lombok.eclipse.EclipseNode;
-import lombok.eclipse.handlers.ast.EclipseMethod;
+import lombok.ast.*;
+import lombok.core.DiagnosticsReceiver;
 
-import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.mangosdk.spi.ProviderFor;
+@RequiredArgsConstructor
+public class ValidateHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
+	private final METHOD_TYPE method;
+	private final DiagnosticsReceiver diagnosticsReceiver;
 
-/**
- * Handles the {@code lombok.Sanitize} annotation for eclipse.
- */
-@ProviderFor(EclipseAnnotationHandler.class)
-@DeferUntilPostDiet
-public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
+	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validator) {
+		if (method == null) {
+			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
+			return;
+		}
 
-	@Override
-	public void handle(final AnnotationValues<Sanitize> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
-		new SanitizeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new EclipseParameterSanitizer());
+		if (method.isAbstract() || method.isEmpty()) {
+		diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return;
+		}
+
+		method.replaceBody(Block().source(method.get()) //
+			.withStatements(validator.validateParameterOf(method)) //
+			.withStatements(method.statements()));
+		method.rebuild();
 	}
 }

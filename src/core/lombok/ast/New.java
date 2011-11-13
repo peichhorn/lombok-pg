@@ -26,8 +26,8 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public final class New extends Expression {
-	private final List<Expression> args = new ArrayList<Expression>();
+public final class New extends Expression<New> {
+	private final List<Expression<?>> args = new ArrayList<Expression<?>>();
 	private final List<TypeRef> typeArgs = new ArrayList<TypeRef>();
 	private final TypeRef type;
 	private ClassDecl anonymousType;
@@ -36,7 +36,7 @@ public final class New extends Expression {
 		this.type = child(type);
 	}
 
-	public New withArgument(final Expression arg) {
+	public New withArgument(final Expression<?> arg) {
 		args.add(child(arg));
 		return this;
 	}

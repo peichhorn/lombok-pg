@@ -225,7 +225,6 @@ public class HandleYield extends EclipseASTAdapter {
 		}
 
 		private class ValidationScanner extends ASTVisitor {
-			private Scope<ASTNode> current;
 
 			@Override
 			public boolean visit(final MethodDeclaration tree, final ClassScope scope) {
@@ -756,7 +755,7 @@ public class HandleYield extends EclipseASTAdapter {
 			public boolean visit(final MessageSend tree, final BlockScope scope) {
 				final Expression expression = getYieldExpression(tree);
 				if (expression != null) {
-					current = new Scope<ASTNode>(current, tree) {
+					yields.add(new Scope<ASTNode>(current, tree) {
 						@Override
 						public void refactor() {
 							lombok.ast.Case label = getBreakLabel(this);
@@ -773,10 +772,8 @@ public class HandleYield extends EclipseASTAdapter {
 									.withStatement(Continue()));
 							}
 						}
-					};
-					yields.add(current);
+					});
 					expression.traverse(this, scope);
-					current = current.parent;
 					return false;
 				} else {
 					if (tree.receiver.isImplicitThis()) {

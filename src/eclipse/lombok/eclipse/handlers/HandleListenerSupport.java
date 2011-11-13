@@ -149,7 +149,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	private static class EclipseListenerSupportHandler extends ListenerSupportHandler<EclipseType> {
 
 		@Override
-		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression> args) {
+		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression<?>> args) {
 			MethodBinding methodBinding = (MethodBinding)method;
 			int argCounter = 0;
 			for (TypeBinding parameter : Each.elementIn(methodBinding.parameters)) {

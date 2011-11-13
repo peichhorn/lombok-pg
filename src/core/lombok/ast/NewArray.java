@@ -25,10 +25,10 @@ import java.util.*;
 import lombok.*;
 
 @Getter
-public final class NewArray extends Expression {
+public final class NewArray extends Expression<NewArray> {
 	// remember to add one dimension after all so you end up with: a[exp1][exp2][exp3][]
-	private final List<Expression> dimensionExpressions = new ArrayList<Expression>();
-	private final List<Expression> initializerExpressions = new ArrayList<Expression>();
+	private final List<Expression<?>> dimensionExpressions = new ArrayList<Expression<?>>();
+	private final List<Expression<?>> initializerExpressions = new ArrayList<Expression<?>>();
 	private final TypeRef type;
 	private final int dimensions;
 
@@ -41,18 +41,18 @@ public final class NewArray extends Expression {
 		this(type, 1);
 	}
 
-	public NewArray withDimensionExpression(final Expression dimensionExpression) {
+	public NewArray withDimensionExpression(final Expression<?> dimensionExpression) {
 		dimensionExpressions.add(child(dimensionExpression));
 		return this;
 	}
 
-	public NewArray withInitializerExpression(final Expression initializerExpression) {
+	public NewArray withInitializerExpression(final Expression<?> initializerExpression) {
 		initializerExpressions.add(child(initializerExpression));
 		return this;
 	}
 
-	public NewArray withInitializerExpressions(final List<Expression> initializerExpressions) {
-		for (Expression initializerExpression : initializerExpressions) withInitializerExpression(initializerExpression);
+	public NewArray withInitializerExpressions(final List<Expression<?>> initializerExpressions) {
+		for (Expression<?> initializerExpression : initializerExpressions) withInitializerExpression(initializerExpression);
 		return this;
 	}
 

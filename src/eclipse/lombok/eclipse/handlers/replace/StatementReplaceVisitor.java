@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.compiler.lookup.*;
 
 public abstract class StatementReplaceVisitor extends ReplaceVisitor<Statement> {
 
-	protected StatementReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
+	protected StatementReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

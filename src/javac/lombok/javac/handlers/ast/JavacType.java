@@ -65,19 +65,19 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 		builder = new JavacASTMaker(typeNode, source);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node node) {
+	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
 		return builder.<T>build(node);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		return builder.build(node,extectedType);
 	}
 
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 

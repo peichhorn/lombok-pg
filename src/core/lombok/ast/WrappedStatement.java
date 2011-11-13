@@ -25,7 +25,7 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @Getter
-public class WrappedStatement extends Statement {
+public class WrappedStatement extends Statement<WrappedStatement> {
 	private final Object wrappedObject;
 
 	@Override

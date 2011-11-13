@@ -72,7 +72,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 
 	public static interface IArgumentProvider {
-		public List<Expression> getArgs(String name);
+		public List<Expression<?>> getArgs(String name);
 	}
 
 	public static interface IParameterProvider {
@@ -80,8 +80,8 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 	
 	public static class ApplicationArgumentProvider implements IArgumentProvider {
-		@Override public List<Expression> getArgs(final String name) {
-			List<Expression> args = new ArrayList<Expression>();
+		@Override public List<Expression<?>> getArgs(final String name) {
+			List<Expression<?>> args = new ArrayList<Expression<?>>();
 			args.add(Name("args"));
 			return args;
 		}
@@ -96,8 +96,8 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	}
 	
 	public static class JvmAgentArgumentProvider implements IArgumentProvider {
-		@Override public List<lombok.ast.Expression> getArgs(final String name) {
-			List<lombok.ast.Expression> args = new ArrayList<lombok.ast.Expression>();
+		@Override public List<Expression<?>> getArgs(final String name) {
+			List<Expression<?>> args = new ArrayList<Expression<?>>();
 			args.add(("agentmain".equals(name) ? True() : False()));
 			args.add(Name("params"));
 			args.add(Name("instrumentation"));

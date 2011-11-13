@@ -25,7 +25,7 @@ import lombok.*;
 
 @AllArgsConstructor
 @Getter @Setter
-public final class NumberLiteral extends Expression {
+public final class NumberLiteral extends Expression<NumberLiteral> {
 	private Number number;
 
 	@Override

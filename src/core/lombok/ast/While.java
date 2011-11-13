@@ -24,15 +24,15 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class While extends Statement {
-	private final Expression condition;
-	private Statement action;
+public final class While extends Statement<While> {
+	private final Expression<?> condition;
+	private Statement<?> action;
 
-	public While(final Expression condition) {
+	public While(final Expression<?> condition) {
 		this.condition = child(condition);
 	}
 
-	public While Do(final Statement action) {
+	public While Do(final Statement<?> action) {
 		this.action = child(action);
 		return this;
 	}

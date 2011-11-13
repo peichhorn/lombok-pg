@@ -55,8 +55,6 @@ public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
 
 	RETURN_TYPE visitEnumConstant(EnumConstant node, PARAMETER_TYPE p);
 
-	RETURN_TYPE visitEqual(Equal node, PARAMETER_TYPE p);
-
 	RETURN_TYPE visitFieldDecl(FieldDecl node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitFieldRef(FieldRef node, PARAMETER_TYPE p);

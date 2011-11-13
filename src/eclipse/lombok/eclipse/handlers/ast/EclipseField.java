@@ -54,19 +54,19 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		builder = new EclipseASTMaker(fieldNode, source);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
 		return builder.<T> build(node);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		return builder.build(node, extectedType);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -124,11 +124,11 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		return node().getName();
 	}
 
-	public lombok.ast.Expression initialization() {
+	public lombok.ast.Expression<?> initialization() {
 		return get().initialization == null ? null : Expr(get().initialization);
 	}
 
-	public void replaceInitialization(lombok.ast.Expression initialization) {
+	public void replaceInitialization(lombok.ast.Expression<?> initialization) {
 		get().initialization = (initialization == null) ? null : build(initialization, Expression.class);
 	}
 

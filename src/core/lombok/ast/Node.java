@@ -21,24 +21,54 @@
  */
 package lombok.ast;
 
-public abstract class Node {
-	private Node parent;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
-	public final <T extends Node> T child(final T node) {
+import lombok.core.util.Cast;
+
+public abstract class Node<SELF_TYPE extends Node<SELF_TYPE>> {
+	private Node<?> parent;
+	private Object source;
+
+	public final <T extends Node<?>> T child(final T node) {
 		if (node != null) node.parent = this;
 		return node;
 	}
 
-	public final Node up() {
+	public final Node<?> up() {
 		return parent;
 	}
 
-	public final <T extends Node> T upTo(final Class<T> type) {
-		Node node = this;
+	public final <T extends Node<?>> T upTo(final Class<T> type) {
+		Node<?> node = this;
 		while ((node != null) && !type.isInstance(node)) {
 			node = node.up();
 		}
 		return type.cast(node);
+	}
+
+	protected final SELF_TYPE self() {
+		return Cast.<SELF_TYPE>uncheckedCast(this);
+	}
+
+	public final SELF_TYPE source(final Object source) {
+		this.source = source;
+		return self();
+	}
+
+	public final <T> T source() {
+		Node<?> node = this;
+		while ((node != null) && (node.source == null)) {
+			node = node.up();
+		}
+		return node == null ? null : Cast.<T>uncheckedCast(node.source);
+	}
+
+	public String toString() {
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final PrintStream ps = new PrintStream(baos);
+		accept(new ASTPrinter(), new ASTPrinter.State(ps));
+		return baos.toString();
 	}
 
 	public abstract <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, PARAMETER_TYPE p);

@@ -26,16 +26,16 @@ import lombok.*;
 
 @NoArgsConstructor
 @Getter
-public class Block extends Statement {
-	private final List<Statement> statements = new ArrayList<Statement>();
+public class Block extends Statement<Block> {
+	private final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 
-	public Block withStatement(final Statement statement) {
+	public Block withStatement(final Statement<?> statement) {
 		statements.add(child(statement));
 		return this;
 	}
 
-	public Block withStatements(final List<Statement> statements) {
-		for (Statement statement : statements) withStatement(statement);
+	public Block withStatements(final List<Statement<?>> statements) {
+		for (Statement<?> statement : statements) withStatement(statement);
 		return this;
 	}
 

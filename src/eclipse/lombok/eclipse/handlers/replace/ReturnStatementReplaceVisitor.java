@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.compiler.ast.Statement;
 
 public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 
-	public ReturnStatementReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement replacement) {
+	public ReturnStatementReplaceVisitor(final EclipseMethod method, final lombok.ast.Statement<?> replacement) {
 		super(method, replacement);
 	}
 

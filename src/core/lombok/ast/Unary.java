@@ -24,11 +24,11 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class Unary extends Expression {
+public final class Unary extends Expression<Unary> {
 	private final String operator;
-	private final Expression expression;
+	private final Expression<?> expression;
 
-	public Unary(final String operator, final Expression expression) {
+	public Unary(final String operator, final Expression<?> expression) {
 		this.operator = operator;
 		this.expression = child(expression);
 	}

@@ -24,11 +24,11 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public class Cast extends Expression {
+public class Cast extends Expression<Cast> {
 	private final TypeRef type;
-	private final Expression expression;
+	private final Expression<?> expression;
 
-	public Cast(final TypeRef type, final Expression expression) {
+	public Cast(final TypeRef type, final Expression<?> expression) {
 		this.type = child(type);
 		this.expression = child(expression);
 	}

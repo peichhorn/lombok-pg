@@ -51,7 +51,7 @@ public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends I
 	}
 
 	public void addFireListenerMethod(final TYPE_TYPE type, final Object interfaze, final Object method) {
-		List<Expression> args = new ArrayList<Expression>();
+		List<Expression<?>> args = new ArrayList<Expression<?>>();
 		List<Argument> params = new ArrayList<Argument>();
 		createParamsAndArgs(method, params, args);
 		String interfaceName = interfaceName(name(interfaze));
@@ -61,7 +61,7 @@ public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends I
 				.Do(Call(Name("l"), methodName).withArguments(args))));
 	}
 	
-	protected abstract void createParamsAndArgs(Object method, List<Argument> params, List<Expression> args);
+	protected abstract void createParamsAndArgs(Object method, List<Argument> params, List<Expression<?>> args);
 	
 	protected abstract String name(Object object);
 	

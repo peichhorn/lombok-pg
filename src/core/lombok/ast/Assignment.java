@@ -24,11 +24,11 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class Assignment extends Expression {
-	private final Expression left;
-	private final Expression right;
+public final class Assignment extends Expression<Assignment> {
+	private final Expression<?> left;
+	private final Expression<?> right;
 
-	public Assignment(final Expression left, final Expression right) {
+	public Assignment(final Expression<?> left, final Expression<?> right) {
 		this.left = child(left);
 		this.right = child(right);
 	}

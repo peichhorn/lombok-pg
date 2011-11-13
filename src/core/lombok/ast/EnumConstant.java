@@ -26,13 +26,13 @@ import lombok.*;
 
 @Getter
 public final class EnumConstant extends AbstractVariableDecl<EnumConstant> {
-	private final List<Expression> args = new ArrayList<Expression>();
+	private final List<Expression<?>> args = new ArrayList<Expression<?>>();
 
 	public EnumConstant(final String name) {
 		super(null, name);
 	}
 
-	public EnumConstant withArgument(final Expression arg) {
+	public EnumConstant withArgument(final Expression<?> arg) {
 		args.add(child(arg));
 		return this;
 	}

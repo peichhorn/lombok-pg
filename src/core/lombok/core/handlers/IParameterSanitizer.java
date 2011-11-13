@@ -31,20 +31,20 @@ import lombok.ast.*;
 import lombok.core.util.As;
 
 public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
-	public List<Statement> sanitizeParameterOf(METHOD_TYPE method);
+	public List<Statement<?>> sanitizeParameterOf(METHOD_TYPE method);
 
 	@RequiredArgsConstructor
 	@Getter
 	public enum SanitizerStrategy {
 		WITH(Sanitize.With.class) {
 			@Override
-			public Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation) {
+			public Statement<?> getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation) {
 				return LocalDecl(Type(argumentType), newArgumentName).makeFinal().withInitialization(Call(((Sanitize.With) annotation).value()).withArgument(Name(argumentName)));
 			}
 		},
 		NORMALIZE(Sanitize.Normalize.class) {
 			@Override
-			public Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation) {
+			public Statement<?> getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation) {
 				final Normalizer.Form normalizerForm = ((Sanitize.Normalize) annotation).value();
 				return LocalDecl(Type(argumentType), newArgumentName).makeFinal().withInitialization(Call(Name("java.text.Normalizer"), "normalize") //
 					.withArgument(Name(argumentName)).withArgument(Name(String.format("java.text.Normalizer.Form.%s", normalizerForm.name()))));
@@ -55,7 +55,7 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		private final Class<? extends java.lang.annotation.Annotation> type;
 
-		public abstract Statement getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName,
+		public abstract Statement<?> getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName,
 				final java.lang.annotation.Annotation annotation);
 	}
 }

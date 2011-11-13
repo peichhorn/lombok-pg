@@ -26,13 +26,13 @@ import java.util.List;
 import lombok.core.LombokNode;
 
 public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> {
-	public <T extends AST_BASE_TYPE> T build(Node node);
+	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-	public <T extends AST_BASE_TYPE> T build(Node node, Class<T> extectedType);
+	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
 
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node> nodes);
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
 
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node> nodes, Class<T> extectedType);
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
 	public boolean isInterface();
 

@@ -24,16 +24,16 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class DoWhile extends Statement {
-	private final Statement action;
-	private Expression condition;
+public final class DoWhile extends Statement<DoWhile> {
+	private final Statement<?> action;
+	private Expression<?> condition;
 
-	public DoWhile(final Statement action) {
+	public DoWhile(final Statement<?> action) {
 		this.action = child(action);
 		this.condition = child(new BooleanLiteral(true));
 	}
 
-	public DoWhile While(final Expression condition) {
+	public DoWhile While(final Expression<?> condition) {
 		this.condition = child(condition);
 		return this;
 	}

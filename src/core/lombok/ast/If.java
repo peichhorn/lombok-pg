@@ -24,21 +24,21 @@ package lombok.ast;
 import lombok.*;
 
 @Getter
-public final class If extends Statement {
-	private final Expression condition;
-	private Statement thenStatement;
-	private Statement elseStatement;
+public final class If extends Statement<If> {
+	private final Expression<?> condition;
+	private Statement<?> thenStatement;
+	private Statement<?> elseStatement;
 
-	public If(final Expression condition) {
+	public If(final Expression<?> condition) {
 		this.condition = child(condition);
 	}
 
-	public If Then(final Statement thenStatement) {
+	public If Then(final Statement<?> thenStatement) {
 		this.thenStatement = child(thenStatement);
 		return this;
 	}
 
-	public If Else(final Statement elseStatement) {
+	public If Else(final Statement<?> elseStatement) {
 		this.elseStatement = child(elseStatement);
 		return this;
 	}

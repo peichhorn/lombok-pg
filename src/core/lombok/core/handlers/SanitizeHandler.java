@@ -19,24 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package lombok.ast;
+package lombok.core.handlers;
 
+import static lombok.ast.AST.*;
+import static lombok.core.util.ErrorMessages.*;
 import lombok.*;
+import lombok.ast.*;
+import lombok.core.DiagnosticsReceiver;
 
-@Getter
-public final class Equal extends Expression {
-	private final Expression left;
-	private final Expression right;
-	private final boolean notEqual;
+@RequiredArgsConstructor
+public class SanitizeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
+	private final METHOD_TYPE method;
+	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public Equal(final Expression left, final Expression right, final boolean notEqual) {
-		this.left = child(left);
-		this.right = child(right);
-		this.notEqual = notEqual;
-	}
+	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+		if (method == null) {
+			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
+			return;
+		}
 
-	@Override
-	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
-		return v.visitEqual(this, p);
+		if (method.isAbstract() || method.isEmpty()) {
+			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			return;
+		}
+		method.replaceBody(Block().source(method.get()) //
+			.withStatements(sanitizer.sanitizeParameterOf(method)) //
+			.withStatements(method.statements()));
+		method.rebuild();
 	}
 }

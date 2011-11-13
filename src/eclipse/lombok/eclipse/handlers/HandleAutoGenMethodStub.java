@@ -52,7 +52,7 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 	public MethodDeclaration handle(final MethodBinding abstractMethod, final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source,
 			final EclipseNode annotationNode) {
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
-		final Statement statement;
+		final Statement<?> statement;
 		if (annotation.getInstance().throwException()) {
 			statement = Throw(New(Type(UnsupportedOperationException.class)).withArgument(String("This method is not implemented yet.")));
 		} else {

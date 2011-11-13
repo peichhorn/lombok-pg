@@ -23,7 +23,6 @@ package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
-import static lombok.eclipse.handlers.Eclipse.setGeneratedByAndCopyPos;
 import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
@@ -71,19 +70,19 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		builder = new EclipseASTMaker(methodNode, source);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
 		return builder.<T> build(node);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node node, final Class<T> extectedType) {
+	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		return builder.build(node, extectedType);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
 
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node> nodes, final Class<T> extectedType) {
+	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
 
@@ -125,7 +124,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		methodDecl.returnType = build(returnType);
 	}
 
-	public void replaceReturns(final lombok.ast.Statement replacement) {
+	public void replaceReturns(final lombok.ast.Statement<?> replacement) {
 		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
 	}
 
@@ -224,12 +223,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		get().modifiers |= AccPublic;
 	}
 
-	public void replaceBody(final lombok.ast.Statement... statements) {
+	public void replaceBody(final lombok.ast.Statement<?>... statements) {
 		replaceBody(As.list(statements));
 	}
 
-	public void replaceBody(final List<lombok.ast.Statement> statements) {
-		setGeneratedByAndCopyPos(get(), source);
+	public void replaceBody(final List<lombok.ast.Statement<?>> statements) {
 		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		get().statements = build(statements).toArray(new Statement[0]);
 		final List<Annotation> annotations = new ArrayList<Annotation>();
@@ -255,8 +253,8 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		return EclipseType.typeOf(node(), source);
 	}
 
-	public List<lombok.ast.Statement> statements() {
-		final List<lombok.ast.Statement> methodStatements = new ArrayList<lombok.ast.Statement>();
+	public List<lombok.ast.Statement<?>> statements() {
+		final List<lombok.ast.Statement<?>> methodStatements = new ArrayList<lombok.ast.Statement<?>>();
 		for (Object statement : Each.elementIn(get().statements)) {
 			methodStatements.add(Stat(statement));
 		}

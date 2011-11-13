@@ -21,7 +21,7 @@
  */
 package lombok.ast;
 
-public final class NullLiteral extends Expression {
+public final class NullLiteral extends Expression<NullLiteral> {
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {
 		return v.visitNullLiteral(this, p);
