@@ -40,8 +40,8 @@ public final class ASTPrinter implements ASTVisitor<ASTPrinter.State, ASTPrinter
 		if (modifiers.contains(Modifier.PRIVATE)) state.print("private ");
 		if (modifiers.contains(Modifier.PROTECTED)) state.print("protected ");
 		if (modifiers.contains(Modifier.STATIC)) state.print("static ");
-		if (modifiers.contains(Modifier.FINAL)) state.print("final" );
-		if (modifiers.contains(Modifier.VOLATILE)) state.print("volatile");
+		if (modifiers.contains(Modifier.FINAL)) state.print("final ");
+		if (modifiers.contains(Modifier.VOLATILE)) state.print("volatile ");
 		if (modifiers.contains(Modifier.TRANSIENT)) state.print("transient ");
 	}
 

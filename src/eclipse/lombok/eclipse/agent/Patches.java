@@ -35,7 +35,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.impl.ITypeRequestor;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.eclipse.jdt.internal.compiler.parser.Parser;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Patches {
@@ -111,8 +110,11 @@ final class Patches {
 		final ITypeRequestor typeRequestor = cus.environment().typeRequestor;
 		if (!(typeRequestor instanceof org.eclipse.jdt.internal.compiler.Compiler)) return;
 		final org.eclipse.jdt.internal.compiler.Compiler c = (org.eclipse.jdt.internal.compiler.Compiler) typeRequestor;
-		final Parser parser = c.parser;
-		parser.getMethodBodies(cus.referenceContext);
-		typeNode.rebuild();
+		try {
+			c.parser.getMethodBodies(cus.referenceContext);
+			typeNode.rebuild();
+		} catch (Exception e) {
+			// better break here
+		}
 	}
 }

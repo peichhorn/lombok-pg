@@ -28,7 +28,7 @@ import lombok.core.util.Cast;
 
 public abstract class Node<SELF_TYPE extends Node<SELF_TYPE>> {
 	private Node<?> parent;
-	private Object source;
+	private Object posHint;
 
 	public final <T extends Node<?>> T child(final T node) {
 		if (node != null) node.parent = this;
@@ -51,17 +51,17 @@ public abstract class Node<SELF_TYPE extends Node<SELF_TYPE>> {
 		return Cast.<SELF_TYPE>uncheckedCast(this);
 	}
 
-	public final SELF_TYPE source(final Object source) {
-		this.source = source;
+	public final SELF_TYPE posHint(final Object posHint) {
+		this.posHint = posHint;
 		return self();
 	}
 
-	public final <T> T source() {
+	public final <T> T posHint() {
 		Node<?> node = this;
-		while ((node != null) && (node.source == null)) {
+		while ((node != null) && (node.posHint == null)) {
 			node = node.up();
 		}
-		return node == null ? null : Cast.<T>uncheckedCast(node.source);
+		return node == null ? null : Cast.<T>uncheckedCast(node.posHint);
 	}
 
 	public String toString() {
