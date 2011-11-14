@@ -60,6 +60,9 @@ public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod>
 				break;
 			}
 		}
+		for (lombok.ast.Statement<?> sanitizeStatement : sanitizeStatements) {
+			sanitizeStatement.posHint(method.get());
+		}
 		return sanitizeStatements;
 	}
 }

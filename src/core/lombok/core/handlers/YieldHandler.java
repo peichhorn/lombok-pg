@@ -100,7 +100,7 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 			final Switch errorHandlerSwitch = getErrorHandlerSwitch();
 			final Statement<?> closeStatement = getCloseStatement();
 
-			ClassDecl yielder = ClassDecl(yielderName).makeLocal().implementing(Type(Iterator.class).withTypeArgument(Type(elementType))) //
+			ClassDecl yielder = ClassDecl(yielderName).posHint(method.get()).makeLocal().implementing(Type(Iterator.class).withTypeArgument(Type(elementType))) //
 				.withFields(variables) //
 				.withField(FieldDecl(Type("int"), stateName).makePrivate()) //
 				.withField(FieldDecl(Type("boolean"), "$hasNext").makePrivate()) //

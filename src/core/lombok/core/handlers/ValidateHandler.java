@@ -39,11 +39,11 @@ public class ValidateHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
-		diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}
 
-		method.replaceBody(Block().source(method.get()) //
+		method.replaceBody(Block().posHint(method.get()) //
 			.withStatements(validator.validateParameterOf(method)) //
 			.withStatements(method.statements()));
 		method.rebuild();

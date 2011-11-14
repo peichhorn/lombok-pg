@@ -47,9 +47,9 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {
 
-	public static void setGeneratedByAndCopyPos(final ASTNode target, final ASTNode source) {
+	public static void setGeneratedByAndCopyPos(final ASTNode target, final ASTNode source, final ASTNode position) {
 		setGeneratedBy(target, source);
-		copyPosTo(target, source);
+		copyPosTo(target, position);
 	}
 
 	public static void injectType(final EclipseNode typeNode, final TypeDeclaration type) {
@@ -81,27 +81,50 @@ public final class Eclipse {
 	}
 
 	public static void copyPosTo(final ASTNode target, final ASTNode source) {
-		target.sourceStart = source.sourceStart;
-		target.sourceEnd = source.sourceEnd;
+		if (source == null) return;
+		if (source instanceof AbstractMethodDeclaration) {
+			target.sourceStart = ((AbstractMethodDeclaration)source).bodyStart;
+			target.sourceEnd = ((AbstractMethodDeclaration)source).bodyEnd;
+		} else if (source instanceof TypeDeclaration) {
+			target.sourceStart = ((TypeDeclaration)source).bodyStart;
+			target.sourceEnd = ((TypeDeclaration)source).bodyEnd;
+		} else {
+			target.sourceStart = source.sourceStart;
+			target.sourceEnd = source.sourceEnd;
+		}
 		if (target instanceof AbstractMethodDeclaration) {
-			((AbstractMethodDeclaration)target).bodyStart = source.sourceStart;
-			((AbstractMethodDeclaration)target).bodyEnd = source.sourceEnd;
+			((AbstractMethodDeclaration)target).bodyStart = target.sourceStart;
+			((AbstractMethodDeclaration)target).bodyEnd = target.sourceEnd;
+			if (source instanceof AbstractMethodDeclaration) {
+				((AbstractMethodDeclaration)target).declarationSourceStart = ((AbstractMethodDeclaration)source).declarationSourceStart;
+				((AbstractMethodDeclaration)target).declarationSourceEnd = ((AbstractMethodDeclaration)source).declarationSourceEnd;
+			} else {
+				((AbstractMethodDeclaration)target).declarationSourceStart = target.sourceStart;
+				((AbstractMethodDeclaration)target).declarationSourceEnd = target.sourceEnd;
+			}
 		} else if (target instanceof TypeDeclaration) {
-			((TypeDeclaration)target).bodyStart = source.sourceStart;
-			((TypeDeclaration)target).bodyEnd = source.sourceEnd;
+			((TypeDeclaration)target).bodyStart = target.sourceStart;
+			((TypeDeclaration)target).bodyEnd = target.sourceEnd;
+			if (source instanceof TypeDeclaration) {
+				((TypeDeclaration)target).declarationSourceStart = ((TypeDeclaration)source).declarationSourceStart;
+				((TypeDeclaration)target).declarationSourceEnd = ((TypeDeclaration)source).declarationSourceEnd;
+			} else {
+				((TypeDeclaration)target).declarationSourceStart = target.sourceStart;
+				((TypeDeclaration)target).declarationSourceEnd = target.sourceEnd;
+			}
 		} else if (target instanceof Initializer) {
-			((Initializer)target).declarationSourceStart = source.sourceStart;
-			((Initializer)target).declarationSourceEnd = source.sourceEnd;
+			((Initializer)target).declarationSourceStart = target.sourceStart;
+			((Initializer)target).declarationSourceEnd = target.sourceEnd;
 		} else if (target instanceof AbstractVariableDeclaration) {
 			target.sourceStart = 0;
 			target.sourceEnd = 0;
 			((AbstractVariableDeclaration)target).declarationSourceEnd = -1;
 		}
 		if (target instanceof Expression) {
-			((Expression)target).statementEnd = source.sourceEnd;
+			((Expression)target).statementEnd = target.sourceEnd;
 		}
 		if (target instanceof Annotation) {
-			((Annotation)target).declarationSourceEnd = source.sourceEnd;
+			((Annotation)target).declarationSourceEnd = target.sourceEnd;
 		}
 	}
 

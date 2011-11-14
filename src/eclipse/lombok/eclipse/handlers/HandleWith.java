@@ -148,7 +148,7 @@ public class HandleWith extends EclipseASTAdapter {
 			if (arg instanceof MessageSend) {
 				MessageSend methodCall = (MessageSend) arg;
 				methodCall.traverse(new WithReferenceReplaceVisitor(source, withExprName), (BlockScope)null);
-				setGeneratedByAndCopyPos(methodCall, source);
+				setGeneratedByAndCopyPos(methodCall, source, source);
 				withCallStatements.add(arg);
 			} else {
 				methodCallNode.addError(unsupportedExpressionIn("with", arg));

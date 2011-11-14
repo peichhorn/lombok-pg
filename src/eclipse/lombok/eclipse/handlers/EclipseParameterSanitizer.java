@@ -59,6 +59,9 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 				break;
 			}
 		}
+		for (lombok.ast.Statement<?> sanitizeStatement : sanitizeStatements) {
+			sanitizeStatement.posHint(method.get());
+		}
 		return sanitizeStatements;
 	}
 }

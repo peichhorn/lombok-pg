@@ -56,6 +56,9 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 				break;
 			}
 		}
+		for (lombok.ast.Statement<?> validateStatement : validateStatements) {
+			validateStatement.posHint(method.get());
+		}
 		return validateStatements;
 	}
 }

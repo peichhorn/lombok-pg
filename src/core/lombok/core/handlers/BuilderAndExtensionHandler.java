@@ -72,7 +72,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			} else { 
 				interfaceType = type.<TYPE_TYPE>memberType(OPTIONAL_DEF);
 			}
-			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
+			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).posHint(method.get()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
 				.withStatements(validation.validateParameterOf(method)) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatements(method.statements()) //
