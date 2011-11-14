@@ -168,7 +168,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	private TreeMaker M(final lombok.ast.Node<?> node) {
 		final JCTree posHint = node.posHint();
-		return sourceNode.getTreeMaker().at(posHint == null ? -1 : posHint.pos);
+		return sourceNode.getTreeMaker().at(posHint == null ? source.pos : posHint.pos);
 	}
 
 	private Name name(final String name) {

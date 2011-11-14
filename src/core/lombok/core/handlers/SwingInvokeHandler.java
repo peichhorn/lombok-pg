@@ -63,7 +63,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
 
-		method.replaceBody(Block() //
+		method.replaceBody(Block().posHint(method.get()) //
 			.withStatements(validation.validateParameterOf(method)) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatement(LocalDecl(Type(Runnable.class), field).makeFinal().withInitialization(New(Type(Runnable.class)) //
