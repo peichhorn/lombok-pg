@@ -16,7 +16,6 @@ Changes:
   @Data(super=true) works for @ToString and @EqualsAndHashCode
   (Note: This is one of the features, that will most likely end up in lombok once part 2 is done)
 
-[0004-eclipse-usability-improvements.patch]  
+[0004-cleanup-and-closeable.patch]  
 
-  to try out the eclipse usability fixes provided by Jappe van der Hel, it is very
-  likely that they will end up in the official lombok project soon.
+  @Cleanup is treated special to support Closeable

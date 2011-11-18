@@ -112,14 +112,13 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 	private Extension getExtension(final JavacNode typeNode, final ClassType extensionMethodProviderType) {
 		List<MethodSymbol> extensionMethods = new ArrayList<MethodSymbol>();
 		TypeSymbol tsym = extensionMethodProviderType.asElement();
-		if (tsym != null)
-			for (Symbol member : tsym.getEnclosedElements()) {
-				if (member.getKind() != ElementKind.METHOD) continue;
-				MethodSymbol method = (MethodSymbol) member;
-				if ((method.flags() & (STATIC | PUBLIC)) == 0) continue;
-				if (method.params().isEmpty()) continue;
-				extensionMethods.add(method);
-			}
+		if (tsym != null) for (Symbol member : tsym.getEnclosedElements()) {
+			if (member.getKind() != ElementKind.METHOD) continue;
+			MethodSymbol method = (MethodSymbol) member;
+			if ((method.flags() & (STATIC | PUBLIC)) == 0) continue;
+			if (method.params().isEmpty()) continue;
+			extensionMethods.add(method);
+		}
 		return new Extension(extensionMethods, tsym);
 	}
 
@@ -159,7 +158,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 			if (!suppressBaseMethods && !(resolvedMethodCall instanceof ErrorType)) return;
 			Type receiverType = CLASS_AND_METHOD.resolveMember(methodCallNode, receiver);
 			if (receiverType == null) return;
-			if (receiverType.tsym.toString().endsWith(receiver.toString())) return;
+			if (As.string(receiverType.tsym).endsWith(As.string(receiver))) return;
 
 			Types types = Types.instance(type.node().getContext());
 			for (Extension extension : extensions) {
