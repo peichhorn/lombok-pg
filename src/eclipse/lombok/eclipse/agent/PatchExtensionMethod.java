@@ -74,6 +74,7 @@ import lombok.core.AST.Kind;
 import lombok.core.AnnotationValues;
 import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.core.util.As;
+import lombok.core.util.Each;
 import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
@@ -140,6 +141,7 @@ public final class PatchExtensionMethod {
 			if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
 		}
 		for (Extension extension : extensions) {
+			if (methodCall.binding == null) continue;
 			if (!extension.isSuppressBaseMethods() && !(methodCall.binding instanceof ProblemMethodBinding)) continue;
 			for (MethodBinding extensionMethod : extension.getExtensionMethods()) {
 				if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
@@ -151,10 +153,10 @@ public final class PatchExtensionMethod {
 				}
 				List<Expression> arguments = new ArrayList<Expression>();
 				arguments.add(methodCall.receiver);
-				if (Is.notEmpty(methodCall.arguments)) Collections.addAll(arguments, methodCall.arguments);
+				arguments.addAll(Each.elementIn(methodCall.arguments));
 				List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
 				argumentTypes.add(methodCall.receiver.resolvedType);
-				argumentTypes.addAll(Arrays.asList(methodCall.binding.parameters));
+				argumentTypes.addAll(Each.elementIn(methodCall.binding.parameters));
 				MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
 				if (fixedBinding instanceof ProblemMethodBinding) {
 					scope.problemReporter().invalidMethod(methodCall, fixedBinding);

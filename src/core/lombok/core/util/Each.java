@@ -28,11 +28,11 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Each {
 
-	public static <T> Iterable<T> elementIn(final Collection<T> elements) {
+	public static <T> Collection<T> elementIn(final Collection<T> elements) {
 		return elements == null ? Collections.<T>emptyList() : elements;
 	}
 
-	public static <T> Iterable<T> elementIn(final T... elements) {
+	public static <T> Collection<T> elementIn(final T... elements) {
 		return elements == null ? Collections.<T>emptyList() : java.util.Arrays.asList(elements);
 	}
 }
