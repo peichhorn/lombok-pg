@@ -3,6 +3,14 @@ import java.util.Arrays;
 class ExtensionMethodPlain {
 	private static final String s = ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r");
 	
+	static {
+		final String staticInitializerVar = ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r");
+	}
+	
+	{
+		final String initializerVar = ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r");
+	}
+	
 	private void test1() {
 		new Runnable(){
 			@Override
@@ -41,6 +49,7 @@ class ExtensionMethodPlain {
 	private static class ExtensionMethodInExplicitSuperCall extends Exception {
 		public ExtensionMethodInExplicitSuperCall() {
 			super(ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r"));
+			ExtensionMethodPlain.Strings.escapeToJavaRegex("f?ob*r");
 		}
 	}
 	

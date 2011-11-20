@@ -88,6 +88,10 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 		final List<Extension> extensions = getExtensions(type.node(), extensionProviders);
 		if (extensions.isEmpty()) return;
 
+		// call HandleVal explicitly to ensure val gets handled before @ExtensionMethdod gets handled.
+		// TODO maybe we should prioritize lombok handler
+		type.node().traverse(new HandleVal());
+
 		new ExtensionMethodReplaceVisitor(type, extensions, suppressBaseMethods).replace();
 
 		type.rebuild();
