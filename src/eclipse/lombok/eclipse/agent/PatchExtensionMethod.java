@@ -62,6 +62,7 @@ import org.eclipse.jdt.internal.compiler.lookup.ProblemMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.Scope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.eclipse.jdt.internal.core.SearchableEnvironment;
@@ -161,6 +162,16 @@ public final class PatchExtensionMethod {
 				if (fixedBinding instanceof ProblemMethodBinding) {
 					scope.problemReporter().invalidMethod(methodCall, fixedBinding);
 				} else {
+					for (int i = 0, iend = arguments.size(); i < iend; i++) {
+						Expression arg = arguments.get(i);
+						if (!fixedBinding.parameters[i].isBaseType() && arg.resolvedType.isBaseType()) {
+							int id = arg.resolvedType.id; 
+							arg.implicitConversion = TypeIds.BOXING | (id + (id << 4)); // magic see TypeIds
+						} else if (fixedBinding.parameters[i].isBaseType() && !arg.resolvedType.isBaseType()) {
+							int id = fixedBinding.parameters[i].id; 
+							arg.implicitConversion = TypeIds.UNBOXING | (id + (id << 4)); // magic see TypeIds
+						}
+					}
 					methodCall.arguments = arguments.toArray(new Expression[0]);
 					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
