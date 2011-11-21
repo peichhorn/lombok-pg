@@ -1,8 +1,0 @@
-import static lombok.Tuple.tuple;
-
-class TupleExample {
-	public void swap() {
-		int a, b = tuple(1, 2);
-		tuple(a, b) = tuple(b, a);
-	}
-}

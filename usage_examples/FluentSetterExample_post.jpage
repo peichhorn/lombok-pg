@@ -1,8 +1,0 @@
-public class FluentSetterExample<T> {
-	private String s;
-	
-	public FluentSetterExample<T> s(final String s) {
-		this.s = s;
-		return this;
-	}
-}

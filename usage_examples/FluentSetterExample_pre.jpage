@@ -1,6 +1,0 @@
-import lombok.FluentSetter;
-
-public class FluentSetterExample<T> {
-	@FluentSetter
-	private String s;
-}
