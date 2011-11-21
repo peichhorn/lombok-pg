@@ -57,10 +57,7 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 
 ## Grab the latest version:
 
-[lombok-pg 0.10.0 (based on lombok 0.10.0)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.0.jar)
-
-Edge release:
-[lombok-pg 0.10.2-EDGE (based on lombok 0.10.3)](http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-pg-0.10.2-EDGE.jar)
+[Download page](https://github.com/peichhorn/lombok-pg/wiki/Grab-the-latest-version)
 
 ## Documentation:
 - [Check out lombok features](http://projectlombok.org/features/)

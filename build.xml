@@ -148,6 +148,19 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		</jar>
 		<copy file="dist/lombok-pg-${lombok.version}.jar" tofile="dist/lombok-pg.jar" />
 
+		<jar destfile="dist/lombok-pg-${lombok.version}-runtime.jar">
+			<fileset dir="build/lombok-pg">
+				<include name="*lombok/Actions*.class" />
+				<include name="*lombok/Functions*.class" />
+				<include name="*lombok/Predicates*.class" />
+				<include name="*lombok/TypeArguments.class" />
+			</fileset>
+			<fileset dir="." includes="LICENSE" />
+			<manifest>
+				<attribute name="Lombok-Version" value="${lombok.version}" />
+			</manifest>
+		</jar>
+
 		<jar destfile="dist/lombok-pg-${lombok.version}-sources.jar">
 			<fileset dir="src/core" />
 			<fileset dir="src/eclipse" />
@@ -163,19 +176,6 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<fileset dir="." includes="LICENSE" />
 		</jar>
 
-		<jar destfile="dist/lombok-pg-${lombok.version}-runtime.jar">
-			<fileset dir="build/lombok-pg">
-				<include name="*lombok/Actions*.class" />
-				<include name="*lombok/Functions*.class" />
-				<include name="*lombok/Predicates*.class" />
-				<include name="*lombok/TypeArguments.class" />
-			</fileset>
-			<fileset dir="." includes="LICENSE" />
-			<manifest>
-				<attribute name="Lombok-Version" value="${lombok.version}" />
-			</manifest>
-		</jar>
-
 		<property name="lombok.dist.built" value="true" />
 	</target>
 
@@ -184,18 +184,27 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
 				<replacetokens>
-					<token key="VERSION" value="${lombok.version}" />
+					<token key="VERSION" value="${lombok.version}-SNAPSHOT" />
 				</replacetokens>
 			</filterchain>
 		</copy>
-		
-		<!-- artifact:mvn>
+
+		<artifact:mvn>
 			<arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
-			<arg value="-Durl=${maven-snapshots-repository-url}" />
-			<arg value="-DrepositoryId=${maven-snapshots-repository-id}" />
+			<arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/" />
+			<arg value="-DrepositoryId=sonatype-nexus-snapshots" />
 			<arg value="-DpomFile=dist/pom.xml" />
-			<arg value="-Dfile=${maven-jar}" />
-		</artifact:mvn -->
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}.jar" />
+		</artifact:mvn>
+
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
+			<arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/" />
+			<arg value="-DrepositoryId=sonatype-nexus-snapshots" />
+			<arg value="-DpomFile=dist/pom.xml" />
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-runtime.jar" />
+			<arg value="-Dclassifier=runtime" />
+		</artifact:mvn>
 	</target>
 
 	<target name="website" description="Prepares the website for distribution.">
