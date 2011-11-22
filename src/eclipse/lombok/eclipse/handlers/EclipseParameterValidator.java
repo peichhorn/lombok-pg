@@ -46,8 +46,7 @@ public class EclipseParameterValidator implements IParameterValidator<EclipseMet
 			argumentIndex++;
 			for (ValidationStrategy validationStrategy : ValidationStrategy.IN_ORDER) {
 				final Annotation ann = getAnnotation(validationStrategy.getType(), argument.annotations);
-				if (ann == null) continue;
-				if (isGenerated(ann)) continue;
+				if ((ann == null) || isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = createAnnotation(validationStrategy.getType(), annotationNode).getInstance();
 				validateStatements.addAll(validationStrategy.getStatementsFor(argumentName, argumentIndex, annotation));

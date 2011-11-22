@@ -35,6 +35,7 @@ import lombok.javac.JavacNode;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -173,7 +174,16 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 			int idx = name.lastIndexOf(".");
 			String suspect = idx == -1 ? name : name.substring(idx + 1);
 			if ((namePattern == null) || namePattern.matcher(suspect).matches()) {
-				result.add(Annotation(Type(annotation.annotationType)));
+				lombok.ast.Annotation ann = Annotation(Type(annotation.annotationType));
+				for (JCExpression arg : annotation.args) {
+					if (arg instanceof JCAssign) {
+						JCAssign assign = (JCAssign) arg;
+						ann.withValue(assign.lhs.toString(), Expr(assign.rhs));
+					} else {
+						ann.withValue(Expr(arg));
+					}
+				}
+				result.add(ann);
 			}
 		}
 		return result;

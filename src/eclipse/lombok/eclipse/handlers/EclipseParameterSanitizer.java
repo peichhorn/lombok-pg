@@ -44,11 +44,10 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 		final List<lombok.ast.Statement<?>> sanitizeStatements = new ArrayList<lombok.ast.Statement<?>>();
 		for (Argument argument : Each.elementIn(method.get().arguments)) {
 			final String argumentName = new String(argument.name);
-			final String newArgumentName = camelCase("sanitized",argumentName);
+			final String newArgumentName = camelCase("sanitized", argumentName);
 			for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {
 				final Annotation ann = getAnnotation(sanitizerStrategy.getType(), argument.annotations);
-				if (ann == null) continue;
-				if (isGenerated(ann)) continue;
+				if ((ann == null) || isGenerated(ann)) continue;
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.type, argumentName, newArgumentName, annotation));

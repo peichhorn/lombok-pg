@@ -268,12 +268,12 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		for (Annotation annotation : Each.elementIn(anns)) {
-			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
+			lombok.ast.Annotation ann = Annotation(Type(annotation.type)).posHint(annotation);
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : ((NormalAnnotation) annotation).memberValuePairs) {
-					ann.withValue(As.string(pair.name), Expr(pair.value));
+					ann.withValue(As.string(pair.name), Expr(pair.value)).posHint(pair);
 				}
 			}
 			annotations.add(ann);
@@ -285,8 +285,8 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		final List<ArgumentStyle> styles = As.list(style);
 		final List<lombok.ast.Argument> methodArguments = new ArrayList<lombok.ast.Argument>();
 		for (Argument argument : Each.elementIn(get().arguments)) {
-			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type) : Type(argument.type);
-			lombok.ast.Argument arg = Arg(argType, As.string(argument.name));
+			lombok.ast.TypeRef argType = styles.contains(BOXED_TYPES) ? boxedType(argument.type).posHint(argument.type) : Type(argument.type);
+			lombok.ast.Argument arg = Arg(argType, As.string(argument.name)).posHint(argument);
 			if (styles.contains(INCLUDE_ANNOTATIONS)) arg.withAnnotations(annotations(argument.annotations));
 			methodArguments.add(arg);
 		}
@@ -298,7 +298,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		if (isConstructor()) return typeParameters;
 		MethodDeclaration methodDecl = (MethodDeclaration) get();
 		for (TypeParameter typaram : Each.elementIn(methodDecl.typeParameters)) {
-			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name));
+			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name)).posHint(typaram);
 			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
 			for (TypeReference bound : Each.elementIn(typaram.bounds)) {
 				typeParameter.withBound(Type(bound));

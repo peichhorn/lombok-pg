@@ -259,7 +259,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	public List<lombok.ast.TypeParam> typeParameters() {
 		final List<lombok.ast.TypeParam> typeParameters = new ArrayList<lombok.ast.TypeParam>();
 		for (TypeParameter typaram : Each.elementIn(get().typeParameters)) {
-			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name));
+			lombok.ast.TypeParam typeParameter = TypeParam(As.string(typaram.name)).posHint(typaram);
 			if (typaram.type != null) typeParameter.withBound(Type(typaram.type));
 			for (TypeReference bound : Each.elementIn(typaram.bounds)) {
 				typeParameter.withBound(Type(bound));
@@ -276,12 +276,12 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	private List<lombok.ast.Annotation> annotations(final Annotation[] anns) {
 		final List<lombok.ast.Annotation> annotations = new ArrayList<lombok.ast.Annotation>();
 		for (Annotation annotation : Each.elementIn(anns)) {
-			lombok.ast.Annotation ann = Annotation(Type(annotation.type));
+			lombok.ast.Annotation ann = Annotation(Type(annotation.type)).posHint(annotation);
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : ((NormalAnnotation)annotation).memberValuePairs) {
-					ann.withValue(As.string(pair.name), Expr(pair.value));
+					ann.withValue(As.string(pair.name), Expr(pair.value)).posHint(pair);
 				}
 			}
 			annotations.add(ann);

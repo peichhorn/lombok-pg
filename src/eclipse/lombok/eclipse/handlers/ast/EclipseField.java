@@ -32,8 +32,11 @@ import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
+import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 import lombok.core.util.As;
@@ -183,7 +186,15 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 			char[][] typeName = typeRef.getTypeName();
 			String suspect = As.string(typeName[typeName.length - 1]);
 			if ((namePattern == null) || namePattern.matcher(suspect).matches()) {
-				result.add(Annotation(Type(typeRef)));
+				lombok.ast.Annotation ann = Annotation(Type(annotation.type)).posHint(annotation);
+				if (annotation instanceof SingleMemberAnnotation) {
+					ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
+				} else if (annotation instanceof NormalAnnotation) {
+					for (MemberValuePair pair : ((NormalAnnotation) annotation).memberValuePairs) {
+						ann.withValue(As.string(pair.name), Expr(pair.value)).posHint(pair);
+					}
+				}
+				result.add(ann);
 			}
 		}
 		return result;
