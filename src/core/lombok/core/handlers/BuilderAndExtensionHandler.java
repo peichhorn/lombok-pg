@@ -24,6 +24,7 @@ package lombok.core.handlers;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
 import static lombok.ast.Wildcard.Bound.EXTENDS;
+import static lombok.core.TransformationsUtil.NON_NULL_PATTERN;
 import static lombok.core.util.Names.*;
 
 import java.util.*;
@@ -323,16 +324,15 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				if (field.isStatic()) continue;
 				String fieldName = field.name();
 				if (excludes.contains(fieldName)) continue;
-				if ((!field.isInitialized()) && field.isFinal()) {
+				if ((!field.isInitialized()) && (field.isFinal() || !field.annotations(NON_NULL_PATTERN).isEmpty())) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
 					String typeName = camelCase("$", fieldName, "def");
 					requiredFieldDefTypeNames.add(typeName);
 					requiredFieldDefTypes.add(Type(typeName));
+				} else if ((generateConvenientMethodsEnabled && isInitializedMapOrCollection(field)) || !field.isFinal()) {
+					optionalFields.add(field);
 				}
-				boolean append = generateConvenientMethodsEnabled && isInitializedMapOrCollection(field);
-				append |= !field.isFinal();
-				if (append) optionalFields.add(field);
 			}
 			return this;
 		}

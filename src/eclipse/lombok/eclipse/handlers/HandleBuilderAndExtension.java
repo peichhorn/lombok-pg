@@ -123,7 +123,7 @@ public class HandleBuilderAndExtension {
 			method.node().traverse((EclipseASTVisitor) collector);
 		}
 
-		@Override public IExtensionCollector getExtensionCollector() {
+		@Override protected IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
 		}
 	}

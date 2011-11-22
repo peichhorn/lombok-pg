@@ -122,7 +122,7 @@ public class HandleBuilderAndExtension {
 			method.node().traverse((JavacASTVisitor) collector);
 		}
 
-		@Override public IExtensionCollector getExtensionCollector() {
+		@Override protected IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
 		}
 	}
