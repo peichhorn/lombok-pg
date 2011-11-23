@@ -1,0 +1,53 @@
+2105425664cd74340625c3a37bd05e7edb7e34f8
+ .../lombok/eclipse/agent/EclipsePatcher.java       |   12 ++++++++++--
+ .../lombok/eclipse/agent/PatchFixes.java           |    4 ++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java b/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
+index f838eb9..6472c9f 100644
+--- a/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
++++ b/src/eclipseAgent/lombok/eclipse/agent/EclipsePatcher.java
+@@ -115,9 +115,9 @@ public class EclipsePatcher extends Agent {
+ 			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.ForStatement"))
+ 			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.IfStatement"))
+ 			.target(new MethodTarget("org.eclipse.jdt.internal.corext.fix.ControlStatementsFix$ControlStatementFinder", "visit", "boolean", "org.eclipse.jdt.core.dom.WhileStatement"))
+-			.decisionMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.Statement"))
++			.decisionMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.ASTNode"))
+ 			.request(StackRequest.PARAM1)
+-			.valueMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.Statement"))
++			.valueMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.ASTNode"))
+ 			.build());
+ 	}
+ 	
+@@ -200,6 +200,14 @@ public class EclipsePatcher extends Agent {
+ 				.wrapMethod(new Hook("lombok.eclipse.agent.PatchFixes", "removeGeneratedMethods", "org.eclipse.jdt.core.IMethod[]",
+ 						"org.eclipse.jdt.core.IMethod[]"))
+ 				.transplant().build());
++		
++		sm.addScript(ScriptBuilder.exitEarly()
++				.target(new MethodTarget("org.eclipse.jdt.internal.corext.refactoring.rename.TempOccurrenceAnalyzer", "visit", "boolean", "org.eclipse.jdt.core.dom.SimpleName"))
++				.target(new MethodTarget("org.eclipse.jdt.internal.corext.refactoring.rename.RenameAnalyzeUtil$ProblemNodeFinder$NameNodeVisitor", "visit", "boolean", "org.eclipse.jdt.core.dom.SimpleName"))
++				.decisionMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.ASTNode"))
++				.request(StackRequest.PARAM1)
++				.valueMethod(new Hook("lombok.eclipse.agent.PatchFixes", "isGenerated", "boolean", "org.eclipse.jdt.core.dom.ASTNode"))
++				.build());
+ 	}
+ 	
+ 	private static void patchCatchReparse(ScriptManager sm) {
+diff --git a/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java b/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
+index 69024af..682eab2 100644
+--- a/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
++++ b/src/eclipseAgent/lombok/eclipse/agent/PatchFixes.java
+@@ -43,10 +43,10 @@ import org.eclipse.jdt.internal.core.dom.rewrite.RewriteEvent;
+ import org.eclipse.jdt.internal.core.dom.rewrite.TokenScanner;
+ 
+ public class PatchFixes {
+-	public static boolean isGenerated(org.eclipse.jdt.core.dom.Statement statement) {
++	public static boolean isGenerated(org.eclipse.jdt.core.dom.ASTNode node) {
+ 		boolean result = false;
+ 		try {
+-			result =  ((Boolean)statement.getClass().getField("$isGenerated").get(statement)).booleanValue();
++			result =  ((Boolean)node.getClass().getField("$isGenerated").get(node)).booleanValue();
+ 		} catch (Exception e) {
+ 			// better to assume it isn't generated
+ 		}
