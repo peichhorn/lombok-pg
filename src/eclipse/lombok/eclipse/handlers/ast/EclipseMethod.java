@@ -272,7 +272,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 			if (annotation instanceof SingleMemberAnnotation) {
 				ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
-				for (MemberValuePair pair : ((NormalAnnotation) annotation).memberValuePairs) {
+				for (MemberValuePair pair : Each.elementIn(((NormalAnnotation) annotation).memberValuePairs)) {
 					ann.withValue(As.string(pair.name), Expr(pair.value)).posHint(pair);
 				}
 			}

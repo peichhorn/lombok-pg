@@ -30,6 +30,7 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 import lombok.*;
+import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleListenerSupport;
 import lombok.patcher.*;
@@ -51,7 +52,11 @@ public final class PatchListenerSupport {
 		EclipseNode typeNode = getTypeNode(decl);
 		if ((ann != null) && (typeNode != null)) {
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
-			new HandleListenerSupport().handle(createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
+			try {
+				new HandleListenerSupport().handle(createAnnotation(ListenerSupport.class, annotationNode), ann, annotationNode);
+			} catch (AnnotationValueDecodeFail fail) {
+				fail.owner.setError(fail.getMessage(), fail.idx);
+			}
 		}
 		return false;
 	}

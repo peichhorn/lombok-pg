@@ -31,6 +31,7 @@ import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 
 import lombok.*;
+import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleActionFunctionAndPredicate.HandleFunction;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -58,7 +59,11 @@ public final class PatchFunction {
 				if (ann != null) {
 					completeNode(typeNode);
 					EclipseNode annotationNode = typeNode.getNodeFor(ann);
-					new HandleFunction().handle(createAnnotation(Function.class, annotationNode), ann, annotationNode);
+					try {
+						new HandleFunction().handle(createAnnotation(Function.class, annotationNode), ann, annotationNode);
+					} catch (AnnotationValueDecodeFail fail) {
+						fail.owner.setError(fail.getMessage(), fail.idx);
+					}
 				}
 			}
 		}

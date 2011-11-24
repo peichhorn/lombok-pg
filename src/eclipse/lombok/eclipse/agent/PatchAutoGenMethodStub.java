@@ -33,6 +33,7 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
 import lombok.*;
+import lombok.core.AnnotationValues.AnnotationValueDecodeFail;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.HandleAutoGenMethodStub;
 import lombok.patcher.*;
@@ -68,9 +69,13 @@ public final class PatchAutoGenMethodStub {
 		EclipseNode typeNode = getTypeNode(decl);
 		if ((ann != null) && (typeNode != null)) {
 			EclipseNode annotationNode = typeNode.getNodeFor(ann);
-			MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
-			ISSUE_WAS_FIXED.set(true);
-			return method;
+			try {
+				MethodDeclaration method = new HandleAutoGenMethodStub().handle(abstractMethod, createAnnotation(AutoGenMethodStub.class, annotationNode), ann, annotationNode);
+				ISSUE_WAS_FIXED.set(true);
+				return method;
+			} catch (AnnotationValueDecodeFail fail) {
+				fail.owner.setError(fail.getMessage(), fail.idx);
+			}
 		}
 		return decl.addMissingAbstractMethodFor(abstractMethod);
 	}
