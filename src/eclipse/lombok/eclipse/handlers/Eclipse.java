@@ -41,6 +41,7 @@ import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ImportReference;
 import org.eclipse.jdt.internal.compiler.ast.Initializer;
 import org.eclipse.jdt.internal.compiler.ast.MessageSend;
+import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 
@@ -122,6 +123,13 @@ public final class Eclipse {
 		}
 		if (target instanceof Expression) {
 			((Expression)target).statementEnd = target.sourceEnd;
+		}
+		if (target instanceof QualifiedAllocationExpression) {
+			if (((QualifiedAllocationExpression)target).anonymousType != null) {
+				((QualifiedAllocationExpression)target).anonymousType.bodyEnd = target.sourceEnd + 2;
+				((QualifiedAllocationExpression)target).anonymousType.sourceEnd = 0;
+				target.sourceStart -= 4;
+			}
 		}
 		if (target instanceof Annotation) {
 			((Annotation)target).declarationSourceEnd = target.sourceEnd;

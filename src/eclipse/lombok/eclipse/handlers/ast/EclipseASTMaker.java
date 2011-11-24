@@ -347,8 +347,6 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (node.isLocal()) typeDeclaration.bits |= ASTNode.IsLocalType;
 		if (node.isAnonymous()) {
 			typeDeclaration.bits |= ASTNode.IsAnonymousType;
-			typeDeclaration.bodyEnd = typeDeclaration.sourceEnd + 2;
-			typeDeclaration.sourceEnd = 0;
 		}
 		if (Is.empty(node.getName())) {
 			typeDeclaration.name = CharOperation.NO_CHAR;
