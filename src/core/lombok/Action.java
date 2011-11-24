@@ -34,5 +34,5 @@ public @interface Action {
 	/**
 	 * Specifies the template class, that should be used. Default is {@code Actions.class}.
 	 */
-	Class<?> template() default Actions.class;
+	Class<?> value() default Actions.class;
 }

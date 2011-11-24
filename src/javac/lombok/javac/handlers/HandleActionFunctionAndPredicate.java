@@ -111,7 +111,7 @@ public class HandleActionFunctionAndPredicate {
 			return;
 		}
 
-		final Object templates = annotation.getActualExpression("template");
+		final Object templates = annotation.getActualExpression("value");
 		final TypeSymbol resolvedTemplates = resolveTemplates(method.node(), source, templates);
 		if (resolvedTemplates == null) {
 			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType.getSimpleName()));

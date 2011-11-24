@@ -34,5 +34,5 @@ public @interface Predicate {
 	/**
 	 * Specifies the template class, that should be used. Default is {@code Predicates.class}.
 	 */
-	Class<?> template() default Predicates.class;
+	Class<?> value() default Predicates.class;
 }

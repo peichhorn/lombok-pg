@@ -63,7 +63,7 @@ public class HandleActionFunctionAndPredicate {
 
 		@Override
 		public void handle(final AnnotationValues<Action> annotation, final Annotation source, final EclipseNode annotationNode) {
-			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, "void");
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().value(), source, annotationNode, "void");
 		}
 	}
 
@@ -75,7 +75,7 @@ public class HandleActionFunctionAndPredicate {
 
 		@Override
 		public void handle(final AnnotationValues<Function> annotation, final Annotation source, final EclipseNode annotationNode) {
-			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, null);
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().value(), source, annotationNode, null);
 		}
 	}
 
@@ -87,7 +87,7 @@ public class HandleActionFunctionAndPredicate {
 
 		@Override
 		public void handle(final AnnotationValues<Predicate> annotation, final Annotation source, final EclipseNode annotationNode) {
-			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().template(), source, annotationNode, "boolean");
+			new HandleActionFunctionAndPredicate().handle(annotation.getInstance().value(), source, annotationNode, "boolean");
 		}
 	}
 

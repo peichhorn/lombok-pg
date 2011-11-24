@@ -34,5 +34,5 @@ public @interface Function {
 	/**
 	 * Specifies the template class, that should be used. Default is {@code Functions.class}.
 	 */
-	Class<?> template() default Functions.class;
+	Class<?> value() default Functions.class;
 }
