@@ -195,6 +195,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<arg value="-DrepositoryId=sonatype-nexus-snapshots" />
 			<arg value="-DpomFile=dist/pom.xml" />
 			<arg value="-Dfile=dist/lombok-pg-${lombok.version}.jar" />
+			<arg value="-DuniqueVersion=false" />
 		</artifact:mvn>
 
 		<artifact:mvn>
@@ -203,6 +204,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<arg value="-DrepositoryId=sonatype-nexus-snapshots" />
 			<arg value="-DpomFile=dist/pom.xml" />
 			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-runtime.jar" />
+			<arg value="-DuniqueVersion=false" />
 			<arg value="-Dclassifier=runtime" />
 		</artifact:mvn>
 	</target>
