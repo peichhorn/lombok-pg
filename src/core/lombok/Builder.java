@@ -27,7 +27,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Put on any type to make lombok create a fluent interface builder for it.
+ * Put on any type to make lombok-pg create a fluent interface builder for it.
  * <p>
  * Before:
  * <pre>

@@ -29,7 +29,7 @@ import java.lang.annotation.*;
 /**
  * Two popular singleton templates.
  * <p>
- * Since not much code is generated the annotation also acts as documentation.
+ * Since not much code is generated, the annotation also acts as documentation.
  * <p>
  * With lombok:
  * <pre>
@@ -53,7 +53,7 @@ import java.lang.annotation.*;
  * </pre>
  * <p>
  * <b>Note:</b> If you don't like the enum approach, try the holder approach using<br>
- * {@code @Singleton(style = Singleton.Style.HOLDER)}.
+ * <code>@Singleton(style = {@link Singleton.Style#HOLDER})</code>.
  */
 @Target(TYPE) @Retention(SOURCE)
 public @interface Singleton {
@@ -61,6 +61,32 @@ public @interface Singleton {
 	Style style() default Style.ENUM;
 
 	public static enum Style {
-		ENUM, HOLDER;
+		/**
+		 * <pre>
+		 * enum SingletonEnumExample {
+		 *   INSTANCE;
+		 * 
+		 *   public static SingletonEnumExample getInstance() {
+		 *     return INSTANCE;
+		 *   }
+		 * }
+		 * </pre>
+		 */
+		ENUM,
+		/**
+		 * <pre>
+		 * class SingletonHolderExample {
+		 * 
+		 *   private static class SingletonHolderExampleHolder {
+		 *     private static final SingletonHolderExample INSTANCE = new SingletonHolderExample();
+		 *   }
+		 * 
+		 *   public static SingletonHolderExample getInstance() {
+		 *     return SingletonHolderExampleHolder.INSTANCE;
+		 *   }
+		 * }
+		 * </pre>
+		 */
+		HOLDER;
 	}
 }

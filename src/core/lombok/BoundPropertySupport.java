@@ -26,6 +26,31 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.*;
 
+/**
+ * Transformses the annotated Java class into a JavaBean.
+ * <p>
+ * Before:
+ * <pre>
+ * &#64;GenerateJavaBean
+ * public class Mountain {
+ * 
+ * }
+ * </pre>
+ * After:
+ * <pre>
+ * public class Mountain {
+ *   private PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
+
+ *   public void addPropertyChangeListener(PropertyChangeListener listener) {
+ *     propertySupport.addPropertyChangeListener(listener);
+ *   }
+ *
+ *   public void removePropertyChangeListener(PropertyChangeListener listener) {
+ *     propertySupport.removePropertyChangeListener(listener);
+ *   }
+ * }
+ * </pre>
+ */
 @Target({FIELD, TYPE}) @Retention(SOURCE) 
 public @interface BoundPropertySupport {
 }

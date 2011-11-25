@@ -29,6 +29,32 @@ import java.lang.annotation.*;
 
 import lombok.AccessLevel;
 
+/**
+ * Creates a "bound" setter for an annotated field.
+ * <p>
+ * Before:
+ * <pre>
+ * public class Mountain {
+ * 
+ *   &#64;GenerateBoundSetter
+ *   private String name;
+ * }
+ * </pre>
+ * After:
+ * <pre>
+ * public class Mountain {
+ *   public static final String PROP_NAME = "name";
+ *   
+ *   private String name;
+ *   
+ *   public void setName(String value) {
+ *      String oldValue = name;
+ *      firstName = value;
+ *      propertySupport.firePropertyChange(PROP_NAME, oldValue, name);
+ *   }
+ * }
+ * </pre>
+ */
 @Target({FIELD, TYPE}) @Retention(SOURCE)
 public @interface BoundSetter {
   

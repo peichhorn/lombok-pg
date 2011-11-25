@@ -35,14 +35,8 @@ public class Yield {
 	/**
 	 *  A take on yield return.
 	 * <pre>
-	 * public Iterable&lt;T&gt; doSomething(Collection&lt;T&gt; entries) {
-	 *   for (T entry : entries) {
-	 *     if (isMet(cond))
-	 *       yield(entry);
-	 *     if (isMet(otherCond))
-	 *       break;
-	 *     yield(transform(entry));
-	 *   }
+	 * public static &lt;S, T&gt; Iterable<T> map(final Iterable&lt;S&gt; list, final Function1<S, T> mapping) {
+	 *   for (S element : list) yield(mapping.apply(element));
 	 * }
 	 * </pre>
 	 * or:
@@ -58,8 +52,6 @@ public class Yield {
 	 *   }
 	 * }
 	 * </pre>
-	 * <b>Note:</b> This is an experimental feature and might not work in some cases.
-	 * Please file a bug report if you stumble over anything weird.
 	 */
 	public static <T> void yield(final T value) {
 		return; // yup, that's about all we need
