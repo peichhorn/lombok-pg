@@ -133,7 +133,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<!-- dist -->
-	<target name="dist" description="Builds THE lombok-pg.jar and lombok-pg-runtime.jar file which contain everything." depends="compile, version">
+	<target name="dist" description="Builds the lombok-pg artifacts" depends="compile, version">
 		<mkdir dir="dist" />
 		<jar destfile="dist/lombok-pg-${lombok.version}.jar">
 			<fileset dir="build/lombok-pg" />
@@ -180,7 +180,8 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<!-- deploy -->
-	<target name="deploy" depends="ensure-maven-ant-tasks, dist" description="Deploy snapshot version to Maven snapshot repository">
+	<target name="maven-deploy" depends="ensure-maven-ant-tasks, dist" description="Deploy snapshot version to Maven snapshot repository">
+		<!-- create pom -->
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
 				<replacetokens>
@@ -188,7 +189,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 				</replacetokens>
 			</filterchain>
 		</copy>
-
+		<!-- main artifact -->
 		<artifact:mvn>
 			<arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
 			<arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/" />
@@ -197,7 +198,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<arg value="-Dfile=dist/lombok-pg-${lombok.version}.jar" />
 			<arg value="-DuniqueVersion=false" />
 		</artifact:mvn>
-
+		<!-- runtime artifact -->
 		<artifact:mvn>
 			<arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
 			<arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/" />
@@ -206,6 +207,57 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-runtime.jar" />
 			<arg value="-DuniqueVersion=false" />
 			<arg value="-Dclassifier=runtime" />
+		</artifact:mvn>
+	</target>
+
+	<!-- stage -->
+	<target name="maven-stage" depends="ensure-maven-ant-tasks, dist, clean" description="Deploy release version to Maven staging repository">
+		<!-- create pom -->
+		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
+			<filterchain>
+				<replacetokens>
+					<token key="VERSION" value="${lombok.version}" />
+				</replacetokens>
+			</filterchain>
+		</copy>
+		<!-- main artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+			<arg value="-DrepositoryId=sonatype-nexus-staging" />
+			<arg value="-DpomFile=dist/pom.xml" />
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}.jar" />
+			<arg value="-Pgpg" />
+		</artifact:mvn>
+		<!-- runtime artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+			<arg value="-DrepositoryId=sonatype-nexus-staging" />
+			<arg value="-DpomFile=dist/pom.xml" />
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-runtime.jar" />
+			<arg value="-Dclassifier=runtime" />
+			<arg value="-Pgpg" />
+		</artifact:mvn>
+		<!-- sources artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+			<arg value="-DrepositoryId=sonatype-nexus-staging" />
+			<arg value="-DpomFile=dist/pom.xml" />
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-sources.jar" />
+			<arg value="-Dclassifier=sources" />
+			<arg value="-Pgpg" />
+		</artifact:mvn>
+		<!-- javadoc artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+			<arg value="-DrepositoryId=sonatype-nexus-staging" />
+			<arg value="-DpomFile=dist/pom.xml" />
+			<arg value="-Dfile=dist/lombok-pg-${lombok.version}-javadoc.jar" />
+			<arg value="-Dclassifier=javadoc" />
+			<arg value="-Pgpg" />
 		</artifact:mvn>
 	</target>
 
