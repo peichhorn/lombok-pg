@@ -22,3 +22,7 @@ Changes:
 
 [0005-refactor-rename-method-arguments.patch]
   fixed refactor rename of method arguments..
+  
+[0006-usability-improvements.patch]
+  another magnificent usability improvement by Jappe van der Hel
+  (will definitely make it into lombok, but we want it now!!!)
