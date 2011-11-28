@@ -138,6 +138,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<jar destfile="dist/lombok-pg-${lombok.version}.jar">
 			<fileset dir="build/lombok-pg" />
 			<fileset dir="." includes="LICENSE" />
+			<fileset dir="." includes="AUTHORS" />
 			<manifest>
 				<attribute name="Premain-Class" value="lombok.core.LombokPGAgent" />
 				<attribute name="Agent-Class" value="lombok.core.LombokPGAgent" />
@@ -156,6 +157,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 				<include name="*lombok/TypeArguments.class" />
 			</fileset>
 			<fileset dir="." includes="LICENSE" />
+			<fileset dir="." includes="AUTHORS" />
 			<manifest>
 				<attribute name="Lombok-Version" value="${lombok.version}" />
 			</manifest>
@@ -166,6 +168,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<fileset dir="src/eclipse" />
 			<fileset dir="src/javac" />
 			<fileset dir="." includes="LICENSE" />
+			<fileset dir="." includes="AUTHORS" />
 		</jar>
 
 		<ant antfile="buildScripts/javadoc.ant.xml" target="javadoc" inheritAll="false">
@@ -174,6 +177,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<jar destfile="dist/lombok-pg-${lombok.version}-javadoc.jar">
 			<fileset dir="build/javadoc" />
 			<fileset dir="." includes="LICENSE" />
+			<fileset dir="." includes="AUTHORS" />
 		</jar>
 
 		<property name="lombok.dist.built" value="true" />
