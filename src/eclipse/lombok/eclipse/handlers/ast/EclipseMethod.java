@@ -161,6 +161,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public boolean isEmpty() {
+		if (isConstructor() && (((ConstructorDeclaration) get()).constructorCall != null)) return true;
 		return Is.empty(get().statements);
 	}
 

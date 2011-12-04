@@ -42,6 +42,7 @@ public class SanitizeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
 			return;
 		}
+
 		method.replaceBody(Block().posHint(method.get()) //
 			.withStatements(sanitizer.sanitizeParameterOf(method)) //
 			.withStatements(method.statements()));
