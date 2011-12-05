@@ -46,7 +46,7 @@ public class HandleEntrypoint {
 		}
 
 		@Override protected void handle(final EclipseType type) {
-			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "main", "runApp", Parameters.APPLICATION, Arguments.APPLICATION);
 		}
 	}
 
@@ -60,10 +60,8 @@ public class HandleEntrypoint {
 		}
 
 		@Override protected void handle(final EclipseType type) {
-			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
-			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
-			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "agentmain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
+			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "premain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
 		}
 	}
 

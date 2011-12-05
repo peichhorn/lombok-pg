@@ -50,7 +50,7 @@ public class HandleEntrypoint {
 
 		@Override protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
-			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "main", "runApp", new ApplicationParameterProvider(), new ApplicationArgumentProvider());
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "main", "runApp", Parameters.APPLICATION, Arguments.APPLICATION);
 		}
 	}
 
@@ -65,10 +65,8 @@ public class HandleEntrypoint {
 
 		@Override protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
-			IArgumentProvider argumentProvider = new JvmAgentArgumentProvider();
-			IParameterProvider parameterProvider = new JvmAgentParameterProvider();
-			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "agentmain", "runAgent", parameterProvider, argumentProvider);
-			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "premain", "runAgent", parameterProvider, argumentProvider);
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "agentmain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
+			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "premain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
 		}
 	}
 

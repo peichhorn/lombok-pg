@@ -23,6 +23,7 @@ package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
 
+import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	 * @param paramProvider parameter provider used for the entrypoint
 	 * @param argsProvider argument provider used for the constructor
 	 */
-	public void createEntrypoint(final TYPE_TYPE type, final String name, final String methodName, final IParameterProvider paramProvider, final IArgumentProvider argsProvider) {
+	public void createEntrypoint(final TYPE_TYPE type, final String name, final String methodName, final Parameters params, final Arguments args) {
 		if (!type.hasMethod(methodName)) {
 			return;
 		}
@@ -67,50 +68,48 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 			return;
 		}
 
-		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(paramProvider.getParams(name)).withThrownException(Type("java.lang.Throwable")) //
-			.withStatement(Call(New(Type(type.name())), methodName).withArguments(argsProvider.getArgs(name))));
+		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(params.get(name)).withThrownException(Type("java.lang.Throwable")) //
+			.withStatement(Call(New(Type(type.name())), methodName).withArguments(args.get(name))));
 	}
 
-	public static interface IArgumentProvider {
-		public List<Expression<?>> getArgs(String name);
+	public enum Arguments {
+		APPLICATION {
+			@Override public List<Expression<?>> get(final String name) {
+				List<Expression<?>> args = new ArrayList<Expression<?>>();
+				args.add(Name("args"));
+				return args;
+			}
+		},
+		JVM_AGENT {
+			@Override public List<Expression<?>> get(final String name) {
+				List<Expression<?>> args = new ArrayList<Expression<?>>();
+				args.add(("agentmain".equals(name) ? True() : False()));
+				args.add(Name("params"));
+				args.add(Name("instrumentation"));
+				return args;
+			}
+		};
+
+		public abstract List<Expression<?>> get(String name);
 	}
 
-	public static interface IParameterProvider {
-		public List<Argument> getParams(String name);
-	}
-	
-	public static class ApplicationArgumentProvider implements IArgumentProvider {
-		@Override public List<Expression<?>> getArgs(final String name) {
-			List<Expression<?>> args = new ArrayList<Expression<?>>();
-			args.add(Name("args"));
-			return args;
-		}
-	}
+	public enum Parameters {
+		APPLICATION {
+			@Override public List<Argument> get(final String name) {
+				List<Argument> params = new ArrayList<Argument>();
+				params.add(Arg(Type(String.class).withDimensions(1), "args"));
+				return params;
+			}
+		},
+		JVM_AGENT {
+			@Override public List<Argument> get(final String name) {
+				List<Argument> params = new ArrayList<Argument>();
+				params.add(Arg(Type(String.class), "params"));
+				params.add(Arg(Type(Instrumentation.class), "instrumentation"));
+				return params;
+			}
+		};
 
-	public static class ApplicationParameterProvider implements IParameterProvider {
-		@Override public List<Argument> getParams(final String name) {
-			List<Argument> params = new ArrayList<Argument>();
-			params.add(Arg(Type("java.lang.String").withDimensions(1), "args"));
-			return params;
-		}
-	}
-	
-	public static class JvmAgentArgumentProvider implements IArgumentProvider {
-		@Override public List<Expression<?>> getArgs(final String name) {
-			List<Expression<?>> args = new ArrayList<Expression<?>>();
-			args.add(("agentmain".equals(name) ? True() : False()));
-			args.add(Name("params"));
-			args.add(Name("instrumentation"));
-			return args;
-		}
-	}
-
-	public static class JvmAgentParameterProvider implements IParameterProvider {
-		@Override public List<lombok.ast.Argument> getParams(final String name) {
-			List<lombok.ast.Argument> params = new ArrayList<lombok.ast.Argument>();
-			params.add(Arg(Type("java.lang.String"), "params"));
-			params.add(Arg(Type("java.lang.instrument.Instrumentation"), "instrumentation"));
-			return params;
-		}
+		public abstract List<Argument> get(String name);
 	}
 }
