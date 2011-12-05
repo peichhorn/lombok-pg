@@ -160,7 +160,9 @@ public final class PatchExtensionMethod {
 				argumentTypes.addAll(Each.elementIn(methodCall.binding.parameters));
 				MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
 				if (fixedBinding instanceof ProblemMethodBinding) {
-					scope.problemReporter().invalidMethod(methodCall, fixedBinding);
+					if (fixedBinding.declaringClass != null) {
+						scope.problemReporter().invalidMethod(methodCall, fixedBinding);
+					}
 				} else {
 					for (int i = 0, iend = arguments.size(); i < iend; i++) {
 						Expression arg = arguments.get(i);
