@@ -35,6 +35,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
+import lombok.core.util.Is;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.Javac;
 import lombok.javac.handlers.replace.*;
@@ -223,13 +224,13 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public void replaceBody(final lombok.ast.Block body) {
-		final lombok.ast.Block bodyWithSuperCall = new lombok.ast.Block();
+		final lombok.ast.Block bodyWithConstructorCall = new lombok.ast.Block();
 		if (!isEmpty()) {
 			final JCStatement suspect = get().body.stats.get(0);
-			if (isSuperConstructorCall(suspect)) bodyWithSuperCall.withStatement(Stat(suspect));
+			if (isConstructorCall(suspect)) bodyWithConstructorCall.withStatement(Stat(suspect));
 		}
-		bodyWithSuperCall.withStatements(body.getStatements());
-		get().body = builder.build(bodyWithSuperCall);
+		bodyWithConstructorCall.withStatements(body.getStatements());
+		get().body = builder.build(bodyWithConstructorCall);
 		addSuppressWarningsAll(get().mods, node(), get().pos);
 	}
 
@@ -244,17 +245,17 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	public List<lombok.ast.Statement<?>> statements() {
 		final List<lombok.ast.Statement<?>> methodStatements = new ArrayList<lombok.ast.Statement<?>>();
 		for (JCStatement statement : get().body.stats) {
-			if (isSuperConstructorCall(statement)) continue;
+			if (isConstructorCall(statement)) continue;
 			methodStatements.add(Stat(statement));
 		}
 		return methodStatements;
 	}
 
-	private boolean isSuperConstructorCall(final JCStatement supect) {
+	private boolean isConstructorCall(final JCStatement supect) {
 		if (!(supect instanceof JCExpressionStatement)) return false;
 		final JCExpression supectExpression = ((JCExpressionStatement) supect).expr;
 		if (!(supectExpression instanceof JCMethodInvocation)) return false;
-		return "super".equals(((JCMethodInvocation) supectExpression).meth.toString());
+		return Is.oneOf(((JCMethodInvocation) supectExpression).meth.toString(), "super", "this");
 	}
 
 	public List<lombok.ast.Annotation> annotations() {

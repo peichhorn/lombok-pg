@@ -18,4 +18,17 @@ class ValidateOnConstructor {
 			foo = message;
 		}
 	}
+	
+	static class CheckedException2 extends Exception {
+		
+		@Validate
+		public CheckedException2(@NotEmpty String message, @NotNull Throwable cause) {
+			super(message, cause);
+		}
+		
+		@Validate
+		public CheckedException2(@NotEmpty String message) {
+			this(message, null);
+		}
+	}
 }

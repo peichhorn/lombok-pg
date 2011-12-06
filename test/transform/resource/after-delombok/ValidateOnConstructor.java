@@ -32,4 +32,32 @@ class ValidateOnConstructor {
 			foo = message;
 		}
 	}
+	
+	static class CheckedException2 extends Exception {
+		
+		@java.lang.SuppressWarnings("all")
+		public CheckedException2(String message, Throwable cause) {
+			super(message, cause);
+			if (message == null) {
+				throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "message", 1));
+			}
+			if (message.isEmpty()) {
+				throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "message", 1));
+			}
+			if (cause == null) {
+				throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "cause", 2));
+			}
+		}
+		
+		@java.lang.SuppressWarnings("all")
+		public CheckedException2(String message) {
+			this(message, null);
+			if (message == null) {
+				throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "message", 1));
+			}
+			if (message.isEmpty()) {
+				throw new java.lang.IllegalArgumentException(java.lang.String.format("The validated object \'%s\' (argument #%s) is empty", "message", 1));
+			}
+		}
+	}
 }
