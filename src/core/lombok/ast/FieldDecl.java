@@ -52,6 +52,10 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 		return withModifier(VOLATILE);
 	}
 
+	public FieldDecl makeTransient() {
+		return withModifier(TRANSIENT);
+	}
+
 	public FieldDecl withInitialization(final Expression<?> initialization) {
 		this.initialization = child(initialization);
 		return this;
