@@ -23,7 +23,7 @@ package lombok.javac.handlers.ast;
 
 import static lombok.ast.AST.*;
 import static lombok.javac.handlers.Javac.*;
-import static lombok.javac.handlers.JavacHandlerUtil.*;
+import static lombok.javac.handlers.JavacHandlerUtil.setGeneratedBy;
 import static com.sun.tools.javac.code.Flags.*;
 
 import java.lang.reflect.Method;
@@ -87,7 +87,6 @@ import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.javac.Javac;
 import lombok.javac.JavacNode;
-import lombok.javac.handlers.JavacHandlerUtil;
 
 @RequiredArgsConstructor
 public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
@@ -175,8 +174,13 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 		return sourceNode.toName(name);
 	}
 
-	private JCExpression chainDots(final String name) {
-		return JavacHandlerUtil.chainDotsString(sourceNode, name);
+	private JCExpression chainDots(final lombok.ast.Node<?> node, final String name) {
+		String[] elements = name.split("\\.");
+		JCExpression e = M(node).Ident(name(elements[0]));
+		for (int i = 1, iend = elements.length; i < iend; i++) {
+			e = M(node).Select(e, name(elements[i]));
+		}
+		return e;
 	}
 
 	private JCExpression fixLeadingDot(final lombok.ast.Node<?> node, final JCExpression expr) {
@@ -366,7 +370,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 		if (enumClassDecl == null) {
 			varType = build(Type(typeNodeOf(sourceNode).getName()));
 		} else {
-			varType = chainDots(enumClassDecl.getName());
+			varType = chainDots(node, enumClassDecl.getName());
 		}
 		final List<JCExpression> nilExp = List.nil();
 		final JCNewClass init = setGeneratedBy(M(node).NewClass(null, nilExp, varType, nilExp, null), source);
@@ -449,7 +453,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitNameRef(final lombok.ast.NameRef node, final Void p) {
-		return setGeneratedBy(chainDots(node.getName()), source);
+		return setGeneratedBy(chainDots(node, node.getName()), source);
 	}
 
 	@Override
@@ -571,7 +575,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 			typeRef = setGeneratedBy(typeRef, source);
 			if ("void".equals(typeName)) return typeRef;
 		} else {
-			typeRef = chainDots(node.getTypeName());
+			typeRef = chainDots(node, node.getTypeName());
 			typeRef = setGeneratedBy(typeRef, source);
 			if (!node.getTypeArgs().isEmpty()) {
 				typeRef = M(node).TypeApply(typeRef, build(node.getTypeArgs(), JCExpression.class));
