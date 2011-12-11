@@ -37,7 +37,7 @@ import lombok.core.TransformationsUtil;
 
 @RequiredArgsConstructor
 public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
-	private static final String PROPERTY_SUPPORT_FIELD_NAME = "propertySupport";
+	private static final String PROPERTY_CHANGE_SUPPORT_METHOD_NAME = "getPropertyChangeSupport";
 	private static final String FIRE_PROPERTY_CHANGE_METHOD_NAME = "firePropertyChange";
 	private static final String OLD_VALUE_VARIABLE_NAME = "old";
 	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
@@ -85,7 +85,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		String propertyName = field.name();
 		if (type.hasField(propertyNameFieldName)) return;
 		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
-			.withInitialization(New(Type(String.class)).withArgument(String(propertyName))));
+			.withInitialization(String(propertyName)));
 	}
 
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level, final String propertyNameFieldName) {
@@ -101,7 +101,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		}
 		methodDecl.withStatement(LocalDecl(field.type(), oldValueName).makeFinal().withInitialization(Field(fieldName))) //
 			.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-			.withStatement(Call(Field(PROPERTY_SUPPORT_FIELD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
+			.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
 				.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Field(fieldName)));
 		type.injectMethod(methodDecl);
 	}

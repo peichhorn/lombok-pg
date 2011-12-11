@@ -39,18 +39,29 @@ import java.lang.annotation.*;
  * After:
  * <pre>
  * public class Mountain {
- *   private PropertyChangeSupport propertySupport = new PropertyChangeSupport(this);
-
+ *   private volatile transient PropertyChangeSupport $propertySupport;
+ *
  *   public void addPropertyChangeListener(PropertyChangeListener listener) {
- *     propertySupport.addPropertyChangeListener(listener);
+ *     getPropertySupport().addPropertyChangeListener(listener);
  *   }
  *
  *   public void removePropertyChangeListener(PropertyChangeListener listener) {
- *     propertySupport.removePropertyChangeListener(listener);
+ *     getPropertySupport().removePropertyChangeListener(listener);
+ *   }
+ *
+ *   private java.beans.PropertyChangeSupport getPropertySupport() {
+ *     if (this.$propertySupport == null) {
+ *       synchronized (this) {
+ *         if (this.$propertySupport == null) {
+ *           this.$propertySupport = new java.beans.PropertyChangeSupport(this);
+ *         }
+ *       }
+ *     }
+ *     return this.$propertySupport;
  *   }
  * }
  * </pre>
  */
-@Target({FIELD, TYPE}) @Retention(SOURCE) 
+@Target(TYPE) @Retention(SOURCE) 
 public @interface BoundPropertySupport {
 }

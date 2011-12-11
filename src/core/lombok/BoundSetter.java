@@ -50,7 +50,7 @@ import lombok.AccessLevel;
  *   public void setName(String value) {
  *      String oldValue = name;
  *      firstName = value;
- *      propertySupport.firePropertyChange(PROP_NAME, oldValue, name);
+ *      getPropertySupport().firePropertyChange(PROP_NAME, oldValue, name);
  *   }
  * }
  * </pre>
