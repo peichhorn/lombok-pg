@@ -32,11 +32,13 @@ public class EclipseASTAdapterWithTypeDepth extends EclipseASTAdapter {
 	private final int maxTypeDepth;
 	private int typeDepth;
 
-	@Override public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
+	@Override
+	public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
 		typeDepth++;
 	}
 
-	@Override public void endVisitType(final EclipseNode typeNode, final TypeDeclaration type) {
+	@Override
+	public void endVisitType(final EclipseNode typeNode, final TypeDeclaration type) {
 		typeDepth--;
 	}
 

@@ -31,50 +31,54 @@ import java.lang.annotation.*;
  * Just implement the ones you need and lombok will create empty stubs for the rest.
  * <p>
  * Before:
+ * 
  * <pre>
- * &#64;AutoGenMethodStub
+ * &#064;AutoGenMethodStub
  * class Foo extends Bar implements Buzz {
- *
- *   public void a() { // overrides Bar.a()
- *     super.a();
- *   }
- *
- *   public void b() { // overrides Buzz.b()
- *   }
+ * 
+ * 	public void a() { // overrides Bar.a()
+ * 		super.a();
+ * 	}
+ * 
+ * 	public void b() { // overrides Buzz.b()
+ * 	}
  * }
  * </pre>
+ * 
  * After:
+ * 
  * <pre>
  * class Foo extends Bar implements Buzz {
- *
- *   public void a() { // overrides Bar.a()
- *     super.a();
- *   }
- *
- *   public void b() { // overrides Buzz.b()
- *   }
- *
- *   public int c() { // overrides Buzz.c()
- *     return 0;
- *   }
- *
- *   public String d() { // overrides Buzz.d()
- *     return null;
- *   }
+ * 
+ * 	public void a() { // overrides Bar.a()
+ * 		super.a();
+ * 	}
+ * 
+ * 	public void b() { // overrides Buzz.b()
+ * 	}
+ * 
+ * 	public int c() { // overrides Buzz.c()
+ * 		return 0;
+ * 	}
+ * 
+ * 	public String d() { // overrides Buzz.d()
+ * 		return null;
+ * 	}
  * }
  * </pre>
  * <p>
- * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown rather than
- * the default value being returned, use: {@code @AutoGenMethodStub(throwException = true)}.
+ * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown rather
+ * than the default value being returned, use: {@code @AutoGenMethodStub(throwException = true)}.
  * <p>
- * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first.
- * But in some cases it removes massive amounts of boilerplate.
+ * <b>Note:</b> Remember that this annotation is a curve ball, decent interface design comes first. But in some cases it
+ * removes massive amounts of boilerplate.
  */
-@Target(TYPE) @Retention(SOURCE)
+@Target(TYPE)
+@Retention(SOURCE)
 public @interface AutoGenMethodStub {
 	/**
-	 * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown rather than
-	 * the default value being returned, use {@code @AutoGenMethodStub(throwException = true)}.
+	 * If you prefer an {@link java.lang.UnsupportedOperationException UnsupportedOperationException} being thrown
+	 * rather than the default value being returned, use {@code @AutoGenMethodStub(throwException = true)}.
 	 */
 	boolean throwException() default false;
 }

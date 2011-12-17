@@ -54,25 +54,25 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupport> {
 	private final EclipseListenerSupportHandler handler = new EclipseListenerSupportHandler();
 
-	@Override public void handle(final AnnotationValues<ListenerSupport> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
+	@Override
+	public void handle(final AnnotationValues<ListenerSupport> annotation, final Annotation source, final EclipseNode annotationNode) {
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
-			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
+			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", ListenerSupport.class.getName()));
 			return;
 		}
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof ClassLiteralAccess) {
-				TypeBinding binding = ((ClassLiteralAccess)listenerInterface).type.resolveType(type.get().initializerScope);
+				TypeBinding binding = ((ClassLiteralAccess) listenerInterface).type.resolveType(type.get().initializerScope);
 				if (binding == null) continue;
 				if (!binding.isInterface()) {
-					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", annotationType.getName(), As.string(binding.readableName())));
+					annotationNode.addWarning(String.format("@%s works only with interfaces. %s was skipped", ListenerSupport.class.getName(), As.string(binding.readableName())));
 					continue;
 				}
 				handler.addListenerField(type, binding);
@@ -118,7 +118,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 
 	private void ensureAllClassScopeMethodWereBuild(final TypeBinding binding) {
 		if (binding instanceof SourceTypeBinding) {
-			ClassScope cs = ((SourceTypeBinding)binding).scope;
+			ClassScope cs = ((SourceTypeBinding) binding).scope;
 			if (cs != null) {
 				try {
 					Reflection.classScopeBuildMethodsMethod.invoke(cs);
@@ -150,7 +150,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 
 		@Override
 		protected void createParamsAndArgs(final Object method, final List<Argument> params, final List<Expression<?>> args) {
-			MethodBinding methodBinding = (MethodBinding)method;
+			MethodBinding methodBinding = (MethodBinding) method;
 			int argCounter = 0;
 			for (TypeBinding parameter : Each.elementIn(methodBinding.parameters)) {
 				String arg = "arg" + argCounter++;
@@ -162,9 +162,9 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 		@Override
 		protected String name(final Object object) {
 			if (object instanceof MethodBinding) {
-				return As.string(((MethodBinding)object).selector);
+				return As.string(((MethodBinding) object).selector);
 			} else {
-				return As.string(((Binding)object).shortReadableName());
+				return As.string(((Binding) object).shortReadableName());
 			}
 		}
 

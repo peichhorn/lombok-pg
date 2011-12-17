@@ -29,25 +29,25 @@ import java.util.List;
 
 import lombok.ast.*;
 
-public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends IMethod<?, ?, ? , ?>, ?, ?, ?, ?, ?>> {
+public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends IMethod<?, ?, ?, ?>, ?, ?, ?, ?, ?>> {
 
 	public void addListenerField(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(type(interfaze))), "$registered" + interfaceName).makePrivate().makeFinal() //
-			.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(type(interfaze))))));
+				.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(type(interfaze))))));
 	}
 
 	public void addAddListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
-			.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
-				.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
+				.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
+						.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
 
 	public void addRemoveListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
 		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
-			.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
+				.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
 	public void addFireListenerMethod(final TYPE_TYPE type, final Object interfaze, final Object method) {
@@ -57,13 +57,13 @@ public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends I
 		String interfaceName = interfaceName(name(interfaze));
 		String methodName = name(method);
 		type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
-			.withStatement(Foreach(LocalDecl(Type(type(interfaze)), "l")).In(Name("$registered" + interfaceName)) //
-				.Do(Call(Name("l"), methodName).withArguments(args))));
+				.withStatement(Foreach(LocalDecl(Type(type(interfaze)), "l")).In(Name("$registered" + interfaceName)) //
+						.Do(Call(Name("l"), methodName).withArguments(args))));
 	}
-	
+
 	protected abstract void createParamsAndArgs(Object method, List<Argument> params, List<Expression<?>> args);
-	
+
 	protected abstract String name(Object object);
-	
+
 	protected abstract Object type(Object object);
 }

@@ -77,11 +77,11 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	}
 
 	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
-		return builder.<T>build(node);
+		return builder.<T> build(node);
 	}
 
 	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node,extectedType);
+		return builder.build(node, extectedType);
 	}
 
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
@@ -116,7 +116,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return Cast.<T>uncheckedCast(EclipseType.typeOf(child, source));
+				return Cast.<T> uncheckedCast(EclipseType.typeOf(child, source));
 			}
 		}
 		throw new IllegalArgumentException();
@@ -148,7 +148,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	}
 
 	public TypeDeclaration get() {
-		return (TypeDeclaration)typeNode.get();
+		return (TypeDeclaration) typeNode.get();
 	}
 
 	public EclipseNode node() {
@@ -278,7 +278,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 		for (Annotation annotation : Each.elementIn(anns)) {
 			lombok.ast.Annotation ann = Annotation(Type(annotation.type)).posHint(annotation);
 			if (annotation instanceof SingleMemberAnnotation) {
-				ann.withValue(Expr(((SingleMemberAnnotation)annotation).memberValue));
+				ann.withValue(Expr(((SingleMemberAnnotation) annotation).memberValue));
 			} else if (annotation instanceof NormalAnnotation) {
 				for (MemberValuePair pair : Each.elementIn(((NormalAnnotation) annotation).memberValuePairs)) {
 					ann.withValue(As.string(pair.name), Expr(pair.value)).posHint(pair);
@@ -307,7 +307,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	}
 
 	public void makePackagePrivate() {
-		get().modifiers &= ~(PRIVATE |PROTECTED | PUBLIC);
+		get().modifiers &= ~(PRIVATE | PROTECTED | PUBLIC);
 	}
 
 	public void makeProtected() {

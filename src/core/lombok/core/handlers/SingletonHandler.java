@@ -32,7 +32,7 @@ import lombok.core.DiagnosticsReceiver;
 public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>> {
 	private final TYPE_TYPE type;
 	private final DiagnosticsReceiver diagnosticsReceiver;
-	
+
 	public void handle(final Singleton.Style style) {
 		if (type.isAnnotation() || type.isInterface() || type.isEnum()) {
 			diagnosticsReceiver.addError(canBeUsedOnClassOnly(Singleton.class));
@@ -49,15 +49,15 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 
 		String typeName = type.name();
 
-		switch(style) {
+		switch (style) {
 		case HOLDER:
 			String holderName = typeName + "Holder";
 			replaceConstructorVisibility();
 
 			type.injectType(ClassDecl(holderName).makePrivate().makeStatic() //
-				.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
+					.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
 			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
-				.withStatement(Return(Name(holderName + ".INSTANCE"))));
+					.withStatement(Return(Name(holderName + ".INSTANCE"))));
 			break;
 		default:
 		case ENUM:
@@ -66,7 +66,7 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 
 			type.injectField(EnumConstant("INSTANCE"));
 			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
-				.withStatement(Return(Name("INSTANCE"))));
+					.withStatement(Return(Name("INSTANCE"))));
 		}
 
 		type.rebuild();

@@ -48,7 +48,7 @@ public abstract class Node<SELF_TYPE extends Node<SELF_TYPE>> {
 	}
 
 	protected final SELF_TYPE self() {
-		return Cast.<SELF_TYPE>uncheckedCast(this);
+		return Cast.<SELF_TYPE> uncheckedCast(this);
 	}
 
 	public final SELF_TYPE posHint(final Object posHint) {
@@ -61,7 +61,7 @@ public abstract class Node<SELF_TYPE extends Node<SELF_TYPE>> {
 		while ((node != null) && (node.posHint == null)) {
 			node = node.up();
 		}
-		return node == null ? null : Cast.<T>uncheckedCast(node.posHint);
+		return node == null ? null : Cast.<T> uncheckedCast(node.posHint);
 	}
 
 	public String toString() {

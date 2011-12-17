@@ -32,7 +32,8 @@ public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 		super(method, replacement);
 	}
 
-	@Override protected boolean needsReplacing(final Statement node) {
+	@Override
+	protected boolean needsReplacing(final Statement node) {
 		return node instanceof ReturnStatement;
 	}
 }

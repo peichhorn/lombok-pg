@@ -32,20 +32,20 @@ public class ValidateHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validator) {
+	public void handle(final IParameterValidator<METHOD_TYPE> validator) {
 		if (method == null) {
-			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(Validate.class));
 			return;
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
-			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(Validate.class));
 			return;
 		}
 
 		method.replaceBody(Block().posHint(method.get()) //
-			.withStatements(validator.validateParameterOf(method)) //
-			.withStatements(method.statements()));
+				.withStatements(validator.validateParameterOf(method)) //
+				.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

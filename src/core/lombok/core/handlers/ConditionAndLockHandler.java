@@ -40,7 +40,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 	private AwaitData await;
 	private SignalData signal;
 	private String lockMethod;
-	
+
 	public ConditionAndLockHandler<TYPE_TYPE, METHOD_TYPE> withAwait(final AwaitData await) {
 		this.await = await;
 		return this;
@@ -50,12 +50,12 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		this.signal = signal;
 		return this;
 	}
-	
+
 	public ConditionAndLockHandler<TYPE_TYPE, METHOD_TYPE> withLockMethod(final String lockMethod) {
 		this.lockMethod = lockMethod;
 		return this;
 	}
-	
+
 	public boolean preHandle(final String lockName, final Class<? extends java.lang.annotation.Annotation> annotationType) {
 		if (method == null) {
 			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
@@ -112,17 +112,17 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 
 		method.replaceBody(Block().posHint(method.get()) //
-			.withStatements(validation.validateParameterOf(method)) //
-			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatement(lockCall) //
-			.withStatement(Try(Block() //
-				.withStatements(beforeMethodBlock) //
-				.withStatements(method.statements()) //
-				.withStatements(afterMethodBlock)//
-			).Finally(Block() //
-				.withStatement(unLockCall) //
-			) //
-		));
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatement(lockCall) //
+				.withStatement(Try(Block() //
+						.withStatements(beforeMethodBlock) //
+						.withStatements(method.statements()) //
+						.withStatements(afterMethodBlock)//
+						).Finally(Block() //
+								.withStatement(unLockCall) //
+						) //
+				));
 
 		method.rebuild();
 	}
@@ -136,13 +136,13 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 		return completeLockName;
 	}
-	
+
 	private boolean getConditionStatements(final ConditionData condition, final String lockName, final String annotationTypeName, final List<Statement<?>> before,
 			final List<Statement<?>> after) {
 		if (condition == null) {
 			return true;
 		}
-		if (tryToAddConditionField( condition, lockName, annotationTypeName)) {
+		if (tryToAddConditionField(condition, lockName, annotationTypeName)) {
 			switch (condition.pos) {
 			case BEFORE:
 				before.add(condition.toStatement());
@@ -164,12 +164,12 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			return false;
 		}
 		if (!type.hasField(trimmedLockName)) {
-			if(isReadWriteLock) {
+			if (isReadWriteLock) {
 				type.injectField(FieldDecl(Type(ReadWriteLock.class), trimmedLockName).makePrivate().makeFinal() //
-					.withInitialization(New(Type(ReentrantReadWriteLock.class))));
+						.withInitialization(New(Type(ReentrantReadWriteLock.class))));
 			} else {
 				type.injectField(FieldDecl(Type(Lock.class), trimmedLockName).makePrivate().makeFinal() //
-					.withInitialization(New(Type(ReentrantLock.class))));
+						.withInitialization(New(Type(ReentrantLock.class))));
 			}
 		}
 		return true;
@@ -186,7 +186,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 		if (!type.hasField(conditionName)) {
 			type.injectField(FieldDecl(Type(Condition.class), conditionName).makePrivate().makeFinal() //
-				.withInitialization(Call(Name(lockName), "newCondition")));
+					.withInitialization(Call(Name(lockName), "newCondition")));
 		}
 		return true;
 	}
@@ -202,7 +202,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		@Override
 		public Statement<?> toStatement() {
 			return Try(Block().withStatement(While(Call(This(), conditionMethod)).Do(Call(Field(condition), "await")))) //
-				.Catch(Arg(Type(InterruptedException.class), "e"), Block().withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("e")))));
+					.Catch(Arg(Type(InterruptedException.class), "e"), Block().withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("e")))));
 		}
 	}
 

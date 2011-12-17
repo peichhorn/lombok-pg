@@ -42,7 +42,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 		ListBuffer<NODE_TYPE> newNodes = ListBuffer.lb();
 		for (NODE_TYPE node : nodes) {
 			if (needsReplacing(node)) {
-				node = method.<NODE_TYPE>build(replacement);
+				node = method.<NODE_TYPE> build(replacement);
 			}
 			newNodes.append(node);
 		}
@@ -51,7 +51,7 @@ public abstract class ReplaceVisitor<NODE_TYPE extends JCTree> extends TreeScann
 
 	protected final NODE_TYPE replace(final NODE_TYPE node) {
 		if ((node != null) && needsReplacing(node)) {
-			return method.<NODE_TYPE>build(replacement);
+			return method.<NODE_TYPE> build(replacement);
 		}
 		return node;
 	}

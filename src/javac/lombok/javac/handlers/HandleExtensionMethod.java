@@ -69,11 +69,10 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 
 	@Override
 	public void handle(final AnnotationValues<ExtensionMethod> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
+		deleteAnnotationIfNeccessary(annotationNode, ExtensionMethod.class);
 		JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ExtensionMethod.class));
 			return;
 		}
 
@@ -81,7 +80,7 @@ public class HandleExtensionMethod extends JavacAnnotationHandler<ExtensionMetho
 
 		List<Object> extensionProviders = annotation.getActualExpressions("value");
 		if (extensionProviders.isEmpty()) {
-			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", annotationType.getName()));
+			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", ExtensionMethod.class.getName()));
 			return;
 		}
 

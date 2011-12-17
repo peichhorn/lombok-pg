@@ -42,7 +42,7 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 				final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 				statements.addAll(NOT_NULL.getStatementsFor(argumentName, argumentIndex, annotation));
 				statements.add(If(Not(Call(((Validate.With) annotation).value()).withArgument(Name(argumentName)))).Then(Block() //
-					.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The object '%s' (argument #%s) is invalid", argumentName, argumentIndex))))));
+						.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The object '%s' (argument #%s) is invalid", argumentName, argumentIndex))))));
 				return statements;
 			}
 		},
@@ -50,7 +50,7 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			@Override
 			public List<? extends Statement<?>> getStatementsFor(final String argumentName, final int argumentIndex, final java.lang.annotation.Annotation annotation) {
 				return singletonList(If(Equal(Name(argumentName), Null())).Then(Block() //
-					.withStatement(Throw(New(Type(NullPointerException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is null", argumentName, argumentIndex))))));
+						.withStatement(Throw(New(Type(NullPointerException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is null", argumentName, argumentIndex))))));
 			}
 		},
 		NOT_EMPTY(Validate.NotEmpty.class) {
@@ -59,7 +59,7 @@ public interface IParameterValidator<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 				final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 				statements.addAll(NOT_NULL.getStatementsFor(argumentName, argumentIndex, annotation));
 				statements.add(If(Call(Name(argumentName), "isEmpty")).Then(Block() //
-					.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is empty", argumentName, argumentIndex))))));
+						.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(formattedMessage("The validated object '%s' (argument #%s) is empty", argumentName, argumentIndex))))));
 				return statements;
 			}
 		};

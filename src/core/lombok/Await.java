@@ -28,6 +28,7 @@ import java.lang.annotation.*;
 
 /**
  * Lock Conditions
+ * 
  * <pre>
  * void methodAnnotatedWithAwait() throws java.lang.InterruptedException {
  *   this.&lt;LOCK_NAME&gt;.lock();
@@ -35,22 +36,24 @@ import java.lang.annotation.*;
  *     while (this.&lt;CONDITION_METHOD&gt;()) {
  *       this.&lt;CONDITION_NAME&gt;.await();
  *     }
- *
+ * 
  *     // method body
- *
+ * 
  *   } finally {
  *     this.&lt;LOCK_NAME&gt;.unlock();
  *   }
  * }
+ * 
  * <pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface Await {
 	/**
 	 * Name of the condition.
 	 * <p>
-	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition}
-	 * will be created, using this name.
+	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition} will
+	 * be created, using this name.
 	 */
 	String conditionName();
 
@@ -68,16 +71,15 @@ public @interface Await {
 	/**
 	 * Name of the lock, default is {@code $<CONDITION_NAME>Lock}.
 	 * <p>
-	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock}
-	 * will be created, using this name.
+	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock} will be created,
+	 * using this name.
 	 */
 	String lockName() default "";
 
 	/**
 	 * Method to verify if the condition is met.
 	 * <p>
-	 * The method must return a {@code boolean} and may
-	 * not require any parameters.
+	 * The method must return a {@code boolean} and may not require any parameters.
 	 */
 	String conditionMethod();
 }

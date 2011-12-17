@@ -168,10 +168,10 @@ public final class PatchExtensionMethod {
 						Expression arg = arguments.get(i);
 						if (fixedBinding.parameters[i].isArrayType() != arg.resolvedType.isArrayType()) break;
 						if (!fixedBinding.parameters[i].isBaseType() && arg.resolvedType.isBaseType()) {
-							int id = arg.resolvedType.id; 
+							int id = arg.resolvedType.id;
 							arg.implicitConversion = TypeIds.BOXING | (id + (id << 4)); // magic see TypeIds
 						} else if (fixedBinding.parameters[i].isBaseType() && !arg.resolvedType.isBaseType()) {
-							int id = fixedBinding.parameters[i].id; 
+							int id = fixedBinding.parameters[i].id;
 							arg.implicitConversion = TypeIds.UNBOXING | (id + (id << 4)); // magic see TypeIds
 						}
 					}
@@ -184,7 +184,7 @@ public final class PatchExtensionMethod {
 				return methodCall.resolvedType;
 			}
 		}
-		
+
 		PostponedError error = ERRORS.get(methodCall);
 		if (error != null) {
 			error.fire();
@@ -218,11 +218,11 @@ public final class PatchExtensionMethod {
 		}
 		return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
 	}
-	
+
 	private static boolean canExtendCodeAssist(final List<IJavaCompletionProposal> proposals) {
 		return !proposals.isEmpty() && Reflection.isComplete();
 	}
-	
+
 	private static List<Extension> getExtensionMethods(final CompletionProposalCollector completionProposalCollector) {
 		List<Extension> extensions = new ArrayList<Extension>();
 		ClassScope classScope = getClassScope(completionProposalCollector);
@@ -236,7 +236,7 @@ public final class PatchExtensionMethod {
 		}
 		return extensions;
 	}
-	
+
 	private static EclipseNode upToType(final EclipseNode typeNode) {
 		EclipseNode node = typeNode;
 		do {
@@ -244,7 +244,7 @@ public final class PatchExtensionMethod {
 		} while ((node != null) && (node.getKind() != Kind.TYPE));
 		return node;
 	}
-	
+
 	private static List<Extension> getApplicableExtensionMethods(final EclipseNode typeNode, final Annotation ann, final TypeBinding receiverType) {
 		List<Extension> extensions = new ArrayList<Extension>();
 		if ((typeNode != null) && (ann != null) && (receiverType != null)) {
@@ -259,7 +259,7 @@ public final class PatchExtensionMethod {
 			}
 			for (Object extensionMethodProvider : annotation.getActualExpressions("value")) {
 				if (extensionMethodProvider instanceof ClassLiteralAccess) {
-					TypeBinding binding = ((ClassLiteralAccess)extensionMethodProvider).type.resolveType(blockScope);
+					TypeBinding binding = ((ClassLiteralAccess) extensionMethodProvider).type.resolveType(blockScope);
 					if (binding == null) continue;
 					if (!binding.isClass() && !binding.isEnum()) continue;
 					extensions.add(new Extension(getApplicableExtensionMethodsDefinedInProvider(typeNode, (ReferenceBinding) binding, receiverType), binding, suppressBaseMethods));
@@ -268,7 +268,7 @@ public final class PatchExtensionMethod {
 		}
 		return extensions;
 	}
-	
+
 	private static List<MethodBinding> getApplicableExtensionMethodsDefinedInProvider(final EclipseNode typeNode, final ReferenceBinding extensionMethodProviderBinding,
 			final TypeBinding receiverType) {
 		List<MethodBinding> extensionMethods = new ArrayList<MethodBinding>();
@@ -285,38 +285,38 @@ public final class PatchExtensionMethod {
 		}
 		return extensionMethods;
 	}
-	
+
 	private static TypeBinding getFirstParameterType(final TypeDeclaration decl, final CompletionProposalCollector completionProposalCollector) {
 		TypeBinding firstParameterType = null;
 		ASTNode node = getAssistNode(completionProposalCollector);
 		if (node == null) return null;
 		if (Is.noneOf(node, CompletionOnQualifiedNameReference.class, CompletionOnSingleNameReference.class, CompletionOnMemberAccess.class)) return null;
 		if (node instanceof NameReference) {
-			Binding binding = ((NameReference)node).binding;
+			Binding binding = ((NameReference) node).binding;
 			if ((node instanceof SingleNameReference) && (((SingleNameReference) node).token.length == 0)) {
 				firstParameterType = decl.binding;
 			} else if (binding instanceof VariableBinding) {
-				firstParameterType = ((VariableBinding)binding).type;
+				firstParameterType = ((VariableBinding) binding).type;
 			} else if (binding instanceof TypeBinding) {
 				firstParameterType = (TypeBinding) binding;
 			}
 		} else if (node instanceof FieldReference) {
-			firstParameterType = ((FieldReference)node).actualReceiverType;
+			firstParameterType = ((FieldReference) node).actualReceiverType;
 		}
 		return firstParameterType;
 	}
-	
+
 	private static ASTNode getAssistNode(final CompletionProposalCollector completionProposalCollector) {
 		try {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
-			if (extendedContext == null) return null; 
+			if (extendedContext == null) return null;
 			return (ASTNode) Reflection.assistNodeField.get(extendedContext);
 		} catch (final Exception ignore) {
 			return null;
 		}
 	}
-	
+
 	private static ClassScope getClassScope(final CompletionProposalCollector completionProposalCollector) {
 		ClassScope scope = null;
 		try {
@@ -340,22 +340,22 @@ public final class PatchExtensionMethod {
 			InternalCompletionContext context = (InternalCompletionContext) Reflection.contextField.get(completionProposalCollector);
 			InternalExtendedCompletionContext extendedContext = (InternalExtendedCompletionContext) Reflection.extendedContextField.get(context);
 			LookupEnvironment lookupEnvironment = (LookupEnvironment) Reflection.lookupEnvironmentField.get(extendedContext);
-			Reflection.nameLookupField.set(newProposal, ((SearchableEnvironment)lookupEnvironment.nameEnvironment).nameLookup);
+			Reflection.nameLookupField.set(newProposal, ((SearchableEnvironment) lookupEnvironment.nameEnvironment).nameLookup);
 			Reflection.completionEngineField.set(newProposal, lookupEnvironment.typeRequestor);
 		} catch (final IllegalAccessException ignore) {
 			// ignore
 		}
 	}
-	
+
 	private static void createAndAddJavaCompletionProposal(final CompletionProposalCollector completionProposalCollector, final CompletionProposal newProposal,
 			final List<IJavaCompletionProposal> proposals) {
 		try {
-			proposals.add((IJavaCompletionProposal)Reflection.createJavaCompletionProposalMethod.invoke(completionProposalCollector, newProposal));
+			proposals.add((IJavaCompletionProposal) Reflection.createJavaCompletionProposalMethod.invoke(completionProposalCollector, newProposal));
 		} catch (final Exception ignore) {
 			// ignore
 		}
 	}
-	
+
 	private static int getReplacementOffset(final IJavaCompletionProposal proposal) {
 		try {
 			return Reflection.replacementOffsetField.getInt(proposal);
@@ -363,13 +363,13 @@ public final class PatchExtensionMethod {
 			return 0;
 		}
 	}
-	
+
 	private static class ExtensionMethodCompletionProposal extends InternalCompletionProposal {
 
 		public ExtensionMethodCompletionProposal(final int replacementOffset) {
 			super(CompletionProposal.METHOD_REF, replacementOffset - 1);
 		}
-		
+
 		public void setMethodBinding(final MethodBinding method, final ASTNode node) {
 			MethodBinding original = method.original();
 			TypeBinding[] parameters = Arrays.copyOf(method.parameters, method.parameters.length);
@@ -379,7 +379,7 @@ public final class PatchExtensionMethod {
 				originalParameters = Arrays.copyOf(method.original().parameters, method.original().parameters.length);
 				method.original().parameters = Arrays.copyOfRange(method.original().parameters, 1, method.original().parameters.length);
 			}
-			
+
 			int length = Is.empty(method.parameters) ? 0 : method.parameters.length;
 			char[][] parameterPackageNames = new char[length][];
 			char[][] parameterTypeNames = new char[length][];
@@ -392,7 +392,7 @@ public final class PatchExtensionMethod {
 			char[] completion = CharOperation.concat(method.selector, new char[] { '(', ')' });
 			setDeclarationSignature(CompletionEngine.getSignature(method.declaringClass));
 			setSignature(CompletionEngine.getSignature(method));
-			
+
 			if (original != method) {
 				setOriginalSignature(CompletionEngine.getSignature(original));
 			}
@@ -417,16 +417,15 @@ public final class PatchExtensionMethod {
 			}
 			setReplaceRange(index, index);
 			setTokenRange(index, index);
-			
+
 			setRelevance(100);
-			
+
 			method.parameters = parameters;
 			if (original != method) {
 				method.original().parameters = originalParameters;
 			}
 		}
 	}
-	
 
 	@RequiredArgsConstructor
 	private static class PostponedNoMethodError implements PostponedError {
@@ -434,7 +433,7 @@ public final class PatchExtensionMethod {
 		private final MessageSend messageSend;
 		private final TypeBinding recType;
 		private final TypeBinding[] params;
-		
+
 		public void fire() {
 			problemReporter.errorNoMethodFor(messageSend, recType, params);
 		}
@@ -445,7 +444,7 @@ public final class PatchExtensionMethod {
 		private final ProblemReporter problemReporter;
 		private final MessageSend messageSend;
 		private final MethodBinding method;
-		
+
 		public void fire() {
 			problemReporter.invalidMethod(messageSend, method);
 		}
@@ -465,7 +464,7 @@ public final class PatchExtensionMethod {
 		public static final Field completionEngineField;
 		public static final Field nameLookupField;
 		public static final Method createJavaCompletionProposalMethod;
-		
+
 		static {
 			replacementOffsetField = accessField(AbstractJavaCompletionProposal.class, "fReplacementOffset");
 			contextField = accessField(CompletionProposalCollector.class, "fContext");
@@ -477,13 +476,13 @@ public final class PatchExtensionMethod {
 			nameLookupField = accessField(InternalCompletionProposal.class, "nameLookup");
 			createJavaCompletionProposalMethod = accessMethod(CompletionProposalCollector.class, "createJavaCompletionProposal", CompletionProposal.class);
 		}
-		
+
 		private static boolean isComplete() {
 			final Object[] requiredFieldsAndMethods = { replacementOffsetField, contextField, extendedContextField, assistNodeField, assistScopeField, lookupEnvironmentField, completionEngineField, nameLookupField, createJavaCompletionProposalMethod };
 			for (Object o : requiredFieldsAndMethods) if (o == null) return false;
 			return true;
 		}
-		
+
 		private static Field accessField(final Class<?> clazz, final String fieldName) {
 			try {
 				return makeAccessible(clazz.getDeclaredField(fieldName));
@@ -491,7 +490,7 @@ public final class PatchExtensionMethod {
 				return null;
 			}
 		}
-		
+
 		private static Method accessMethod(final Class<?> clazz, final String methodName, final Class<?> parameter) {
 			try {
 				return makeAccessible(clazz.getDeclaredMethod(methodName, parameter));
@@ -499,7 +498,7 @@ public final class PatchExtensionMethod {
 				return null;
 			}
 		}
-		
+
 		private static <T extends AccessibleObject> T makeAccessible(final T object) {
 			object.setAccessible(true);
 			return object;

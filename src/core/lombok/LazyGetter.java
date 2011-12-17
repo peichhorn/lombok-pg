@@ -29,7 +29,8 @@ import java.lang.annotation.*;
 /**
  * Does pretty much the same as {@link Getter @Getter(lazy=true)}.
  */
-@Target(FIELD) @Retention(SOURCE)
+@Target(FIELD)
+@Retention(SOURCE)
 public @interface LazyGetter {
 	/**
 	 * If you want your getter to be non-public, you can specify an alternate access level here.

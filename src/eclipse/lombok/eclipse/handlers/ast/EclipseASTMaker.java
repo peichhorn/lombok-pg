@@ -133,16 +133,16 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	private final ASTNode source;
 
 	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
-		return this.<T>build(node, null);
+		return this.<T> build(node, null);
 	}
 
 	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
 		if (node == null) return null;
-		return Cast.<T>uncheckedCast(node.accept(this, null));
+		return Cast.<T> uncheckedCast(node.accept(this, null));
 	}
 
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
-		return this.<T>build(nodes, null);
+		return this.<T> build(nodes, null);
 	}
 
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
@@ -163,7 +163,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		int mods = 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.FINAL) ? AccFinal : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PRIVATE) ? AccPrivate : 0;
-		mods |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? AccProtected: 0;
+		mods |= modifiers.contains(lombok.ast.Modifier.PROTECTED) ? AccProtected : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.PUBLIC) ? AccPublic : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.STATIC) ? AccStatic : 0;
 		mods |= modifiers.contains(lombok.ast.Modifier.TRANSIENT) ? AccTransient : 0;
@@ -191,7 +191,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			ann = new MarkerAnnotation(build(node.getType(), TypeReference.class), 0);
 		} else if (node.getValues().containsKey("value") && node.getValues().size() == 1) {
 			ann = new SingleMemberAnnotation(build(node.getType(), TypeReference.class), 0);
-			((SingleMemberAnnotation)ann).memberValue = build(node.getValues().get("value"));
+			((SingleMemberAnnotation) ann).memberValue = build(node.getValues().get("value"));
 		} else {
 			ann = new NormalAnnotation(build(node.getType(), TypeReference.class), 0);
 			List<MemberValuePair> valuePairs = new ArrayList<MemberValuePair>();
@@ -200,7 +200,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 				setGeneratedByAndCopyPos(valuePair, source, posHintOf(node));
 				valuePairs.add(valuePair);
 			}
-			((NormalAnnotation)ann).memberValuePairs = valuePairs.toArray(new MemberValuePair[0]);
+			((NormalAnnotation) ann).memberValuePairs = valuePairs.toArray(new MemberValuePair[0]);
 		}
 		setGeneratedByAndCopyPos(ann, source, posHintOf(node));
 		return ann;
@@ -377,7 +377,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		constructorDeclaration.selector = node.getName().toCharArray();
 		constructorDeclaration.thrownExceptions = toArray(build(node.getThrownExceptions()), new TypeReference[0]);
 		constructorDeclaration.typeParameters = toArray(build(node.getTypeParameters()), new TypeParameter[0]);
-		constructorDeclaration.bits |=  ECLIPSE_DO_NOT_TOUCH_FLAG;
+		constructorDeclaration.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		constructorDeclaration.arguments = toArray(build(node.getArguments()), new Argument[0]);
 		if (!node.getStatements().isEmpty()) {
 			constructorDeclaration.statements = toArray(build(node.getStatements()), new Statement[0]);
@@ -458,7 +458,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		setGeneratedByAndCopyPos(block, source, posHintOf(node));
 		block.statements = toArray(build(node.getStatements()), new Statement[0]);
 		final Initializer initializer = new Initializer(block, modifiersFor(node.getModifiers()));
-		initializer.bits |=  ECLIPSE_DO_NOT_TOUCH_FLAG;
+		initializer.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 		setGeneratedByAndCopyPos(initializer, source, posHintOf(node));
 		return initializer;
 	}
@@ -792,7 +792,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	public ASTNode visitWildcard(final lombok.ast.Wildcard node, final Void p) {
 		int kind = Wildcard.UNBOUND;
 		if (node.getBound() != null) {
-			switch(node.getBound()) {
+			switch (node.getBound()) {
 			case SUPER:
 				kind = Wildcard.SUPER;
 				break;
@@ -887,20 +887,20 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		public static final Constructor<LongLiteral> longLiteralConstructor;
 		public static final Method intLiteralFactoryMethod;
 		public static final Method longLiteralFactoryMethod;
-		
+
 		static {
-			Class<?>[] parameterTypes = {char[].class, int.class, int.class};
+			Class<?>[] parameterTypes = { char[].class, int.class, int.class };
 			Constructor<IntLiteral> intLiteralConstructor_ = null;
 			Constructor<LongLiteral> longLiteralConstructor_ = null;
 			Method intLiteralFactoryMethod_ = null;
 			Method longLiteralFactoryMethod_ = null;
-			try { 
+			try {
 				intLiteralConstructor_ = IntLiteral.class.getConstructor(parameterTypes);
 				longLiteralConstructor_ = LongLiteral.class.getConstructor(parameterTypes);
 			} catch (final Exception ignore) {
 				// probably eclipse 3.7+
 			}
-			try { 
+			try {
 				intLiteralFactoryMethod_ = IntLiteral.class.getMethod("buildIntLiteral", parameterTypes);
 				longLiteralFactoryMethod_ = LongLiteral.class.getMethod("buildLongLiteral", parameterTypes);
 			} catch (final Exception ignore) {

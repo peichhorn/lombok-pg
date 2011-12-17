@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.deleteImport;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import lombok.*;
@@ -41,12 +42,13 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 
-	@Override public void handle(final AnnotationValues<LazyGetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
-		deleteAnnotationIfNeccessary(annotationNode, LazyGetter.class);
-		deleteImportFromCompilationUnit(annotationNode, "lombok.AccessLevel");
+	@Override
+	public void handle(final AnnotationValues<LazyGetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		JavacType type = JavacType.typeOf(annotationNode, ast);
 		JavacField field = JavacField.fieldOf(annotationNode, ast);
 		LazyGetter annotationInstance = annotation.getInstance();
-		new LazyGetterHandler<JavacType, JavacField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.getClass());
+		new LazyGetterHandler<JavacType, JavacField>(type, field, annotationNode).handle(annotationInstance.value());
+		deleteAnnotationIfNeccessary(annotationNode, LazyGetter.class);
+		deleteImport(annotationNode, AccessLevel.class);
 	}
 }

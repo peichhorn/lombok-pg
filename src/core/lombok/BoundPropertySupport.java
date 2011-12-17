@@ -30,38 +30,42 @@ import java.lang.annotation.*;
  * Transformses the annotated Java class into a JavaBean.
  * <p>
  * Before:
+ * 
  * <pre>
- * &#64;GenerateJavaBean
+ * &#064;GenerateJavaBean
  * public class Mountain {
  * 
  * }
  * </pre>
+ * 
  * After:
+ * 
  * <pre>
  * public class Mountain {
- *   private volatile transient PropertyChangeSupport $propertySupport;
- *
- *   public void addPropertyChangeListener(PropertyChangeListener listener) {
- *     getPropertySupport().addPropertyChangeListener(listener);
- *   }
- *
- *   public void removePropertyChangeListener(PropertyChangeListener listener) {
- *     getPropertySupport().removePropertyChangeListener(listener);
- *   }
- *
- *   private java.beans.PropertyChangeSupport getPropertySupport() {
- *     if (this.$propertySupport == null) {
- *       synchronized (this) {
- *         if (this.$propertySupport == null) {
- *           this.$propertySupport = new java.beans.PropertyChangeSupport(this);
- *         }
- *       }
- *     }
- *     return this.$propertySupport;
- *   }
+ * 	private volatile transient PropertyChangeSupport $propertySupport;
+ * 
+ * 	public void addPropertyChangeListener(PropertyChangeListener listener) {
+ * 		getPropertySupport().addPropertyChangeListener(listener);
+ * 	}
+ * 
+ * 	public void removePropertyChangeListener(PropertyChangeListener listener) {
+ * 		getPropertySupport().removePropertyChangeListener(listener);
+ * 	}
+ * 
+ * 	private java.beans.PropertyChangeSupport getPropertySupport() {
+ * 		if (this.$propertySupport == null) {
+ * 			synchronized (this) {
+ * 				if (this.$propertySupport == null) {
+ * 					this.$propertySupport = new java.beans.PropertyChangeSupport(this);
+ * 				}
+ * 			}
+ * 		}
+ * 		return this.$propertySupport;
+ * 	}
  * }
  * </pre>
  */
-@Target(TYPE) @Retention(SOURCE) 
+@Target(TYPE)
+@Retention(SOURCE)
 public @interface BoundPropertySupport {
 }

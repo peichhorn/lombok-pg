@@ -56,22 +56,22 @@ import org.mangosdk.spi.ProviderFor;
 public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSupport> {
 	private final JavacListenerSupportHandler handler = new JavacListenerSupportHandler();
 
-	@Override public void handle(final AnnotationValues<ListenerSupport> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = ListenerSupport.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
+	@Override
+	public void handle(final AnnotationValues<ListenerSupport> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, ListenerSupport.class);
 
 		JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ListenerSupport.class));
 			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
-			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", annotationType.getName()));
+			annotationNode.addError(String.format("@%s has no effect since no interface types were specified.", ListenerSupport.class.getName()));
 			return;
 		}
-		List<TypeSymbol> resolvedInterfaces = resolveInterfaces(annotationNode, annotationType, listenerInterfaces);
+		List<TypeSymbol> resolvedInterfaces = resolveInterfaces(annotationNode, ListenerSupport.class, listenerInterfaces);
 		for (TypeSymbol interfaze : resolvedInterfaces) {
 			handler.addListenerField(type, interfaze);
 			handler.addAddListenerMethod(type, interfaze);
@@ -87,7 +87,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 		List<TypeSymbol> resolvedInterfaces = new ArrayList<TypeSymbol>();
 		for (Object listenerInterface : listenerInterfaces) {
 			if (listenerInterface instanceof JCFieldAccess) {
-				JCFieldAccess interfaze = (JCFieldAccess)listenerInterface;
+				JCFieldAccess interfaze = (JCFieldAccess) listenerInterface;
 				if ("class".equals(As.string(interfaze.name))) {
 					Type interfaceType = CLASS.resolveMember(annotationNode, interfaze.selected);
 					if (interfaceType == null) continue;
@@ -110,7 +110,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 	private void addAllFireListenerMethods(final JavacType type, final TypeSymbol interfaze, final TypeSymbol superInterfaze) {
 		for (Symbol member : superInterfaze.getEnclosedElements()) {
 			if (member.getKind() != ElementKind.METHOD) continue;
-			handler.addFireListenerMethod(type, interfaze, (MethodSymbol)member);
+			handler.addFireListenerMethod(type, interfaze, (MethodSymbol) member);
 		}
 		ClassType superInterfazeType = (ClassType) superInterfaze.type;
 		if (superInterfazeType.interfaces_field != null) for (Type iface : superInterfazeType.interfaces_field) {
@@ -134,12 +134,12 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 
 		@Override
 		protected String name(final Object object) {
-			return As.string(((Symbol)object).name);
+			return As.string(((Symbol) object).name);
 		}
 
 		@Override
 		protected Object type(final Object object) {
-			return ((Symbol)object).type;
+			return ((Symbol) object).type;
 		}
 	}
 }

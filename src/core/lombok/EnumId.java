@@ -27,13 +27,16 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * This annotation allows you mark fields in enums as identifier, so these fields
- * can be used to identify enum values. To do that, the following method
+ * This annotation allows you mark fields in enums as identifier, so these fields can be used to identify enum values.
+ * To do that, the following method
+ * 
  * <pre>
  *     public static ENUM_TYPE findByFIELD_NAME(FIELD_TYPE FIELD_NAME)
  * </pre>
+ * 
  * will be generated for each annotated field.
  */
-@Target({FIELD}) @Retention(SOURCE)
+@Target(FIELD)
+@Retention(SOURCE)
 public @interface EnumId {
 }

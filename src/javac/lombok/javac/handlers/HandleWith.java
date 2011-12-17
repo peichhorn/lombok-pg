@@ -70,12 +70,14 @@ public class HandleWith extends JavacASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 
-	@Override public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
 
-	@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
+	@Override
+	public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			String methodName = methodCall.meth.toString();
@@ -90,7 +92,8 @@ public class HandleWith extends JavacASTAdapter {
 		}
 	}
 
-	@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
@@ -110,7 +113,7 @@ public class HandleWith extends JavacASTAdapter {
 		} else if (withExpr instanceof JCNewClass) {
 			withExprName = "$with" + (withVarCounter++);
 			JavacASTMaker builder = new JavacASTMaker(methodCallNode, source);
-			JCStatement statement = builder.build(LocalDecl(Type(((JCNewClass)withExpr).clazz), withExprName).makeFinal().withInitialization(Expr(withExpr)));
+			JCStatement statement = builder.build(LocalDecl(Type(((JCNewClass) withExpr).clazz), withExprName).makeFinal().withInitialization(Expr(withExpr)));
 			withCallStatements.append(statement);
 			withExpr = builder.build(Name(withExprName));
 		} else {
@@ -130,21 +133,20 @@ public class HandleWith extends JavacASTAdapter {
 		return true;
 	}
 
-	private boolean tryToRefactorWithCall(final JavacNode methodCallNode, final JCMethodInvocation withCall, final JCExpression withExpr,
-			final JCTree statementThatUsesWith) throws IllegalArgumentException {
-		if ((statementThatUsesWith instanceof JCAssign) && ((JCAssign)statementThatUsesWith).rhs == withCall) {
-			((JCAssign)statementThatUsesWith).rhs = withExpr;
+	private boolean tryToRefactorWithCall(final JavacNode methodCallNode, final JCMethodInvocation withCall, final JCExpression withExpr, final JCTree statementThatUsesWith) throws IllegalArgumentException {
+		if ((statementThatUsesWith instanceof JCAssign) && ((JCAssign) statementThatUsesWith).rhs == withCall) {
+			((JCAssign) statementThatUsesWith).rhs = withExpr;
 		} else if (statementThatUsesWith instanceof JCFieldAccess) {
-			((JCFieldAccess)statementThatUsesWith).selected = withExpr;
+			((JCFieldAccess) statementThatUsesWith).selected = withExpr;
 		} else if (statementThatUsesWith instanceof JCExpressionStatement) {
-			((JCExpressionStatement)statementThatUsesWith).expr = withExpr;
+			((JCExpressionStatement) statementThatUsesWith).expr = withExpr;
 			return false;
 		} else if (statementThatUsesWith instanceof JCVariableDecl) {
-			((JCVariableDecl)statementThatUsesWith).init = withExpr;
+			((JCVariableDecl) statementThatUsesWith).init = withExpr;
 		} else if (statementThatUsesWith instanceof JCReturn) {
-			((JCReturn)statementThatUsesWith).expr = withExpr;
+			((JCReturn) statementThatUsesWith).expr = withExpr;
 		} else if (statementThatUsesWith instanceof JCMethodInvocation) {
-			JCMethodInvocation methodCall = (JCMethodInvocation)statementThatUsesWith;
+			JCMethodInvocation methodCall = (JCMethodInvocation) statementThatUsesWith;
 			ListBuffer<JCExpression> newArgs = ListBuffer.lb();
 			for (JCExpression arg : methodCall.args) {
 				if (arg == withCall) newArgs.append(withExpr);
@@ -162,7 +164,7 @@ public class HandleWith extends JavacASTAdapter {
 		TreeMaker maker = node.getTreeMaker();
 		for (JCExpression arg : args) {
 			if (arg instanceof JCMethodInvocation) {
-				arg = (JCExpression)arg.accept(new WithReferenceReplaceVisitor(node, withExprName), null);
+				arg = (JCExpression) arg.accept(new WithReferenceReplaceVisitor(node, withExprName), null);
 				withCallStatements.append(maker.Exec(arg));
 			} else {
 				node.addError(unsupportedExpressionIn("with", arg));
@@ -183,11 +185,11 @@ public class HandleWith extends JavacASTAdapter {
 		JavacNode grandParent = parent.directUp();
 		JCTree block = grandParent.get();
 		if (block instanceof JCBlock) {
-			((JCBlock)block).stats = injectStatements(((JCBlock)block).stats, statement, wasNoMethodCall, withCallStatements);
+			((JCBlock) block).stats = injectStatements(((JCBlock) block).stats, statement, wasNoMethodCall, withCallStatements);
 		} else if (block instanceof JCCase) {
-			((JCCase)block).stats = injectStatements(((JCCase)block).stats, statement, wasNoMethodCall, withCallStatements);
+			((JCCase) block).stats = injectStatements(((JCCase) block).stats, statement, wasNoMethodCall, withCallStatements);
 		} else if (block instanceof JCMethodDecl) {
-			((JCMethodDecl)block).body.stats = injectStatements(((JCMethodDecl)block).body.stats, statement, wasNoMethodCall, withCallStatements);
+			((JCMethodDecl) block).body.stats = injectStatements(((JCMethodDecl) block).body.stats, statement, wasNoMethodCall, withCallStatements);
 		} else {
 			// this would be odd but what the hell
 			return;

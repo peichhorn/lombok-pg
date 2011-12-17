@@ -28,20 +28,23 @@ import java.lang.annotation.*;
 
 /**
  * Locking beyond {@code @Synchronized}.
+ * 
  * <pre>
  * void methodAnnotatedWithReadLock() {
  *   this.&lt;LOCK_NAME&gt;.readLock().lock();
  *   try {
- *
+ * 
  *     // method body
- *
+ * 
  *   } finally {
  *     this.&lt;LOCK_NAME&gt;.readLock().unlock();
  *   }
  * }
+ * 
  * <pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface ReadLock {
 	/**
 	 * Name of the lock.

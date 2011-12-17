@@ -41,7 +41,6 @@ public class HandleSanitize extends EclipseAnnotationHandler<Sanitize> {
 
 	@Override
 	public void handle(final AnnotationValues<Sanitize> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
-		new SanitizeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new EclipseParameterSanitizer());
+		new SanitizeHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(new EclipseParameterSanitizer());
 	}
 }

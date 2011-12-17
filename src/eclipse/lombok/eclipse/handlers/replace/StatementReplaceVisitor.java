@@ -32,48 +32,57 @@ public abstract class StatementReplaceVisitor extends ReplaceVisitor<Statement> 
 		super(method, replacement);
 	}
 
-	@Override public boolean visit(final ConstructorDeclaration constructorDeclaration, final ClassScope scope) {
+	@Override
+	public boolean visit(final ConstructorDeclaration constructorDeclaration, final ClassScope scope) {
 		replace(constructorDeclaration.statements);
 		return true;
 	}
 
-	@Override public boolean visit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
+	@Override
+	public boolean visit(final MethodDeclaration methodDeclaration, final ClassScope scope) {
 		replace(methodDeclaration.statements);
 		return true;
 	}
 
-	@Override public boolean visit(final Block block, final BlockScope scope) {
+	@Override
+	public boolean visit(final Block block, final BlockScope scope) {
 		replace(block.statements);
 		return true;
 	}
 
-	@Override public boolean visit(final DoStatement doStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final DoStatement doStatement, final BlockScope scope) {
 		doStatement.action = replace(doStatement.action);
 		return true;
 	}
 
-	@Override public boolean visit(final ForeachStatement forStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final ForeachStatement forStatement, final BlockScope scope) {
 		forStatement.action = replace(forStatement.action);
 		return true;
 	}
 
-	@Override public boolean visit(final ForStatement forStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final ForStatement forStatement, final BlockScope scope) {
 		forStatement.action = replace(forStatement.action);
 		return true;
 	}
 
-	@Override public boolean visit(final IfStatement ifStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final IfStatement ifStatement, final BlockScope scope) {
 		ifStatement.thenStatement = replace(ifStatement.thenStatement);
 		ifStatement.elseStatement = replace(ifStatement.elseStatement);
 		return true;
 	}
 
-	@Override public boolean visit(final SwitchStatement switchStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final SwitchStatement switchStatement, final BlockScope scope) {
 		replace(switchStatement.statements);
 		return true;
 	}
 
-	@Override public boolean visit(final WhileStatement whileStatement, final BlockScope scope) {
+	@Override
+	public boolean visit(final WhileStatement whileStatement, final BlockScope scope) {
 		whileStatement.action = replace(whileStatement.action);
 		return true;
 	}

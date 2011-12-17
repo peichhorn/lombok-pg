@@ -63,7 +63,8 @@ import com.sun.tools.javac.util.Name;
 @ProviderFor(JavacAnnotationHandler.class)
 @ResolutionBased
 public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMethodStub> {
-	@Override public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, AutoGenMethodStub.class);
 		final JavacType type = JavacType.typeOf(annotationNode, source);
 		if (type.isInterface() || type.isAnnotation()) {
@@ -81,11 +82,11 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 		for (MethodSymbol methodSymbol : UndefiniedMethods.of(type.node())) {
 			type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(statement));
 		}
-		
+
 		type.rebuild();
 	}
 
-	@RequiredArgsConstructor(access=AccessLevel.PRIVATE)
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 	private static class UndefiniedMethods implements Iterator<MethodSymbol>, Iterable<MethodSymbol> {
 		private final Set<String> handledMethods = new HashSet<String>();
 		private final JavacNode typeNode;
@@ -135,7 +136,7 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 
 		public static UndefiniedMethods of(final JavacNode node) {
 			JavacNode typeNode = typeNodeOf(node);
-			return new UndefiniedMethods(typeNode, ((JCClassDecl)typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
+			return new UndefiniedMethods(typeNode, ((JCClassDecl) typeNode.get()).sym, Types.instance(typeNode.getAst().getContext()));
 		}
 
 		private MethodSymbol createMethodStubFor(final MethodSymbol methodSym) {

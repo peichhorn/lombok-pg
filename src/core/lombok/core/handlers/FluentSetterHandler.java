@@ -41,7 +41,7 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 	private final LOMBOK_NODE_TYPE annotationNode;
 	private final SOURCE_TYPE ast;
 
-	public void handle(final AccessLevel level, final Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(final AccessLevel level) {
 		LOMBOK_NODE_TYPE mayBeField = annotationNode.up();
 		if (mayBeField == null) return;
 		TYPE_TYPE type = typeOf(annotationNode, ast);
@@ -59,7 +59,7 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 				fields.add(field);
 			}
 		} else {
-			annotationNode.addError(canBeUsedOnClassAndFieldOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndFieldOnly(FluentSetter.class));
 			return;
 		}
 		generateSetter(type, fields, level);
@@ -82,12 +82,12 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);
 		List<lombok.ast.Annotation> nullables = field.annotations(TransformationsUtil.NULLABLE_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeArguments()), fieldName).withAccessLevel(level) //
-			.withArgument(Arg(fieldType, fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
+				.withArgument(Arg(fieldType, fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
 		if (!nonNulls.isEmpty() && !field.isPrimitive()) {
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
 		}
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-			.withStatement(Return(This()));
+				.withStatement(Return(This()));
 		type.injectMethod(methodDecl);
 	}
 }

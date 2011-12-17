@@ -45,7 +45,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	private final LOMBOK_NODE_TYPE annotationNode;
 	private final SOURCE_TYPE ast;
 
-	public void handle(final AccessLevel level, final Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(final AccessLevel level) {
 		LOMBOK_NODE_TYPE mayBeField = annotationNode.up();
 		if (mayBeField == null) return;
 		TYPE_TYPE type = typeOf(annotationNode, ast);
@@ -63,7 +63,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 				fields.add(field);
 			}
 		} else {
-			annotationNode.addError(canBeUsedOnClassAndFieldOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndFieldOnly(BoundSetter.class));
 			return;
 		}
 		generateSetter(type, fields, level);
@@ -85,7 +85,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		String propertyName = field.name();
 		if (type.hasField(propertyNameFieldName)) return;
 		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
-			.withInitialization(String(propertyName)));
+				.withInitialization(String(propertyName)));
 	}
 
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level, final String propertyNameFieldName) {
@@ -100,9 +100,9 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
 		}
 		methodDecl.withStatement(LocalDecl(field.type(), oldValueName).makeFinal().withInitialization(Field(fieldName))) //
-			.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-			.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
-				.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Field(fieldName)));
+				.withStatement(Assign(Field(fieldName), Name(fieldName))) //
+				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
+						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Field(fieldName)));
 		type.injectMethod(methodDecl);
 	}
 }

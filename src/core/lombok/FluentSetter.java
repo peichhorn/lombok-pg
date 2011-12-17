@@ -29,7 +29,8 @@ import java.lang.annotation.*;
 /**
  * Does pretty much the same as {@link Setter @Setter}.
  */
-@Target({FIELD, TYPE}) @Retention(SOURCE)
+@Target({ FIELD, TYPE })
+@Retention(SOURCE)
 public @interface FluentSetter {
 	/**
 	 * If you want your setter to be non-public, you can specify an alternate access level here.

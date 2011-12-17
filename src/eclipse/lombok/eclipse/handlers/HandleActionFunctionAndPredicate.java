@@ -21,7 +21,6 @@
  */
 package lombok.eclipse.handlers;
 
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.eclipse.Eclipse.fromQualifiedName;
 import static lombok.eclipse.Eclipse.poss;
 
@@ -92,33 +91,33 @@ public class HandleActionFunctionAndPredicate {
 	}
 
 	public void handle(final Class<?> templates, final Annotation source, final EclipseNode annotationNode, final String forcedReturnType) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Action.class;
+		final TypeReference annotationType = source.type;
 		final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 		if (method.isAbstract()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			annotationNode.addError(String.format("@%s can be used on concrete methods only", annotationType));
 			return;
 		}
 		if ((forcedReturnType != null) && !method.returns(forcedReturnType)) {
-			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType.getSimpleName(), forcedReturnType));
+			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType, forcedReturnType));
 			return;
 		}
 
 		final ReferenceBinding resolvedTemplates = resolveTemplates(method.node(), source, templates);
 		if (resolvedTemplates == null) {
-			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType));
 			return;
 		}
 		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates, forcedReturnType);
 		if (matchingTemplates.isEmpty()) {
-			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType));
 			return;
 		}
 		if (matchingTemplates.size() > 1) {
-			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType));
 			return;
 		}
 		new ActionFunctionAndPredicateHandler<EclipseType, EclipseMethod>().rebuildMethod(method, matchingTemplates.get(0), new EclipseParameterValidator(), new EclipseParameterSanitizer());
-	
+
 	}
 
 	private ReferenceBinding resolveTemplates(final EclipseNode node, final Annotation annotation, final Class<?> templatesDef) {

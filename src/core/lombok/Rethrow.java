@@ -30,28 +30,32 @@ import java.lang.annotation.*;
  * Simplifies rethrowing {@link Exception Exceptions} by wrapping them.
  * <p>
  * With lombok:
+ * 
  * <pre>
  * &#64;Rethrow(IOException.class)
  * void testMethod() {
  *   // do something
  * }
- *
+ * 
  * void testMethod() throw IOException as RuntimeException {
  *   // do something
  * }
  * </pre>
+ * 
  * Vanilla Java:
+ * 
  * <pre>
  * void testMethod() {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   }
+ * 	try {
+ * 		// do something
+ * 	} catch (IOException e1) {
+ * 		throw new RuntimeException(e1);
+ * 	}
  * }
  * </pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface Rethrow {
 	/**
 	 * Specifies the exception types, that should be caught and rethrown. Default is {@code Exception.class}.

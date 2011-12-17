@@ -30,44 +30,49 @@ import java.lang.annotation.*;
  * Wraps a bit of Swing pain.
  * <p>
  * With lombok:
+ * 
  * <pre>
  * class SwingApp {
- *   private final JFrame frame = new JFrame();
- *
- *   &#64;SwingInvokeAndWait void start() throws Exception {
- *     frame.setTitle("SwingApp");
- *     frame.setVisible(true);
- *   }
+ * 	private final JFrame frame = new JFrame();
+ * 
+ * 	&#064;SwingInvokeAndWait
+ * 	void start() throws Exception {
+ * 		frame.setTitle(&quot;SwingApp&quot;);
+ * 		frame.setVisible(true);
+ * 	}
  * }
  * </pre>
+ * 
  * Vanilla Java:
+ * 
  * <pre>
  * class SwingApp {
- *   private final JFrame frame = new JFrame();
- *
- *   void start() throws Exception {
- *     final java.lang.Runnable $startRunnable = new java.lang.Runnable() {
- *       public void run() {
- *         frame.setTitle("SwingApp");
- *         frame.setVisible(true);
- *       }
- *     };
- *     if (java.awt.EventQueue.isDispatchThread()) {
- *       $startRunnable();
- *     } else {
- *       try {
- *         java.awt.EventQueue.invokeAndWait($startRunnable);
- *       } catch (java.lang.InterruptedException $ex1) {
- *       } catch (java.lang.reflect.InvocationTargetException $ex2) {
- *         final java.lang.Throwable $cause = $ex2.getCause();
- *         if ($cause instanceof FileNotFoundException) throw (FileNotFoundException) $cause;
- *         if ($cause != null) throw new java.lang.RuntimeException($cause);
- *       }
- *     }
- *   }
+ * 	private final JFrame frame = new JFrame();
+ * 
+ * 	void start() throws Exception {
+ * 		final java.lang.Runnable $startRunnable = new java.lang.Runnable() {
+ * 			public void run() {
+ * 				frame.setTitle(&quot;SwingApp&quot;);
+ * 				frame.setVisible(true);
+ * 			}
+ * 		};
+ * 		if (java.awt.EventQueue.isDispatchThread()) {
+ * 			$startRunnable();
+ * 		} else {
+ * 			try {
+ * 				java.awt.EventQueue.invokeAndWait($startRunnable);
+ * 			} catch (java.lang.InterruptedException $ex1) {
+ * 			} catch (java.lang.reflect.InvocationTargetException $ex2) {
+ * 				final java.lang.Throwable $cause = $ex2.getCause();
+ * 				if ($cause instanceof FileNotFoundException) throw (FileNotFoundException) $cause;
+ * 				if ($cause != null) throw new java.lang.RuntimeException($cause);
+ * 			}
+ * 		}
+ * 	}
  * }
  * </pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface SwingInvokeAndWait {
 }

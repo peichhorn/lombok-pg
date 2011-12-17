@@ -48,7 +48,8 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected void handle(final JavacType type) {
+		@Override
+		protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), Application.class);
 			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "main", "runApp", Parameters.APPLICATION, Arguments.APPLICATION);
 		}
@@ -63,7 +64,8 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected void handle(final JavacType type) {
+		@Override
+		protected void handle(final JavacType type) {
 			markInterfaceAsProcessed(type.node(), JvmAgent.class);
 			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "agentmain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
 			new EntrypointHandler<JavacType, JavacMethod>().createEntrypoint(type, "premain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
@@ -74,7 +76,8 @@ public class HandleEntrypoint {
 	public abstract static class AbstractHandleEntrypoint extends JavacASTAdapter {
 		private final Class<?> interfaze;
 
-		@Override public void visitType(final JavacNode typeNode, final JCClassDecl type) {
+		@Override
+		public void visitType(final JavacNode typeNode, final JCClassDecl type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
 			if (type.getImplementsClause() != null) for (JCExpression exp : type.getImplementsClause()) {
@@ -84,17 +87,18 @@ public class HandleEntrypoint {
 				}
 			}
 			if (implementsInterface) {
-				 handle(JavacType.typeOf(typeNode, type));
+				handle(JavacType.typeOf(typeNode, type));
 			}
 		}
 
-		@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+		@Override
+		public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 			deleteImportFromCompilationUnit(top, interfaze.getName());
 		}
 
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
-		 *
+		 * 
 		 * @param type
 		 */
 		protected abstract void handle(JavacType type);

@@ -28,35 +28,34 @@ import java.lang.annotation.*;
 import java.text.Normalizer;
 
 /**
- * Explicitly turns on sanitation for all method
- * parameter annotated with {@code @Sanitize.With("methodname")} or
+ * Explicitly turns on sanitation for all method parameter annotated with {@code @Sanitize.With("methodname")} or
  * {@code @Sanitize.Normalize}.
  * <p>
- * <b>Note:</b> All lombok-pg method-level annotations automatically
- * trigger a parameter sanitation.
+ * <b>Note:</b> All lombok-pg method-level annotations automatically trigger a parameter sanitation.
  */
-@Target({METHOD, CONSTRUCTOR}) @Retention(SOURCE)
+@Target({ METHOD, CONSTRUCTOR })
+@Retention(SOURCE)
 public @interface Sanitize {
 
 	/**
 	 * Specify a custom sanitation method.
 	 * <p>
-	 * <b>Note:</b> This works with all types, but the parameter type
-	 * has to match the method signature.
+	 * <b>Note:</b> This works with all types, but the parameter type has to match the method signature.
 	 */
-	@Target(PARAMETER) @Retention(SOURCE)
+	@Target(PARAMETER)
+	@Retention(SOURCE)
 	public static @interface With {
 		String value();
 	}
 
 	/**
-	 * {@link String} parameter gets normalized using
-	 * {@link Normalizer#normalize(CharSequence, Normalizer.Form)}
-	 * with default form being {@link java.text.Normalizer.Form#NFKC NFKC}
+	 * {@link String} parameter gets normalized using {@link Normalizer#normalize(CharSequence, Normalizer.Form)} with
+	 * default form being {@link java.text.Normalizer.Form#NFKC NFKC}
 	 * <p>
 	 * <b>Note:</b> This works only on {@link String Strings}.
 	 */
-	@Target(PARAMETER) @Retention(SOURCE)
+	@Target(PARAMETER)
+	@Retention(SOURCE)
 	public static @interface Normalize {
 		Normalizer.Form value() default Normalizer.Form.NFKC;
 	}

@@ -42,7 +42,7 @@ public class Initializer extends Statement<Initializer> {
 		for (Statement<?> statement : statements) withStatement(statement);
 		return this;
 	}
-	
+
 	public Initializer makeStatic() {
 		modifiers.add(STATIC);
 		return this;

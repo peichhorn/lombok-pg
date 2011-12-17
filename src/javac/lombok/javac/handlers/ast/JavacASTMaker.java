@@ -140,7 +140,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	private final JCTree source;
 
 	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
-		return this.<T>build(node, null);
+		return this.<T> build(node, null);
 	}
 
 	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
@@ -149,11 +149,11 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 		if ((JCStatement.class == extectedType) && (tree instanceof JCExpression)) {
 			tree = M(node).Exec((JCExpression) tree);
 		}
-		return Cast.<T>uncheckedCast(tree);
+		return Cast.<T> uncheckedCast(tree);
 	}
 
 	public <T extends JCTree> List<T> build(final java.util.List<? extends lombok.ast.Node<?>> nodes) {
-		return this.<T>build(nodes, null);
+		return this.<T> build(nodes, null);
 	}
 
 	public <T extends JCTree> List<T> build(final java.util.List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
@@ -611,7 +611,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	public JCTree visitWildcard(final lombok.ast.Wildcard node, final Void p) {
 		BoundKind boundKind = BoundKind.UNBOUND;
 		if (node.getBound() != null) {
-			switch(node.getBound()) {
+			switch (node.getBound()) {
 			case SUPER:
 				boundKind = BoundKind.SUPER;
 				break;

@@ -51,8 +51,8 @@ public class HandleRethrowAndRethrows {
 		public void handle(final AnnotationValues<Rethrow> annotation, final Annotation source, final EclipseNode annotationNode) {
 			Rethrow ann = annotation.getInstance();
 			new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+					.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
+					.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -66,11 +66,11 @@ public class HandleRethrowAndRethrows {
 		public void handle(final AnnotationValues<Rethrows> annotation, final Annotation source, final EclipseNode annotationNode) {
 			RethrowAndRethrowsHandler<EclipseMethod> handler = new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode);
 			for (Object rethrow : annotation.getActualExpressions("value")) {
-				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode)rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
+				EclipseNode rethrowNode = new InitializableEclipseNode(annotationNode.getAst(), (ASTNode) rethrow, new ArrayList<EclipseNode>(), Kind.ANNOTATION);
 				Rethrow ann = createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
-			handler.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+			handler.handle(Rethrows.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 }

@@ -22,13 +22,15 @@
 package lombok;
 
 /**
- * Generates a {@code public static void main(String[])} method that constructs a new object
- * of your type and then calls the {@code runApp(String[])} method on it.
+ * Generates a {@code public static void main(String[])} method that constructs a new object of your type and then calls
+ * the {@code runApp(String[])} method on it.
  */
 public interface Application {
 	/**
 	 * Entry point of your Java application
-	 * @param args - the command line arguments
+	 * 
+	 * @param args
+	 *            the command line arguments
 	 */
 	public void runApp(String[] args) throws Throwable;
 }

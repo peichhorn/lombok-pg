@@ -42,7 +42,8 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleEnumId extends JavacAnnotationHandler<EnumId> {
 
-	@Override public void handle(final AnnotationValues<EnumId> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<EnumId> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 		deleteAnnotationIfNeccessary(annotationNode, EnumId.class);
 		JavacType type = JavacType.typeOf(annotationNode, source);
 		JavacField field = JavacField.fieldOf(annotationNode, source);

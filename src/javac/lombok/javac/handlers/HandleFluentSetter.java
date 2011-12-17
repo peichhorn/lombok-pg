@@ -36,23 +36,27 @@ import org.mangosdk.spi.ProviderFor;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+
 /**
  * Handles the {@code lombok.FluentSetter} annotation for javac.
  */
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
-	@Override public void handle(final AnnotationValues<FluentSetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<FluentSetter> annotation, final JCAnnotation ast, final JavacNode annotationNode) {
 		FluentSetter annotationInstance = annotation.getInstance();
 		new FluentSetterHandler<JavacType, JavacField, JavacNode, JCTree>(annotationNode, ast) {
 
-			@Override protected JavacType typeOf(JavacNode node, JCTree ast) {
+			@Override
+			protected JavacType typeOf(JavacNode node, JCTree ast) {
 				return JavacType.typeOf(node, ast);
 			}
 
-			@Override protected JavacField fieldOf(JavacNode node, JCTree ast) {
+			@Override
+			protected JavacField fieldOf(JavacNode node, JCTree ast) {
 				return JavacField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value(), annotationInstance.getClass());
+		}.handle(annotationInstance.value());
 		deleteAnnotationIfNeccessary(annotationNode, FluentSetter.class);
 		deleteImport(annotationNode, AccessLevel.class);
 	}

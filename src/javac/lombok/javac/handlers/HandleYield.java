@@ -83,11 +83,13 @@ import com.sun.tools.javac.util.Name;
 public class HandleYield extends JavacASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 
-	@Override public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		methodNames.clear();
 	}
 
-	@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
+	@Override
+	public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 		if (statement instanceof JCMethodInvocation) {
 			JCMethodInvocation methodCall = (JCMethodInvocation) statement;
 			String methodName = methodCall.meth.toString();
@@ -102,13 +104,14 @@ public class HandleYield extends JavacASTAdapter {
 		}
 	}
 
-	@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Yield.class, "yield");
 		}
 	}
 
-	private static class JavacYieldDataCollector extends AbstractYieldDataCollector<JavacMethod, JCTree>{
+	private static class JavacYieldDataCollector extends AbstractYieldDataCollector<JavacMethod, JCTree> {
 
 		public String elementType(final JavacMethod method) {
 			JCExpression type = method.get().restype;
@@ -204,7 +207,7 @@ public class HandleYield extends JavacASTAdapter {
 
 		private Scope<JCTree> getFinallyScope(Scope<JCTree> scope, Scope<JCTree> top) {
 			JCTree previous = null;
-			while(scope != null) {
+			while (scope != null) {
 				JCTree tree = scope.node;
 				if (tree instanceof JCTry) {
 					JCTry statement = (JCTry) tree;
@@ -429,10 +432,10 @@ public class HandleYield extends JavacASTAdapter {
 							finallyBlocks++;
 							finallyErrorName = errorName + finallyBlocks;
 							labelName = "$state" + finallyBlocks;
-							
+
 							stateVariables.add(FieldDecl(Type(Throwable.class), finallyErrorName).makePrivate());
 							stateVariables.add(FieldDecl(Type("int"), labelName).makePrivate());
-							
+
 							addStatement(Assign(Name(finallyErrorName), Null()));
 							addStatement(Assign(Name(labelName), literal(breakLabel)));
 						} else {
@@ -455,21 +458,21 @@ public class HandleYield extends JavacASTAdapter {
 						if (hasCatch) {
 							addStatement(Continue());
 							catchHandler.end = cases.size();
-							for(JCCatch catcher: tree.catchers) {
+							for (JCCatch catcher : tree.catchers) {
 								Case label = Case();
 								usedLabels.add(label);
 								addLabel(label);
 								refactorStatement(catcher.body);
 								addStatement(setState(literal(finallyLabel)));
 								addStatement(Continue());
-								
+
 								catchHandler.statements.add(If(InstanceOf(Name(errorName), Type(catcher.param.vartype))).Then(Block() //
-									.withStatement(Assign(Name(As.string(catcher.param.name)), Cast(Type(catcher.param.vartype), Name(errorName)))) //
-									.withStatement(setState(literal(label))).withStatement(Continue())));
+										.withStatement(Assign(Name(As.string(catcher.param.name)), Cast(Type(catcher.param.vartype), Name(errorName)))) //
+										.withStatement(setState(literal(label))).withStatement(Continue())));
 							}
 
 							errorHandlers.add(catchHandler);
-							
+
 							if (hasFinally) {
 								finallyHandler.begin = catchHandler.end;
 							}
@@ -486,8 +489,8 @@ public class HandleYield extends JavacASTAdapter {
 							if (next != null) {
 								Case label = getFinallyLabel(next);
 								addStatement(If(Binary(Name(labelName), ">", literal(label))).Then(Block() //
-									.withStatement(Assign(Name(next.labelName), Name(labelName))) //
-									.withStatement(setState(literal(label))).withStatement(setState(Name(labelName)))));
+										.withStatement(Assign(Name(next.labelName), Name(labelName))) //
+										.withStatement(setState(literal(label))).withStatement(setState(Name(labelName)))));
 							} else {
 								addStatement(setState(Name(labelName)));
 							}
@@ -670,10 +673,10 @@ public class HandleYield extends JavacASTAdapter {
 
 							Scope<JCTree> next = getFinallyScope(parent, null);
 							if (next != null) {
- 								breakCases.add(new Case(literal(label)) //
-									.withStatement(Assign(Name(next.labelName), literal(getBreakLabel(root)))) //
-									.withStatement(setState(literal(getFinallyLabel(next)))) //
-									.withStatement(Continue()));
+								breakCases.add(new Case(literal(label)) //
+										.withStatement(Assign(Name(next.labelName), literal(getBreakLabel(root)))) //
+										.withStatement(setState(literal(getFinallyLabel(next)))) //
+										.withStatement(Continue()));
 							}
 						}
 					};

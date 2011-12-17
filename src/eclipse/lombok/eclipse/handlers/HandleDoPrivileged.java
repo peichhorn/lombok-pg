@@ -39,9 +39,9 @@ import org.mangosdk.spi.ProviderFor;
 @DeferUntilPostDiet
 public class HandleDoPrivileged extends EclipseAnnotationHandler<DoPrivileged> {
 
-	@Override public void handle(final AnnotationValues<DoPrivileged> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
+	@Override
+	public void handle(final AnnotationValues<DoPrivileged> annotation, final Annotation source, final EclipseNode annotationNode) {
 		new DoPrivilegedHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(new EclipseParameterValidator(), new EclipseParameterSanitizer());
 	}
 }

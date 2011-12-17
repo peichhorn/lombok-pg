@@ -58,7 +58,7 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 	public String name();
 
 	public Expression<?> initialization();
-	
+
 	public void replaceInitialization(Expression<?> initialization);
 
 	public void makePrivate();

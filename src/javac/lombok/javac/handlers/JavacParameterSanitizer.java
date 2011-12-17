@@ -47,7 +47,7 @@ public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod>
 		final List<lombok.ast.Statement<?>> sanitizeStatements = new ArrayList<lombok.ast.Statement<?>>();
 		for (JCVariableDecl argument : method.get().params) {
 			final String argumentName = argument.name.toString();
-			final String newArgumentName = camelCase("sanitized",argumentName);
+			final String newArgumentName = camelCase("sanitized", argumentName);
 			for (SanitizerStrategy sanitizerStrategy : SanitizerStrategy.IN_ORDER) {
 				final JCAnnotation ann = getAnnotation(sanitizerStrategy.getType(), argument.mods);
 				if (ann == null) continue;

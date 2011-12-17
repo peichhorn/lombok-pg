@@ -42,13 +42,15 @@ public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 		BoundSetter annotationInstance = annotation.getInstance();
 		new BoundSetterHandler<EclipseType, EclipseField, EclipseNode, ASTNode>(annotationNode, ast) {
 
-			@Override protected EclipseType typeOf(EclipseNode node, ASTNode ast) {
+			@Override
+			protected EclipseType typeOf(EclipseNode node, ASTNode ast) {
 				return EclipseType.typeOf(node, ast);
 			}
 
-			@Override protected EclipseField fieldOf(EclipseNode node, ASTNode ast) {
+			@Override
+			protected EclipseField fieldOf(EclipseNode node, ASTNode ast) {
 				return EclipseField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value(), annotationInstance.getClass());
+		}.handle(annotationInstance.value());
 	}
 }

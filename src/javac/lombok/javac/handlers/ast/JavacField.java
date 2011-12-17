@@ -162,7 +162,7 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 		}
 		return typeArguments;
 	}
-	
+
 	public List<lombok.ast.Annotation> annotations() {
 		return annotations(null);
 	}

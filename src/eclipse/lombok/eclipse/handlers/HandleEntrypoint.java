@@ -45,7 +45,8 @@ public class HandleEntrypoint {
 			super(Application.class);
 		}
 
-		@Override protected void handle(final EclipseType type) {
+		@Override
+		protected void handle(final EclipseType type) {
 			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "main", "runApp", Parameters.APPLICATION, Arguments.APPLICATION);
 		}
 	}
@@ -59,7 +60,8 @@ public class HandleEntrypoint {
 			super(JvmAgent.class);
 		}
 
-		@Override protected void handle(final EclipseType type) {
+		@Override
+		protected void handle(final EclipseType type) {
 			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "agentmain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
 			new EntrypointHandler<EclipseType, EclipseMethod>().createEntrypoint(type, "premain", "runAgent", Parameters.JVM_AGENT, Arguments.JVM_AGENT);
 		}
@@ -69,7 +71,8 @@ public class HandleEntrypoint {
 	public abstract static class EclipseEntrypointHandler extends EclipseASTAdapter {
 		private final Class<?> interfaze;
 
-		@Override public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
+		@Override
+		public void visitType(final EclipseNode typeNode, final TypeDeclaration type) {
 			boolean implementsInterface = false;
 			boolean isAnImport = typeNode.getImportStatements().contains(interfaze.getName());
 			for (TypeReference ref : Each.elementIn(type.superInterfaces)) {
@@ -85,7 +88,7 @@ public class HandleEntrypoint {
 
 		/**
 		 * Called when an interface is found that is likely to match the interface you're interested in.
-		 *
+		 * 
 		 * @param type
 		 */
 		protected abstract void handle(EclipseType type);

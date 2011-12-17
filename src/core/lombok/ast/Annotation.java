@@ -29,7 +29,7 @@ import lombok.*;
 public class Annotation extends Expression<Annotation> {
 	private final Map<String, Expression<?>> values = new HashMap<String, Expression<?>>();
 	private final TypeRef type;
-	
+
 	public Annotation(final TypeRef type) {
 		super();
 		this.type = child(type);

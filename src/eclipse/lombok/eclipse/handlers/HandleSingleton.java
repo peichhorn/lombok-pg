@@ -38,7 +38,8 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 
-	@Override public void handle(final AnnotationValues<Singleton> annotation, final Annotation source, final EclipseNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<Singleton> annotation, final Annotation source, final EclipseNode annotationNode) {
 		new SingletonHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(annotationNode, source), annotationNode).handle(annotation.getInstance().style());
 	}
 }

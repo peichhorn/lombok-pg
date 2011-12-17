@@ -75,7 +75,7 @@ public final class ErrorMessages {
 	public static String canBeUsedOnEnumFieldsOnly(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s can be used on enum fields only", annotationType);
 	}
-	
+
 	public static String requiresDefaultOrNoArgumentConstructor(final Class<? extends Annotation> annotationType) {
 		return errorMessage("@%s requires a default or no-argument constructor", annotationType);
 	}

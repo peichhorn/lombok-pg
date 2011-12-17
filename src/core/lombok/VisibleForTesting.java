@@ -27,17 +27,14 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * An annotation that indicates that the visibility of a type or member has
- * been relaxed to make the code testable.
+ * An annotation that indicates that the visibility of a type or member has been relaxed to make the code testable.
  * <p>
- * All you have to do is change the visibility of the method or type as much
- * as you need to access them in the tests.
- * <br>
- * This annotation guarantees that the method or type can only be
- * accessed from within a test class. For a class to be recognized as a
- * test class its name has to contain 'Test'.
+ * All you have to do is change the visibility of the method or type as much as you need to access them in the tests. <br>
+ * This annotation guarantees that the method or type can only be accessed from within a test class. For a class to be
+ * recognized as a test class its name has to contain 'Test'.
  */
-@Target({METHOD, TYPE}) @Retention(SOURCE)
+@Target({ METHOD, TYPE })
+@Retention(SOURCE)
 public @interface VisibleForTesting {
 
 }

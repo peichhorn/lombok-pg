@@ -59,7 +59,8 @@ public final class PatchAutoGenMethodStub {
 	}
 
 	private static final ThreadLocal<Boolean> ISSUE_WAS_FIXED = new ThreadLocal<Boolean>() {
-		@Override protected Boolean initialValue() {
+		@Override
+		protected Boolean initialValue() {
 			return Boolean.FALSE;
 		}
 	};

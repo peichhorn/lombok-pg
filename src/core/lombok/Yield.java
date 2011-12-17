@@ -33,23 +33,27 @@ package lombok;
 public class Yield {
 
 	/**
-	 *  A take on yield return.
+	 * A take on yield return.
+	 * 
 	 * <pre>
-	 * public static &lt;S, T&gt; Iterable<T> map(final Iterable&lt;S&gt; list, final Function1<S, T> mapping) {
-	 *   for (S element : list) yield(mapping.apply(element));
+	 * public static &lt;S, T&gt; Iterable&lt;T&gt; map(final Iterable&lt;S&gt; list, final Function1&lt;S, T&gt; mapping) {
+	 * 	for (S element : list)
+	 * 		yield(mapping.apply(element));
 	 * }
 	 * </pre>
+	 * 
 	 * or:
+	 * 
 	 * <pre>
 	 * public Iterator&lt;Integer&gt; genFib() {
-	 *   long a = 0;
-	 *   long b = 0;
-	 *   while (b >= 0) {
-	 *     yield(a);
-	 *     long c = a + b;
-	 *     a = b;
-	 *     b = c;
-	 *   }
+	 * 	long a = 0;
+	 * 	long b = 0;
+	 * 	while (b &gt;= 0) {
+	 * 		yield(a);
+	 * 		long c = a + b;
+	 * 		a = b;
+	 * 		b = c;
+	 * 	}
 	 * }
 	 * </pre>
 	 */

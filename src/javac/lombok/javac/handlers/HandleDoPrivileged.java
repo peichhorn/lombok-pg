@@ -40,10 +40,9 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 
-	@Override public void handle(final AnnotationValues<DoPrivileged> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = DoPrivileged.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-		new DoPrivilegedHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //
-			.handle(annotationType, new JavacParameterValidator(), new JavacParameterSanitizer());
+	@Override
+	public void handle(final AnnotationValues<DoPrivileged> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		deleteAnnotationIfNeccessary(annotationNode, DoPrivileged.class);
+		new DoPrivilegedHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterValidator(), new JavacParameterSanitizer());
 	}
 }

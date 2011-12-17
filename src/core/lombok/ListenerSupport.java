@@ -27,12 +27,12 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Swing and other frameworks make extensive use of event listeners (Observer pattern)
- * which usually involves a fair amount of boilerplate. With this annotation you just
- * list the listeners you want to support and lombok-pg will generate the methods
- * to add and remove listeners as well as convenience methods to fire events.
+ * Swing and other frameworks make extensive use of event listeners (Observer pattern) which usually involves a fair
+ * amount of boilerplate. With this annotation you just list the listeners you want to support and lombok-pg will
+ * generate the methods to add and remove listeners as well as convenience methods to fire events.
  */
-@Target(TYPE) @Retention(SOURCE)
+@Target(TYPE)
+@Retention(SOURCE)
 public @interface ListenerSupport {
 
 	/** List of the listeners you want to support. */

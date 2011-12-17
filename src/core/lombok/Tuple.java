@@ -25,16 +25,18 @@ package lombok;
 public class Tuple {
 	/**
 	 * A take on tuple assignments.
+	 * 
 	 * <pre>
 	 * public void tuple() {
-	 *   int a, b, c = tuple(1, 2, 3);
-	 *   int[] d = new int[] {4, 5, 6};
-	 *   tuple(a, b) = tuple(b, a);
-	 *   tuple(c, a, b) = tuple(d);
+	 * 	int a, b, c = tuple(1, 2, 3);
+	 * 	int[] d = new int[] { 4, 5, 6 };
+	 * 	tuple(a, b) = tuple(b, a);
+	 * 	tuple(c, a, b) = tuple(d);
 	 * }
 	 * </pre>
-	 * <b>Note:</b> This is an experimental feature and might not work in some cases.
-	 * Please file a bug report if you stumble over anything weird.
+	 * 
+	 * <b>Note:</b> This is an experimental feature and might not work in some cases. Please file a bug report if you
+	 * stumble over anything weird.
 	 */
 	public static Tuple tuple(final Object... objects) {
 		return null;

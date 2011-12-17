@@ -56,7 +56,7 @@ public class JavacParameterValidator implements IParameterValidator<JavacMethod>
 				argument.mods.annotations = remove(argument.mods.annotations, ann);
 				break;
 			}
-			
+
 		}
 		for (lombok.ast.Statement<?> validateStatement : validateStatements) {
 			validateStatement.posHint(method.get());

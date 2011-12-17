@@ -47,7 +47,7 @@ public interface IParameterSanitizer<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			public Statement<?> getStatementFor(final Object argumentType, final String argumentName, final String newArgumentName, final java.lang.annotation.Annotation annotation) {
 				final Normalizer.Form normalizerForm = ((Sanitize.Normalize) annotation).value();
 				return LocalDecl(Type(argumentType), newArgumentName).makeFinal().withInitialization(Call(Name("java.text.Normalizer"), "normalize") //
-					.withArgument(Name(argumentName)).withArgument(Name(String.format("java.text.Normalizer.Form.%s", normalizerForm.name()))));
+						.withArgument(Name(argumentName)).withArgument(Name(String.format("java.text.Normalizer.Form.%s", normalizerForm.name()))));
 			}
 		};
 

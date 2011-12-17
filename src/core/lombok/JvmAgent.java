@@ -24,16 +24,19 @@ package lombok;
 import java.lang.instrument.Instrumentation;
 
 /**
- * Generates a {@code public static void agentmain} and {@code public static void premain}
- * method that constructs a new object of your type and then calls the
- * {@code runAgent(boolean, String, Instrumentation)} method on it.
+ * Generates a {@code public static void agentmain} and {@code public static void premain} method that constructs a new
+ * object of your type and then calls the {@code runAgent(boolean, String, Instrumentation)} method on it.
  */
 public interface JvmAgent {
 	/**
 	 * Entry point of your JVM agent
-	 * @param injected - {@code true} if live-injected otherwise {@code false}
-	 * @param params - parameters passed in to the agent
-	 * @param instrumentation - the instrumentation class
+	 * 
+	 * @param injected
+	 *            {@code true} if live-injected otherwise {@code false}
+	 * @param params
+	 *            parameters passed in to the agent
+	 * @param instrumentation
+	 *            the instrumentation class
 	 */
 	public void runAgent(boolean injected, String params, Instrumentation instrumentation) throws Throwable;
 }

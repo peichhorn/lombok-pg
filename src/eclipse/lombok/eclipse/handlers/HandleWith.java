@@ -66,12 +66,14 @@ public class HandleWith extends EclipseASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 
-	@Override public void visitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
+	@Override
+	public void visitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
 
-	@Override public void visitStatement(final EclipseNode statementNode, final Statement statement) {
+	@Override
+	public void visitStatement(final EclipseNode statementNode, final Statement statement) {
 		if (statement instanceof MessageSend) {
 			final MessageSend methodCall = (MessageSend) statement;
 			final String methodName = getMethodName(methodCall);
@@ -86,7 +88,8 @@ public class HandleWith extends EclipseASTAdapter {
 		}
 	}
 
-	@Override public void endVisitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
+	@Override
+	public void endVisitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, With.class, "with");
 		}
@@ -106,7 +109,7 @@ public class HandleWith extends EclipseASTAdapter {
 		} else if (withExpr instanceof AllocationExpression) {
 			withExprName = "$with" + (withVarCounter++);
 			EclipseASTMaker builder = new EclipseASTMaker(methodCallNode, source);
-			Statement statement = builder.build(LocalDecl(Type(((AllocationExpression)withExpr).type), withExprName).makeFinal().withInitialization(Expr(withExpr)));
+			Statement statement = builder.build(LocalDecl(Type(((AllocationExpression) withExpr).type), withExprName).makeFinal().withInitialization(Expr(withExpr)));
 			withCallStatements.add(statement);
 			withExpr = builder.build(Name(withExprName));
 		} else {
@@ -117,14 +120,14 @@ public class HandleWith extends EclipseASTAdapter {
 		ASTNode statementThatUsesWith = parent.get();
 		EclipseNode grandParent = parent.directUp();
 		boolean wasNoMethodCall = true;
-		if ((statementThatUsesWith instanceof Assignment) && ((Assignment)statementThatUsesWith).expression == withCall) {
-			((Assignment)statementThatUsesWith).expression = withExpr;
+		if ((statementThatUsesWith instanceof Assignment) && ((Assignment) statementThatUsesWith).expression == withCall) {
+			((Assignment) statementThatUsesWith).expression = withExpr;
 		} else if (statementThatUsesWith instanceof LocalDeclaration) {
-			((LocalDeclaration)statementThatUsesWith).initialization = withExpr;
+			((LocalDeclaration) statementThatUsesWith).initialization = withExpr;
 		} else if (statementThatUsesWith instanceof ReturnStatement) {
-			((ReturnStatement)statementThatUsesWith).expression = withExpr;
+			((ReturnStatement) statementThatUsesWith).expression = withExpr;
 		} else if (statementThatUsesWith instanceof MessageSend) {
-			MessageSend methodCall = (MessageSend)statementThatUsesWith;
+			MessageSend methodCall = (MessageSend) statementThatUsesWith;
 			if (methodCall.receiver == withCall) {
 				methodCall.receiver = withExpr;
 			} else {
@@ -147,7 +150,7 @@ public class HandleWith extends EclipseASTAdapter {
 			arg = withCall.arguments[i];
 			if (arg instanceof MessageSend) {
 				MessageSend methodCall = (MessageSend) arg;
-				methodCall.traverse(new WithReferenceReplaceVisitor(source, withExprName), (BlockScope)null);
+				methodCall.traverse(new WithReferenceReplaceVisitor(source, withExprName), (BlockScope) null);
 				setGeneratedByAndCopyPos(methodCall, source, source);
 				withCallStatements.add(arg);
 			} else {
@@ -164,9 +167,9 @@ public class HandleWith extends EclipseASTAdapter {
 		grandParent = parent.directUp();
 		ASTNode block = grandParent.get();
 		if (block instanceof Block) {
-			((Block)block).statements = injectStatements(((Block)block).statements, (Statement)statementThatUsesWith, wasNoMethodCall, withCallStatements);
+			((Block) block).statements = injectStatements(((Block) block).statements, (Statement) statementThatUsesWith, wasNoMethodCall, withCallStatements);
 		} else if (block instanceof AbstractMethodDeclaration) {
-			((AbstractMethodDeclaration)block).statements = injectStatements(((AbstractMethodDeclaration)block).statements, (Statement)statementThatUsesWith, wasNoMethodCall, withCallStatements);
+			((AbstractMethodDeclaration) block).statements = injectStatements(((AbstractMethodDeclaration) block).statements, (Statement) statementThatUsesWith, wasNoMethodCall, withCallStatements);
 		} else {
 			// this would be odd but what the hell
 			return false;
@@ -248,9 +251,9 @@ public class HandleWith extends EclipseASTAdapter {
 					((SingleNameReference) expr).token = withExprName.toCharArray();
 				}
 			} else if (expr instanceof FieldReference) {
-				Expression receiver = ((FieldReference)expr).receiver;
+				Expression receiver = ((FieldReference) expr).receiver;
 				if (receiver instanceof ThisReference) {
-					return new EclipseASTMaker(null, source).build(Name(new String(((FieldReference)expr).token)));
+					return new EclipseASTMaker(null, source).build(Name(new String(((FieldReference) expr).token)));
 				}
 			}
 			return expr;

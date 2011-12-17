@@ -55,7 +55,8 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(EclipseAnnotationHandler.class)
 	public static class HandleBuilder extends EclipseAnnotationHandler<Builder> {
 
-		@Override public void handle(final AnnotationValues<Builder> annotation, final Annotation source, final EclipseNode annotationNode) {
+		@Override
+		public void handle(final AnnotationValues<Builder> annotation, final Annotation source, final EclipseNode annotationNode) {
 			final EclipseType type = EclipseType.typeOf(annotationNode, source);
 
 			if (type.isInterface() || type.isEnum() || type.isAnnotation()) {
@@ -72,7 +73,7 @@ public class HandleBuilderAndExtension {
 				return;
 			default:
 			case NOT_EXISTS:
-				//continue with creating the builder
+				// continue with creating the builder
 			}
 
 			new EclispeBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
@@ -86,17 +87,16 @@ public class HandleBuilderAndExtension {
 	@DeferUntilPostDiet
 	public static class HandleBuilderExtension extends EclipseAnnotationHandler<Builder.Extension> {
 
-		@Override public void handle(final AnnotationValues<Builder.Extension> annotation, final Annotation source, final EclipseNode annotationNode) {
-			final Class<? extends java.lang.annotation.Annotation> annotationType = Builder.Extension.class;
-
+		@Override
+		public void handle(final AnnotationValues<Builder.Extension> annotation, final Annotation source, final EclipseNode annotationNode) {
 			final EclipseMethod method = EclipseMethod.methodOf(annotationNode, source);
 
 			if (method == null) {
-				annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
+				annotationNode.addError(canBeUsedOnMethodOnly(Builder.Extension.class));
 				return;
 			}
 			if (method.isAbstract() || method.isEmpty()) {
-				annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+				annotationNode.addError(canBeUsedOnConcreteMethodOnly(Builder.Extension.class));
 				return;
 			}
 
@@ -110,20 +110,22 @@ public class HandleBuilderAndExtension {
 			AnnotationValues<Builder> builderAnnotation = createAnnotation(Builder.class, builderNode);
 
 			if (!type.hasMethod(decapitalize(type.name()))) {
-				new HandleBuilder().handle(builderAnnotation, (Annotation)builderNode.get(), builderNode);
+				new HandleBuilder().handle(builderAnnotation, (Annotation) builderNode.get(), builderNode);
 			}
 
 			new EclispeBuilderAndExtensionHandler().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance());
 		}
 	}
-	
+
 	private static class EclispeBuilderAndExtensionHandler extends BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField> {
 
-		@Override protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
+		@Override
+		protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
 			method.node().traverse((EclipseASTVisitor) collector);
 		}
 
-		@Override protected IExtensionCollector getExtensionCollector() {
+		@Override
+		protected IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
 		}
 	}
@@ -141,13 +143,15 @@ public class HandleBuilderAndExtension {
 			super(1);
 		}
 
-		@Override public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
+		@Override
+		public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
 			allRequiredFieldNames.clear();
 			allRequiredFieldNames.addAll(fieldNames);
 			return this;
 		}
 
-		@Override public void visitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
+		@Override
+		public void visitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
 			if (isOfInterest() && (method instanceof MethodDeclaration)) {
 				containsRequiredFields = false;
 				isRequiredFieldsExtension = false;
@@ -157,7 +161,8 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void visitStatement(final EclipseNode statementNode, final Statement statement) {
+		@Override
+		public void visitStatement(final EclipseNode statementNode, final Statement statement) {
 			if (isOfInterest()) {
 				if (statement instanceof Assignment) {
 					Assignment assign = (Assignment) statement;
@@ -172,7 +177,8 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void endVisitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
+		@Override
+		public void endVisitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
 			if (isOfInterest() && (method instanceof MethodDeclaration)) {
 				MethodDeclaration meth = (MethodDeclaration) method;
 				if (((meth.modifiers & PRIVATE) != 0) && "void".equals(meth.returnType.toString())) {

@@ -41,7 +41,8 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMethodStub> {
 	// error handling only
-	@Override public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
+	@Override
+	public void handle(final AnnotationValues<AutoGenMethodStub> annotation, final Annotation source, final EclipseNode annotationNode) {
 		final EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isInterface() || type.isAnnotation()) {
 			annotationNode.addError(canBeUsedOnClassAndEnumOnly(AutoGenMethodStub.class));
@@ -59,7 +60,7 @@ public class HandleAutoGenMethodStub extends EclipseAnnotationHandler<AutoGenMet
 			statement = ReturnDefault();
 		}
 		MethodDeclaration method = (MethodDeclaration) type.injectMethod(MethodDecl(abstractMethod).implementing().withStatement(statement));
-		
+
 		type.rebuild();
 
 		return method;

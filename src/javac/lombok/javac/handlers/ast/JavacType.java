@@ -66,11 +66,11 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	}
 
 	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
-		return builder.<T>build(node);
+		return builder.<T> build(node);
 	}
 
 	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node,extectedType);
+		return builder.build(node, extectedType);
 	}
 
 	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
@@ -120,7 +120,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.TYPE) continue;
 			if (child.getName().equals(typeName)) {
-				return Cast.<T>uncheckedCast(JavacType.typeOf(child, source));
+				return Cast.<T> uncheckedCast(JavacType.typeOf(child, source));
 			}
 		}
 		throw new IllegalArgumentException();
@@ -146,7 +146,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 
 	public boolean hasMultiArgumentConstructor() {
 		for (JCTree def : get().defs) {
-			if ((def instanceof JCMethodDecl) && !((JCMethodDecl)def).params.isEmpty()) {
+			if ((def instanceof JCMethodDecl) && !((JCMethodDecl) def).params.isEmpty()) {
 				return true;
 			}
 		}
@@ -154,7 +154,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	}
 
 	public JCClassDecl get() {
-		return (JCClassDecl)typeNode.get();
+		return (JCClassDecl) typeNode.get();
 	}
 
 	public JavacNode node() {
@@ -188,7 +188,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 		final JCMethodDecl method = builder.build(methodDecl, JCMethodDecl.class);
 		JavacHandlerUtil.injectMethod(typeNode, method);
 		if (methodDecl instanceof lombok.ast.WrappedMethodDecl) {
-			lombok.ast.WrappedMethodDecl node = (lombok.ast.WrappedMethodDecl)methodDecl;
+			lombok.ast.WrappedMethodDecl node = (lombok.ast.WrappedMethodDecl) methodDecl;
 			MethodSymbol methodSymbol = (MethodSymbol) node.getWrappedObject();
 			JCClassDecl tree = get();
 			ClassSymbol c = tree.sym;
@@ -218,7 +218,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	public String name() {
 		return node().getName();
 	}
-	
+
 	public List<lombok.ast.TypeRef> typeArguments() {
 		final List<lombok.ast.TypeRef> typeArguments = new ArrayList<lombok.ast.TypeRef>();
 		for (JCTypeParameter typaram : get().typarams) {
@@ -258,7 +258,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 			annotations.add(ann);
 		}
 		return annotations;
-	}	
+	}
 
 	public boolean hasField(final String fieldName) {
 		return (fieldExists(fieldName, typeNode) != MemberExistsResult.NOT_EXISTS);
@@ -278,7 +278,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	}
 
 	public void makePackagePrivate() {
-		get().mods.flags &= ~(PRIVATE |PROTECTED | PUBLIC);
+		get().mods.flags &= ~(PRIVATE | PROTECTED | PUBLIC);
 	}
 
 	public void makeProtected() {

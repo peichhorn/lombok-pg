@@ -37,7 +37,7 @@ import lombok.core.DiagnosticsReceiver;
 public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
-	
+
 	public void handle(final String methodName, final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
 			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
@@ -58,21 +58,21 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 
 		Statement<?> elseStatement;
 		if ("invokeAndWait".equals(methodName)) {
-			elseStatement =  Block().withStatement(generateTryCatchBlock(elseStatementRun, method));
+			elseStatement = Block().withStatement(generateTryCatchBlock(elseStatementRun, method));
 		} else {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
 
 		method.replaceBody(Block().posHint(method.get()) //
-			.withStatements(validation.validateParameterOf(method)) //
-			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatement(LocalDecl(Type(Runnable.class), field).makeFinal().withInitialization(New(Type(Runnable.class)) //
-				.withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-					.withMethod(MethodDecl(Type("void"), "run").makePublic().withAnnotation(Annotation(Type(Override.class))) //
-						.withStatements(method.statements()))))) //
-			.withStatement(If(Call(Name(EventQueue.class), "isDispatchThread")) //
-				.Then(Block().withStatement(Call(Name(field), "run"))) //
-				.Else(elseStatement)));
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatement(LocalDecl(Type(Runnable.class), field).makeFinal().withInitialization(New(Type(Runnable.class)) //
+						.withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
+								.withMethod(MethodDecl(Type("void"), "run").makePublic().withAnnotation(Annotation(Type(Override.class))) //
+										.withStatements(method.statements()))))) //
+				.withStatement(If(Call(Name(EventQueue.class), "isDispatchThread")) //
+						.Then(Block().withStatement(Call(Name(field), "run"))) //
+						.Else(elseStatement)));
 
 		method.rebuild();
 	}
@@ -80,18 +80,18 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private Try generateTryCatchBlock(final Call elseStatementRun, final METHOD_TYPE method) {
 		return Try(Block() //
 				.withStatement(elseStatementRun)) //
-			.Catch(Arg(Type(InterruptedException.class), "$ex1"), Block()) //
-			.Catch(Arg(Type(InvocationTargetException.class), "$ex2"), Block() //
-				.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex2"), "getCause")))
-				.withStatements(rethrowStatements(method)) //
-				.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))));
+				.Catch(Arg(Type(InterruptedException.class), "$ex1"), Block()) //
+				.Catch(Arg(Type(InvocationTargetException.class), "$ex2"),Block() //
+						.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex2"), "getCause")))
+								.withStatements(rethrowStatements(method)) //
+								.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))));
 	}
 
 	private List<Statement<?>> rethrowStatements(final METHOD_TYPE method) {
 		final List<Statement<?>> rethrowStatements = new ArrayList<Statement<?>>();
 		for (TypeRef thrownException : method.thrownExceptions()) {
 			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
-				.Then(Throw(Cast(thrownException, Name("$cause")))));
+					.Then(Throw(Cast(thrownException, Name("$cause")))));
 		}
 		return rethrowStatements;
 	}

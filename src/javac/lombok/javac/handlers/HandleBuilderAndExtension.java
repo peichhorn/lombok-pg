@@ -53,7 +53,8 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleBuilder extends JavacAnnotationHandler<Builder> {
 
-		@Override public void handle(final AnnotationValues<Builder> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		@Override
+		public void handle(final AnnotationValues<Builder> annotation, final JCAnnotation source, final JavacNode annotationNode) {
 			deleteAnnotationIfNeccessary(annotationNode, Builder.class);
 			final JavacType type = JavacType.typeOf(annotationNode, source);
 
@@ -71,7 +72,7 @@ public class HandleBuilderAndExtension {
 				return;
 			default:
 			case NOT_EXISTS:
-				//continue with creating the builder
+				// continue with creating the builder
 			}
 
 			new JavacBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
@@ -84,18 +85,18 @@ public class HandleBuilderAndExtension {
 	@ProviderFor(JavacAnnotationHandler.class)
 	public static class HandleBuilderExtension extends JavacAnnotationHandler<Builder.Extension> {
 
-		@Override public void handle(final AnnotationValues<Builder.Extension> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-			final Class<? extends java.lang.annotation.Annotation> annotationType = Builder.Extension.class;
-			deleteAnnotationIfNeccessary(annotationNode, annotationType);
+		@Override
+		public void handle(final AnnotationValues<Builder.Extension> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			deleteAnnotationIfNeccessary(annotationNode, Builder.Extension.class);
 
 			final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 
 			if (method == null) {
-				annotationNode.addError(canBeUsedOnMethodOnly(annotationType));
+				annotationNode.addError(canBeUsedOnMethodOnly(Builder.Extension.class));
 				return;
 			}
 			if (method.isAbstract() || method.isEmpty()) {
-				annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+				annotationNode.addError(canBeUsedOnConcreteMethodOnly(Builder.Extension.class));
 				return;
 			}
 
@@ -109,7 +110,7 @@ public class HandleBuilderAndExtension {
 			AnnotationValues<Builder> builderAnnotation = createAnnotation(Builder.class, builderNode);
 
 			if (!type.hasMethod(decapitalize(type.name()))) {
-				new HandleBuilder().handle(builderAnnotation, (JCAnnotation)builderNode.get(), builderNode);
+				new HandleBuilder().handle(builderAnnotation, (JCAnnotation) builderNode.get(), builderNode);
 			}
 
 			new JavacBuilderAndExtensionHandler().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance());
@@ -118,11 +119,13 @@ public class HandleBuilderAndExtension {
 
 	private static class JavacBuilderAndExtensionHandler extends BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField> {
 
-		@Override protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
+		@Override
+		protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
 			method.node().traverse((JavacASTVisitor) collector);
 		}
 
-		@Override protected IExtensionCollector getExtensionCollector() {
+		@Override
+		protected IExtensionCollector getExtensionCollector() {
 			return new ExtensionCollector();
 		}
 	}
@@ -140,13 +143,15 @@ public class HandleBuilderAndExtension {
 			super(1);
 		}
 
-		@Override public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
+		@Override
+		public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
 			allRequiredFieldNames.clear();
 			allRequiredFieldNames.addAll(fieldNames);
 			return this;
 		}
 
-		@Override public void visitMethod(final JavacNode methodNode, final JCMethodDecl method) {
+		@Override
+		public void visitMethod(final JavacNode methodNode, final JCMethodDecl method) {
 			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
 				containsRequiredFields = false;
 				isRequiredFieldsExtension = false;
@@ -156,7 +161,8 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
+		@Override
+		public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 			if (isOfInterest()) {
 				if (statement instanceof JCAssign) {
 					JCAssign assign = (JCAssign) statement;
@@ -171,7 +177,8 @@ public class HandleBuilderAndExtension {
 			}
 		}
 
-		@Override public void endVisitMethod(final JavacNode methodNode, final JCMethodDecl method) {
+		@Override
+		public void endVisitMethod(final JavacNode methodNode, final JCMethodDecl method) {
 			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
 				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
 					if (containsRequiredFields) {

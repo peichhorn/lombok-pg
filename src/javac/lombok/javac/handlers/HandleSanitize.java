@@ -42,9 +42,7 @@ public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 
 	@Override
 	public void handle(final AnnotationValues<Sanitize> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Sanitize.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-		new SanitizeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new JavacParameterSanitizer());
+		deleteAnnotationIfNeccessary(annotationNode, Sanitize.class);
+		new SanitizeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterSanitizer());
 	}
 }
-

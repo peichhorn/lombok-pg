@@ -52,7 +52,7 @@ public final class ASTPrinter implements ASTVisitor<ASTPrinter.State, ASTPrinter
 			if (node.getValues().containsKey("value") && node.getValues().size() == 1) {
 				node.getValues().get("value").accept(this, state);
 			} else {
-				Set<Entry<String, Expression<?>>>entries = node.getValues().entrySet();
+				Set<Entry<String, Expression<?>>> entries = node.getValues().entrySet();
 				int i = 0;
 				int iend = entries.size() - 1;
 				for (Entry<String, Expression<?>> entry : entries) {

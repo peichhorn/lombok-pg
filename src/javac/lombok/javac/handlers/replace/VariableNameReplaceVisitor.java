@@ -29,7 +29,7 @@ import com.sun.tools.javac.tree.JCTree.*;
 
 public class VariableNameReplaceVisitor extends ExpressionReplaceVisitor {
 	private final String oldName;
-	
+
 	public VariableNameReplaceVisitor(final JavacMethod method, final String oldName, final String newName) {
 		super(method, Name(newName));
 		this.oldName = oldName;

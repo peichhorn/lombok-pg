@@ -28,37 +28,43 @@ import java.lang.annotation.*;
 
 /**
  * Before:
+ * 
  * <pre>
- * &#64;DoPrivileged int test1() {
- *   // something
- *   return 0;
+ * &#064;DoPrivileged
+ * int test1() {
+ * 	// something
+ * 	return 0;
  * }
- *
- * &#64;DoPrivileged void test2() {
- *   // something else
+ * 
+ * &#064;DoPrivileged
+ * void test2() {
+ * 	// something else
  * }
  * </pre>
+ * 
  * After:
+ * 
  * <pre>
  * int test1() {
- *   return AccessController.doPrivileged(new PrivilegedAction&lt;Integer&gt;() {
- *     public Integer run() {
- *       // something
- *       return 0;
- *     }
- *   });
+ * 	return AccessController.doPrivileged(new PrivilegedAction&lt;Integer&gt;() {
+ * 		public Integer run() {
+ * 			// something
+ * 			return 0;
+ * 		}
+ * 	});
  * }
- *
+ * 
  * void test2() {
- *   AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {
- *     public Void run() {
- *       // something else
- *       return null;
- *     }
- *   });
+ * 	AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {
+ * 		public Void run() {
+ * 			// something else
+ * 			return null;
+ * 		}
+ * 	});
  * }
  * </pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface DoPrivileged {
 }

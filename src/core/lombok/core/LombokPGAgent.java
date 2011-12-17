@@ -74,7 +74,8 @@ public abstract class LombokPGAgent extends Agent {
 	}
 
 	private static class LombokPGEclipsePatcherInfo extends AgentInfo {
-		@Override String className() {
+		@Override
+		String className() {
 			return "lombok.eclipse.agent.LombokPGEclipsePatcher";
 		}
 	}

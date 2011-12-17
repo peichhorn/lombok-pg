@@ -28,18 +28,20 @@ import java.lang.annotation.*;
 
 /**
  * Lock Conditions
+ * 
  * <pre>
  * void methodAnnotatedWithSignal() {
  *   this.&lt;LOCK_NAME&gt;.lock();
  *   try {
- *
+ * 
  *     // method body
- *
+ * 
  *     this.&lt;CONDITION_NAME&gt;.signal();
  *   } finally {
  *     this.&lt;LOCK_NAME&gt;.unlock();
  *   }
  * }
+ * 
  * <pre>
  */
 @Target(METHOD)
@@ -48,8 +50,8 @@ public @interface Signal {
 	/**
 	 * Name of the condition.
 	 * <p>
-	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition}
-	 * will be created, using this name.
+	 * If no condition with the specified name exists a new {@link java.util.concurrent.locks.Condition Condition} will
+	 * be created, using this name.
 	 */
 	String value();
 
@@ -67,8 +69,8 @@ public @interface Signal {
 	/**
 	 * Name of the lock, default is {@code $<CONDITION_NAME>Lock}.
 	 * <p>
-	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock}
-	 * will be created, using this name.
+	 * If no lock with the specified name exists a new {@link java.util.concurrent.locks.Lock Lock} will be created,
+	 * using this name.
 	 */
 	String lockName() default "";
 }

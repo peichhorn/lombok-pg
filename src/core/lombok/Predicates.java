@@ -30,9 +30,11 @@ import static lombok.Functions.*;
 public final class Predicates {
 
 	/**
-	 * Represents the method that defines a set of criteria and determines whether the specified object meets those criteria.
-	 *
-	 * @param <T1> The type of the object to compare.
+	 * Represents the method that defines a set of criteria and determines whether the specified object meets those
+	 * criteria.
+	 * 
+	 * @param <T1>
+	 *            The type of the object to compare.
 	 */
 	public static abstract class Predicate1<T1> extends Function1<T1, Boolean> {
 		public final Boolean apply(T1 t1) {

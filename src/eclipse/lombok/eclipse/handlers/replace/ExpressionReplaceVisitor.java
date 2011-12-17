@@ -40,7 +40,7 @@ public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression
 
 	@Override
 	public boolean visit(final AND_AND_Expression and_and_Expression, final BlockScope scope) {
-		return visit((BinaryExpression)and_and_Expression, scope);
+		return visit((BinaryExpression) and_and_Expression, scope);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression
 
 	@Override
 	public boolean visit(final EqualExpression equalExpression, final BlockScope scope) {
-		return visit((BinaryExpression)equalExpression, scope);
+		return visit((BinaryExpression) equalExpression, scope);
 	}
 
 	@Override
@@ -153,22 +153,22 @@ public abstract class ExpressionReplaceVisitor extends ReplaceVisitor<Expression
 
 	@Override
 	public boolean visit(final OR_OR_Expression or_or_Expression, final BlockScope scope) {
-		return visit((BinaryExpression)or_or_Expression, scope);
+		return visit((BinaryExpression) or_or_Expression, scope);
 	}
 
 	@Override
 	public boolean visit(final PostfixExpression postfixExpression, final BlockScope scope) {
-		return visit((CompoundAssignment)postfixExpression, scope);
+		return visit((CompoundAssignment) postfixExpression, scope);
 	}
 
 	@Override
 	public boolean visit(final PrefixExpression prefixExpression, final BlockScope scope) {
-		return visit((CompoundAssignment)prefixExpression, scope);
+		return visit((CompoundAssignment) prefixExpression, scope);
 	}
 
 	@Override
 	public boolean visit(final QualifiedAllocationExpression qualifiedAllocationExpression, final BlockScope scope) {
-		return visit((AllocationExpression)qualifiedAllocationExpression, scope);
+		return visit((AllocationExpression) qualifiedAllocationExpression, scope);
 	}
 
 	@Override

@@ -41,7 +41,6 @@ public class HandleValidate extends EclipseAnnotationHandler<Validate> {
 
 	@Override
 	public void handle(final AnnotationValues<Validate> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
-		new ValidateHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new EclipseParameterValidator());
+		new ValidateHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode).handle(new EclipseParameterValidator());
 	}
 }

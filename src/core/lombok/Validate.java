@@ -27,47 +27,46 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Explicitly turns on validation for all method
- * parameter annotated with {@code @Validate.With("methodname")},
+ * Explicitly turns on validation for all method parameter annotated with {@code @Validate.With("methodname")},
  * {@code @Validate.NotNull()} or {@code @Validate.NotEmpty()}.
  * <p>
- * <b>Note:</b> All lombok-pg method-level annotations automatically
- * trigger a parameter validation.
+ * <b>Note:</b> All lombok-pg method-level annotations automatically trigger a parameter validation.
  */
-@Target({METHOD, CONSTRUCTOR}) @Retention(SOURCE)
+@Target({ METHOD, CONSTRUCTOR })
+@Retention(SOURCE)
 public @interface Validate {
 	/**
 	 * Specify a custom validation method.
 	 * <p>
 	 * This annotation also triggers a null-check before the custom validation.
 	 * <p>
-	 * <b>Note:</b> This works with all types, but the parameter type
-	 * has to match the method signature.
+	 * <b>Note:</b> This works with all types, but the parameter type has to match the method signature.
 	 */
-	@Target(PARAMETER) @Retention(SOURCE)
+	@Target(PARAMETER)
+	@Retention(SOURCE)
 	public static @interface With {
 		/**
 		 * Name of method that should be used to validate the parameter.
 		 */
 		String value();
 	}
-	
+
 	/**
 	 * Triggers a null-check for the annotated parameter.
 	 */
-	@Target(PARAMETER) @Retention(SOURCE)
+	@Target(PARAMETER)
+	@Retention(SOURCE)
 	public static @interface NotNull {
 	}
 
 	/**
-	 * Triggers an empty check for the annotated parameter by invoking the
-	 * {@code isEmpty} method of the parameter type. So this works with
-	 * {@link String Strings} and {@link java.util.Collection Collections}
-	 * out of the box.
+	 * Triggers an empty check for the annotated parameter by invoking the {@code isEmpty} method of the parameter type.
+	 * So this works with {@link String Strings} and {@link java.util.Collection Collections} out of the box.
 	 * <p>
 	 * This annotation also triggers a null-check before the empty check.
 	 */
-	@Target(PARAMETER) @Retention(SOURCE)
+	@Target(PARAMETER)
+	@Retention(SOURCE)
 	public static @interface NotEmpty {
 	}
 }

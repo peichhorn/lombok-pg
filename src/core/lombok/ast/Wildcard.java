@@ -26,8 +26,7 @@ import lombok.*;
 @Getter
 public class Wildcard extends TypeRef {
 	public enum Bound {
-		EXTENDS,
-		SUPER;
+		EXTENDS, SUPER;
 	}
 
 	private final TypeRef type;

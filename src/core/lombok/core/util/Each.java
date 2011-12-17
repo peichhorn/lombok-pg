@@ -29,10 +29,10 @@ import lombok.*;
 public class Each {
 
 	public static <T> Collection<T> elementIn(final Collection<T> elements) {
-		return elements == null ? Collections.<T>emptyList() : elements;
+		return elements == null ? Collections.<T> emptyList() : elements;
 	}
 
 	public static <T> Collection<T> elementIn(final T... elements) {
-		return elements == null ? Collections.<T>emptyList() : java.util.Arrays.asList(elements);
+		return elements == null ? Collections.<T> emptyList() : java.util.Arrays.asList(elements);
 	}
 }

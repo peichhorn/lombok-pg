@@ -42,9 +42,7 @@ public class HandleValidate extends JavacAnnotationHandler<Validate> {
 
 	@Override
 	public void handle(final AnnotationValues<Validate> annotation, final JCAnnotation source, final JavacNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = Validate.class;
-		deleteAnnotationIfNeccessary(annotationNode, annotationType);
-		new ValidateHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(annotationType, new JavacParameterValidator());
+		deleteAnnotationIfNeccessary(annotationNode, Validate.class);
+		new ValidateHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterValidator());
 	}
 }
-

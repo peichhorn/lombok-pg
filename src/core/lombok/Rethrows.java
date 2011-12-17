@@ -30,6 +30,7 @@ import java.lang.annotation.*;
  * Helps defining complex {@link Rethrow} statements.
  * <p>
  * With lombok:
+ * 
  * <pre>
  * &#64;Rethrows({
  *   &#64;Rethrow(IOException.class),
@@ -38,25 +39,28 @@ import java.lang.annotation.*;
  * void testMethod(Object arg) {
  *   // do something
  * }
- *
+ * 
  * void testMethod() throw IOException as RuntimeException, NullPointerException as IllegalArgumentException {
  *   // do something
  * }
  * </pre>
+ * 
  * Vanilla Java:
+ * 
  * <pre>
  * void testMethod(Object arg) {
- *   try {
- *     // do something
- *   } catch (IOException e1) {
- *     throw new RuntimeException(e1);
- *   } catch (NullPointerException e2) {
- *     throw new IllegalArgumentException(e2);
- *   }
+ * 	try {
+ * 		// do something
+ * 	} catch (IOException e1) {
+ * 		throw new RuntimeException(e1);
+ * 	} catch (NullPointerException e2) {
+ * 		throw new IllegalArgumentException(e2);
+ * 	}
  * }
  * </pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface Rethrows {
 	Rethrow[] value();
 }

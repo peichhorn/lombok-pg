@@ -56,10 +56,14 @@ public abstract class AbstractMethodDecl<SELF_TYPE extends AbstractMethodDecl<SE
 
 	public SELF_TYPE withAccessLevel(final AccessLevel level) {
 		switch (level) {
-		case PUBLIC: return makePublic();
-		case PROTECTED: return makeProtected();
-		case PRIVATE: return makePrivate();
-		default: return self();
+		case PUBLIC:
+			return makePublic();
+		case PROTECTED:
+			return makeProtected();
+		case PRIVATE:
+			return makePrivate();
+		default:
+			return self();
 		}
 	}
 

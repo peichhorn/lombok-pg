@@ -63,9 +63,9 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 		}
 
 		Try tryBuilder = Try(Block() //
-			.withStatements(validation.validateParameterOf(method)) //
-			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatements(method.statements()));
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatements(method.statements()));
 		int counter = 1;
 		for (RethrowData rethrow : rethrows) {
 			for (Class<?> thrown : rethrow.thrown) {
@@ -75,12 +75,12 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 					tryBuilder.Catch(Arg(Type(RuntimeException.class), varname), Block().withStatement(Throw(Name(varname))));
 				} else if (message.isEmpty()) {
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
-						.withArgument(Name(varname)))));
+							.withArgument(Name(varname)))));
 				} else {
 					final List<Expression<?>> arguments = new ArrayList<Expression<?>>();
 					message = manipulateMessage(message, arguments);
 					tryBuilder.Catch(Arg(Type(thrown.getName()), varname), Block().withStatement(Throw(New(Type(rethrow.as.getName())) //
-						.withArgument(Call(Name(String.class), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
+							.withArgument(Call(Name(String.class), "format").withArgument(String(message)).withArguments(arguments)).withArgument(Name(varname)))));
 				}
 			}
 		}
@@ -103,7 +103,7 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 
 	public static List<Class<?>> classNames(final Class<?>[] classes) {
 		if (Is.empty(classes)) {
-			return As.<Class<?>>list(RethrowData.class, Exception.class);
+			return As.<Class<?>> list(RethrowData.class, Exception.class);
 		}
 		return As.list(classes);
 	}

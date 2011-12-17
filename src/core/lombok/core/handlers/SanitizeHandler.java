@@ -32,20 +32,20 @@ public class SanitizeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handle(final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
-			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(Sanitize.class));
 			return;
 		}
 
 		if (method.isAbstract() || method.isEmpty()) {
-			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(Sanitize.class));
 			return;
 		}
 
 		method.replaceBody(Block().posHint(method.get()) //
-			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatements(method.statements()));
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatements(method.statements()));
 		method.rebuild();
 	}
 }

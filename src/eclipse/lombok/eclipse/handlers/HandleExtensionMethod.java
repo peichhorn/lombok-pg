@@ -39,17 +39,17 @@ import org.mangosdk.spi.ProviderFor;
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleExtensionMethod extends EclipseAnnotationHandler<ExtensionMethod> {
 
-	@Override public void handle(final AnnotationValues<ExtensionMethod> annotation, final Annotation source, final EclipseNode annotationNode) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = ExtensionMethod.class;
+	@Override
+	public void handle(final AnnotationValues<ExtensionMethod> annotation, final Annotation source, final EclipseNode annotationNode) {
 		EclipseType type = EclipseType.typeOf(annotationNode, source);
 		if (type.isAnnotation() || type.isInterface()) {
-			annotationNode.addError(canBeUsedOnClassAndEnumOnly(annotationType));
+			annotationNode.addError(canBeUsedOnClassAndEnumOnly(ExtensionMethod.class));
 			return;
 		}
 
 		List<Object> listenerInterfaces = annotation.getActualExpressions("value");
 		if (listenerInterfaces.isEmpty()) {
-			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", annotationType.getName()));
+			annotationNode.addError(String.format("@%s has no effect since no extension types were specified.", ExtensionMethod.class.getName()));
 			return;
 		}
 	}

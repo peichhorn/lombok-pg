@@ -36,14 +36,13 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 	private final METHOD_TYPE method;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final Class<? extends java.lang.annotation.Annotation> annotationType, final IParameterValidator<METHOD_TYPE> validation,
-			final IParameterSanitizer<METHOD_TYPE> sanitizer) {
+	public void handle(final IParameterValidator<METHOD_TYPE> validation, final IParameterSanitizer<METHOD_TYPE> sanitizer) {
 		if (method == null) {
-			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnMethodOnly(DoPrivileged.class));
 			return;
 		}
 		if (method.isAbstract() || method.isEmpty()) {
-			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnConcreteMethodOnly(DoPrivileged.class));
 			return;
 		}
 
@@ -53,31 +52,31 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		if (method.returns("void")) {
 			method.replaceReturns(Return(Null()).posHint(method.get()));
 			method.replaceBody(Block().posHint(method.get()) //
-				.withStatements(validation.validateParameterOf(method)) //
-				.withStatements(sanitizer.sanitizeParameterOf(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Call(Name(AccessController.class), "doPrivileged").withArgument( //
-						New(Type(PrivilegedExceptionAction.class).withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()) //
-							.withStatement(Return(Null()))))))) //
-				.Catch(Arg(Type(PrivilegedActionException.class), "$ex"), Block() //
-					.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
+					.withStatements(validation.validateParameterOf(method)) //
+					.withStatements(sanitizer.sanitizeParameterOf(method)) //
+					.withStatement(Try(Block() //
+							.withStatement(Call(Name(AccessController.class), "doPrivileged").withArgument( //
+									New(Type(PrivilegedExceptionAction.class).withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
+											.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
+													.withStatements(method.statements()) //
+													.withStatement(Return(Null()))))))) //
+							.Catch(Arg(Type(PrivilegedActionException.class), "$ex"), Block() //
+									.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
+									.withStatements(rethrowStatements(method)) //
+									.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
 		} else {
 			method.replaceBody(Block().posHint(method.get()) //
-				.withStatements(validation.validateParameterOf(method)) //
-				.withStatements(sanitizer.sanitizeParameterOf(method)) //
-				.withStatement(Try(Block() //
-					.withStatement(Return(Call(Name(AccessController.class), "doPrivileged").withArgument( //
-						New(Type(PrivilegedExceptionAction.class).withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-						.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
-							.withStatements(method.statements()))))))) //
-				.Catch(Arg(Type(PrivilegedActionException.class), "$ex"), Block() //
-					.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
-					.withStatements(rethrowStatements(method)) //
-					.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
+					.withStatements(validation.validateParameterOf(method)) //
+					.withStatements(sanitizer.sanitizeParameterOf(method)) //
+					.withStatement(Try(Block() //
+							.withStatement(Return(Call(Name(AccessController.class), "doPrivileged").withArgument( //
+									New(Type(PrivilegedExceptionAction.class).withTypeArgument(innerReturnType)).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
+											.withMethod(MethodDecl(innerReturnType, "run").makePublic().withThrownExceptions(method.thrownExceptions()) //
+													.withStatements(method.statements()))))))) //
+							.Catch(Arg(Type(PrivilegedActionException.class), "$ex"), Block() //
+									.withStatement(LocalDecl(Type(Throwable.class), "$cause").makeFinal().withInitialization(Call(Name("$ex"), "getCause"))) //
+									.withStatements(rethrowStatements(method)) //
+									.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
 		}
 
 		method.rebuild();
@@ -87,7 +86,7 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 		final List<Statement<?>> rethrowStatements = new ArrayList<Statement<?>>();
 		for (lombok.ast.TypeRef thrownException : method.thrownExceptions()) {
 			rethrowStatements.add(If(InstanceOf(Name("$cause"), thrownException)) //
-				.Then(Throw(Cast(thrownException, Name("$cause")))));
+					.Then(Throw(Cast(thrownException, Name("$cause")))));
 		}
 		return rethrowStatements;
 	}

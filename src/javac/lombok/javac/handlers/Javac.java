@@ -45,14 +45,14 @@ import com.sun.tools.javac.util.ListBuffer;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Javac {
 	public static void injectType(final JavacNode typeNode, final JCClassDecl type) {
-		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		JCClassDecl typeDecl = (JCClassDecl) typeNode.get();
 		addSuppressWarningsAll(type.mods, typeNode, type.pos);
 		typeDecl.defs = typeDecl.defs.append(type);
 		typeNode.add(type, Kind.TYPE);
 	}
 
 	public static void injectInitializer(final JavacNode typeNode, final JCBlock initializerBlock) {
-		JCClassDecl typeDecl = (JCClassDecl)typeNode.get();
+		JCClassDecl typeDecl = (JCClassDecl) typeNode.get();
 		typeDecl.defs = typeDecl.defs.append(initializerBlock);
 		typeNode.add(initializerBlock, Kind.INITIALIZER);
 	}
@@ -88,12 +88,12 @@ public final class Javac {
 	}
 
 	/**
-	 * Removes the interface from javac's AST (it remains in lombok's AST),
-	 * then removes any import statement that imports this exact interface (not star imports).
+	 * Removes the interface from javac's AST (it remains in lombok's AST), then removes any import statement that
+	 * imports this exact interface (not star imports).
 	 */
 	public static void markInterfaceAsProcessed(final JavacNode typeNode, final Class<?> interfazeType) {
 		JCClassDecl typeDecl = null;
-		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl)typeNode.get();
+		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl) typeNode.get();
 		if (typeDecl != null) {
 			ListBuffer<JCExpression> newImplementing = ListBuffer.lb();
 			for (JCExpression exp : typeDecl.implementing) {
@@ -127,7 +127,7 @@ public final class Javac {
 		for (JCTree def : unit.defs) {
 			boolean delete = false;
 			if (def instanceof JCImport) {
-				JCImport imp0rt = (JCImport)def;
+				JCImport imp0rt = (JCImport) def;
 				delete = ((deleteStatic || !imp0rt.isStatic()) && imp0rt.qualid.toString().equals(adjustedName));
 			}
 			if (!delete) newDefs.append(def);
@@ -159,7 +159,7 @@ public final class Javac {
 
 	public static JCClassDecl typeDeclFiltering(final JavacNode typeNode, final long filterFlags) {
 		JCClassDecl typeDecl = null;
-		if ((typeNode != null) && (typeNode.get() instanceof JCClassDecl)) typeDecl = (JCClassDecl)typeNode.get();
+		if ((typeNode != null) && (typeNode.get() instanceof JCClassDecl)) typeDecl = (JCClassDecl) typeNode.get();
 		if ((typeDecl != null) && ((typeDecl.mods.flags & filterFlags) != 0)) {
 			typeDecl = null;
 		}
@@ -176,7 +176,7 @@ public final class Javac {
 		}
 		return null;
 	}
-	
+
 	public static boolean matchesType(final JCAnnotation ann, final String typeName) {
 		return typeName.replace("$", ".").endsWith(ann.annotationType.toString());
 	}

@@ -61,12 +61,14 @@ public class HandleTuple extends JavacASTAdapter {
 	private final Set<String> methodNames = new HashSet<String>();
 	private int withVarCounter;
 
-	@Override public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void visitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		methodNames.clear();
 		withVarCounter = 0;
 	}
-	
-	@Override public void visitLocal(final JavacNode localNode, final JCVariableDecl local) {
+
+	@Override
+	public void visitLocal(final JavacNode localNode, final JCVariableDecl local) {
 		JCMethodInvocation initTupleCall = getTupelCall(localNode, local.init);
 		if (initTupleCall != null) {
 			final JavacMethod method = JavacMethod.methodOf(localNode, local);
@@ -78,7 +80,8 @@ public class HandleTuple extends JavacASTAdapter {
 		}
 	}
 
-	@Override public void visitStatement(final JavacNode statementNode, final JCTree statement) {
+	@Override
+	public void visitStatement(final JavacNode statementNode, final JCTree statement) {
 		if (statement instanceof JCAssign) {
 			final JCAssign assignment = (JCAssign) statement;
 			final JCMethodInvocation leftTupleCall = getTupelCall(statementNode, assignment.lhs);
@@ -97,7 +100,7 @@ public class HandleTuple extends JavacASTAdapter {
 
 	private JCMethodInvocation getTupelCall(final JavacNode node, final JCExpression expression) {
 		if (expression instanceof JCMethodInvocation) {
-			final JCMethodInvocation tupleCall = (JCMethodInvocation) expression ;
+			final JCMethodInvocation tupleCall = (JCMethodInvocation) expression;
 			final String methodName = tupleCall.meth.toString();
 			if (isMethodCallValid(node, methodName, Tuple.class, "tuple")) {
 				return tupleCall;
@@ -106,22 +109,23 @@ public class HandleTuple extends JavacASTAdapter {
 		return null;
 	}
 
-	@Override public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
+	@Override
+	public void endVisitCompilationUnit(final JavacNode top, final JCCompilationUnit unit) {
 		for (String methodName : methodNames) {
 			deleteMethodCallImports(top, methodName, Tuple.class, "tuple");
 		}
 	}
-	
+
 	public boolean handle(final JavacNode tupleInitNode, final JCMethodInvocation initTupleCall) {
 		if (initTupleCall.args.isEmpty()) {
 			return true;
 		}
 		int numberOfArguments = initTupleCall.args.size();
-		List<JCVariableDecl> localDecls = List.<JCVariableDecl>nil();
-		String type = ((JCVariableDecl)tupleInitNode.get()).vartype.toString();
+		List<JCVariableDecl> localDecls = List.<JCVariableDecl> nil();
+		String type = ((JCVariableDecl) tupleInitNode.get()).vartype.toString();
 		for (JavacNode node : tupleInitNode.directUp().down()) {
 			if (!(node.get() instanceof JCVariableDecl)) continue;
-			JCVariableDecl localDecl = (JCVariableDecl)node.get();
+			JCVariableDecl localDecl = (JCVariableDecl) node.get();
 			if (!type.equals(localDecl.vartype.toString())) continue;
 			localDecls = localDecls.append(localDecl);
 			if (localDecls.size() > numberOfArguments) {
@@ -190,8 +194,8 @@ public class HandleTuple extends JavacASTAdapter {
 
 	private boolean validateTupel(final JavacNode tupleAssignNode, final JCMethodInvocation leftTupleCall, final JCMethodInvocation rightTupleCall) {
 		if ((leftTupleCall.args.length() != rightTupleCall.args.length()) && (rightTupleCall.args.length() != 1)) {
-			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or" +
-					" must have one array-type argument for the tuple assignment to work.");
+			tupleAssignNode.addError("The left and right hand side of the assignment must have the same amount of arguments or"
+					+ " must have one array-type argument for the tuple assignment to work.");
 			return false;
 		}
 		if (!containsOnlyNames(leftTupleCall.args)) {
@@ -212,11 +216,11 @@ public class HandleTuple extends JavacASTAdapter {
 		JavacNode grandParent = parent.directUp();
 		JCTree block = grandParent.get();
 		if (block instanceof JCBlock) {
-			((JCBlock)block).stats = injectStatements(((JCBlock)block).stats, statement, statementsToInject);
+			((JCBlock) block).stats = injectStatements(((JCBlock) block).stats, statement, statementsToInject);
 		} else if (block instanceof JCCase) {
-			((JCCase)block).stats = injectStatements(((JCCase)block).stats, statement, statementsToInject);
+			((JCCase) block).stats = injectStatements(((JCCase) block).stats, statement, statementsToInject);
 		} else if (block instanceof JCMethodDecl) {
-			((JCMethodDecl)block).body.stats = injectStatements(((JCMethodDecl)block).body.stats, statement, statementsToInject);
+			((JCMethodDecl) block).body.stats = injectStatements(((JCMethodDecl) block).body.stats, statement, statementsToInject);
 		} else {
 			// this would be odd odd but what the hell
 			return;
@@ -237,7 +241,7 @@ public class HandleTuple extends JavacASTAdapter {
 	private List<String> collectVarnames(final List<JCExpression> expressions) {
 		ListBuffer<String> varnames = ListBuffer.lb();
 		for (JCExpression expression : expressions) {
-				varnames.append(expression.toString());
+			varnames.append(expression.toString());
 		}
 		return varnames.toList();
 	}
@@ -254,8 +258,8 @@ public class HandleTuple extends JavacASTAdapter {
 	/**
 	 * Look for the type of a variable in the scope of the given expression.
 	 * <p>
-	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will
-	 * return the type of a variable in the scope of the given expression.
+	 * {@link VarTypeFinder#scan(com.sun.source.tree.Tree, Void) VarTypeFinder.scan(Tree, Void)} will return the type of
+	 * a variable in the scope of the given expression.
 	 */
 	@RequiredArgsConstructor
 	private static class VarTypeFinder extends TreeScanner<JCExpression, Void> {
@@ -263,14 +267,16 @@ public class HandleTuple extends JavacASTAdapter {
 		private final JCTree expr;
 		private boolean lockVarname;
 
-		@Override public JCExpression visitVariable(final VariableTree node, final Void p) {
+		@Override
+		public JCExpression visitVariable(final VariableTree node, final Void p) {
 			if (!lockVarname && varname.equals(node.getName().toString())) {
 				return (JCExpression) node.getType();
 			}
 			return null;
 		}
 
-		@Override public JCExpression visitAssignment(final AssignmentTree node, final Void p) {
+		@Override
+		public JCExpression visitAssignment(final AssignmentTree node, final Void p) {
 			if ((expr != null) && (expr.equals(node))) {
 				lockVarname = true;
 			}
@@ -293,15 +299,18 @@ public class HandleTuple extends JavacASTAdapter {
 	private static class SimpleAssignmentAnalyser extends TreeScanner<Boolean, Void> {
 		private final Set<String> blacklistedVarnames;
 
-		@Override public Boolean visitMemberSelect(final MemberSelectTree node, final Void p) {
+		@Override
+		public Boolean visitMemberSelect(final MemberSelectTree node, final Void p) {
 			return true;
 		}
 
-		@Override public Boolean visitIdentifier(final IdentifierTree node, final Void p) {
+		@Override
+		public Boolean visitIdentifier(final IdentifierTree node, final Void p) {
 			return !blacklistedVarnames.contains(node.getName().toString());
 		}
 
-		@Override public Boolean reduce(final Boolean r1, final Boolean r2) {
+		@Override
+		public Boolean reduce(final Boolean r1, final Boolean r2) {
 			return !r1 && r2;
 		}
 	}

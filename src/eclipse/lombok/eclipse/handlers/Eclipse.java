@@ -58,7 +58,7 @@ public final class Eclipse {
 		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
 
 		if (parent.memberTypes == null) {
-			parent.memberTypes = new TypeDeclaration[]{ type };
+			parent.memberTypes = new TypeDeclaration[] { type };
 		} else {
 			TypeDeclaration[] newArray = new TypeDeclaration[parent.memberTypes.length + 1];
 			System.arraycopy(parent.memberTypes, 0, newArray, 0, parent.memberTypes.length);
@@ -71,7 +71,7 @@ public final class Eclipse {
 	public static void injectInitializer(EclipseNode typeNode, Initializer initializerBlock) {
 		TypeDeclaration parent = (TypeDeclaration) typeNode.get();
 		if (parent.fields == null) {
-			parent.fields = new FieldDeclaration[]{ initializerBlock };
+			parent.fields = new FieldDeclaration[] { initializerBlock };
 		} else {
 			FieldDeclaration[] newArray = new FieldDeclaration[parent.fields.length + 1];
 			System.arraycopy(parent.fields, 0, newArray, 0, parent.fields.length);
@@ -84,55 +84,55 @@ public final class Eclipse {
 	public static void copyPosTo(final ASTNode target, final ASTNode source) {
 		if (source == null) return;
 		if (source instanceof AbstractMethodDeclaration) {
-			target.sourceStart = ((AbstractMethodDeclaration)source).bodyStart;
-			target.sourceEnd = ((AbstractMethodDeclaration)source).bodyEnd;
+			target.sourceStart = ((AbstractMethodDeclaration) source).bodyStart;
+			target.sourceEnd = ((AbstractMethodDeclaration) source).bodyEnd;
 		} else if (source instanceof TypeDeclaration) {
-			target.sourceStart = ((TypeDeclaration)source).bodyStart;
-			target.sourceEnd = ((TypeDeclaration)source).bodyEnd;
+			target.sourceStart = ((TypeDeclaration) source).bodyStart;
+			target.sourceEnd = ((TypeDeclaration) source).bodyEnd;
 		} else {
 			target.sourceStart = source.sourceStart;
 			target.sourceEnd = source.sourceEnd;
 		}
 		if (target instanceof AbstractMethodDeclaration) {
-			((AbstractMethodDeclaration)target).bodyStart = target.sourceStart;
-			((AbstractMethodDeclaration)target).bodyEnd = target.sourceEnd;
+			((AbstractMethodDeclaration) target).bodyStart = target.sourceStart;
+			((AbstractMethodDeclaration) target).bodyEnd = target.sourceEnd;
 			if (source instanceof AbstractMethodDeclaration) {
-				((AbstractMethodDeclaration)target).declarationSourceStart = ((AbstractMethodDeclaration)source).declarationSourceStart;
-				((AbstractMethodDeclaration)target).declarationSourceEnd = ((AbstractMethodDeclaration)source).declarationSourceEnd;
+				((AbstractMethodDeclaration) target).declarationSourceStart = ((AbstractMethodDeclaration) source).declarationSourceStart;
+				((AbstractMethodDeclaration) target).declarationSourceEnd = ((AbstractMethodDeclaration) source).declarationSourceEnd;
 			} else {
-				((AbstractMethodDeclaration)target).declarationSourceStart = target.sourceStart;
-				((AbstractMethodDeclaration)target).declarationSourceEnd = target.sourceEnd;
+				((AbstractMethodDeclaration) target).declarationSourceStart = target.sourceStart;
+				((AbstractMethodDeclaration) target).declarationSourceEnd = target.sourceEnd;
 			}
 		} else if (target instanceof TypeDeclaration) {
-			((TypeDeclaration)target).bodyStart = target.sourceStart;
-			((TypeDeclaration)target).bodyEnd = target.sourceEnd;
+			((TypeDeclaration) target).bodyStart = target.sourceStart;
+			((TypeDeclaration) target).bodyEnd = target.sourceEnd;
 			if (source instanceof TypeDeclaration) {
-				((TypeDeclaration)target).declarationSourceStart = ((TypeDeclaration)source).declarationSourceStart;
-				((TypeDeclaration)target).declarationSourceEnd = ((TypeDeclaration)source).declarationSourceEnd;
+				((TypeDeclaration) target).declarationSourceStart = ((TypeDeclaration) source).declarationSourceStart;
+				((TypeDeclaration) target).declarationSourceEnd = ((TypeDeclaration) source).declarationSourceEnd;
 			} else {
-				((TypeDeclaration)target).declarationSourceStart = target.sourceStart;
-				((TypeDeclaration)target).declarationSourceEnd = target.sourceEnd;
+				((TypeDeclaration) target).declarationSourceStart = target.sourceStart;
+				((TypeDeclaration) target).declarationSourceEnd = target.sourceEnd;
 			}
 		} else if (target instanceof Initializer) {
-			((Initializer)target).declarationSourceStart = target.sourceStart;
-			((Initializer)target).declarationSourceEnd = target.sourceEnd;
+			((Initializer) target).declarationSourceStart = target.sourceStart;
+			((Initializer) target).declarationSourceEnd = target.sourceEnd;
 		} else if (target instanceof AbstractVariableDeclaration) {
 			target.sourceStart = 0;
 			target.sourceEnd = 0;
-			((AbstractVariableDeclaration)target).declarationSourceEnd = -1;
+			((AbstractVariableDeclaration) target).declarationSourceEnd = -1;
 		}
 		if (target instanceof Expression) {
-			((Expression)target).statementEnd = target.sourceEnd;
+			((Expression) target).statementEnd = target.sourceEnd;
 		}
 		if (target instanceof QualifiedAllocationExpression) {
-			if (((QualifiedAllocationExpression)target).anonymousType != null) {
-				((QualifiedAllocationExpression)target).anonymousType.bodyEnd = target.sourceEnd + 2;
-				((QualifiedAllocationExpression)target).anonymousType.sourceEnd = 0;
+			if (((QualifiedAllocationExpression) target).anonymousType != null) {
+				((QualifiedAllocationExpression) target).anonymousType.bodyEnd = target.sourceEnd + 2;
+				((QualifiedAllocationExpression) target).anonymousType.sourceEnd = 0;
 				target.sourceStart -= 4;
 			}
 		}
 		if (target instanceof Annotation) {
-			((Annotation)target).declarationSourceEnd = target.sourceEnd;
+			((Annotation) target).declarationSourceEnd = target.sourceEnd;
 		}
 	}
 
@@ -196,7 +196,7 @@ public final class Eclipse {
 
 	public static TypeDeclaration typeDeclFiltering(final EclipseNode typeNode, final long filterFlags) {
 		TypeDeclaration typeDecl = null;
-		if ((typeNode != null) && (typeNode.get() instanceof TypeDeclaration)) typeDecl = (TypeDeclaration)typeNode.get();
+		if ((typeNode != null) && (typeNode.get() instanceof TypeDeclaration)) typeDecl = (TypeDeclaration) typeNode.get();
 		if ((typeDecl != null) && ((typeDecl.modifiers & filterFlags) != 0)) {
 			typeDecl = null;
 		}

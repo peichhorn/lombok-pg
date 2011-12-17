@@ -37,7 +37,7 @@ import lombok.javac.handlers.ast.JavacType;
 import org.mangosdk.spi.ProviderFor;
 
 @ProviderFor(JavacAnnotationHandler.class)
-public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTesting > {
+public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTesting> {
 
 	@Override
 	public void handle(final AnnotationValues<VisibleForTesting> annotation, final JCAnnotation source, final JavacNode annotationNode) {

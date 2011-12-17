@@ -33,33 +33,37 @@ import lombok.AccessLevel;
  * Creates a "bound" setter for an annotated field.
  * <p>
  * Before:
+ * 
  * <pre>
  * public class Mountain {
  * 
- *   &#64;GenerateBoundSetter
- *   private String name;
+ * 	&#064;GenerateBoundSetter
+ * 	private String name;
  * }
  * </pre>
+ * 
  * After:
+ * 
  * <pre>
  * public class Mountain {
- *   public static final String PROP_NAME = "name";
- *   
- *   private String name;
- *   
- *   public void setName(String value) {
- *      String oldValue = name;
- *      firstName = value;
- *      getPropertySupport().firePropertyChange(PROP_NAME, oldValue, name);
- *   }
+ * 	public static final String PROP_NAME = &quot;name&quot;;
+ * 
+ * 	private String name;
+ * 
+ * 	public void setName(String value) {
+ * 		String oldValue = name;
+ * 		firstName = value;
+ * 		getPropertySupport().firePropertyChange(PROP_NAME, oldValue, name);
+ * 	}
  * }
  * </pre>
  */
-@Target({FIELD, TYPE}) @Retention(SOURCE)
+@Target({ FIELD, TYPE })
+@Retention(SOURCE)
 public @interface BoundSetter {
-  
-  /**
-   * If you want your setter to be non-public, you can specify an alternate access level here.
-   */
-  AccessLevel value() default PUBLIC;
+
+	/**
+	 * If you want your setter to be non-public, you can specify an alternate access level here.
+	 */
+	AccessLevel value() default PUBLIC;
 }

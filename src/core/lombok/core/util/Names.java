@@ -37,8 +37,9 @@ public class Names {
 	 * IOInterface -> IOInterface
 	 * Irony       -> Irony
 	 * IObject     -> Object
-	 *
+	 * 
 	 * {@code [I]([A-Z][a-z].*)}
+	 * 
 	 * <pre>
 	 */
 	public static String interfaceName(final String s) {

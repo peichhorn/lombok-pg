@@ -28,20 +28,22 @@ import java.lang.annotation.*;
 
 /**
  * Locking beyond {@code @Synchronized}.
+ * 
  * <pre>
  * void methodAnnotatedWithWriteLock() {
  *   this.&lt;LOCK_NAME&gt;.writeLock().lock();
  *   try {
- *
+ * 
  *     // method body
- *
+ * 
  *   } finally {
  *     this.&lt;LOCK_NAME&gt;.writeLock().unlock();
  *   }
  * }
  * </pre>
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface WriteLock {
 	/**
 	 * Name of the lock.

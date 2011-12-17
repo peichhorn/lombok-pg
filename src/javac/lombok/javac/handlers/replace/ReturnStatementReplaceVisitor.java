@@ -32,7 +32,8 @@ public class ReturnStatementReplaceVisitor extends StatementReplaceVisitor {
 		super(method, replacement);
 	}
 
-	@Override protected boolean needsReplacing(final JCStatement node) {
+	@Override
+	protected boolean needsReplacing(final JCStatement node) {
 		return node instanceof JCReturn;
 	}
 }

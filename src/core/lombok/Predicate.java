@@ -29,7 +29,8 @@ import java.lang.annotation.*;
 /**
  * Encapsulates a method that returns a {@code boolean}.
  */
-@Target(METHOD) @Retention(SOURCE)
+@Target(METHOD)
+@Retention(SOURCE)
 public @interface Predicate {
 	/**
 	 * Specifies the template class, that should be used. Default is {@code Predicates.class}.

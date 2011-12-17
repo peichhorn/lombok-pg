@@ -35,17 +35,17 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 	private final FIELD_TYPE field;
 	private final DiagnosticsReceiver diagnosticsReceiver;
 
-	public void handle(final AccessLevel level, final Class<? extends java.lang.annotation.Annotation> annotationType) {
+	public void handle(final AccessLevel level) {
 		if (field == null) {
-			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnFieldOnly(LazyGetter.class));
 			return;
 		}
 		if (!field.isFinal() && !field.isPrivate()) {
-			diagnosticsReceiver.addError(canBeUsedOnPrivateFinalFieldOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnPrivateFinalFieldOnly(LazyGetter.class));
 			return;
 		}
 		if (!field.isInitialized()) {
-			diagnosticsReceiver.addError(canBeUsedOnInitializedFieldOnly(annotationType));
+			diagnosticsReceiver.addError(canBeUsedOnInitializedFieldOnly(LazyGetter.class));
 			return;
 		}
 
@@ -67,16 +67,16 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 
 		type.injectField(FieldDecl(Type("boolean"), initializedFieldName).makePrivate().makeVolatile());
 		type.injectField(FieldDecl(Type(Object.class).withDimensions(1), lockFieldName).makePrivate().makeFinal() //
-			.withInitialization(NewArray(Type(Object.class)).withDimensionExpression(Number(0))));
+				.withInitialization(NewArray(Type(Object.class)).withDimensionExpression(Number(0))));
 
 		type.injectMethod(MethodDecl(field.type(), methodName).withAccessLevel(level) //
-			.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
-				.withStatement(Synchronized(Field(lockFieldName)) //
-					.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
-						.withStatement(Assign(Field(fieldName), field.initialization())) //
-						.withStatement(Assign(Field(initializedFieldName), True()))))))) //
-			.withStatement(Return(Field(fieldName))));
-		
+				.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
+						.withStatement(Synchronized(Field(lockFieldName)) //
+								.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
+										.withStatement(Assign(Field(fieldName), field.initialization())) //
+										.withStatement(Assign(Field(initializedFieldName), True()))))))) //
+				.withStatement(Return(Field(fieldName))));
+
 		field.replaceInitialization(null);
 		field.makeNonFinal();
 	}

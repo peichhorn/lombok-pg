@@ -27,34 +27,38 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.*;
 
 /**
- * Extension methods enable you to "add" methods to existing types without creating a new derived type,
- * recompiling, or otherwise modifying the original type. Extension methods are a special kind of static
- * method, but they are called as if they were instance methods on the extended type.
+ * Extension methods enable you to "add" methods to existing types without creating a new derived type, recompiling, or
+ * otherwise modifying the original type. Extension methods are a special kind of static method, but they are called as
+ * if they were instance methods on the extended type.
  * <p>
  * Before:
+ * 
  * <pre>
- * &#64;ExtensionMethod({java.util.Arrays.class})
+ * &#064;ExtensionMethod({ java.util.Arrays.class })
  * class Example {
- *   private void example() {
- *     long[] values = new long[] { 2, 5, 7, 9 };
- *     values.copyOf(3).sort();
- *   }
+ * 	private void example() {
+ * 		long[] values = new long[] { 2, 5, 7, 9 };
+ * 		values.copyOf(3).sort();
+ * 	}
  * }
  * </pre>
+ * 
  * After:
+ * 
  * <pre>
  * class Example {
- *   private void example() {
- *     long[] values = new long[] { 2, 5, 7, 9 };
- *     java.util.Arrays.sort(java.util.Arrays.copyOf(values, 3));
- *   }
+ * 	private void example() {
+ * 		long[] values = new long[] { 2, 5, 7, 9 };
+ * 		java.util.Arrays.sort(java.util.Arrays.copyOf(values, 3));
+ * 	}
  * }
  * </pre>
  */
-@Target(TYPE) @Retention(SOURCE)
+@Target(TYPE)
+@Retention(SOURCE)
 public @interface ExtensionMethod {
 	/** All types whose static methods will be exposed as extension methods. */
 	Class<?>[] value();
-	
+
 	boolean suppressBaseMethods() default true;
 }

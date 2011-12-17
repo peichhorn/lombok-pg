@@ -47,7 +47,7 @@ public final class LombokPGEclipsePatcher extends Agent {
 		if (forceEcj) ecj = true;
 		else if (forceEclipse) ecj = false;
 		else ecj = injected;
-		
+
 		registerPatchScripts(instrumentation, injected, ecj);
 	}
 

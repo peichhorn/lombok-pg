@@ -28,9 +28,9 @@ import lombok.core.AST.Kind;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 
 /**
- * Workaround to access the constructor of {@link EclipseNode} until it is public
- * API like the constructor of {@link lombok.javac.JavacNode}.
- *
+ * Workaround to access the constructor of {@link EclipseNode} until it is public API like the constructor of
+ * {@link lombok.javac.JavacNode}.
+ * 
  * @author Philipp Eichhorn
  */
 public class InitializableEclipseNode extends EclipseNode {

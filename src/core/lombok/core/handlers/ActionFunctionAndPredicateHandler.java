@@ -50,16 +50,16 @@ public final class ActionFunctionAndPredicateHandler<TYPE_TYPE extends IType<MET
 			interfaceType.withTypeArgument(returnType);
 		}
 		final MethodDecl innerMethod = MethodDecl(returnType, template.methodName).posHint(method.get()).withArguments(boxedArguments).makePublic().implementing() //
-			.withStatements(validation.validateParameterOf(method)) //
-			.withStatements(sanitizer.sanitizeParameterOf(method)) //
-			.withStatements(method.statements());
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatements(method.statements());
 		if ((template.forcedReturnType == null) && method.returns("void")) {
 			innerMethod.withStatement(Return(Null()));
 		}
 		final MethodDecl methodReplacement = MethodDecl(interfaceType, method.name()).posHint(method.get()).withArguments(arguments).withTypeParameters(method.typeParameters())
-			.withAnnotations(method.annotations()) //
-			.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
-				.withMethod(innerMethod))));
+				.withAnnotations(method.annotations()) //
+				.withStatement(Return(New(interfaceType).withTypeDeclaration(ClassDecl("").makeAnonymous().makeLocal() //
+						.withMethod(innerMethod))));
 		if (method.isStatic()) methodReplacement.makeStatic();
 		methodReplacement.withAccessLevel(method.accessLevel());
 		type.injectMethod(methodReplacement);

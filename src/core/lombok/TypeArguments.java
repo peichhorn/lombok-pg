@@ -26,8 +26,7 @@ import java.lang.reflect.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TypeArguments {
 	/**
-	 * Determines the {@link Class} of a type argument of a given class
-	 * by using the super type token pattern.
+	 * Determines the {@link Class} of a type argument of a given class by using the super type token pattern.
 	 */
 	public static Class<?> getClassFor(final Class<?> clazz, final int typeArgumentIndex) {
 		final Type type = getTypeFor(clazz, typeArgumentIndex);
@@ -37,8 +36,7 @@ public final class TypeArguments {
 
 	private static Type getTypeFor(final Class<?> clazz, final int index) {
 		final Type superClass = clazz.getGenericSuperclass();
-		if (!(superClass instanceof ParameterizedType))
-			return null;
+		if (!(superClass instanceof ParameterizedType)) return null;
 		final Type[] typeArguments = ((ParameterizedType) superClass).getActualTypeArguments();
 		return (index >= typeArguments.length) ? null : typeArguments[index];
 	}

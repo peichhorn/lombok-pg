@@ -32,30 +32,34 @@ import java.lang.annotation.*;
  * Since not much code is generated, the annotation also acts as documentation.
  * <p>
  * With lombok:
+ * 
  * <pre>
- * &#64;Singleton
+ * &#064;Singleton
  * class MySingleton {
- *   public MySingleton() {
- *   }
+ * 	public MySingleton() {
+ * 	}
  * }
  * </pre>
+ * 
  * Vanilla Java:
+ * 
  * <pre>
  * enum MySingleton {
- *   INSTANCE;
- *   MySingleton() {
- *   }
- *
- *   public static MySingleton getInstance() {
- *     return INSTANCE;
- *   }
+ * 	INSTANCE;
+ * 	MySingleton() {
+ * 	}
+ * 
+ * 	public static MySingleton getInstance() {
+ * 		return INSTANCE;
+ * 	}
  * }
  * </pre>
  * <p>
  * <b>Note:</b> If you don't like the enum approach, try the holder approach using<br>
  * <code>@Singleton(style = {@link Singleton.Style#HOLDER})</code>.
  */
-@Target(TYPE) @Retention(SOURCE)
+@Target(TYPE)
+@Retention(SOURCE)
 public @interface Singleton {
 	/** Specifies the singleton-style to use, default is ENUM. */
 	Style style() default Style.ENUM;
@@ -64,11 +68,11 @@ public @interface Singleton {
 		/**
 		 * <pre>
 		 * enum SingletonEnumExample {
-		 *   INSTANCE;
+		 * 	INSTANCE;
 		 * 
-		 *   public static SingletonEnumExample getInstance() {
-		 *     return INSTANCE;
-		 *   }
+		 * 	public static SingletonEnumExample getInstance() {
+		 * 		return INSTANCE;
+		 * 	}
 		 * }
 		 * </pre>
 		 */
@@ -77,13 +81,13 @@ public @interface Singleton {
 		 * <pre>
 		 * class SingletonHolderExample {
 		 * 
-		 *   private static class SingletonHolderExampleHolder {
-		 *     private static final SingletonHolderExample INSTANCE = new SingletonHolderExample();
-		 *   }
+		 * 	private static class SingletonHolderExampleHolder {
+		 * 		private static final SingletonHolderExample INSTANCE = new SingletonHolderExample();
+		 * 	}
 		 * 
-		 *   public static SingletonHolderExample getInstance() {
-		 *     return SingletonHolderExampleHolder.INSTANCE;
-		 *   }
+		 * 	public static SingletonHolderExample getInstance() {
+		 * 		return SingletonHolderExampleHolder.INSTANCE;
+		 * 	}
 		 * }
 		 * </pre>
 		 */

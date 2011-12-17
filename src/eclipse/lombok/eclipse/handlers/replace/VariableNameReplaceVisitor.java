@@ -9,7 +9,7 @@ import org.eclipse.jdt.internal.compiler.ast.*;
 
 public class VariableNameReplaceVisitor extends ExpressionReplaceVisitor {
 	private final String oldName;
-	
+
 	public VariableNameReplaceVisitor(final EclipseMethod method, final String oldName, final String newName) {
 		super(method, Name(newName));
 		this.oldName = oldName;
