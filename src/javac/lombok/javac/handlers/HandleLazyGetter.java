@@ -47,6 +47,6 @@ public class HandleLazyGetter extends JavacAnnotationHandler<LazyGetter> {
 		JavacType type = JavacType.typeOf(annotationNode, ast);
 		JavacField field = JavacField.fieldOf(annotationNode, ast);
 		LazyGetter annotationInstance = annotation.getInstance();
-		new LazyGetterHandler<JavacType, JavacField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.getClass());
+		new LazyGetterHandler<JavacType, JavacField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.annotationType());
 	}
 }

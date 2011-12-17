@@ -100,7 +100,7 @@ public class HandleActionFunctionAndPredicate {
 	}
 
 	public void handle(final AnnotationValues<? extends java.lang.annotation.Annotation> annotation, final JCAnnotation source, final JavacNode annotationNode, final String forcedReturnType) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = annotation.getInstance().getClass();
+		final Class<? extends java.lang.annotation.Annotation> annotationType = annotation.getInstance().annotationType();
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method.isAbstract()) {
 			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));

@@ -52,7 +52,7 @@ public class HandleConditionAndLock {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withLockMethod("readLock") //
-				.handle(ann.value(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(ann.value(), ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -62,7 +62,7 @@ public class HandleConditionAndLock {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withLockMethod("writeLock") //
-				.handle(ann.value(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(ann.value(), ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -72,7 +72,7 @@ public class HandleConditionAndLock {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(ann.lockName(), ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -82,7 +82,7 @@ public class HandleConditionAndLock {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
-				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(ann.lockName(), ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -93,7 +93,7 @@ public class HandleConditionAndLock {
 			prepareConditionAndLockHandler(annotationNode, ast, ann.getClass()) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-				.handle(ann.lockName(), ann.getClass(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(ann.lockName(), ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 }

@@ -60,10 +60,6 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 	 * @param argsProvider argument provider used for the constructor
 	 */
 	public void createEntrypoint(final TYPE_TYPE type, final String name, final String methodName, final Parameters params, final Arguments args) {
-		if (!type.hasMethod(methodName)) {
-			return;
-		}
-
 		if (entrypointExists(name, type)) {
 			return;
 		}

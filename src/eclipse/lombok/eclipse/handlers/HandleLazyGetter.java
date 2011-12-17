@@ -42,6 +42,6 @@ public class HandleLazyGetter extends EclipseAnnotationHandler<LazyGetter> {
 		EclipseType type = EclipseType.typeOf(annotationNode, ast);
 		EclipseField field = EclipseField.fieldOf(annotationNode, ast);
 		LazyGetter annotationInstance = annotation.getInstance();
-		new LazyGetterHandler<EclipseType, EclipseField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.getClass());
+		new LazyGetterHandler<EclipseType, EclipseField>(type, field, annotationNode).handle(annotationInstance.value(), annotationInstance.annotationType());
 	}
 }

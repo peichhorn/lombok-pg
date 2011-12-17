@@ -52,7 +52,7 @@ public class HandleRethrowAndRethrows {
 			Rethrow ann = annotation.getInstance();
 			new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
