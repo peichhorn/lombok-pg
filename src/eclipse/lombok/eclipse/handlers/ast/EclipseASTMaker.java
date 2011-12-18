@@ -36,7 +36,9 @@ import static lombok.eclipse.handlers.Eclipse.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -92,6 +94,8 @@ import org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
 import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedQualifiedTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.ParameterizedSingleTypeReference;
+import org.eclipse.jdt.internal.compiler.ast.PostfixExpression;
+import org.eclipse.jdt.internal.compiler.ast.PrefixExpression;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
@@ -129,6 +133,40 @@ import lombok.eclipse.EclipseNode;
 
 @RequiredArgsConstructor
 public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Void> {
+	private static final Map<String, Integer> UNARY_OPERATORS = new HashMap<String, Integer>();
+	static {
+		UNARY_OPERATORS.put("+", OperatorIds.PLUS);
+		UNARY_OPERATORS.put("-", OperatorIds.MINUS);
+		UNARY_OPERATORS.put("!", OperatorIds.NOT);
+		UNARY_OPERATORS.put("~", OperatorIds.TWIDDLE);
+		UNARY_OPERATORS.put("++X", OperatorIds.PLUS);
+		UNARY_OPERATORS.put("--X", OperatorIds.MINUS);
+		UNARY_OPERATORS.put("X++", OperatorIds.PLUS);
+		UNARY_OPERATORS.put("X--", OperatorIds.MINUS);
+	}
+	private static final Map<String, Integer> BINARY_OPERATORS = new HashMap<String, Integer>();
+	static {
+		BINARY_OPERATORS.put("||", OperatorIds.OR_OR);
+		BINARY_OPERATORS.put("&&", OperatorIds.AND_AND);
+		BINARY_OPERATORS.put("==", OperatorIds.EQUAL_EQUAL);
+		BINARY_OPERATORS.put("!=", OperatorIds.NOT_EQUAL);
+		BINARY_OPERATORS.put("<", OperatorIds.LESS);
+		BINARY_OPERATORS.put(">", OperatorIds.GREATER);
+		BINARY_OPERATORS.put("<=", OperatorIds.LESS_EQUAL);
+		BINARY_OPERATORS.put(">=", OperatorIds.GREATER_EQUAL);
+		BINARY_OPERATORS.put("|", OperatorIds.OR);
+		BINARY_OPERATORS.put("^", OperatorIds.XOR);
+		BINARY_OPERATORS.put("&", OperatorIds.AND);
+		BINARY_OPERATORS.put("<<", OperatorIds.LEFT_SHIFT);
+		BINARY_OPERATORS.put(">>", OperatorIds.RIGHT_SHIFT);
+		BINARY_OPERATORS.put(">>>", OperatorIds.UNSIGNED_RIGHT_SHIFT);
+		BINARY_OPERATORS.put("+", OperatorIds.PLUS);
+		BINARY_OPERATORS.put("-", OperatorIds.MINUS);
+		BINARY_OPERATORS.put("*", OperatorIds.MULTIPLY);
+		BINARY_OPERATORS.put("/", OperatorIds.DIVIDE);
+		BINARY_OPERATORS.put("%", OperatorIds.REMAINDER);
+	}
+
 	private final EclipseNode sourceNode;
 	private final ASTNode source;
 
@@ -235,22 +273,8 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	public ASTNode visitBinary(final lombok.ast.Binary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opCode;
-		if ("+".equals(operator)) {
-			opCode = OperatorIds.PLUS;
-		} else if ("-".equals(operator)) {
-			opCode = OperatorIds.MINUS;
-		} else if ("*".equals(operator)) {
-			opCode = OperatorIds.MULTIPLY;
-		} else if ("/".equals(operator)) {
-			opCode = OperatorIds.DIVIDE;
-		} else if ("||".equals(operator)) {
-			opCode = OperatorIds.OR_OR;
-		} else if ("&&".equals(operator)) {
-			opCode = OperatorIds.AND_AND;
-		} else if ("==".equals(operator)) {
-			opCode = OperatorIds.EQUAL_EQUAL;
-		} else if ("!=".equals(operator)) {
-			opCode = OperatorIds.NOT_EQUAL;
+		if (BINARY_OPERATORS.containsKey(operator)) {
+			opCode = BINARY_OPERATORS.get(operator);
 		} else {
 			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
@@ -767,16 +791,19 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	public ASTNode visitUnary(final lombok.ast.Unary node, final Void p) {
 		final String operator = node.getOperator();
 		final int opCode;
-		if ("!".equals(operator)) {
-			opCode = OperatorIds.NOT;
-		} else if ("+".equals(operator)) {
-			opCode = OperatorIds.PLUS;
-		} else if ("-".equals(operator)) {
-			opCode = OperatorIds.MINUS;
+		if (UNARY_OPERATORS.containsKey(operator)) {
+			opCode = UNARY_OPERATORS.get(operator);
 		} else {
-			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
+			throw new IllegalStateException(String.format("Unknown unary operator '%s'", operator));
 		}
-		final UnaryExpression unaryExpression = new UnaryExpression(build(node.getExpression(), Expression.class), opCode);
+		final Expression unaryExpression;
+		if (Is.oneOf(operator, "++X", "--X")) {
+			unaryExpression = new PrefixExpression(build(node.getExpression(), Expression.class), IntLiteral.One, opCode, 0);
+		} else if (Is.oneOf(operator, "X++", "X--")) {
+			unaryExpression = new PostfixExpression(build(node.getExpression(), Expression.class), IntLiteral.One, opCode, 0);
+		} else {
+			unaryExpression = new UnaryExpression(build(node.getExpression(), Expression.class), opCode);
+		}
 		setGeneratedByAndCopyPos(unaryExpression, source, posHintOf(node));
 		return unaryExpression;
 	}

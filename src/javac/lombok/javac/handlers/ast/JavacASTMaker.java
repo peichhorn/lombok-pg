@@ -90,36 +90,38 @@ import lombok.javac.JavacNode;
 
 @RequiredArgsConstructor
 public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> {
-	private static final Map<String, Integer> OPERATORS = new HashMap<String, Integer>();
+	private static final Map<String, Integer> UNARY_OPERATORS = new HashMap<String, Integer>();
 	static {
-		OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "POS"));
-		OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "NEG"));
-		OPERATORS.put("!", Javac.getCtcInt(JCTree.class, "NOT"));
-		OPERATORS.put("~", Javac.getCtcInt(JCTree.class, "COMPL"));
-		OPERATORS.put("++", Javac.getCtcInt(JCTree.class, "PREINC"));
-		OPERATORS.put("--", Javac.getCtcInt(JCTree.class, "PREDEC"));
-		OPERATORS.put("++", Javac.getCtcInt(JCTree.class, "POSTINC"));
-		OPERATORS.put("--", Javac.getCtcInt(JCTree.class, "POSTDEC"));
-		OPERATORS.put("<*nullchk*>", Javac.getCtcInt(JCTree.class, "NULLCHK"));
-		OPERATORS.put("||", Javac.getCtcInt(JCTree.class, "OR"));
-		OPERATORS.put("&&", Javac.getCtcInt(JCTree.class, "AND"));
-		OPERATORS.put("==", Javac.getCtcInt(JCTree.class, "EQ"));
-		OPERATORS.put("!=", Javac.getCtcInt(JCTree.class, "NE"));
-		OPERATORS.put("<", Javac.getCtcInt(JCTree.class, "LT"));
-		OPERATORS.put(">", Javac.getCtcInt(JCTree.class, "GT"));
-		OPERATORS.put("<=", Javac.getCtcInt(JCTree.class, "LE"));
-		OPERATORS.put(">=", Javac.getCtcInt(JCTree.class, "GE"));
-		OPERATORS.put("|", Javac.getCtcInt(JCTree.class, "BITOR"));
-		OPERATORS.put("^", Javac.getCtcInt(JCTree.class, "BITXOR"));
-		OPERATORS.put("&", Javac.getCtcInt(JCTree.class, "BITAND"));
-		OPERATORS.put("<<", Javac.getCtcInt(JCTree.class, "SL"));
-		OPERATORS.put(">>", Javac.getCtcInt(JCTree.class, "SR"));
-		OPERATORS.put(">>>", Javac.getCtcInt(JCTree.class, "USR"));
-		OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "PLUS"));
-		OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "MINUS"));
-		OPERATORS.put("*", Javac.getCtcInt(JCTree.class, "MUL"));
-		OPERATORS.put("/", Javac.getCtcInt(JCTree.class, "DIV"));
-		OPERATORS.put("%", Javac.getCtcInt(JCTree.class, "MOD"));
+		UNARY_OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "POS"));
+		UNARY_OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "NEG"));
+		UNARY_OPERATORS.put("!", Javac.getCtcInt(JCTree.class, "NOT"));
+		UNARY_OPERATORS.put("~", Javac.getCtcInt(JCTree.class, "COMPL"));
+		UNARY_OPERATORS.put("++X", Javac.getCtcInt(JCTree.class, "PREINC"));
+		UNARY_OPERATORS.put("--X", Javac.getCtcInt(JCTree.class, "PREDEC"));
+		UNARY_OPERATORS.put("X++", Javac.getCtcInt(JCTree.class, "POSTINC"));
+		UNARY_OPERATORS.put("X--", Javac.getCtcInt(JCTree.class, "POSTDEC"));
+	}
+	private static final Map<String, Integer> BINARY_OPERATORS = new HashMap<String, Integer>();
+	static {
+		BINARY_OPERATORS.put("||", Javac.getCtcInt(JCTree.class, "OR"));
+		BINARY_OPERATORS.put("&&", Javac.getCtcInt(JCTree.class, "AND"));
+		BINARY_OPERATORS.put("==", Javac.getCtcInt(JCTree.class, "EQ"));
+		BINARY_OPERATORS.put("!=", Javac.getCtcInt(JCTree.class, "NE"));
+		BINARY_OPERATORS.put("<", Javac.getCtcInt(JCTree.class, "LT"));
+		BINARY_OPERATORS.put(">", Javac.getCtcInt(JCTree.class, "GT"));
+		BINARY_OPERATORS.put("<=", Javac.getCtcInt(JCTree.class, "LE"));
+		BINARY_OPERATORS.put(">=", Javac.getCtcInt(JCTree.class, "GE"));
+		BINARY_OPERATORS.put("|", Javac.getCtcInt(JCTree.class, "BITOR"));
+		BINARY_OPERATORS.put("^", Javac.getCtcInt(JCTree.class, "BITXOR"));
+		BINARY_OPERATORS.put("&", Javac.getCtcInt(JCTree.class, "BITAND"));
+		BINARY_OPERATORS.put("<<", Javac.getCtcInt(JCTree.class, "SL"));
+		BINARY_OPERATORS.put(">>", Javac.getCtcInt(JCTree.class, "SR"));
+		BINARY_OPERATORS.put(">>>", Javac.getCtcInt(JCTree.class, "USR"));
+		BINARY_OPERATORS.put("+", Javac.getCtcInt(JCTree.class, "PLUS"));
+		BINARY_OPERATORS.put("-", Javac.getCtcInt(JCTree.class, "MINUS"));
+		BINARY_OPERATORS.put("*", Javac.getCtcInt(JCTree.class, "MUL"));
+		BINARY_OPERATORS.put("/", Javac.getCtcInt(JCTree.class, "DIV"));
+		BINARY_OPERATORS.put("%", Javac.getCtcInt(JCTree.class, "MOD"));
 	}
 	private static final Map<String, Integer> TYPES = new HashMap<String, Integer>();
 	static {
@@ -242,13 +244,13 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	@Override
 	public JCTree visitBinary(final lombok.ast.Binary node, final Void p) {
 		final String operator = node.getOperator();
-		final int opcode;
-		if (OPERATORS.containsKey(operator)) {
-			opcode = OPERATORS.get(operator);
+		final int opCode;
+		if (BINARY_OPERATORS.containsKey(operator)) {
+			opCode = BINARY_OPERATORS.get(operator);
 		} else {
 			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
 		}
-		JCBinary binary = setGeneratedBy(M(node).Binary(opcode, build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
+		JCBinary binary = setGeneratedBy(M(node).Binary(opCode, build(node.getLeft(), JCExpression.class), build(node.getRight(), JCExpression.class)), source);
 		return binary;
 	}
 
@@ -591,13 +593,13 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	@Override
 	public JCTree visitUnary(final lombok.ast.Unary node, final Void p) {
 		final String operator = node.getOperator();
-		final int opcode;
-		if (OPERATORS.containsKey(operator)) {
-			opcode = OPERATORS.get(operator);
+		final int opCode;
+		if (UNARY_OPERATORS.containsKey(operator)) {
+			opCode = UNARY_OPERATORS.get(operator);
 		} else {
-			throw new IllegalStateException(String.format("Unknown binary operator '%s'", operator));
+			throw new IllegalStateException(String.format("Unknown unary operator '%s'", operator));
 		}
-		JCUnary unary = setGeneratedBy(M(node).Unary(opcode, build(node.getExpression(), JCExpression.class)), source);
+		JCUnary unary = setGeneratedBy(M(node).Unary(opCode, build(node.getExpression(), JCExpression.class)), source);
 		return unary;
 	}
 
