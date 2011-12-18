@@ -21,7 +21,6 @@
  */
 package lombok.javac.handlers;
 
-import static lombok.core.util.ErrorMessages.canBeUsedOnConcreteMethodOnly;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 import static lombok.javac.handlers.ast.JavacResolver.CLASS;
 
@@ -49,6 +48,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -100,30 +100,30 @@ public class HandleActionFunctionAndPredicate {
 	}
 
 	public void handle(final AnnotationValues<? extends java.lang.annotation.Annotation> annotation, final JCAnnotation source, final JavacNode annotationNode, final String forcedReturnType) {
-		final Class<? extends java.lang.annotation.Annotation> annotationType = annotation.getInstance().annotationType();
+		final JCTree annotationType = source.annotationType;
 		final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
 		if (method.isAbstract()) {
-			annotationNode.addError(canBeUsedOnConcreteMethodOnly(annotationType));
+			annotationNode.addError(String.format("@%s can be used on concrete methods only", annotationType));
 			return;
 		}
 		if ((forcedReturnType != null) && !method.returns(forcedReturnType)) {
-			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType.getSimpleName(), forcedReturnType));
+			annotationNode.addError(String.format("@%s can only be used on methods with '%s' as return type", annotationType, forcedReturnType));
 			return;
 		}
 
 		final Object templates = annotation.getActualExpression("value");
 		final TypeSymbol resolvedTemplates = resolveTemplates(method.node(), source, templates);
 		if (resolvedTemplates == null) {
-			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s unable to resolve template type", annotationType));
 			return;
 		}
 		final List<TemplateData> matchingTemplates = findTemplatesFor(method.get(), resolvedTemplates, forcedReturnType);
 		if (matchingTemplates.isEmpty()) {
-			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s no template found that matches the given method signature", annotationType));
 			return;
 		}
 		if (matchingTemplates.size() > 1) {
-			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType.getSimpleName()));
+			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType));
 			return;
 		}
 		new ActionFunctionAndPredicateHandler<JavacType, JavacMethod>().rebuildMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());

@@ -52,7 +52,7 @@ public class HandleRethrowAndRethrows {
 			Rethrow ann = annotation.getInstance();
 			new RethrowAndRethrowsHandler<EclipseMethod>(EclipseMethod.methodOf(annotationNode, source), annotationNode) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -70,7 +70,7 @@ public class HandleRethrowAndRethrows {
 				Rethrow ann = createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
-			handler.handle(Rethrow.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
+			handler.handle(Rethrows.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 }

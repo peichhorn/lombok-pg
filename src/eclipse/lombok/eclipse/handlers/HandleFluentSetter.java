@@ -50,6 +50,6 @@ public class HandleFluentSetter extends EclipseAnnotationHandler<FluentSetter> {
 			@Override protected EclipseField fieldOf(EclipseNode node, ASTNode ast) {
 				return EclipseField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value(), annotationInstance.annotationType());
+		}.handle(annotationInstance.value(), FluentSetter.class);
 	}
 }

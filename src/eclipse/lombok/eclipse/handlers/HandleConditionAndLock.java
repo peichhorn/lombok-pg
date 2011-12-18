@@ -50,14 +50,14 @@ public class HandleConditionAndLock {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("readLock")
-				.preHandle(ann.value(), ann.annotationType());
+				.preHandle(ann.value(), ReadLock.class);
 		}
 
 		@Override public void handle(final AnnotationValues<ReadLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			ReadLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("readLock")
-				.handle(ann.value(), ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.value(), ReadLock.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -71,14 +71,14 @@ public class HandleConditionAndLock {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("writeLock")
-				.preHandle(ann.value(), ann.annotationType());
+				.preHandle(ann.value(), WriteLock.class);
 		}
 
 		@Override public void handle(final AnnotationValues<WriteLock> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			WriteLock ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withLockMethod("writeLock")
-				.handle(ann.value(), ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.value(), WriteLock.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -92,14 +92,14 @@ public class HandleConditionAndLock {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
-				.preHandle(ann.lockName(), ann.annotationType());
+				.preHandle(ann.lockName(), Signal.class);
 		}
 
 		@Override public void handle(final AnnotationValues<Signal> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Signal ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withSignal(new SignalData(ann.value(), ann.pos()))
-				.handle(ann.lockName(), ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.lockName(), Signal.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -113,14 +113,14 @@ public class HandleConditionAndLock {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
-				.preHandle(ann.lockName(), ann.annotationType());
+				.preHandle(ann.lockName(), Await.class);
 		}
 
 		@Override public void handle(final AnnotationValues<Await> annotation, final Annotation ast, final EclipseNode annotationNode) {
 			Await ann = annotation.getInstance();
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.conditionName(), ann.conditionMethod(), ann.pos()))
-				.handle(ann.lockName(), ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.lockName(), Await.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 
@@ -135,7 +135,7 @@ public class HandleConditionAndLock {
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-				.preHandle(ann.lockName(), ann.annotationType());
+				.preHandle(ann.lockName(), AwaitBeforeAndSignalAfter.class);
 		}
 
 		@Override public void handle(final AnnotationValues<AwaitBeforeAndSignalAfter> annotation, final Annotation ast, final EclipseNode annotationNode) {
@@ -143,7 +143,7 @@ public class HandleConditionAndLock {
 			prepareConditionAndLockHandler(annotationNode, ast) //
 				.withAwait(new AwaitData(ann.awaitConditionName(), ann.awaitConditionMethod(), Position.BEFORE))
 				.withSignal(new SignalData(ann.signalConditionName(), Position.AFTER))
-				.handle(ann.lockName(), ann.annotationType(), new EclipseParameterValidator(), new EclipseParameterSanitizer());
+				.handle(ann.lockName(), AwaitBeforeAndSignalAfter.class, new EclipseParameterValidator(), new EclipseParameterSanitizer());
 		}
 	}
 }

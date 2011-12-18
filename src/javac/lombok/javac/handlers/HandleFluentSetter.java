@@ -52,7 +52,7 @@ public class HandleFluentSetter extends JavacAnnotationHandler<FluentSetter> {
 			@Override protected JavacField fieldOf(JavacNode node, JCTree ast) {
 				return JavacField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value(), annotationInstance.annotationType());
+		}.handle(annotationInstance.value(), FluentSetter.class);
 		deleteAnnotationIfNeccessary(annotationNode, FluentSetter.class);
 		deleteImport(annotationNode, AccessLevel.class);
 	}

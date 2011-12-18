@@ -55,7 +55,7 @@ public class HandleRethrowAndRethrows {
 			Rethrow ann = annotation.getInstance();
 			prepareRethrowAndRethrowsHandler(annotationNode, ast, ann.getClass()) //
 				.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message())) //
-				.handle(ann.annotationType(), new JavacParameterValidator(), new JavacParameterSanitizer());
+				.handle(Rethrow.class, new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 
@@ -69,7 +69,7 @@ public class HandleRethrowAndRethrows {
 				Rethrow ann = createAnnotation(Rethrow.class, rethrowNode).getInstance();
 				handler.withRethrow(new RethrowData(classNames(ann.value()), ann.as(), ann.message()));
 			}
-			handler.handle(Rethrow.class, new JavacParameterValidator(), new JavacParameterSanitizer());
+			handler.handle(Rethrows.class, new JavacParameterValidator(), new JavacParameterSanitizer());
 		}
 	}
 }

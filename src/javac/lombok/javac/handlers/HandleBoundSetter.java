@@ -55,7 +55,7 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 			@Override protected JavacField fieldOf(JavacNode node, JCTree ast) {
 				return JavacField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value(), annotationInstance.annotationType());
+		}.handle(annotationInstance.value(), BoundSetter.class);
 		deleteAnnotationIfNeccessary(annotationNode, BoundSetter.class);
 		deleteImport(annotationNode, AccessLevel.class);
 	}
