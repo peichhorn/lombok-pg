@@ -383,9 +383,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		typeDeclaration.methods = toArray(build(node.getMethods()), new AbstractMethodDeclaration[0]);
 		typeDeclaration.memberTypes = toArray(build(node.getMemberTypes()), new TypeDeclaration[0]);
 		typeDeclaration.superInterfaces = toArray(build(node.getSuperInterfaces()), new TypeReference[0]);
-		if (node.getSuperclass() != null) {
-			typeDeclaration.superclass = build(node.getSuperclass());
-		}
+		typeDeclaration.superclass = build(node.getSuperclass());
 		return typeDeclaration;
 	}
 
