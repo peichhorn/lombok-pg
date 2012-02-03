@@ -46,6 +46,11 @@ public class ClassDecl extends Statement<ClassDecl> {
 		this.name = name;
 	}
 
+	public ClassDecl extending(final TypeRef type) {
+		superclass = type;
+		return this;
+	}
+
 	public ClassDecl implementing(final TypeRef type) {
 		superInterfaces.add(child(type));
 		return this;
