@@ -86,6 +86,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 
 	public boolean hasMethod(String methodName);
 
+	public boolean hasMethod(String methodName, int numberOfParameters);
+
 	public void makeEnum();
 
 	public void makePrivate();

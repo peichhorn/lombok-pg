@@ -265,7 +265,11 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	}
 
 	public boolean hasMethod(final String methodName) {
-		return (methodExists(methodName, typeNode, false) != MemberExistsResult.NOT_EXISTS);
+		return hasMethod(methodName, -1);
+	}
+
+	public boolean hasMethod(final String methodName, final int numberOfParameters) {
+		return (methodExists(methodName, typeNode, false, numberOfParameters) != MemberExistsResult.NOT_EXISTS);
 	}
 
 	public void makeEnum() {

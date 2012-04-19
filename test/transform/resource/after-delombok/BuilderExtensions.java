@@ -1,6 +1,3 @@
-import java.util.Map;
-import java.util.HashMap;
-
 class BuilderExtensions {
 	private final String text;
 	private final int id;

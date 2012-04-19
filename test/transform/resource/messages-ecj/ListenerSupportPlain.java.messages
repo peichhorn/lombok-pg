@@ -1,0 +1,1 @@
+4 warning @lombok.ListenerSupport works only with interfaces. java.lang.String was skipped

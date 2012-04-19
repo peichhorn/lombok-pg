@@ -2,12 +2,12 @@ class RethrowPlain {
 
 	@lombok.Rethrow(value = java.io.FileNotFoundException.class, as = java.lang.IllegalArgumentException.class)
 	void testRethrowAs() {
-		System.out.println("code that throws FileNotFoundException");
+		throw new java.io.FileNotFoundException();
 	}
 
-	@lombok.Rethrow(value = java.lang.InterruptedException.class)
+	@lombok.Rethrow(value = InterruptedException.class)
 	void testRethrowAsRuntimeException() {
-		System.out.println("code that might throw InterruptedException due to cancelation");
+		throw new InterruptedException();
 	}
 	
 	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "meh.")
@@ -19,8 +19,12 @@ class RethrowPlain {
 		@lombok.Rethrow(value = java.io.FileNotFoundException.class, as = java.lang.IllegalArgumentException.class),
 		@lombok.Rethrow(value = java.io.IOException.class, as = java.lang.RuntimeException.class)
 	})
-	void testFullyCustomizedRethrow() {
-		System.out.println("code that throws FileNotFoundException and IOException");
+	void testFullyCustomizedRethrow(boolean b) {
+		if (b) {
+			throw new java.io.FileNotFoundException();
+		} else {
+			throw new java.io.IOException();
+		}
 	}
 	
 	@lombok.Rethrow(as = java.lang.IllegalArgumentException.class, message = "$arg meh.")

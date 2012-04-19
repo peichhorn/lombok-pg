@@ -64,7 +64,7 @@ public class HandleBuilderAndExtension {
 				return;
 			}
 
-			switch (methodExists(decapitalize(type.name()), type.node(), false)) {
+			switch (methodExists(decapitalize(type.name()), type.node(), false, 0)) {
 			case EXISTS_BY_LOMBOK:
 				return;
 			case EXISTS_BY_USER:
@@ -109,7 +109,7 @@ public class HandleBuilderAndExtension {
 			}
 			AnnotationValues<Builder> builderAnnotation = createAnnotation(Builder.class, builderNode);
 
-			if (!type.hasMethod(decapitalize(type.name()))) {
+			if (!type.hasMethod(decapitalize(type.name()), 0)) {
 				new HandleBuilder().handle(builderAnnotation, (Annotation) builderNode.get(), builderNode);
 			}
 

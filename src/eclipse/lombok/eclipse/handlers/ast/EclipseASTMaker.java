@@ -900,8 +900,11 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		} else if (node.getWrappedObject() instanceof TypeReference) {
 			typeReference = copyType((TypeReference) node.getWrappedObject(), source);
 		}
-		setGeneratedBy(typeReference, source);
+		if (node.getDims() > 0) {
+			typeReference = typeReference.copyDims(node.getDims());
+		}
 		if (node.isSuperType()) typeReference.bits |= IsSuperType;
+		setGeneratedBy(typeReference, source);
 		return typeReference;
 	}
 

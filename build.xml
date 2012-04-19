@@ -147,7 +147,8 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 				<attribute name="Lombok-Version" value="${lombok.version}" />
 			</manifest>
 		</jar>
-		<copy file="dist/lombok-pg-${lombok.version}.jar" tofile="dist/lombok-pg.jar" />
+		<!-- So the ecj-tests can run properly -->
+		<copy file="dist/lombok-pg-${lombok.version}.jar" tofile="dist/lombok.jar" />
 
 		<jar destfile="dist/lombok-pg-${lombok.version}-runtime.jar">
 			<fileset dir="build/lombok-pg">

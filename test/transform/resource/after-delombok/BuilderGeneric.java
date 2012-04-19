@@ -14,7 +14,7 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static <K extends Comparable<K>, V extends List<K>>$FooDef<K, V> builderGeneric() {
+	public static <K extends Comparable<K>, V extends List<K>> $FooDef<K, V> builderGeneric() {
 		return new $Builder<K, V>();
 	}
 	

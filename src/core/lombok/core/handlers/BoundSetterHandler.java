@@ -22,6 +22,7 @@
 package lombok.core.handlers;
 
 import static lombok.ast.AST.*;
+import static lombok.core.TransformationsUtil.toSetterName;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.camelCaseToConstant;
 
@@ -31,9 +32,11 @@ import java.util.regex.Pattern;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.AnnotationValues;
 import lombok.core.LombokNode;
 import lombok.core.AST.Kind;
 import lombok.core.TransformationsUtil;
+import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
@@ -91,8 +94,9 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level, final String propertyNameFieldName) {
 		String fieldName = field.name();
 		boolean isBoolean = field.isOfType("boolean");
-		String setterName = TransformationsUtil.toSetterName(fieldName, isBoolean);
-		if (type.hasMethod(setterName)) return;
+		AnnotationValues<Accessors> accessors = AnnotationValues.of(Accessors.class, field.node());
+		String setterName = toSetterName(accessors, fieldName, isBoolean);
+		if (type.hasMethod(setterName, 1)) return;
 		String oldValueName = OLD_VALUE_VARIABLE_NAME;
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type("void"), setterName).withAccessLevel(level).withArgument(Arg(field.type(), fieldName).withAnnotations(nonNulls));

@@ -4,11 +4,6 @@ import lombok.Validate.NotNull;
 
 class FunctionPlain {
 
-	public void test() {
-		Float foo = 1.618F;
-		notNull(foo, sqrt());
-	}
-
 	@Function
 	public static boolean startsWith(@NotNull String string, @NotNull String _prefix) {
 		return string.startsWith(_prefix);
@@ -20,7 +15,7 @@ class FunctionPlain {
 	}
 
 	@Function
-	public static <T> void notNull(T object, Function1<T, Void> notNullFunction) {
+	public static <T> void notNull(T object, Function1<T, T> notNullFunction) {
 		if (object != null) notNullFunction.apply(object);
 	}
 

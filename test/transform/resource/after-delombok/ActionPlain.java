@@ -31,14 +31,14 @@ class ActionPlain {
 	}
 
 	@java.lang.SuppressWarnings("all")
-	public static <T>lombok.Actions.Action2<T, Action1<T>> notNull() {
+	public static <T> lombok.Actions.Action2<T, Action1<T>> notNull() {
 		return new lombok.Actions.Action2<T, Action1<T>>(){
 
 			public void apply(final T object, final Action1<T> notNullAction) {
 				if (notNullAction == null) {
 					throw new java.lang.NullPointerException(java.lang.String.format("The validated object \'%s\' (argument #%s) is null", "notNullAction", 2));
 				}
-				if (object != null) notNullFunction.apply(object);
+				if (object != null) notNullAction.apply(object);
 			}
 		};
 	}

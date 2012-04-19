@@ -34,7 +34,7 @@ public class TuplePlain {
     final int $tuple1 = a;
     a = b;
     b = $tuple1;
-    final int $tuple2 = d;
+    final int[] $tuple2 = d;
     c = $tuple2[0];
     b = $tuple2[1];
     a = $tuple2[2];

@@ -10,7 +10,7 @@ class SwingInvokeLaterPlain {
 				frame.setTitle("test1");
 				frame.setVisible(true);
 				test3(SwingInvokeLaterPlain.this);
-				JDialog dialog = new JDialog(SwingInvokeLaterPlain.this);
+				JDialog dialog = new JDialog();
 				System.out.println("test1");
 			}
 		};

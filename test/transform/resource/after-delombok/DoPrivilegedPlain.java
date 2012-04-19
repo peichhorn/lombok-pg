@@ -2,12 +2,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 class DoPrivilegedPlain {
+	
 	private boolean b = true;
-
+	
 	@java.lang.SuppressWarnings("all")
 	int test1() {
 		try {
 			return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>(){
+				
 				public java.lang.Integer run() {
 					System.out.println("Test");
 					return 0;
@@ -18,11 +20,12 @@ class DoPrivilegedPlain {
 			throw new java.lang.RuntimeException($cause);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	void test2() {
 		try {
 			java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Void>(){
+				
 				public java.lang.Void run() {
 					if (b) {
 						return null;
@@ -36,7 +39,7 @@ class DoPrivilegedPlain {
 			throw new java.lang.RuntimeException($cause);
 		}
 	}
-
+	
 	String cleanFilename(String filename) {
 		filename = filename.replace("\\", "/").toLowerCase();
 		if (filename.startsWith("c:/windows/system32")) {
@@ -44,7 +47,7 @@ class DoPrivilegedPlain {
 		}
 		return filename;
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	int test3(final String filename) throws FileNotFoundException {
 		if (filename == null) {
@@ -56,11 +59,16 @@ class DoPrivilegedPlain {
 		final String sanitizedFilename = cleanFilename(filename);
 		try {
 			return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>(){
+				
 				public java.lang.Integer run() throws FileNotFoundException {
-					FileInputStream fis = new FileInputStream(sanitizedFilename);
-					int i = fis.read();
-					fis.close();
-					return i;
+					try {
+						FileInputStream fis = new FileInputStream(sanitizedFilename);
+						int i = fis.read();
+						fis.close();
+						return i;
+					} catch (final java.lang.Throwable $ex) {
+						throw lombok.Lombok.sneakyThrow($ex);
+					}
 				}
 			});
 		} catch (final java.security.PrivilegedActionException $ex) {
@@ -69,17 +77,22 @@ class DoPrivilegedPlain {
 			throw new java.lang.RuntimeException($cause);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	int test4(final String filename) throws FileNotFoundException {
 		final String sanitizedFilename = cleanFilename(filename);
 		try {
 			return java.security.AccessController.doPrivileged(new java.security.PrivilegedExceptionAction<java.lang.Integer>(){
+				
 				public java.lang.Integer run() throws FileNotFoundException {
-					FileInputStream fis = new FileInputStream(sanitizedFilename);
-					int i = fis.read();
-					fis.close();
-					return i;
+					try {
+						FileInputStream fis = new FileInputStream(sanitizedFilename);
+						int i = fis.read();
+						fis.close();
+						return i;
+					} catch (final java.lang.Throwable $ex) {
+						throw lombok.Lombok.sneakyThrow($ex);
+					}
 				}
 			});
 		} catch (final java.security.PrivilegedActionException $ex) {

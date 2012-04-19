@@ -33,7 +33,6 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 #### Methods:
 
 - `tuple(expr1, expr2, ...)` [info](http://peichhorn.github.com/lombok-pg/Tuple.html)
-- `with(object, expr1, expr2, ...)` [info](http://peichhorn.github.com/lombok-pg/With.html)
 - `yield(object)` [info](http://peichhorn.github.com/lombok-pg/Yield.html)
 
 

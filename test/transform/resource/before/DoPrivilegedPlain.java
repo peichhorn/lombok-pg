@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 
 import lombok.DoPrivileged;
 import lombok.Sanitize;
+import lombok.SneakyThrows;
 
 class DoPrivilegedPlain {
 	private boolean b = true;
@@ -29,6 +30,7 @@ class DoPrivilegedPlain {
 		return filename;
 	}
 	
+	@SneakyThrows
 	@DoPrivileged
 	int test3(@lombok.Validate.NotEmpty @Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {
 		FileInputStream fis = new FileInputStream(filename);
@@ -37,6 +39,7 @@ class DoPrivilegedPlain {
 		return i;
 	}
 
+	@SneakyThrows
 	@DoPrivileged
 	@Sanitize
 	int test4(@Sanitize.With("cleanFilename") String filename) throws FileNotFoundException {

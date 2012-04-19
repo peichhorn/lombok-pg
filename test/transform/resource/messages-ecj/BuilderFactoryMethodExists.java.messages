@@ -1,1 +1,2 @@
 1 warning Not generating 'public static $Builder builderFactoryMethodExists()' A method with that name already exists
+2 error The blank final field id may not have been initialized

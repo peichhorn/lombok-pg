@@ -1,6 +1,3 @@
-import java.util.Map;
-import java.util.HashMap;
-
 @lombok.Builder(exclude={"optionalVal3"}, convenientMethods=false)
 class BuilderExtensions {
 	private final String text;

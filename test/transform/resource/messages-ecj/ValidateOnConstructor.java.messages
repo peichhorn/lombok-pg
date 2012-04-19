@@ -1,0 +1,2 @@
+12 warning The serializable class CheckedException does not declare a static final serialVersionUID field of type long
+22 warning The serializable class CheckedException2 does not declare a static final serialVersionUID field of type long

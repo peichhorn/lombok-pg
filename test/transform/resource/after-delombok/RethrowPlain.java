@@ -1,23 +1,23 @@
 class RethrowPlain {
-
+	
 	@java.lang.SuppressWarnings("all")
 	void testRethrowAs() {
 		try {
-			System.out.println("code that throws FileNotFoundException");
+			throw new java.io.FileNotFoundException();
 		} catch (final java.io.FileNotFoundException $e1) {
 			throw new java.lang.IllegalArgumentException($e1);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	void testRethrowAsRuntimeException() {
 		try {
-			System.out.println("code that might throw InterruptedException due to cancelation");
+			throw new InterruptedException();
 		} catch (final java.lang.InterruptedException $e1) {
 			throw new java.lang.RuntimeException($e1);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	void testRethrowEveryExceptionAsSpecifiedException(final String arg) {
 		try {
@@ -34,18 +34,22 @@ class RethrowPlain {
 			throw new java.lang.IllegalArgumentException(java.lang.String.format("meh."), $e2);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
-	void testFullyCustomizedRethrow() {
+	void testFullyCustomizedRethrow(boolean b) {
 		try {
-			System.out.println("code that throws FileNotFoundException and IOException");
+			if (b) {
+				throw new java.io.FileNotFoundException();
+			} else {
+				throw new java.io.IOException();
+			}
 		} catch (final java.io.FileNotFoundException $e1) {
 			throw new java.lang.IllegalArgumentException($e1);
 		} catch (final java.io.IOException $e2) {
 			throw new java.lang.RuntimeException($e2);
 		}
 	}
-
+	
 	@java.lang.SuppressWarnings("all")
 	void testExceptionsInSanitizeAlsoGetRethrown(final String arg) {
 		try {

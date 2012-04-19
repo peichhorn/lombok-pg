@@ -15,7 +15,7 @@ class ExtensionMethodAndVar {
 	}
 
 	static class Objects {
-		public static <T>T orElse(T value, T orElse) {
+		public static <T> T orElse(T value, T orElse) {
 			return value == null ? orElse : value;
 		}
 	}

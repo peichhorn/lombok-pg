@@ -7,7 +7,7 @@ public class TuplePlain {
 		final int $tuple0 = a;
 		a = b;
 		b = $tuple0;
-		final int $tuple1 = d;
+		final int[] $tuple1 = d;
 		c = $tuple1[0];
 		b = $tuple1[1];
 		a = $tuple1[2];

@@ -8,11 +8,14 @@ class SwingInvokeLaterPlain {
 
   @lombok.SwingInvokeLater @java.lang.SuppressWarnings("all") void test1() throws Exception {
     final java.lang.Runnable $test1Runnable = new java.lang.Runnable() {
+      x() {
+        super();
+      }
       public @java.lang.Override void run() {
         frame.setTitle("test1");
         frame.setVisible(true);
         test3(SwingInvokeLaterPlain.this);
-        JDialog dialog = new JDialog(SwingInvokeLaterPlain.this);
+        JDialog dialog = new JDialog();
         System.out.println("test1");
       }
     };
@@ -33,6 +36,9 @@ class SwingInvokeLaterPlain {
         }
     final String sanitizedTitle = java.text.Normalizer.normalize(title, java.text.Normalizer.Form.NFKC);
     final java.lang.Runnable $test2Runnable = new java.lang.Runnable() {
+      x() {
+        super();
+      }
       public @java.lang.Override void run() {
         frame.setTitle(sanitizedTitle);
         frame.setVisible(true);

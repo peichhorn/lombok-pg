@@ -277,8 +277,8 @@ public final class PatchExtensionMethod {
 			if (!method.isStatic()) continue;
 			if (!method.isPublic()) continue;
 			if (Is.empty(method.parameters)) continue;
-			TypeBinding firstArgType = method.parameters[0].erasure();
-			if (!receiverType.isCompatibleWith(firstArgType)) continue;
+			final TypeBinding firstArgType = method.parameters[0];
+			if (receiverType.isProvablyDistinct(firstArgType) && !receiverType.isCompatibleWith(firstArgType.erasure())) continue;
 			TypeBinding[] argumentTypes = Arrays.copyOfRange(method.parameters, 1, method.parameters.length);
 			if ((receiverType instanceof ReferenceBinding) && ((ReferenceBinding) receiverType).getExactMethod(method.selector, argumentTypes, cuScope) != null) continue;
 			extensionMethods.add(method);

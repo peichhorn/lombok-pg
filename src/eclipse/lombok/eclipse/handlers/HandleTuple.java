@@ -185,7 +185,7 @@ public class HandleTuple extends EclipseASTAdapter {
 			final TypeReference vartype = new VarTypeFinder(varnames.get(0), tupleAssignNode.get()).scan(tupleAssignNode.top().get());
 			if (vartype != null) {
 				String tempVarname = "$tuple" + withVarCounter++;
-				tempVarAssignments.add(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.arguments[0])), Statement.class));
+				tempVarAssignments.add(builder.build(LocalDecl(Type(vartype).withDimensions(1), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.arguments[0])), Statement.class));
 				int arrayIndex = 0;
 				for (String varname : varnames) {
 					assignments.add(builder.build(Assign(Name(varname), ArrayRef(Name(tempVarname), Number(arrayIndex++))), Statement.class));

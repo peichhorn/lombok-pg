@@ -179,7 +179,7 @@ public class HandleTuple extends JavacASTAdapter {
 			final JCExpression vartype = new VarTypeFinder(varnames.get(0), tupleAssignNode.get()).scan(tupleAssignNode.top().get(), null);
 			if (vartype != null) {
 				String tempVarname = "$tuple" + withVarCounter++;
-				tempVarAssignments.append(builder.build(LocalDecl(Type(vartype), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.args.head)), JCStatement.class));
+				tempVarAssignments.append(builder.build(LocalDecl(Type(vartype).withDimensions(1), tempVarname).makeFinal().withInitialization(Expr(rightTupleCall.args.head)), JCStatement.class));
 				int arrayIndex = 0;
 				for (String varname : varnames) {
 					assignments.append(builder.build(Assign(Name(varname), ArrayRef(Name(tempVarname), Number(arrayIndex++))), JCStatement.class));

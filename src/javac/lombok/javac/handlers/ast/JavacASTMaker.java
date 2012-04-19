@@ -677,12 +677,15 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitWrappedTypeRef(final lombok.ast.WrappedTypeRef node, final Void p) {
-		JCExpression typeReference = null;
+		JCExpression typeRef = null;
 		if (node.getWrappedObject() instanceof Type) {
-			typeReference = fixLeadingDot(node, M(node).Type((Type) node.getWrappedObject()));
+			typeRef = fixLeadingDot(node, M(node).Type((Type) node.getWrappedObject()));
 		} else if (node.getWrappedObject() instanceof JCExpression) {
-			typeReference = new TreeCopier<Void>(M(node)).copy((JCExpression) node.getWrappedObject());
+			typeRef = new TreeCopier<Void>(M(node)).copy((JCExpression) node.getWrappedObject());
 		}
-		return typeReference;
+		for (int i = 0; i < node.getDims(); i++) {
+			typeRef = setGeneratedBy(M(node).TypeArray(typeRef), source);
+		}
+		return typeRef;
 	}
 }

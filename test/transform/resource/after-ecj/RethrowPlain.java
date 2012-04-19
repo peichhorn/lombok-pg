@@ -2,27 +2,24 @@ class RethrowPlain {
   RethrowPlain() {
     super();
   }
-  
   @lombok.Rethrow(value = java.io.FileNotFoundException.class,as = java.lang.IllegalArgumentException.class) @java.lang.SuppressWarnings("all") void testRethrowAs() {
     try 
       {
-        System.out.println("code that throws FileNotFoundException");
+        throw new java.io.FileNotFoundException();
       }
     catch (final java.io.FileNotFoundException $e1)       {
         throw new java.lang.IllegalArgumentException($e1);
       }
   }
-  
-  @lombok.Rethrow(value = java.lang.InterruptedException.class) @java.lang.SuppressWarnings("all") void testRethrowAsRuntimeException() {
+  @lombok.Rethrow(value = InterruptedException.class) @java.lang.SuppressWarnings("all") void testRethrowAsRuntimeException() {
     try 
       {
-        System.out.println("code that might throw InterruptedException due to cancelation");
+        throw new InterruptedException();
       }
     catch (final java.lang.InterruptedException $e1)       {
         throw new java.lang.RuntimeException($e1);
       }
   }
-  
   @lombok.Rethrow(as = java.lang.IllegalArgumentException.class,message = "meh.") @java.lang.SuppressWarnings("all") void testRethrowEveryExceptionAsSpecifiedException(final @lombok.Validate.NotEmpty String arg) {
     try 
       {
@@ -43,11 +40,17 @@ class RethrowPlain {
         throw new java.lang.IllegalArgumentException(java.lang.String.format("meh."), $e2);
       }
   }
-  
-  @lombok.Rethrows({@lombok.Rethrow(value = java.io.FileNotFoundException.class,as = java.lang.IllegalArgumentException.class), @lombok.Rethrow(value = java.io.IOException.class,as = java.lang.RuntimeException.class)}) @java.lang.SuppressWarnings("all") void testFullyCustomizedRethrow() {
+  @lombok.Rethrows({@lombok.Rethrow(value = java.io.FileNotFoundException.class,as = java.lang.IllegalArgumentException.class), @lombok.Rethrow(value = java.io.IOException.class,as = java.lang.RuntimeException.class)}) @java.lang.SuppressWarnings("all") void testFullyCustomizedRethrow(boolean b) {
     try 
       {
-        System.out.println("code that throws FileNotFoundException and IOException");
+        if (b)
+            {
+              throw new java.io.FileNotFoundException();
+            }
+        else
+            {
+              throw new java.io.IOException();
+            }
       }
     catch (final java.io.FileNotFoundException $e1)       {
         throw new java.lang.IllegalArgumentException($e1);
@@ -56,7 +59,6 @@ class RethrowPlain {
         throw new java.lang.RuntimeException($e2);
       }
   }
-  
   @lombok.Rethrow(as = java.lang.IllegalArgumentException.class,message = "$arg meh.") @java.lang.SuppressWarnings("all") void testExceptionsInSanitizeAlsoGetRethrown(final @lombok.Sanitize.With("filterArg") String arg) {
     try 
       {
@@ -70,7 +72,6 @@ class RethrowPlain {
         throw new java.lang.IllegalArgumentException(java.lang.String.format("%s meh.", arg), $e2);
       }
   }
-  
   String filterArg(final String arg) throws Exception {
     throw new Exception();
   }

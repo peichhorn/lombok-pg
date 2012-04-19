@@ -27,7 +27,9 @@ import static lombok.core.util.ErrorMessages.*;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.AnnotationValues;
 import lombok.core.DiagnosticsReceiver;
+import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
@@ -51,10 +53,11 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 
 		String fieldName = field.name();
 		boolean isBoolean = field.isOfType("boolean");
-		String methodName = toGetterName(fieldName, isBoolean);
+		AnnotationValues<Accessors> accessors = AnnotationValues.of(Accessors.class, field.node());
+		String methodName = toGetterName(accessors, fieldName, isBoolean);
 
-		for (String altName : toAllGetterNames(fieldName, isBoolean)) {
-			if (type.hasMethod(altName)) return;
+		for (String altName : toAllGetterNames(accessors, fieldName, isBoolean)) {
+			if (type.hasMethod(altName, 0)) return;
 		}
 
 		createGetter(type, field, level, methodName);

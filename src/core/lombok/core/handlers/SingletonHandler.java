@@ -46,6 +46,10 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 			diagnosticsReceiver.addError(requiresDefaultOrNoArgumentConstructor(Singleton.class));
 			return;
 		}
+		
+		if (type.hasMethod("getInstance", 0)) {
+			return;
+		}
 
 		String typeName = type.name();
 

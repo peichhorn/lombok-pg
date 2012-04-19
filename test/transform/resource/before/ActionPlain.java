@@ -21,7 +21,7 @@ class ActionPlain {
 
 	@Action
 	public static <T> void notNull(T object, @NotNull Action1<T> notNullAction) {
-		if (object != null) notNullFunction.apply(object);
+		if (object != null) notNullAction.apply(object);
 	}
 
 	@Action
