@@ -1,21 +1,21 @@
 @lombok.Builder class BuilderBrokenExtension {
-  public static @java.lang.SuppressWarnings("all") interface $TextDef {
-    public $IdDef text(final String text);
+  public static @java.lang.SuppressWarnings("all") interface TextDef {
+    public IdDef text(final String text);
   }
-  public static @java.lang.SuppressWarnings("all") interface $IdDef {
-    public $OptionalDef id(final int id);
+  public static @java.lang.SuppressWarnings("all") interface IdDef {
+    public OptionalDef id(final int id);
   }
-  public static @java.lang.SuppressWarnings("all") interface $OptionalDef {
+  public static @java.lang.SuppressWarnings("all") interface OptionalDef {
     public BuilderBrokenExtension build();
   }
-  private static @java.lang.SuppressWarnings("all") class $Builder implements $TextDef, $IdDef, $OptionalDef {
+  private static @java.lang.SuppressWarnings("all") class $Builder implements TextDef, IdDef, OptionalDef {
     private String text;
     private int id;
-    public $IdDef text(final String text) {
+    public IdDef text(final String text) {
       this.text = text;
       return this;
     }
-    public $OptionalDef id(final int id) {
+    public OptionalDef id(final int id) {
       this.id = id;
       return this;
     }
@@ -33,7 +33,7 @@
     this.text = builder.text;
     this.id = builder.id;
   }
-  public static @java.lang.SuppressWarnings("all") $TextDef builderBrokenExtension() {
+  public static @java.lang.SuppressWarnings("all") TextDef builderBrokenExtension() {
     return new $Builder();
   }
   private @lombok.Builder.Extension void brokenExtension() {

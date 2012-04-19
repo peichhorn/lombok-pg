@@ -3,27 +3,27 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 @Builder class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
-  public static @java.lang.SuppressWarnings("all") interface $FooDef<K extends Comparable<K>, V extends List<K>> {
-    public $OptionalDef<K, V> foo(final String foo);
-    public @java.lang.SuppressWarnings("all") $OptionalDef<K, V> foo(final Class<?> clazz);
+  public static @java.lang.SuppressWarnings("all") interface FooDef<K extends Comparable<K>, V extends List<K>> {
+    public OptionalDef<K, V> foo(final String foo);
+    public @java.lang.SuppressWarnings("all") OptionalDef<K, V> foo(final Class<?> clazz);
   }
-  public static @java.lang.SuppressWarnings("all") interface $OptionalDef<K extends Comparable<K>, V extends List<K>> {
-    public $OptionalDef<K, V> bar(final K arg0, final V arg1);
-    public $OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0);
+  public static @java.lang.SuppressWarnings("all") interface OptionalDef<K extends Comparable<K>, V extends List<K>> {
+    public OptionalDef<K, V> bar(final K arg0, final V arg1);
+    public OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0);
     public BuilderGeneric<K, V> build();
   }
-  private static @java.lang.SuppressWarnings("all") class $Builder<K extends Comparable<K>, V extends List<K>> implements $FooDef<K, V>, $OptionalDef<K, V> {
+  private static @java.lang.SuppressWarnings("all") class $Builder<K extends Comparable<K>, V extends List<K>> implements FooDef<K, V>, OptionalDef<K, V> {
     private String foo;
     private Map<K, V> bar = new HashMap<K, V>();
-    public $OptionalDef<K, V> foo(final String foo) {
+    public OptionalDef<K, V> foo(final String foo) {
       this.foo = foo;
       return this;
     }
-    public $OptionalDef<K, V> bar(final K arg0, final V arg1) {
+    public OptionalDef<K, V> bar(final K arg0, final V arg1) {
       this.bar.put(arg0, arg1);
       return this;
     }
-    public $OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0) {
+    public OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0) {
       this.bar.putAll(arg0);
       return this;
     }
@@ -33,7 +33,7 @@ import lombok.Builder;
     private $Builder() {
       super();
     }
-    public @java.lang.SuppressWarnings("all") $OptionalDef<K, V> foo(final Class<?> clazz) {
+    public @java.lang.SuppressWarnings("all") OptionalDef<K, V> foo(final Class<?> clazz) {
       this.foo = clazz.getSimpleName();
       return this;
     }
@@ -45,7 +45,7 @@ import lombok.Builder;
     this.foo = builder.foo;
     this.bar = builder.bar;
   }
-  public static @java.lang.SuppressWarnings("all") <K extends Comparable<K>, V extends List<K>>$FooDef<K, V> builderGeneric() {
+  public static @java.lang.SuppressWarnings("all") <K extends Comparable<K>, V extends List<K>>FooDef<K, V> builderGeneric() {
     return new $Builder<K, V>();
   }
 }

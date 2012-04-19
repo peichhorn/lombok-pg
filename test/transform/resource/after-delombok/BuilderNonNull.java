@@ -13,35 +13,35 @@ class BuilderNonNull {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static $NonNullValueDef builderNonNull() {
+	public static NonNullValueDef builderNonNull() {
 		return new $Builder();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $NonNullValueDef {
+	public static interface NonNullValueDef {
 		
-		$OptionalDef nonNullValue(final String nonNullValue);
+		OptionalDef nonNullValue(final String nonNullValue);
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $OptionalDef {
+	public static interface OptionalDef {
 		
-		$OptionalDef anotherValue(final String anotherValue);
+		OptionalDef anotherValue(final String anotherValue);
 		
 		BuilderNonNull build();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	private static class $Builder implements $NonNullValueDef, $OptionalDef {
+	private static class $Builder implements NonNullValueDef, OptionalDef {
 		private String nonNullValue;
 		private String anotherValue;
 		
-		public $OptionalDef nonNullValue(final String nonNullValue) {
+		public OptionalDef nonNullValue(final String nonNullValue) {
 			this.nonNullValue = nonNullValue;
 			return this;
 		}
 		
-		public $OptionalDef anotherValue(final String anotherValue) {
+		public OptionalDef anotherValue(final String anotherValue) {
 			this.anotherValue = anotherValue;
 			return this;
 		}

@@ -14,40 +14,40 @@ class BuilderBrokenExtension {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static $TextDef builderBrokenExtension() {
+	public static TextDef builderBrokenExtension() {
 		return new $Builder();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $TextDef {
+	public static interface TextDef {
 		
-		$IdDef text(final String text);
+		IdDef text(final String text);
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $IdDef {
+	public static interface IdDef {
 		
-		$OptionalDef id(final int id);
+		OptionalDef id(final int id);
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $OptionalDef {
+	public static interface OptionalDef {
 		
 		BuilderBrokenExtension build();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	private static class $Builder implements $TextDef, $IdDef, $OptionalDef {
+	private static class $Builder implements TextDef, IdDef, OptionalDef {
 		
 		private String text;
 		private int id;
 		
-		public $IdDef text(final String text) {
+		public IdDef text(final String text) {
 			this.text = text;
 			return this;
 		}
 		
-		public $OptionalDef id(final int id) {
+		public OptionalDef id(final int id) {
 			this.id = id;
 			return this;
 		}

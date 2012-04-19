@@ -14,45 +14,45 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static <K extends Comparable<K>, V extends List<K>> $FooDef<K, V> builderGeneric() {
+	public static <K extends Comparable<K>, V extends List<K>> FooDef<K, V> builderGeneric() {
 		return new $Builder<K, V>();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $FooDef<K extends Comparable<K>, V extends List<K>> {
+	public static interface FooDef<K extends Comparable<K>, V extends List<K>> {
 		
-		$OptionalDef<K, V> foo(final String foo);
+		OptionalDef<K, V> foo(final String foo);
 		
 		@java.lang.SuppressWarnings("all")
-		$OptionalDef<K, V> foo(final Class<?> clazz);
+		OptionalDef<K, V> foo(final Class<?> clazz);
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	public static interface $OptionalDef<K extends Comparable<K>, V extends List<K>> {
+	public static interface OptionalDef<K extends Comparable<K>, V extends List<K>> {
 		
-		$OptionalDef<K, V> bar(final K arg0, final V arg1);
+		OptionalDef<K, V> bar(final K arg0, final V arg1);
 		
-		$OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0);
+		OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0);
 		
 		BuilderGeneric<K, V> build();
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	private static class $Builder<K extends Comparable<K>, V extends List<K>> implements $FooDef<K, V>, $OptionalDef<K, V> {
+	private static class $Builder<K extends Comparable<K>, V extends List<K>> implements FooDef<K, V>, OptionalDef<K, V> {
 		private String foo;
 		private Map<K, V> bar = new HashMap<K, V>();
 		
-		public $OptionalDef<K, V> foo(final String foo) {
+		public OptionalDef<K, V> foo(final String foo) {
 			this.foo = foo;
 			return this;
 		}
 		
-		public $OptionalDef<K, V> bar(final K arg0, final V arg1) {
+		public OptionalDef<K, V> bar(final K arg0, final V arg1) {
 			this.bar.put(arg0, arg1);
 			return this;
 		}
 		
-		public $OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0) {
+		public OptionalDef<K, V> bar(final java.util.Map<? extends K, ? extends V> arg0) {
 			this.bar.putAll(arg0);
 			return this;
 		}
@@ -66,7 +66,7 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		}
 		
 		@java.lang.SuppressWarnings("all")
-		public $OptionalDef<K, V> foo(final Class<?> clazz) {
+		public OptionalDef<K, V> foo(final Class<?> clazz) {
 			this.foo = clazz.getSimpleName();
 			return this;
 		}

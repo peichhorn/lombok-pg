@@ -33,7 +33,7 @@ import lombok.*;
 import lombok.ast.*;
 
 public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
-	public static final String OPTIONAL_DEF = "$OptionalDef";
+	public static final String OPTIONAL_DEF = "OptionalDef";
 	public static final String BUILDER = "$Builder";
 
 	public void handleBuilder(final TYPE_TYPE type, final Builder builder) {
@@ -327,7 +327,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				if ((!field.isInitialized()) && (field.isFinal() || !field.annotations(NON_NULL_PATTERN).isEmpty())) {
 					requiredFields.add(field);
 					allRequiredFieldNames.add(fieldName);
-					String typeName = camelCase("$", fieldName, "def");
+					String typeName = capitalize(camelCase(fieldName, "def"));
 					requiredFieldDefTypeNames.add(typeName);
 					requiredFieldDefTypes.add(Type(typeName));
 				} else if ((generateConvenientMethodsEnabled && isInitializedMapOrCollection(field)) || !field.isFinal()) {

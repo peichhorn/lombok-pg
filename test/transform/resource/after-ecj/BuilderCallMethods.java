@@ -5,25 +5,25 @@
       super();
     }
   }
-  public static @java.lang.SuppressWarnings("all") interface $TextDef {
-    public $IdDef text(final String text);
+  public static @java.lang.SuppressWarnings("all") interface TextDef {
+    public IdDef text(final String text);
   }
-  public static @java.lang.SuppressWarnings("all") interface $IdDef {
-    public $OptionalDef id(final int id);
+  public static @java.lang.SuppressWarnings("all") interface IdDef {
+    public OptionalDef id(final int id);
   }
-  public static @java.lang.SuppressWarnings("all") interface $OptionalDef {
+  public static @java.lang.SuppressWarnings("all") interface OptionalDef {
     public BuilderCallMethods build();
     public java.lang.String toString();
     public void bar() throws Exception;
   }
-  private static @java.lang.SuppressWarnings("all") class $Builder implements $TextDef, $IdDef, $OptionalDef {
+  private static @java.lang.SuppressWarnings("all") class $Builder implements TextDef, IdDef, OptionalDef {
     private String text;
     private int id;
-    public $IdDef text(final String text) {
+    public IdDef text(final String text) {
       this.text = text;
       return this;
     }
-    public $OptionalDef id(final int id) {
+    public OptionalDef id(final int id) {
       this.id = id;
       return this;
     }
@@ -47,7 +47,7 @@
     this.text = builder.text;
     this.id = builder.id;
   }
-  static @java.lang.SuppressWarnings("all") $TextDef builderCallMethods() {
+  static @java.lang.SuppressWarnings("all") TextDef builderCallMethods() {
     return new $Builder();
   }
   private void bar() throws Exception {
