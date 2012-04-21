@@ -173,23 +173,23 @@ public final class Eclipse {
 	}
 
 	public static EclipseNode methodNodeOf(final EclipseNode node) {
+		if (node == null) {
+			throw new IllegalArgumentException();
+		}
 		EclipseNode typeNode = node;
 		while ((typeNode != null) && !(typeNode.get() instanceof AbstractMethodDeclaration)) {
 			typeNode = typeNode.up();
-		}
-		if (typeNode == null) {
-			throw new IllegalArgumentException();
 		}
 		return typeNode;
 	}
 
 	public static EclipseNode typeNodeOf(final EclipseNode node) {
+		if (node == null) {
+			throw new IllegalArgumentException();
+		}
 		EclipseNode typeNode = node;
 		while ((typeNode != null) && !(typeNode.get() instanceof TypeDeclaration)) {
 			typeNode = typeNode.up();
-		}
-		if (typeNode == null) {
-			throw new IllegalArgumentException();
 		}
 		return typeNode;
 	}

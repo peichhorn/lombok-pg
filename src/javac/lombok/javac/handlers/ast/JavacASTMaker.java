@@ -366,7 +366,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitEnumConstant(final lombok.ast.EnumConstant node, final Void p) {
-		final JCModifiers mods = setGeneratedBy(M(node).Modifiers(flagsFor(node.getModifiers()) | ENUM, build(node.getAnnotations(), JCAnnotation.class)), source);
+		final JCModifiers mods = setGeneratedBy(M(node).at(-1).Modifiers(ENUM | STATIC | FINAL | PUBLIC, build(node.getAnnotations(), JCAnnotation.class)), source);
 		lombok.ast.ClassDecl enumClassDecl = node.upTo(lombok.ast.ClassDecl.class);
 		final JCExpression varType;
 		if (enumClassDecl == null) {
@@ -375,7 +375,8 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 			varType = chainDots(node, enumClassDecl.getName());
 		}
 		final List<JCExpression> nilExp = List.nil();
-		final JCNewClass init = setGeneratedBy(M(node).NewClass(null, nilExp, varType, nilExp, null), source);
+		final List<JCExpression> args = build(node.getArgs());
+		final JCNewClass init = setGeneratedBy(M(node).NewClass(null, nilExp, varType, args, null), source);
 		final JCVariableDecl enumContant = setGeneratedBy(M(node).VarDef(mods, name(node.getName()), varType, init), source);
 		return enumContant;
 	}

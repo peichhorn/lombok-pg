@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.agent;
 
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccStatic;
 import static lombok.ast.AST.*;
 import static lombok.eclipse.agent.Patches.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
@@ -33,7 +34,6 @@ import java.util.*;
 
 import org.eclipse.jdt.core.CompletionProposal;
 import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.codeassist.CompletionEngine;
 import org.eclipse.jdt.internal.codeassist.InternalCompletionContext;
 import org.eclipse.jdt.internal.codeassist.InternalCompletionProposal;
@@ -404,7 +404,7 @@ public final class PatchExtensionMethod {
 			setTypeName(method.returnType.qualifiedSourceName());
 			setName(method.selector);
 			setCompletion(completion);
-			setFlags(method.modifiers & (~Modifier.STATIC));
+			setFlags(method.modifiers & (~AccStatic));
 			int index = node.sourceEnd + 1;
 			if (node instanceof CompletionOnQualifiedNameReference) {
 				index -= ((CompletionOnQualifiedNameReference) node).completionIdentifier.length;

@@ -43,6 +43,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
+import lombok.ast.IType;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
@@ -124,6 +125,12 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 			}
 		}
 		throw new IllegalArgumentException();
+	}
+
+	public <T extends IType<?, ?, ?, ?, ?, ?>> T surroundingType() {
+		final JavacNode parent = node().directUp();
+		if (parent == null) return null;
+		return Cast.<T> uncheckedCast(JavacType.typeOf(parent, source));
 	}
 
 	public List<JavacMethod> methods() {
@@ -293,6 +300,10 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	public void makePublic() {
 		makePackagePrivate();
 		get().mods.flags |= PUBLIC;
+	}
+
+	public void makeStatic() {
+		get().mods.flags |= STATIC;
 	}
 
 	public void rebuild() {

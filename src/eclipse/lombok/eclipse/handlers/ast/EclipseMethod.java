@@ -323,10 +323,7 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 	}
 
 	public static EclipseMethod methodOf(final EclipseNode node, final ASTNode source) {
-		EclipseNode methodNode = node;
-		while ((methodNode != null) && !(methodNode.get() instanceof AbstractMethodDeclaration)) {
-			methodNode = methodNode.up();
-		}
+		EclipseNode methodNode = Eclipse.methodNodeOf(node);
 		return methodNode == null ? null : new EclipseMethod(methodNode, source);
 	}
 }

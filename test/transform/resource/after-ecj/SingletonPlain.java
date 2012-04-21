@@ -1,5 +1,7 @@
 @lombok.Singleton enum SingletonPlain1 {
   INSTANCE(),
+  <clinit>() {
+  }
   public static @java.lang.SuppressWarnings("all") SingletonPlain1 getInstance() {
     return INSTANCE;
   }
@@ -9,6 +11,8 @@
 }
 @lombok.Singleton enum SingletonPlain2 {
   INSTANCE(),
+  <clinit>() {
+  }
   public static @java.lang.SuppressWarnings("all") SingletonPlain2 getInstance() {
     return INSTANCE;
   }

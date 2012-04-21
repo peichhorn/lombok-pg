@@ -24,12 +24,7 @@ package lombok.eclipse.handlers.ast;
 import static lombok.ast.AST.*;
 import static lombok.core.util.Arrays.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
-import static org.eclipse.jdt.core.dom.Modifier.PRIVATE;
-import static org.eclipse.jdt.core.dom.Modifier.PROTECTED;
-import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccInterface;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccEnum;
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccAnnotation;
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,6 +47,7 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
+import lombok.ast.IType;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
@@ -120,6 +116,12 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 			}
 		}
 		throw new IllegalArgumentException();
+	}
+
+	public <T extends IType<?, ?, ?, ?, ?, ?>> T surroundingType() {
+		final EclipseNode parent = node().directUp();
+		if (parent == null) return null;
+		return Cast.<T> uncheckedCast(EclipseType.typeOf(parent, source));
 	}
 
 	public List<EclipseMethod> methods() {
@@ -307,21 +309,25 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	public void makePrivate() {
 		makePackagePrivate();
-		get().modifiers |= PRIVATE;
+		get().modifiers |= AccPrivate;
 	}
 
 	public void makePackagePrivate() {
-		get().modifiers &= ~(PRIVATE | PROTECTED | PUBLIC);
+		get().modifiers &= ~(AccPrivate | AccProtected | AccPublic);
 	}
 
 	public void makeProtected() {
 		makePackagePrivate();
-		get().modifiers |= PROTECTED;
+		get().modifiers |= AccProtected;
 	}
 
 	public void makePublic() {
 		makePackagePrivate();
-		get().modifiers |= PUBLIC;
+		get().modifiers |= AccPublic;
+	}
+
+	public void makeStatic() {
+		get().modifiers |= AccStatic;
 	}
 
 	public void rebuild() {

@@ -320,10 +320,7 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 	}
 
 	public static JavacMethod methodOf(final JavacNode node, final JCTree source) {
-		JavacNode methodNode = node;
-		while ((methodNode != null) && !(methodNode.get() instanceof JCMethodDecl)) {
-			methodNode = methodNode.up();
-		}
+		JavacNode methodNode = Javac.methodNodeOf(node);
 		return methodNode == null ? null : new JavacMethod(methodNode, source);
 	}
 }

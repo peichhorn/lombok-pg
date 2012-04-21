@@ -21,6 +21,7 @@
  */
 package lombok.eclipse.handlers;
 
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccFinal;
 import static lombok.core.util.Names.*;
 import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.Eclipse.*;
@@ -29,7 +30,6 @@ import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 
@@ -53,7 +53,7 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.type, argumentName, newArgumentName, annotation));
 				method.replaceVariableName(argumentName, newArgumentName);
 				setGeneratedBy(ann, ann);
-				argument.modifiers |= Modifier.FINAL;
+				argument.modifiers |= AccFinal;
 				argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
 				break;
 			}

@@ -46,6 +46,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 
 	public <T extends IType<?, ?, ?, ?, ?, ?>> T memberType(String typeName);
 
+	public <T extends IType<?, ?, ?, ?, ?, ?>> T surroundingType();
+
 	public List<METHOD_TYPE> methods();
 
 	public List<FIELD_TYPE> fields();
@@ -97,6 +99,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 	public void makeProtected();
 
 	public void makePublic();
+
+	public void makeStatic();
 
 	public void rebuild();
 }

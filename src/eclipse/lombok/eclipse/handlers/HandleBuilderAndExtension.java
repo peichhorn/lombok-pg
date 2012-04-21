@@ -21,9 +21,9 @@
  */
 package lombok.eclipse.handlers;
 
+import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccPrivate;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
-import static org.eclipse.jdt.core.dom.Modifier.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
 import java.util.*;
@@ -181,7 +181,7 @@ public class HandleBuilderAndExtension {
 		public void endVisitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
 			if (isOfInterest() && (method instanceof MethodDeclaration)) {
 				MethodDeclaration meth = (MethodDeclaration) method;
-				if (((meth.modifiers & PRIVATE) != 0) && "void".equals(meth.returnType.toString())) {
+				if (((meth.modifiers & AccPrivate) != 0) && "void".equals(meth.returnType.toString())) {
 					if (containsRequiredFields) {
 						if (requiredFieldNames.isEmpty()) {
 							isRequiredFieldsExtension = true;
