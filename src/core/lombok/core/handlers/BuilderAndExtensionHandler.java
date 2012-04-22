@@ -87,7 +87,15 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		TYPE_TYPE type = builderData.getType();
 		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER).withTypeArguments(type.typeArguments()), "builder").makeFinal()).withImplicitSuper();
 		for (final FIELD_TYPE field : builderData.getAllFields()) {
-			constructorDecl.withStatement(Assign(Field(field.name()), Field(Name("builder"), field.name())));
+			if (field.isFinal() && field.isInitialized()) {
+				if (isCollection(field)) {
+					constructorDecl.withStatement(Call(Field(field.name()), "addAll").withArgument(Field(Name("builder"), field.name())));
+				} else if (isMap(field)) {
+					constructorDecl.withStatement(Call(Field(field.name()), "putAll").withArgument(Field(Name("builder"), field.name())));
+				}
+			} else {
+				constructorDecl.withStatement(Assign(Field(field.name()), Field(Name("builder"), field.name())));
+			}
 		}
 		type.injectConstructor(constructorDecl);
 	}
@@ -273,7 +281,6 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			FieldDecl builder = FieldDecl(field.type(), field.name()).makePrivate();
 			if (field.isInitialized()) {
 				builder.withInitialization(field.initialization());
-				field.replaceInitialization(null);
 			}
 			fields.add(builder);
 		}

@@ -51,7 +51,7 @@
   }
   private final String text;
   private final int id;
-  private String optionalVal1;
+  private String optionalVal1 = "default";
   private java.util.List<java.lang.Long> optionalVal2;
   private long optionalVal3;
   private @java.lang.SuppressWarnings("all") BuilderExtensions(final $Builder builder) {

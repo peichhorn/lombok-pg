@@ -39,11 +39,11 @@ import lombok.Builder;
     }
   }
   private final String foo;
-  private final Map<K, V> bar;
+  private final Map<K, V> bar = new HashMap<K, V>();
   private @java.lang.SuppressWarnings("all") BuilderGeneric(final $Builder<K, V> builder) {
     super();
     this.foo = builder.foo;
-    this.bar = builder.bar;
+    this.bar.putAll(builder.bar);
   }
   public static @java.lang.SuppressWarnings("all") <K extends Comparable<K>, V extends List<K>>FooDef<K, V> builderGeneric() {
     return new $Builder<K, V>();

@@ -630,7 +630,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitWrappedExpression(final lombok.ast.WrappedExpression node, final Void p) {
-		final JCExpression expression = (JCExpression) node.getWrappedObject();
+		final JCExpression expression = new TreeCopier<Void>(M(node)).copy((JCExpression) node.getWrappedObject());
 		return expression;
 	}
 
