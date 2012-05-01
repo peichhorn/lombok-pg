@@ -121,7 +121,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			ClassScope cs = ((SourceTypeBinding) binding).scope;
 			if (cs != null) {
 				try {
-					Reflection.classScopeBuildMethodsMethod.invoke(cs);
+					Reflection.classScopeBuildFieldsAndMethodsMethod.invoke(cs);
 				} catch (final Exception e) {
 					// See 'Reflection' class for why we ignore this exception.
 				}
@@ -130,19 +130,19 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 	}
 
 	private static final class Reflection {
-		public static final Method classScopeBuildMethodsMethod;
+		public static final Method classScopeBuildFieldsAndMethodsMethod;
 
 		static {
 			Method m = null;
 			try {
-				m = ClassScope.class.getDeclaredMethod("buildMethods");
+				m = ClassScope.class.getDeclaredMethod("buildFieldsAndMethods");
 				m.setAccessible(true);
 			} catch (final Exception e) {
 				// That's problematic, but as long as no local classes are used we don't actually need it.
 				// Better fail on local classes than crash altogether.
 			}
 
-			classScopeBuildMethodsMethod = m;
+			classScopeBuildFieldsAndMethodsMethod = m;
 		}
 	}
 
