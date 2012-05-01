@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <ivy-module version="2.0">
-  <info organisation="projectlombok.org" module="lombok-test-core"
-    revision="0.10.0" publication="2010120411200">
+  <info organisation="projectlombok.org" module="lombok" revision="0.11.0" publication="20120501140000">
     <license name="MIT License"
       url="http://www.opensource.org/licenses/mit-license.php" />
     <ivyauthor name="rzwitserloot" url="http://zwitserloot.com/" />
@@ -9,13 +8,13 @@
     <description homepage="http://projectlombok.org/" />
   </info>
   <configurations>
-    <conf name="test" />
+    <conf name="build" />
     <conf name="sources" />
   </configurations>
   <publications>
-    <artifact conf="test"
-      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-test-core-0.10.0.jar" />
+    <artifact conf="build"
+      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.11.0.jar" />
     <artifact type="zip" conf="sources"
-      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-test-core-0.10.0-sources.jar" />
+      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.11.0-sources.jar" />
   </publications>
 </ivy-module>

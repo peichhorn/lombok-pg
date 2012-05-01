@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <ivy-module version="2.0">
-  <info organisation="projectlombok.org" module="javac" revision="1.6.0.18" publication="20100225011200">
+  <info organisation="projectlombok.org" module="javac6" revision="1.6.0.18" publication="20100225011200">
     <license name="GNU General Public License v2 with Classpath Exception" url="http://openjdk.java.net/legal/gplv2+ce.html" />
     <description homepage="http://openjdk.java.net/" />
   </info>
@@ -9,7 +9,7 @@
     <conf name="sources" />
   </configurations>
   <publications>
-    <artifact conf="runtime" url="http://projectlombok.org/ivyrepo/langtools/javac.jar" />
-    <artifact type="zip" conf="sources" url="http://projectlombok.org/ivyrepo/langtools/javac-sources.zip" />
+    <artifact conf="runtime" url="http://projectlombok.org/ivyrepo/langtools/javac-1.6.0.18.jar" />
+    <artifact type="zip" conf="sources" url="http://projectlombok.org/ivyrepo/langtools/javac-1.6.0.18-sources.zip" />
   </publications>
 </ivy-module>
