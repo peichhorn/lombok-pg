@@ -4,7 +4,7 @@ import java.util.Map;
 
 class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	private final String foo;
-	private final Map<K, V> bar = new HashMap<K, V>();
+	private final Map<K, V> bar = $Builder.$barDefault();
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderGeneric(final $Builder<K, V> builder) {
@@ -40,7 +40,11 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	@java.lang.SuppressWarnings("all")
 	private static class $Builder<K extends Comparable<K>, V extends List<K>> implements FooDef<K, V>, OptionalDef<K, V> {
 		private String foo;
-		private Map<K, V> bar = new HashMap<K, V>();
+		private Map<K, V> bar = $barDefault();
+
+		static Map<K, V> $barDefault() {
+			return new HashMap<K, V>();
+		}
 		
 		public OptionalDef<K, V> foo(final String foo) {
 			this.foo = foo;

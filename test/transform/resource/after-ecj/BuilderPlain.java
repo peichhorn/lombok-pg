@@ -10,9 +10,18 @@ import java.util.HashMap;
     public BuilderPlain build();
   }
   private static @java.lang.SuppressWarnings("all") class $Builder implements OptionalDef {
-    private String optionalVal1;
-    private java.util.List<java.lang.Long> optionalVal2 = new java.util.ArrayList<java.lang.Long>();
-    private Map<java.lang.String, java.lang.Long> optionalVal3 = new HashMap<java.lang.String, java.lang.Long>();
+    private String optionalVal1 = $optionalVal1Default();
+    private java.util.List<java.lang.Long> optionalVal2 = $optionalVal2Default();
+    private Map<java.lang.String, java.lang.Long> optionalVal3 = $optionalVal3Default();
+    static String $optionalVal1Default() {
+      return DEFAULT;
+    }
+    static java.util.List<java.lang.Long> $optionalVal2Default() {
+      return new java.util.ArrayList<java.lang.Long>();
+    }
+    static Map<java.lang.String, java.lang.Long> $optionalVal3Default() {
+      return new HashMap<java.lang.String, java.lang.Long>();
+    }
     public OptionalDef withOptionalVal1(final String optionalVal1) {
       this.optionalVal1 = optionalVal1;
       return this;
@@ -40,10 +49,11 @@ import java.util.HashMap;
       super();
     }
   }
+  public static final String DEFAULT = "default";
   public static final int IGNORE = 2;
-  private String optionalVal1;
-  private java.util.List<java.lang.Long> optionalVal2 = new java.util.ArrayList<java.lang.Long>();
-  private Map<java.lang.String, java.lang.Long> optionalVal3 = new HashMap<java.lang.String, java.lang.Long>();
+  private String optionalVal1 = $Builder.$optionalVal1Default();
+  private java.util.List<java.lang.Long> optionalVal2 = $Builder.$optionalVal2Default();
+  private Map<java.lang.String, java.lang.Long> optionalVal3 = $Builder.$optionalVal3Default();
   <clinit>() {
   }
   private @java.lang.SuppressWarnings("all") BuilderPlain(final $Builder builder) {

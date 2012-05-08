@@ -1,7 +1,7 @@
 class BuilderExtensions {
 	private final String text;
 	private final int id;
-	private String optionalVal1 = "default";
+	private String optionalVal1";
 	private java.util.List<java.lang.Long> optionalVal2;
 	private long optionalVal3;
 	
@@ -48,7 +48,7 @@ class BuilderExtensions {
 	private static class $Builder implements TextDef, IdDef, OptionalDef {
 		private String text;
 		private int id;
-		private String optionalVal1 = "default";
+		private String optionalVal1;
 		private java.util.List<java.lang.Long> optionalVal2;
 		
 		public IdDef text(final String text) {
