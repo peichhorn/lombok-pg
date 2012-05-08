@@ -42,7 +42,7 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		private String foo;
 		private Map<K, V> bar = $barDefault();
 
-		static Map<K, V> $barDefault() {
+		static <K extends Comparable<K>, V extends List<K>> Map<K, V> $barDefault() {
 			return new HashMap<K, V>();
 		}
 		

@@ -270,21 +270,24 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 	private void createBuilder(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final List<TypeRef> interfaceTypes,
 			final List<AbstractMethodDecl<?>> builderMethods) {
 		TYPE_TYPE type = builderData.getType();
-		builderMethods.add(ConstructorDecl(BUILDER).makePrivate().withImplicitSuper());
-		type.injectType(ClassDecl(BUILDER).withTypeParameters(type.typeParameters()).makePrivate().makeStatic().implementing(interfaceTypes) //
-				.withFields(createBuilderFields(builderData)).withMethods(builderMethods));
-	}
-
-	private List<FieldDecl> createBuilderFields(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
-		List<FieldDecl> fields = new ArrayList<FieldDecl>();
+		List<FieldDecl> builderFields = new ArrayList<FieldDecl>();
+		List<AbstractMethodDecl<?>> builderFieldDefaultMethods = new ArrayList<AbstractMethodDecl<?>>();
 		for (FIELD_TYPE field : builderData.getAllFields()) {
-			FieldDecl builder = FieldDecl(field.type(), field.name()).makePrivate();
+			FieldDecl builderField = FieldDecl(field.type(), field.name()).makePrivate();
 			if (field.isInitialized()) {
-				builder.withInitialization(field.initialization());
+				String fieldDefaultMethodName = "$" + field.name() + "Default";
+				builderFieldDefaultMethods.add(MethodDecl(field.type(), fieldDefaultMethodName).makeStatic().withTypeParameters(type.typeParameters()) //
+						.withStatement(Return(field.initialization())));
+				builderField.withInitialization(Call(fieldDefaultMethodName));
+				field.replaceInitialization(Call(Name(BUILDER), fieldDefaultMethodName));
 			}
-			fields.add(builder);
+			builderFields.add(builderField);
 		}
-		return fields;
+		type.injectType(ClassDecl(BUILDER).withTypeParameters(type.typeParameters()).makePrivate().makeStatic().implementing(interfaceTypes) //
+				.withFields(builderFields) //
+				.withMethods(builderFieldDefaultMethods) //
+				.withMethods(builderMethods) //
+				.withMethod(ConstructorDecl(BUILDER).makePrivate().withImplicitSuper()));
 	}
 
 	private static <FIELD_TYPE extends IField<?, ?, ?>> boolean isInitializedMapOrCollection(final FIELD_TYPE field) {

@@ -2,7 +2,7 @@
 class BuilderExtensions {
 	private final String text;
 	private final int id;
-	private String optionalVal1 = "default";
+	private String optionalVal1;
 	private java.util.List<java.lang.Long> optionalVal2;
 	private long optionalVal3;
 	

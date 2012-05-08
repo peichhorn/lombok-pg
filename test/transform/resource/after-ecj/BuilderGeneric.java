@@ -15,7 +15,7 @@ import lombok.Builder;
   private static @java.lang.SuppressWarnings("all") class $Builder<K extends Comparable<K>, V extends List<K>> implements FooDef<K, V>, OptionalDef<K, V> {
     private String foo;
     private Map<K, V> bar = $barDefault();
-    static Map<K, V> $barDefault() {
+    static <K extends Comparable<K>, V extends List<K>>Map<K, V> $barDefault() {
       return new HashMap<K, V>();
     }
     public OptionalDef<K, V> foo(final String foo) {
