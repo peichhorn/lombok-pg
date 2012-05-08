@@ -35,6 +35,7 @@ import lombok.core.handlers.ActionFunctionAndPredicateHandler;
 import lombok.core.handlers.ActionFunctionAndPredicateHandler.TemplateData;
 import lombok.core.util.As;
 import lombok.core.util.Each;
+import lombok.eclipse.DeferUntilBuildFieldsAndMethods;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
@@ -51,13 +52,15 @@ import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
+import org.mangosdk.spi.ProviderFor;
 
 public class HandleActionFunctionAndPredicate {
 
 	/**
 	 * Handles the {@link Action} annotation for eclipse.
 	 */
-	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilBuildFieldsAndMethods
 	public static class HandleAction extends EclipseAnnotationHandler<Action> {
 
 		@Override
@@ -69,7 +72,8 @@ public class HandleActionFunctionAndPredicate {
 	/**
 	 * Handles the {@link Function} annotation for eclipse.
 	 */
-	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilBuildFieldsAndMethods
 	public static class HandleFunction extends EclipseAnnotationHandler<Function> {
 
 		@Override
@@ -81,7 +85,8 @@ public class HandleActionFunctionAndPredicate {
 	/**
 	 * Handles the {@link Predicate} annotation for eclipse.
 	 */
-	// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+	@ProviderFor(EclipseAnnotationHandler.class)
+	@DeferUntilBuildFieldsAndMethods
 	public static class HandlePredicate extends EclipseAnnotationHandler<Predicate> {
 
 		@Override

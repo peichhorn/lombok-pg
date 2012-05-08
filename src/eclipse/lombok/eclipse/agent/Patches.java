@@ -27,13 +27,10 @@ import lombok.*;
 import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
-import lombok.eclipse.handlers.Eclipse;
 
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.impl.ITypeRequestor;
-import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -97,24 +94,5 @@ final class Patches {
 			node = astNode.get(decl);
 		}
 		return node;
-	}
-
-	/** should be used with caution */
-	public static void completeNode(final EclipseNode node) {
-		if (node.isCompleteParse()) return;
-		final EclipseNode typeNode = Eclipse.typeNodeOf(node);
-		if (typeNode == null) return;
-		TypeDeclaration decl = (TypeDeclaration) typeNode.get();
-		if (decl.scope == null) return;
-		final CompilationUnitScope cus = decl.scope.compilationUnitScope();
-		final ITypeRequestor typeRequestor = cus.environment().typeRequestor;
-		if (!(typeRequestor instanceof org.eclipse.jdt.internal.compiler.Compiler)) return;
-		final org.eclipse.jdt.internal.compiler.Compiler c = (org.eclipse.jdt.internal.compiler.Compiler) typeRequestor;
-		try {
-			c.parser.getMethodBodies(cus.referenceContext);
-			typeNode.rebuild();
-		} catch (Exception e) {
-			// better break here
-		}
 	}
 }

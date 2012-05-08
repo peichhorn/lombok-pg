@@ -34,6 +34,7 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.ListenerSupportHandler;
 import lombok.core.util.As;
 import lombok.core.util.Each;
+import lombok.eclipse.DeferUntilBuildFieldsAndMethods;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseType;
@@ -46,11 +47,13 @@ import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.mangosdk.spi.ProviderFor;
 
 /**
  * Handles the {@link ListenerSupport} annotation for eclipse using the {@link PatchListenerSupport}.
  */
-// @ProviderFor(EclipseAnnotationHandler.class) // TODO
+@ProviderFor(EclipseAnnotationHandler.class)
+@DeferUntilBuildFieldsAndMethods
 public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupport> {
 	private final EclipseListenerSupportHandler handler = new EclipseListenerSupportHandler();
 
