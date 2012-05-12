@@ -61,9 +61,4 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 ## Documentation:
 - [Check out lombok features](http://projectlombok.org/features/)
 - [Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
-
-## How-To prepare a lombok version that lombok-pg can run with:
-
-- Clone lombok
-- Merge the branch: [yield-friendly_@Cleanup](https://github.com/peichhorn/lombok/tree/yield-friendly_%40Cleanup)
-- Merge the branch: [Issue_19_@Data_needs_a_callSuper](https://github.com/peichhorn/lombok/tree/Issue_19_%40Data_needs_a_callSuper)
+- [How-To prepare a lombok version, that lombok-pg can run with](https://github.com/peichhorn/lombok-pg/wiki/Prepare-lombok)
