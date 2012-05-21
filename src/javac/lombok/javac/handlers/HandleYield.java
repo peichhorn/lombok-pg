@@ -300,12 +300,12 @@ public class HandleYield extends JavacASTAdapter {
 					@Override
 					public void refactor() {
 						String iteratorVar = "$" + As.string(tree.var.name) + "Iter";
-						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
+						stateVariables.add(FieldDecl(Type("java.util.Iterator").withTypeArgument(Type(tree.var.vartype)), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
 
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.expr), "iterator")));
 						addLabel(getIterationLabel(this));
 						addStatement(If(Not(Call(Name(iteratorVar), "hasNext"))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
-						addStatement(Assign(Name(As.string(tree.var.name)), Cast(Type(tree.var.vartype), Call(Name(iteratorVar), "next"))));
+						addStatement(Assign(Name(As.string(tree.var.name)), Call(Name(iteratorVar), "next")));
 
 						refactorStatement(tree.body);
 						addStatement(setState(literal(getIterationLabel(this))));

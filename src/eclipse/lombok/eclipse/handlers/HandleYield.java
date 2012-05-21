@@ -325,12 +325,12 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						String iteratorVar = "$" + As.string(tree.elementVariable.name) + "Iter";
-						stateVariables.add(FieldDecl(Type("java.util.Iterator"), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
+						stateVariables.add(FieldDecl(Type("java.util.Iterator").withTypeArgument(Type(tree.elementVariable.type)), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
 
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.collection), "iterator")));
 						addLabel(getIterationLabel(this));
 						addStatement(If(Not(Call(Name(iteratorVar), "hasNext"))).Then(Block().withStatement(setState(literal(getBreakLabel(this)))).withStatement(Continue())));
-						addStatement(Assign(Name(As.string(tree.elementVariable.name)), Cast(Type(tree.elementVariable.type), Call(Name(iteratorVar), "next"))));
+						addStatement(Assign(Name(As.string(tree.elementVariable.name)), Call(Name(iteratorVar), "next")));
 
 						refactorStatement(tree.action);
 						addStatement(setState(literal(getIterationLabel(this))));

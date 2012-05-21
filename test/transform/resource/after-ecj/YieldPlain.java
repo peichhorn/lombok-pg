@@ -259,7 +259,7 @@ class YieldPlain {
     class $YielderComplexForeach implements java.util.Iterator<String>, java.lang.Iterable<String>, java.io.Closeable {
       private Object object;
       private Class<?> c;
-      private @java.lang.SuppressWarnings("all") java.util.Iterator $objectIter;
+      private @java.lang.SuppressWarnings("all") java.util.Iterator<Object> $objectIter;
       private int $state;
       private boolean $hasNext;
       private boolean $nextDefined;
@@ -310,7 +310,7 @@ class YieldPlain {
                     $state = 5;
                     continue ;
                   }
-              object = (Object) $objectIter.next();
+              object = $objectIter.next();
               if ((! (object instanceof Class<?>)))
                   {
                     $state = 4;

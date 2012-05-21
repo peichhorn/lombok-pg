@@ -284,7 +284,7 @@ class YieldPlain {
 			private Object object;
 			private Class<?> c;
 			@java.lang.SuppressWarnings("all")
-			private java.util.Iterator $objectIter;
+			private java.util.Iterator<Object> $objectIter;
 			private int $state;
 			private boolean $hasNext;
 			private boolean $nextDefined;
@@ -336,7 +336,7 @@ class YieldPlain {
 						$state = 5;
 						continue;
 					}
-					object = (Object)$objectIter.next();
+					object = $objectIter.next();
 					if (!(object instanceof Class<?>)) {
 						$state = 4;
 						continue;

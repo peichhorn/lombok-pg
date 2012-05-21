@@ -10,8 +10,8 @@ class YieldNestedLoop<T, K, V> {
     class $YielderValues implements java.util.Iterator<V>, java.lang.Iterable<V>, java.io.Closeable {
       private Map.Entry<T, Map<K, V>> entry;
       private Map.Entry<K, V> subEntry;
-      private @java.lang.SuppressWarnings("all") java.util.Iterator $entryIter;
-      private @java.lang.SuppressWarnings("all") java.util.Iterator $subEntryIter;
+      private @java.lang.SuppressWarnings("all") java.util.Iterator<Map.Entry<T, Map<K, V>>> $entryIter;
+      private @java.lang.SuppressWarnings("all") java.util.Iterator<Map.Entry<K, V>> $subEntryIter;
       private int $state;
       private boolean $hasNext;
       private boolean $nextDefined;
@@ -62,7 +62,7 @@ class YieldNestedLoop<T, K, V> {
                     $state = 4;
                     continue ;
                   }
-              entry = (Map.Entry<T, Map<K, V>>) $entryIter.next();
+              entry = $entryIter.next();
               $subEntryIter = entry.getValue().entrySet().iterator();
           case 3 : ;
               if ((! $subEntryIter.hasNext()))
@@ -70,7 +70,7 @@ class YieldNestedLoop<T, K, V> {
                     $state = 2;
                     continue ;
                   }
-              subEntry = (Map.Entry<K, V>) $subEntryIter.next();
+              subEntry = $subEntryIter.next();
               $next = subEntry.getValue();
               $state = 3;
               return true;
