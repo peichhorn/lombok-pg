@@ -167,6 +167,11 @@ public final class PatchExtensionMethod {
 					for (int i = 0, iend = arguments.size(); i < iend; i++) {
 						Expression arg = arguments.get(i);
 						if (fixedBinding.parameters[i].isArrayType() != arg.resolvedType.isArrayType()) break;
+						if (arg.resolvedType.isArrayType()) {
+							if (arg instanceof MessageSend) {
+								((MessageSend) arg).valueCast = arg.resolvedType;
+							}
+						}
 						if (!fixedBinding.parameters[i].isBaseType() && arg.resolvedType.isBaseType()) {
 							int id = arg.resolvedType.id;
 							arg.implicitConversion = TypeIds.BOXING | (id + (id << 4)); // magic see TypeIds
