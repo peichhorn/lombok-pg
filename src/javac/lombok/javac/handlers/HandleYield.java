@@ -132,6 +132,10 @@ public class HandleYield extends JavacASTAdapter {
 				// this means there are unhandled yields left
 			}
 
+			// call HandleVal explicitly to ensure val gets handled before yield gets handled.
+			// TODO maybe we should prioritize lombok handler
+			method.node().traverse(new HandleVal());
+
 			YieldScanner scanner = new YieldScanner();
 			scanner.scan(method.get().body);
 
