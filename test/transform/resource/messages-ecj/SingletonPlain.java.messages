@@ -1,4 +1,3 @@
 9 error @lombok.Singleton requires a default or no-argument constructor
 14 error @lombok.Singleton can be used on concrete classes only
 15 warning The serializable class SingletonPlain4 does not declare a static final serialVersionUID field of type long
-17 warning Lombok-pg Issue #68: The Singleton style HOLDER is currently not working for eclipse. We are working on it.

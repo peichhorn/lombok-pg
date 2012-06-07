@@ -33,6 +33,8 @@
 @lombok.Singleton(style = lombok.Singleton.Style.HOLDER) class SingletonPlain5 {
   private static @java.lang.SuppressWarnings("all") class SingletonPlain5Holder {
     private static final SingletonPlain5 INSTANCE = new SingletonPlain5();
+    <clinit>() {
+    }
   }
   public static @java.lang.SuppressWarnings("all") SingletonPlain5 getInstance() {
     return SingletonPlain5Holder.INSTANCE;

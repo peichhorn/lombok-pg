@@ -41,12 +41,7 @@ public class HandleSingleton extends EclipseAnnotationHandler<Singleton> {
 
 	@Override
 	public void handle(final AnnotationValues<Singleton> annotation, final Annotation source, final EclipseNode annotationNode) {
-		// TODO FIXME @Singleton(style=HOLDER) does not work for eclipse
-		// remove warning and cleanup once bug is dead and buried
 		final Style style = annotation.getInstance().style();
-		if (Style.HOLDER == style) {
-			annotationNode.addWarning(String.format("Lombok-pg Issue #68: The Singleton style %s is currently not working for eclipse. We are working on it.", style));
-		}
 		new SingletonHandler<EclipseType, EclipseMethod>(EclipseType.typeOf(annotationNode, source), annotationNode).handle(style);
 	}
 }

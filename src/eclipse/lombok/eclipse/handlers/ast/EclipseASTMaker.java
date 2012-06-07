@@ -35,6 +35,7 @@ import static lombok.eclipse.handlers.Eclipse.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -384,7 +385,17 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		typeDeclaration.memberTypes = toArray(build(node.getMemberTypes()), new TypeDeclaration[0]);
 		typeDeclaration.superInterfaces = toArray(build(node.getSuperInterfaces()), new TypeReference[0]);
 		typeDeclaration.superclass = build(node.getSuperclass());
+		for (final FieldDeclaration field : Each.elementIn(typeDeclaration.fields)) {
+			if (isEnumConstant(field) || (field.modifiers & Modifier.STATIC) != 0) {
+				typeDeclaration.addClinit();
+				break;
+			}
+		}
 		return typeDeclaration;
+	}
+
+	private static boolean isEnumConstant(final FieldDeclaration field) {
+		return ((field.initialization instanceof AllocationExpression) && (((AllocationExpression) field.initialization).enumConstant == field));
 	}
 
 	@Override
