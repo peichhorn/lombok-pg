@@ -71,7 +71,6 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 
 	public static abstract class AbstractYieldDataCollector<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE> {
 		protected METHOD_TYPE method;
-		protected Set<String> names = new HashSet<String>();
 		protected List<Scope<AST_BASE_TYPE>> yields = new ArrayList<Scope<AST_BASE_TYPE>>();
 		protected List<Scope<AST_BASE_TYPE>> breaks = new ArrayList<Scope<AST_BASE_TYPE>>();
 		protected List<Scope<AST_BASE_TYPE>> variableDecls = new ArrayList<Scope<AST_BASE_TYPE>>();

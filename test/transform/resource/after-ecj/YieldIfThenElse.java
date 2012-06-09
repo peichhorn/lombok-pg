@@ -1,3 +1,4 @@
+import static lombok.Yield.yield;
 import java.lang.Iterable;
 class YieldIfThenElse {
   YieldIfThenElse() {

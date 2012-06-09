@@ -28,6 +28,7 @@ import lombok.eclipse.EclipseAST;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.TransformEclipseAST;
 
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -83,6 +84,17 @@ final class Patches {
 		}
 		if (tb == null) return false;
 		return new String(tb.readableName()).equals(expectedType.getName());
+	}
+
+	public static EclipseNode getMethodNode(final AbstractMethodDeclaration decl) {
+		CompilationUnitDeclaration cud = decl.scope.compilationUnitScope().referenceContext;
+		EclipseAST astNode = TransformEclipseAST.getAST(cud, false);
+		EclipseNode node = astNode.get(decl);
+		if (node == null) {
+			astNode = TransformEclipseAST.getAST(cud, true);
+			node = astNode.get(decl);
+		}
+		return node;
 	}
 
 	public static EclipseNode getTypeNode(final TypeDeclaration decl) {

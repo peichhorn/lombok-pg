@@ -176,11 +176,7 @@ public class HandleYield extends JavacASTAdapter {
 				if (stateVariable) {
 					JCVariableDecl variable = (JCVariableDecl) scope.node;
 					allScopes.put(scope.node, scope);
-					FieldDecl field = FieldDecl(Type(variable.vartype), As.string(variable.name)).makePrivate();
-					if (scope.parent.node instanceof JCTry) {
-						field.withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("unused")));
-					}
-					stateVariables.add(field);
+					stateVariables.add(FieldDecl(Type(variable.vartype), As.string(variable.name)).makePrivate());
 				}
 			}
 			return true;
@@ -700,7 +696,6 @@ public class HandleYield extends JavacASTAdapter {
 				if ("super".equals(tree.name.toString())) {
 					method.node().addError("No unqualified 'super' expression is permitted.");
 				}
-				names.add(tree.name.toString());
 				super.visitIdent(tree);
 			}
 

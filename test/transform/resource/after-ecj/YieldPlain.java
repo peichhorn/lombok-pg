@@ -1,5 +1,7 @@
+import static lombok.Yield.yield;
 import java.util.Iterator;
 import java.lang.Iterable;
+import lombok.Yield;
 class YieldPlain {
   YieldPlain() {
     super();

@@ -1,33 +1,34 @@
 import static lombok.Yield.yield;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-class YieldNestedLoop<T, K, V> {
-  private Map<T, Map<K, V>> map = new HashMap<T, Map<K, V>>();
-  YieldNestedLoop() {
+import java.lang.Iterable;
+import java.util.List;
+import lombok.Functions.Function1;
+import lombok.val;
+class YieldAndVal {
+  YieldAndVal() {
     super();
   }
-  public @java.lang.SuppressWarnings("all") Iterable<V> values() {
-    class $YielderValues implements java.util.Iterator<V>, java.lang.Iterable<V>, java.io.Closeable {
-      private Map.Entry<T, Map<K, V>> entry;
-      private Map.Entry<K, V> subEntry;
-      private @java.lang.SuppressWarnings("all") java.util.Iterator<Map.Entry<T, Map<K, V>>> $entryIter;
-      private @java.lang.SuppressWarnings("all") java.util.Iterator<Map.Entry<K, V>> $subEntryIter;
+  public static @java.lang.SuppressWarnings("all") <S, T>Iterable<T> needsMoreVal(final Iterable<S> values, final Function1<S, List<T>> selector) {
+    class $YielderNeedsMoreVal implements java.util.Iterator<T>, java.lang.Iterable<T>, java.io.Closeable {
+      private S item;
+      private java.util.List<T> subItems;
+      private T subItem;
+      private @java.lang.SuppressWarnings("all") java.util.Iterator<S> $itemIter;
+      private @java.lang.SuppressWarnings("all") java.util.Iterator<T> $subItemIter;
       private int $state;
       private boolean $hasNext;
       private boolean $nextDefined;
-      private V $next;
-      private $YielderValues() {
+      private T $next;
+      private $YielderNeedsMoreVal() {
         super();
       }
-      public java.util.Iterator<V> iterator() {
+      public java.util.Iterator<T> iterator() {
         if (($state == 0))
             {
               $state = 1;
               return this;
             }
         else
-            return new $YielderValues();
+            return new $YielderNeedsMoreVal();
       }
       public boolean hasNext() {
         if ((! $nextDefined))
@@ -37,7 +38,7 @@ class YieldNestedLoop<T, K, V> {
             }
         return $hasNext;
       }
-      public V next() {
+      public T next() {
         if ((! hasNext()))
             {
               throw new java.util.NoSuchElementException();
@@ -56,23 +57,29 @@ class YieldNestedLoop<T, K, V> {
           case 0 : ;
               $state = 1;
           case 1 : ;
-              $entryIter = map.entrySet().iterator();
+              $itemIter = values.iterator();
           case 2 : ;
-              if ((! $entryIter.hasNext()))
+              if ((! $itemIter.hasNext()))
                   {
                     $state = 4;
                     continue ;
                   }
-              entry = $entryIter.next();
-              $subEntryIter = entry.getValue().entrySet().iterator();
-          case 3 : ;
-              if ((! $subEntryIter.hasNext()))
+              item = $itemIter.next();
+              subItems = selector.apply(item);
+              if ((! (subItems != null)))
                   {
                     $state = 2;
                     continue ;
                   }
-              subEntry = $subEntryIter.next();
-              $next = subEntry.getValue();
+              $subItemIter = subItems.iterator();
+          case 3 : ;
+              if ((! $subItemIter.hasNext()))
+                  {
+                    $state = 2;
+                    continue ;
+                  }
+              subItem = $subItemIter.next();
+              $next = subItem;
               $state = 3;
               return true;
           case 4 : ;
@@ -81,6 +88,6 @@ class YieldNestedLoop<T, K, V> {
           }
       }
     }
-    return new $YielderValues();
+    return new $YielderNeedsMoreVal();
   }
 }

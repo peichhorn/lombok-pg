@@ -1,3 +1,4 @@
+import static lombok.Yield.yield;
 import java.lang.Iterable;
 class YieldTryBlock {
   YieldTryBlock() {
@@ -6,7 +7,7 @@ class YieldTryBlock {
   public @java.lang.SuppressWarnings("all") Iterable<String> test() {
     class $YielderTest implements java.util.Iterator<String>, java.lang.Iterable<String>, java.io.Closeable {
       private boolean b;
-      private @java.lang.SuppressWarnings("unused") RuntimeException e;
+      private RuntimeException e;
       private java.lang.Throwable $yieldException1;
       private int $state1;
       private int $state;

@@ -36,13 +36,13 @@ import java.util.*;
 
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
 import org.eclipse.jdt.internal.compiler.ast.Block;
 import org.eclipse.jdt.internal.compiler.ast.BreakStatement;
 import org.eclipse.jdt.internal.compiler.ast.CaseStatement;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
 import org.eclipse.jdt.internal.compiler.ast.DoStatement;
 import org.eclipse.jdt.internal.compiler.ast.Expression;
@@ -66,7 +66,6 @@ import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.mangosdk.spi.ProviderFor;
 
 import lombok.*;
 import lombok.ast.Case;
@@ -78,18 +77,11 @@ import lombok.core.util.As;
 import lombok.core.util.Each;
 import lombok.core.util.Is;
 import lombok.eclipse.EclipseASTAdapter;
-import lombok.eclipse.EclipseASTVisitor;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 
-@ProviderFor(EclipseASTVisitor.class)
+// @ProviderFor(EclipseASTVisitor.class) // TODO
 public class HandleYield extends EclipseASTAdapter {
-	private final Set<String> methodNames = new HashSet<String>();
-
-	@Override
-	public void visitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
-		methodNames.clear();
-	}
 
 	@Override
 	public void visitStatement(final EclipseNode statementNode, final Statement statement) {
@@ -99,21 +91,15 @@ public class HandleYield extends EclipseASTAdapter {
 				final EclipseMethod method = EclipseMethod.methodOf(statementNode, statement);
 				if ((method == null) || method.isConstructor()) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
-				} else if (new YieldHandler<EclipseMethod, ASTNode>().handle(method, new EclipseYieldDataCollector())) {
-					methodNames.add(methodName);
+				} else {
+					new YieldHandler<EclipseMethod, ASTNode>().handle(method, new EclipseYieldDataCollector());
 				}
 			}
 		}
 	}
 
-	@Override
-	public void endVisitCompilationUnit(final EclipseNode top, final CompilationUnitDeclaration unit) {
-		for (String methodName : methodNames) {
-			deleteMethodCallImports(top, methodName, Yield.class, "yield");
-		}
-	}
-
 	private static class EclipseYieldDataCollector extends AbstractYieldDataCollector<EclipseMethod, ASTNode> {
+		private final List<SingleNameReference> singleNameReferences = new ArrayList<SingleNameReference>();
 
 		public String elementType(final EclipseMethod method) {
 			MethodDeclaration methodDecl = (MethodDeclaration) method.get();
@@ -135,8 +121,25 @@ public class HandleYield extends EclipseASTAdapter {
 				// this means there are unhandled yields left
 			}
 
+			// Ensure val gets handled before yield gets handled.
+			// TODO maybe we should prioritize lombok handler
+			AbstractMethodDeclaration decl = method.get();
+			for (int i = 0, length = decl.statements.length; i < length; i++) {
+				decl.statements[i].resolve(decl.scope);
+			}
+
 			ValidationScanner scanner = new ValidationScanner();
 			method.get().traverse(scanner, (ClassScope) null);
+
+			// TODO
+			// Apparently resolving SingleNameReference, that were resolved before is evil,
+			// so we clear these fields and ecj is happy -.-
+			for (SingleNameReference tree : singleNameReferences) {
+				tree.actualReceiverType = null;
+				tree.resolvedType = null;
+				tree.binding = null;
+				tree.bits |= ASTNode.RestrictiveFlagMASK;
+			}
 
 			for (Scope<ASTNode> scope : yields) {
 				Scope<ASTNode> yieldScope = scope;
@@ -175,11 +178,7 @@ public class HandleYield extends EclipseASTAdapter {
 				if (stateVariable) {
 					LocalDeclaration variable = (LocalDeclaration) scope.node;
 					allScopes.put(scope.node, scope);
-					lombok.ast.FieldDecl field = FieldDecl(Type(variable.type), As.string(variable.name)).makePrivate();
-					if (scope.parent.node instanceof TryStatement) {
-						field.withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("unused")));
-					}
-					stateVariables.add(field);
+					stateVariables.add(FieldDecl(Type(variable.type), As.string(variable.name)).makePrivate());
 				}
 			}
 			return true;
@@ -325,7 +324,8 @@ public class HandleYield extends EclipseASTAdapter {
 					@Override
 					public void refactor() {
 						String iteratorVar = "$" + As.string(tree.elementVariable.name) + "Iter";
-						stateVariables.add(FieldDecl(Type("java.util.Iterator").withTypeArgument(Type(tree.elementVariable.type)), iteratorVar).makePrivate().withAnnotation(Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
+						stateVariables.add(FieldDecl(Type("java.util.Iterator").withTypeArgument(Type(tree.elementVariable.type)), iteratorVar).makePrivate().withAnnotation(
+								Annotation(Type(SuppressWarnings.class)).withValue(String("all"))));
 
 						addStatement(Assign(Name(iteratorVar), Call(Expr(tree.collection), "iterator")));
 						addLabel(getIterationLabel(this));
@@ -534,7 +534,8 @@ public class HandleYield extends EclipseASTAdapter {
 							addLabel(finallyLabel);
 							refactorStatement(tree.finallyBlock);
 
-							addStatement(If(NotEqual(Name(finallyErrorName), Null())).Then(Block().withStatement(Assign(Name(errorName), Name(finallyErrorName))).withStatement(Break())));
+							addStatement(If(NotEqual(Name(finallyErrorName), Null())).Then(
+									Block().withStatement(Assign(Name(errorName), Name(finallyErrorName))).withStatement(Break())));
 
 							Scope<ASTNode> next = getFinallyScope(parent, null);
 							if (next != null) {
@@ -750,7 +751,7 @@ public class HandleYield extends EclipseASTAdapter {
 
 			@Override
 			public boolean visit(final SingleNameReference tree, final BlockScope scope) {
-				names.add(As.string(tree.token));
+				singleNameReferences.add(tree);
 				return super.visit(tree, scope);
 			}
 

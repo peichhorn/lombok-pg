@@ -7,7 +7,6 @@ class YieldTryBlock {
 		
 		class $YielderTest implements java.util.Iterator<java.lang.String>, java.lang.Iterable<java.lang.String>, java.io.Closeable {
 			private boolean b;
-			@java.lang.SuppressWarnings("unused")
 			private RuntimeException e;
 			private java.lang.Throwable $yieldException1;
 			private int $state1;
