@@ -37,7 +37,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 	public static final String BUILDER = "$Builder";
 
 	public void handleBuilder(final TYPE_TYPE type, final Builder builder) {
-		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = BuilderData.create(type, builder).collect();
+		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = new BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE>(type, builder).collect();
 		final List<TypeRef> requiredFieldDefTypes = builderData.getRequiredFieldDefTypes();
 		final List<TypeRef> interfaceTypes = new ArrayList<TypeRef>(requiredFieldDefTypes);
 		interfaceTypes.add(Type(OPTIONAL_DEF));
@@ -55,7 +55,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 	public void handleExtension(final TYPE_TYPE type, final METHOD_TYPE method, final IParameterValidator<METHOD_TYPE> validation,
 			final IParameterSanitizer<METHOD_TYPE> sanitizer, final Builder builder) {
 		TYPE_TYPE builderType = type.<TYPE_TYPE> memberType(BUILDER);
-		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = BuilderData.create(type, builder).collect();
+		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = new BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE>(type, builder).collect();
 		List<String> requiredFieldNames = builderData.getAllRequiredFieldNames();
 		List<String> uninitializedRequiredFieldNames = new ArrayList<String>();
 		for (FIELD_TYPE field : builderType.fields()) {
@@ -351,10 +351,6 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			List<FIELD_TYPE> allFields = new ArrayList<FIELD_TYPE>(getRequiredFields());
 			allFields.addAll(getOptionalFields());
 			return allFields;
-		}
-
-		public static <TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> create(TYPE_TYPE type, Builder builder) {
-			return new BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE>(type, builder);
 		}
 	}
 
