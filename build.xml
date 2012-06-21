@@ -166,7 +166,6 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<classpath refid="test.path" />
 			<classpath refid="eclipseBuild.path" />
 			<classpath path="lib/javac6/javac6.jar" />
-			<classpath path="build/lombok-pg" />
 			<classpath path="build/tests" />
 			<batchtest>
 				<fileset dir="test/eclipse">
