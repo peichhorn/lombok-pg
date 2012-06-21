@@ -46,7 +46,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<target name="ensureTestDeps" depends="config-ivy">
-		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="test" />
+		<ivy:resolve file="buildScripts/ivy.xml" refresh="true" conf="test, javac6, eclipseBuild" />
 		<ivy:retrieve />
 	</target>
 
@@ -132,6 +132,54 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<echo level="info">lombok-pg is based on lombok-${lombok.version}</echo>
 	</target>
 
+	<!-- test -->
+	<path id="test.path">
+		<fileset dir="lib/test">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="eclipseBuild.path">
+		<fileset dir="lib/eclipseBuild">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="test-compile" depends="ensureTestDeps, compile" unless="skipTests">
+		<mkdir dir="build/tests" />
+		<ivy:compile destdir="build/tests" source="1.5" target="1.5" includeantruntime="false">
+			<classpath refid="test.path" />
+			<classpath refid="build.path" />
+			<classpath path="build/lombok-pg" />
+			<src path="test/eclipse" />
+			<src path="test/javac" />
+		</ivy:compile>
+		<copy todir="build/tests">
+			<fileset dir="test/transform/resource" />
+		</copy>
+	</target>
+
+	<target name="test" depends="test-compile, dist" unless="tests.skip" description="Runs the tests.">
+		<junit haltonfailure="yes" fork="true">
+			<jvmarg value="-javaagent:dist/lombok.jar" />
+			<formatter type="plain" usefile="false" unless="tests.quiet" />
+			<classpath refid="test.path" />
+			<classpath refid="eclipseBuild.path" />
+			<classpath path="lib/javac6/javac6.jar" />
+			<classpath path="build/lombok-pg" />
+			<classpath path="build/tests" />
+			<batchtest>
+				<fileset dir="test/eclipse">
+					<include name="**/*Test*.java" />
+				</fileset>
+				<fileset dir="test/javac">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<echo level="info">All tests successful.</echo>
+	</target>
+
 	<!-- dist -->
 	<target name="dist" description="Builds the lombok-pg artifacts" depends="compile, version">
 		<mkdir dir="dist" />
@@ -150,6 +198,11 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<!-- So the ecj-tests can run properly -->
 		<copy file="dist/lombok-pg-${lombok.version}.jar" tofile="dist/lombok.jar" />
 
+		<property name="lombok.dist.built" value="true" />
+	</target>
+
+	<!-- dist additional files -->
+	<target name="dist-additional" depends="dist">
 		<jar destfile="dist/lombok-pg-${lombok.version}-runtime.jar">
 			<fileset dir="build/lombok-pg">
 				<include name="*lombok/*.class" />
@@ -178,12 +231,10 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<fileset dir="." includes="LICENSE" />
 			<fileset dir="." includes="AUTHORS" />
 		</jar>
-
-		<property name="lombok.dist.built" value="true" />
 	</target>
 
 	<!-- deploy -->
-	<target name="maven-deploy" depends="ensure-maven-ant-tasks, dist" description="Deploy snapshot version to Maven snapshot repository">
+	<target name="maven-deploy" depends="ensure-maven-ant-tasks, dist, dist-additional, test" description="Deploy snapshot version to Maven snapshot repository">
 		<!-- create pom -->
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
@@ -214,7 +265,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<!-- stage -->
-	<target name="maven-stage" depends="ensure-maven-ant-tasks, dist, clean" description="Deploy release version to Maven staging repository">
+	<target name="maven-stage" depends="ensure-maven-ant-tasks, dist, test" description="Deploy release version to Maven staging repository">
 		<!-- create pom -->
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
@@ -263,11 +314,4 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 			<arg value="-Pgpg" />
 		</artifact:mvn>
 	</target>
-
-	<!-- test -->
-	<path id="test.path">
-		<fileset dir="lib/test">
-			<include name="*.jar" />
-		</fileset>
-	</path>
 </project>
