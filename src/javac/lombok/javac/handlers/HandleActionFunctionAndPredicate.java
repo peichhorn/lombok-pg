@@ -126,6 +126,11 @@ public class HandleActionFunctionAndPredicate {
 			annotationNode.addError(String.format("@%s more than one template found that matches the given method signature", annotationType));
 			return;
 		}
+		
+		// call HandleVal explicitly to ensure val gets handled before yield gets handled.
+		// TODO maybe we should prioritize lombok handler
+		method.node().traverse(new HandleVal());
+		
 		new ActionFunctionAndPredicateHandler<JavacType, JavacMethod>().rebuildMethod(method, matchingTemplates.get(0), new JavacParameterValidator(), new JavacParameterSanitizer());
 	}
 
