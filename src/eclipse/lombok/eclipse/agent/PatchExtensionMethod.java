@@ -142,7 +142,6 @@ public final class PatchExtensionMethod {
 			if ((type == null) && (ann != null)) type = EclipseType.typeOf(typeNode, ann);
 		}
 		for (Extension extension : extensions) {
-			if (methodCall.binding == null) continue;
 			if (!extension.isSuppressBaseMethods() && !(methodCall.binding instanceof ProblemMethodBinding)) continue;
 			for (MethodBinding extensionMethod : extension.getExtensionMethods()) {
 				if (!Arrays.equals(methodCall.selector, extensionMethod.selector)) continue;
@@ -156,8 +155,9 @@ public final class PatchExtensionMethod {
 				arguments.add(methodCall.receiver);
 				arguments.addAll(Each.elementIn(methodCall.arguments));
 				List<TypeBinding> argumentTypes = new ArrayList<TypeBinding>();
-				argumentTypes.add(methodCall.receiver.resolvedType);
-				argumentTypes.addAll(Each.elementIn(methodCall.binding.parameters));
+				for (Expression argument : arguments) {
+					argumentTypes.add(argument.resolvedType);
+				}
 				MethodBinding fixedBinding = scope.getMethod(extensionMethod.declaringClass, methodCall.selector, argumentTypes.toArray(new TypeBinding[0]), methodCall);
 				if (fixedBinding instanceof ProblemMethodBinding) {
 					if (fixedBinding.declaringClass != null) {
@@ -184,7 +184,7 @@ public final class PatchExtensionMethod {
 					methodCall.receiver = type.build(Name(qualifiedName(extensionMethod.declaringClass)));
 					methodCall.actualReceiverType = extensionMethod.declaringClass;
 					methodCall.binding = fixedBinding;
-					methodCall.resolvedType = methodCall.binding.returnType;
+					methodCall.resolvedType = fixedBinding.returnType;
 				}
 				return methodCall.resolvedType;
 			}
