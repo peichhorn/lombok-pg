@@ -8,34 +8,35 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 
 #### Annotations:
 
-- `@Action` [info](http://peichhorn.github.com/lombok-pg/Action.html)
-- `@AutoGenMethodStub` [info](http://peichhorn.github.com/lombok-pg/AutoGenMethodStub.html)
-- `@BoundPropertySupport` and `@BoundSetter` [info](http://peichhorn.github.com/lombok-pg/BoundProperties.html)
-- `@Builder` and `@Builder.Extension` [info](http://peichhorn.github.com/lombok-pg/Builder.html)
-- `@DoPrivileged` [info](http://peichhorn.github.com/lombok-pg/DoPrivileged.html)
-- `@EnumId` [info](http://peichhorn.github.com/lombok-pg/EnumId.html)
-- `@ExtensionMethod` [info](http://peichhorn.github.com/lombok-pg/ExtensionMethod.html)
-- `@FluentSetter` [info](http://peichhorn.github.com/lombok-pg/FluentSetter.html)
-- `@Function` [info](http://peichhorn.github.com/lombok-pg/Function.html)
-- `@LazyGetter` [info](http://peichhorn.github.com/lombok-pg/LazyGetter.html)
-- `@ListenerSupport` [info](http://peichhorn.github.com/lombok-pg/ListenerSupport.html)
-- `@WriteLock` and `@ReadLock` [info](http://peichhorn.github.com/lombok-pg/Lock.html)
-- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [info](http://peichhorn.github.com/lombok-pg/Condition.html)
-- `@Rethrow` and `@Rethrows` [info](http://peichhorn.github.com/lombok-pg/Rethrow.html)
-- `@Sanitize.Normalize` and `@Sanitize.With` [info](http://peichhorn.github.com/lombok-pg/Sanitize.html)
-- `@Singleton` [info](http://peichhorn.github.com/lombok-pg/Singleton.html)
-- `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (http://peichhorn.github.com/lombok-pg/SwingInvoke.html)
-- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` [info](http://peichhorn.github.com/lombok-pg/Validate.html)
-- `@VisibleForTesting` [info](http://peichhorn.github.com/lombok-pg/VisibleForTesting.html)
+- `@Action` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Action)
+- `@AutoGenMethodStub` [info](https://github.com/peichhorn/lombok-pg/wiki/%40AutoGenMethodStub)
+- `@BoundPropertySupport` and `@BoundSetter` [info](https://github.com/peichhorn/lombok-pg/wiki/%40BoundPropertySupport-%40BoundSetter)
+- `@Builder` and `@Builder.Extension` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Builder-%40Builder.Extension)
+- `@DoPrivileged` [info](https://github.com/peichhorn/lombok-pg/wiki/%40DoPrivileged)
+- `@EnumId` [info](https://github.com/peichhorn/lombok-pg/wiki/%40EnumId)
+- `@ExtensionMethod` [info](https://github.com/peichhorn/lombok-pg/wiki/%40ExtensionMethod)
+- `@FluentSetter` [info](https://github.com/peichhorn/lombok-pg/wiki/%40FluentSetter)
+- `@Function` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Function)
+- `@LazyGetter` [info](https://github.com/peichhorn/lombok-pg/wiki/%40LazyGetter)
+- `@ListenerSupport` [info](https://github.com/peichhorn/lombok-pg/wiki/%40ListenerSupport)
+- `@WriteLock` and `@ReadLock` [info](https://github.com/peichhorn/lombok-pg/wiki/%40WriteLock-%40ReadLock)
+- `@Await`, `@Signal` and `@AwaitBeforeAndSignalAfter` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Await-%40Signal-%40SignalBeforeAwaitAfter)
+- `@Predicate` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Predicate)
+- `@Rethrow` and `@Rethrows` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Rethrow-%40Rethrows)
+- `@Sanitize.Normalize` and `@Sanitize.With` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Sanitize)
+- `@Singleton` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Singleton)
+- `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (https://github.com/peichhorn/lombok-pg/wiki/%40SwingInvokeLater-%40SwingInvokeAndWait)
+- `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Validate)
+- `@VisibleForTesting` [info](https://github.com/peichhorn/lombok-pg/wiki/%40VisibleForTesting)
 
 #### Interfaces:
 
-- `Application` and `JVMAgent` [info](http://peichhorn.github.com/lombok-pg/Entrypoint.html)
+- `Application` and `JVMAgent` [info](https://github.com/peichhorn/lombok-pg/wiki/Application-JVMAgent)
 
 #### Methods:
 
-- `tuple(expr1, expr2, ...)` [info](http://peichhorn.github.com/lombok-pg/Tuple.html)
-- `yield(object)` [info](http://peichhorn.github.com/lombok-pg/Yield.html)
+- `tuple(expr1, expr2, ...)` [info](https://github.com/peichhorn/lombok-pg/wiki/Tupel)
+- `yield(object)` [info](https://github.com/peichhorn/lombok-pg/wiki/Yield)
 
 
 #### Base annotations from lombok:
@@ -62,5 +63,5 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 
 ## Documentation:
 - [Check out lombok features](http://projectlombok.org/features/)
-- [Check out lombok-pg extensions](http://peichhorn.github.com/lombok-pg/)
+- [Check out lombok-pg extensions](https://github.com/peichhorn/lombok-pg/wiki)([old version](http://peichhorn.github.com/lombok-pg/))
 - [How-To prepare a lombok version, that lombok-pg can run with](https://github.com/peichhorn/lombok-pg/wiki/Prepare-lombok)

@@ -27,6 +27,7 @@ import static lombok.eclipse.agent.Patches.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.patcher.scripts.ScriptBuilder.*;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -114,14 +115,18 @@ public final class PatchExtensionMethod {
 		}
 	}
 
-	private static final Map<MessageSend, PostponedError> ERRORS = new WeakHashMap<MessageSend, PostponedError>();
+	private static final Map<MessageSend, WeakReference<PostponedError>> ERRORS = new WeakHashMap<MessageSend, WeakReference<PostponedError>>();
 
 	public static void errorNoMethodFor(final ProblemReporter problemReporter, final MessageSend messageSend, final TypeBinding recType, final TypeBinding[] params) {
-		ERRORS.put(messageSend, new PostponedNoMethodError(problemReporter, messageSend, recType, params));
+		synchronized (ERRORS) {
+			ERRORS.put(messageSend, new WeakReference<PostponedError>(new PostponedNoMethodError(problemReporter, messageSend, recType, params)));
+		}
 	}
 
 	public static void invalidMethod(final ProblemReporter problemReporter, final MessageSend messageSend, final MethodBinding method) {
-		ERRORS.put(messageSend, new PostponedInvalidMethodError(problemReporter, messageSend, method));
+		synchronized (ERRORS) {
+			ERRORS.put(messageSend, new WeakReference<PostponedError>(new PostponedInvalidMethodError(problemReporter, messageSend, method)));
+		}
 	}
 
 	@RequiredArgsConstructor
@@ -190,11 +195,14 @@ public final class PatchExtensionMethod {
 			}
 		}
 
-		PostponedError error = ERRORS.get(methodCall);
-		if (error != null) {
-			error.fire();
+		synchronized (ERRORS) {
+			WeakReference<PostponedError> ref = ERRORS.get(methodCall);
+			PostponedError error = ref == null ? null : ref.get();
+			if (error != null) {
+				error.fire();
+			}
+			ERRORS.remove(methodCall);
 		}
-		ERRORS.remove(methodCall);
 		return resolvedType;
 	}
 
