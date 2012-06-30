@@ -63,5 +63,5 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 
 ## Documentation:
 - [Check out lombok features](http://projectlombok.org/features/)
-- [Check out lombok-pg extensions](https://github.com/peichhorn/lombok-pg/wiki)([old version](http://peichhorn.github.com/lombok-pg/))
+- [Check out lombok-pg extensions](https://github.com/peichhorn/lombok-pg/wiki) ([old version](http://peichhorn.github.com/lombok-pg/))
 - [How-To prepare a lombok version, that lombok-pg can run with](https://github.com/peichhorn/lombok-pg/wiki/Prepare-lombok)
