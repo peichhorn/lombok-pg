@@ -46,7 +46,7 @@ public class EnumIdHandler<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, FIELD_TYPE
 		String fieldName = field.name();
 		String lookupFieldName = "$" + camelCaseToConstant(camelCase(fieldName, "lookup"));
 		String foreachVarName = decapitalize(type.name());
-		String exceptionText = "Enumeration '" + type.name() + "' has no value '%s'";
+		String exceptionText = "Enumeration '" + type.name() + "' has no value for '" + fieldName + " = %s'";
 		type.injectField(FieldDecl(Type(Map.class).withTypeArgument(field.boxedType()).withTypeArgument(Type(type.name())), lookupFieldName).makePrivate().makeStatic().makeFinal() //
 				.withInitialization(New(Type(HashMap.class).withTypeArgument(field.boxedType()).withTypeArgument(Type(type.name())))));
 

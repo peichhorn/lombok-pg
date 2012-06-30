@@ -24,7 +24,7 @@ class EnumIdPlain {
 			if ($CODE_LOOKUP.containsKey(code)) {
 				return $CODE_LOOKUP.get(code);
 			}
-			throw new java.lang.IllegalArgumentException(java.lang.String.format("Enumeration \'Status\' has no value \'%s\'", code));
+			throw new java.lang.IllegalArgumentException(java.lang.String.format("Enumeration \'Status\' has no value for \'code = %s\'", code));
 		}
 		
 		@java.lang.SuppressWarnings("all")
