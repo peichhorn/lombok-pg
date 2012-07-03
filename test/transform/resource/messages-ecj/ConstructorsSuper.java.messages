@@ -1,0 +1,3 @@
+2 warning The serializable class RequiredArgsConstructor1 does not declare a static final serialVersionUID field of type long
+7 warning The serializable class AllArgsConstructor1 does not declare a static final serialVersionUID field of type long
+12 warning The serializable class NoArgsConstructor1 does not declare a static final serialVersionUID field of type long
