@@ -51,6 +51,6 @@ public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 			protected EclipseField fieldOf(EclipseNode node, ASTNode ast) {
 				return EclipseField.fieldOf(node, ast);
 			}
-		}.handle(annotationInstance.value());
+		}.handle(annotationInstance.value(), annotationInstance.vetoable(), annotationInstance.throwVetoException());
 	}
 }

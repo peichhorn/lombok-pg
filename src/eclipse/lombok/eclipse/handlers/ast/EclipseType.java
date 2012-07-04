@@ -49,6 +49,7 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
 import lombok.ast.IType;
 import lombok.core.AST.Kind;
+import lombok.core.AnnotationValues;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.core.util.Each;
@@ -155,6 +156,11 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	public EclipseNode node() {
 		return typeNode;
+	}
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
+		final EclipseNode node = getAnnotation(expectedType);
+		return node == null ? null : createAnnotation(expectedType, node);
 	}
 
 	public EclipseNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {

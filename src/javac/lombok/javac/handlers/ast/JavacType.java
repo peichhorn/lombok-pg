@@ -23,6 +23,7 @@ package lombok.javac.handlers.ast;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
+import static lombok.javac.handlers.JavacHandlerUtil.createAnnotation;
 import static lombok.javac.handlers.JavacHandlerUtil.fieldExists;
 import static lombok.javac.handlers.JavacHandlerUtil.methodExists;
 
@@ -44,6 +45,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
 import lombok.ast.IType;
+import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
@@ -100,6 +102,11 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 
 	public boolean hasSuperClass() {
 		return get().getExtendsClause() != null;
+	}
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
+		final JavacNode node = getAnnotation(expectedType);
+		return node == null ? null : createAnnotation(expectedType, node);
 	}
 
 	public JavacNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {

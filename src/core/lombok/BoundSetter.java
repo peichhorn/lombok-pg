@@ -37,7 +37,7 @@ import lombok.AccessLevel;
  * <pre>
  * public class Mountain {
  * 
- * 	&#064;GenerateBoundSetter
+ * 	&#064;BoundSetter
  * 	private String name;
  * }
  * </pre>
@@ -50,9 +50,9 @@ import lombok.AccessLevel;
  * 
  * 	private String name;
  * 
- * 	public void setName(String value) {
- * 		String oldValue = name;
- * 		firstName = value;
+ * 	public void setName(String name) {
+ * 		String oldValue = this.name;
+ * 		this.name = name;
  * 		getPropertySupport().firePropertyChange(PROP_NAME, oldValue, name);
  * 	}
  * }
@@ -66,4 +66,15 @@ public @interface BoundSetter {
 	 * If you want your setter to be non-public, you can specify an alternate access level here.
 	 */
 	AccessLevel value() default PUBLIC;
+
+	/**
+	 * When true, it indicates that bound properties should be a constrained properties according
+	 * to the JavaBeans spec and therefore subject to listeners vetoing the property change.
+	 */
+	boolean vetoable() default false;
+
+	/**
+	 * 
+	 */
+	boolean throwVetoException() default false;
 }
