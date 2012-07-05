@@ -54,7 +54,7 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 		String typeName = type.name();
 
 		if (type.surroundingType() != null) {
-			type.makeStatic();
+			type.editor().makeStatic();
 		}
 
 		switch (style) {
@@ -62,27 +62,27 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 			String holderName = typeName + "Holder";
 			replaceConstructorVisibility();
 
-			type.injectType(ClassDecl(holderName).makePrivate().makeStatic() //
+			type.editor().injectType(ClassDecl(holderName).makePrivate().makeStatic() //
 					.withField(FieldDecl(Type(typeName), "INSTANCE").makePrivate().makeFinal().makeStatic().withInitialization(New(Type(typeName)))));
-			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
+			type.editor().injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
 					.withStatement(Return(Name(holderName + ".INSTANCE"))));
 			break;
 		default:
 		case ENUM:
-			type.makeEnum();
+			type.editor().makeEnum();
 			replaceConstructorVisibility();
 
-			type.injectField(EnumConstant("INSTANCE"));
-			type.injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
+			type.editor().injectField(EnumConstant("INSTANCE"));
+			type.editor().injectMethod(MethodDecl(Type(typeName), "getInstance").makePublic().makeStatic() //
 					.withStatement(Return(Name("INSTANCE"))));
 		}
 
-		type.rebuild();
+		type.editor().rebuild();
 	}
 
 	private void replaceConstructorVisibility() {
 		for (METHOD_TYPE method : type.methods()) {
-			if (method.isConstructor()) method.makePackagePrivate();
+			if (method.isConstructor()) method.editor().makePackagePrivate();
 		}
 	}
 }

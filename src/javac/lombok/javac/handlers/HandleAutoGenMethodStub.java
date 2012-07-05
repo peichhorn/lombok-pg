@@ -80,10 +80,10 @@ public class HandleAutoGenMethodStub extends JavacAnnotationHandler<AutoGenMetho
 			statement = ReturnDefault();
 		}
 		for (MethodSymbol methodSymbol : UndefiniedMethods.of(type.node())) {
-			type.injectMethod(MethodDecl(methodSymbol).implementing().withStatement(statement));
+			type.editor().injectMethod(MethodDecl(methodSymbol).implementing().withStatement(statement));
 		}
 
-		type.rebuild();
+		type.editor().rebuild();
 	}
 
 	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)

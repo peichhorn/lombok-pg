@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011-2012 Philipp Eichhorn
+ * Copyright © 2012 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,26 @@
 package lombok.ast;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
-import lombok.core.LombokNode;
+public interface IFieldEditor<AST_BASE_TYPE> {
 
-public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
+	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-	public IFieldEditor<AST_BASE_TYPE> editor();
+	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
 
-	public boolean isPrivate();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
 
-	public boolean isFinal();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);;
 
-	public boolean isStatic();
+	public void replaceInitialization(Expression<?> initialization);
 
-	public boolean isInitialized();
+	public void makePrivate();
 
-	public boolean isPrimitive();
+	public void makePackagePrivate();
 
-	public AST_VARIABLE_DECL_TYPE get();
+	public void makeProtected();
 
-	public LOMBOK_NODE_TYPE node();
+	public void makePublic();
 
-	public TypeRef type();
-
-	public TypeRef boxedType();
-
-	public boolean isOfType(final String typeName);
-
-	public String name();
-
-	public Expression<?> initialization();
-
-	public List<TypeRef> typeArguments();
-
-	public List<Annotation> annotations();
-
-	public List<Annotation> annotations(final Pattern namePattern);
+	public void makeNonFinal();
 }

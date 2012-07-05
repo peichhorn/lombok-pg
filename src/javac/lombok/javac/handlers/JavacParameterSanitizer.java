@@ -54,7 +54,7 @@ public class JavacParameterSanitizer implements IParameterSanitizer<JavacMethod>
 				final JavacNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.vartype, argumentName, newArgumentName, annotation));
-				method.replaceVariableName(argumentName, newArgumentName);
+				method.editor().replaceVariableName(argumentName, newArgumentName);
 				argument.mods.flags |= Flags.FINAL;
 				argument.mods.annotations = remove(argument.mods.annotations, ann);
 				break;

@@ -576,7 +576,7 @@ public class HandleYield extends EclipseASTAdapter {
 							if (tree.initialization instanceof ArrayInitializer) {
 								ArrayInitializer initializer = (ArrayInitializer) tree.initialization;
 								ArrayAllocationExpression allocation = new ArrayAllocationExpression();
-								allocation.type = method.build(Type(tree.type.toString()));
+								allocation.type = method.editor().build(Type(tree.type.toString()));
 								allocation.initializer = initializer;
 								allocation.dimensions = new Expression[tree.type.dimensions()];
 								addStatement(Assign(Name(As.string(tree.name)), Expr(allocation)));

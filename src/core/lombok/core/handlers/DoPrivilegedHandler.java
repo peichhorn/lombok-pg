@@ -46,12 +46,12 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			return;
 		}
 
-		method.forceQualifiedThis();
+		method.editor().forceQualifiedThis();
 
 		final TypeRef innerReturnType = method.boxedReturns();
 		if (method.returns("void")) {
-			method.replaceReturns(Return(Null()).posHint(method.get()));
-			method.replaceBody(Block().posHint(method.get()) //
+			method.editor().replaceReturns(Return(Null()).posHint(method.get()));
+			method.editor().replaceBody(Block().posHint(method.get()) //
 					.withStatements(validation.validateParameterOf(method)) //
 					.withStatements(sanitizer.sanitizeParameterOf(method)) //
 					.withStatement(Try(Block() //
@@ -65,7 +65,7 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 									.withStatements(rethrowStatements(method)) //
 									.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
 		} else {
-			method.replaceBody(Block().posHint(method.get()) //
+			method.editor().replaceBody(Block().posHint(method.get()) //
 					.withStatements(validation.validateParameterOf(method)) //
 					.withStatements(sanitizer.sanitizeParameterOf(method)) //
 					.withStatement(Try(Block() //
@@ -79,7 +79,7 @@ public class DoPrivilegedHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 									.withStatement(Throw(New(Type(RuntimeException.class)).withArgument(Name("$cause")))))));
 		}
 
-		method.rebuild();
+		method.editor().rebuild();
 	}
 
 	private List<Statement<?>> rethrowStatements(final METHOD_TYPE method) {

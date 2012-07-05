@@ -51,7 +51,7 @@ public class EclipseParameterSanitizer implements IParameterSanitizer<EclipseMet
 				final EclipseNode annotationNode = method.node().getNodeFor(ann);
 				final java.lang.annotation.Annotation annotation = createAnnotation(sanitizerStrategy.getType(), annotationNode).getInstance();
 				sanitizeStatements.add(sanitizerStrategy.getStatementFor(argument.type, argumentName, newArgumentName, annotation));
-				method.replaceVariableName(argumentName, newArgumentName);
+				method.editor().replaceVariableName(argumentName, newArgumentName);
 				setGeneratedBy(ann, ann);
 				argument.modifiers |= AccFinal;
 				argument.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;

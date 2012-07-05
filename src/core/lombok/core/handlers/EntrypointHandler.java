@@ -73,7 +73,7 @@ public final class EntrypointHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, 
 			return;
 		}
 
-		type.injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(params.get(name)).withThrownException(Type("java.lang.Throwable")) //
+		type.editor().injectMethod(MethodDecl(Type("void"), name).makePublic().makeStatic().withArguments(params.get(name)).withThrownException(Type("java.lang.Throwable")) //
 				.withStatement(Call(New(Type(type.name())), methodName).withArguments(args.get(name))));
 	}
 

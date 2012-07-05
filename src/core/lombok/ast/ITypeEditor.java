@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011-2012 Philipp Eichhorn
+ * Copyright © 2012 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,41 @@
 package lombok.ast;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
-import lombok.core.LombokNode;
+public interface ITypeEditor<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> {
+	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
+	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
 
-	public IFieldEditor<AST_BASE_TYPE> editor();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
 
-	public boolean isPrivate();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
-	public boolean isFinal();
+	public void injectInitializer(final Initializer initializerBlock);
 
-	public boolean isStatic();
+	public void injectField(FieldDecl fieldDecl);
 
-	public boolean isInitialized();
+	public void injectField(EnumConstant enumConstant);
 
-	public boolean isPrimitive();
+	public AST_METHOD_DECL_TYPE injectMethod(MethodDecl methodDecl);
 
-	public AST_VARIABLE_DECL_TYPE get();
+	public AST_METHOD_DECL_TYPE injectConstructor(ConstructorDecl constructorDecl);
 
-	public LOMBOK_NODE_TYPE node();
+	public void injectType(ClassDecl typeDecl);
 
-	public TypeRef type();
+	public void removeMethod(METHOD_TYPE method);
 
-	public TypeRef boxedType();
+	public void makeEnum();
 
-	public boolean isOfType(final String typeName);
+	public void makePrivate();
 
-	public String name();
+	public void makePackagePrivate();
 
-	public Expression<?> initialization();
+	public void makeProtected();
 
-	public List<TypeRef> typeArguments();
+	public void makePublic();
 
-	public List<Annotation> annotations();
+	public void makeStatic();
 
-	public List<Annotation> annotations(final Pattern namePattern);
+	public void rebuild();
 }

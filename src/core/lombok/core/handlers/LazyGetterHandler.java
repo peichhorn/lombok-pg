@@ -68,11 +68,11 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 		String initializedFieldName = "$" + fieldName + "Initialized";
 		String lockFieldName = "$" + fieldName + "Lock";
 
-		type.injectField(FieldDecl(Type("boolean"), initializedFieldName).makePrivate().makeVolatile());
-		type.injectField(FieldDecl(Type(Object.class).withDimensions(1), lockFieldName).makePrivate().makeFinal() //
+		type.editor().injectField(FieldDecl(Type("boolean"), initializedFieldName).makePrivate().makeVolatile());
+		type.editor().injectField(FieldDecl(Type(Object.class).withDimensions(1), lockFieldName).makePrivate().makeFinal() //
 				.withInitialization(NewArray(Type(Object.class)).withDimensionExpression(Number(0))));
 
-		type.injectMethod(MethodDecl(field.type(), methodName).withAccessLevel(level) //
+		type.editor().injectMethod(MethodDecl(field.type(), methodName).withAccessLevel(level) //
 				.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
 						.withStatement(Synchronized(Field(lockFieldName)) //
 								.withStatement(If(Not(Field(initializedFieldName))).Then(Block() //
@@ -80,7 +80,7 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 										.withStatement(Assign(Field(initializedFieldName), True()))))))) //
 				.withStatement(Return(Field(fieldName))));
 
-		field.replaceInitialization(null);
-		field.makeNonFinal();
+		field.editor().replaceInitialization(null);
+		field.editor().makeNonFinal();
 	}
 }

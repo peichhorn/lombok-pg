@@ -84,9 +84,9 @@ public final class RethrowAndRethrowsHandler<METHOD_TYPE extends IMethod<?, ?, ?
 				}
 			}
 		}
-		method.replaceBody(Block().withStatement(tryBuilder).posHint(method.get()));
+		method.editor().replaceBody(Block().withStatement(tryBuilder).posHint(method.get()));
 
-		method.rebuild();
+		method.editor().rebuild();
 	}
 
 	private String manipulateMessage(final String message, final List<Expression<?>> arguments) {

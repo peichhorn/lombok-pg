@@ -49,12 +49,12 @@ public class HandleVisibleForTesting extends JavacAnnotationHandler<VisibleForTe
 				annotationNode.addError(canBeUsedOnConcreteMethodOnly(VisibleForTesting.class));
 				return;
 			}
-			method.makePrivate();
-			method.rebuild();
+			method.editor().makePrivate();
+			method.editor().rebuild();
 		} else if (mayBeMethod.getKind() == Kind.TYPE) {
 			JavacType type = JavacType.typeOf(annotationNode, source);
-			type.makePrivate();
-			type.rebuild();
+			type.editor().makePrivate();
+			type.editor().rebuild();
 		} else {
 			annotationNode.addError(canBeUsedOnClassAndMethodOnly(VisibleForTesting.class));
 		}

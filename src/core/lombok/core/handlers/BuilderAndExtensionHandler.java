@@ -73,13 +73,13 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			} else {
 				interfaceType = type.<TYPE_TYPE> memberType(OPTIONAL_DEF);
 			}
-			builderType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).posHint(method.get()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
+			builderType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).posHint(method.get()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
 					.withStatements(validation.validateParameterOf(method)) //
 					.withStatements(sanitizer.sanitizeParameterOf(method)) //
 					.withStatements(method.statements()) //
 					.withStatement(Return(This())));
-			interfaceType.injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
-			type.removeMethod(method);
+			interfaceType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
+			type.editor().removeMethod(method);
 		}
 	}
 
@@ -97,12 +97,12 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				constructorDecl.withStatement(Assign(Field(field.name()), Field(Name("builder"), field.name())));
 			}
 		}
-		type.injectConstructor(constructorDecl);
+		type.editor().injectConstructor(constructorDecl);
 	}
 
 	private void createInitializeBuilderMethod(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final TypeRef fieldDefType) {
 		final TYPE_TYPE type = builderData.getType();
-		type.injectMethod(MethodDecl(fieldDefType, decapitalize(type.name())).makeStatic().withAccessLevel(builderData.getLevel()).withTypeParameters(type.typeParameters()) //
+		type.editor().injectMethod(MethodDecl(fieldDefType, decapitalize(type.name())).makeStatic().withAccessLevel(builderData.getLevel()).withTypeParameters(type.typeParameters()) //
 				.withStatement(Return(New(Type(BUILDER).withTypeArguments(type.typeArguments())))));
 	}
 
@@ -117,14 +117,14 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
 				createFluentSetter(builderData, names.get(i), field, interfaceMethods, builderMethods);
 
-				type.injectType(InterfaceDecl(name).makePublic().makeStatic().withMethods(interfaceMethods));
+				type.editor().injectType(InterfaceDecl(name).makePublic().makeStatic().withMethods(interfaceMethods));
 				field = fields.get(i);
 				name = names.get(i);
 			}
 			List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
 			createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 
-			type.injectType(InterfaceDecl(name).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
+			type.editor().injectType(InterfaceDecl(name).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 		}
 	}
 
@@ -151,7 +151,7 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			createMethodCall(builderData, callMethod, interfaceMethods, builderMethods);
 		}
 
-		type.injectType(InterfaceDecl(OPTIONAL_DEF).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
+		type.editor().injectType(InterfaceDecl(OPTIONAL_DEF).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 	}
 
 	private void createFluentSetter(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final String typeName, final FIELD_TYPE field,
@@ -279,11 +279,11 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				builderFieldDefaultMethods.add(MethodDecl(field.type(), fieldDefaultMethodName).makeStatic().withTypeParameters(type.typeParameters()) //
 						.withStatement(Return(field.initialization())));
 				builderField.withInitialization(Call(fieldDefaultMethodName));
-				field.replaceInitialization(Call(Name(BUILDER), fieldDefaultMethodName));
+				field.editor().replaceInitialization(Call(Name(BUILDER), fieldDefaultMethodName));
 			}
 			builderFields.add(builderField);
 		}
-		type.injectType(ClassDecl(BUILDER).withTypeParameters(type.typeParameters()).makePrivate().makeStatic().implementing(interfaceTypes) //
+		type.editor().injectType(ClassDecl(BUILDER).withTypeParameters(type.typeParameters()).makePrivate().makeStatic().implementing(interfaceTypes) //
 				.withFields(builderFields) //
 				.withMethods(builderFieldDefaultMethods) //
 				.withMethods(builderMethods) //

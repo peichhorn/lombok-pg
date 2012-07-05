@@ -113,7 +113,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	private void generatePropertyNameConstant(final TYPE_TYPE type, final FIELD_TYPE field, final String propertyNameFieldName) {
 		String propertyName = field.name();
 		if (type.hasField(propertyNameFieldName)) return;
-		type.injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
+		type.editor().injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
 				.withInitialization(String(propertyName)));
 	}
 
@@ -147,22 +147,22 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
 						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Name(fieldName)));
-		type.injectMethod(methodDecl);
+		type.editor().injectMethod(methodDecl);
 	}
 
 	private void generatePropertyChangeSupportFields(final TYPE_TYPE type) {
 		if (!type.hasField(PROPERTY_CHANGE_SUPPORT_FIELD_NAME)) {
-			type.injectField(FieldDecl(Type(PropertyChangeSupport.class), PROPERTY_CHANGE_SUPPORT_FIELD_NAME).makePrivate().makeTransient().makeVolatile());
+			type.editor().injectField(FieldDecl(Type(PropertyChangeSupport.class), PROPERTY_CHANGE_SUPPORT_FIELD_NAME).makePrivate().makeTransient().makeVolatile());
 		}
 		if (!type.hasField(PROPERTY_CHANGE_SUPPORT_FIELD_NAME + "Lock")) {
-			type.injectField(FieldDecl(Type(Object.class).withDimensions(1), PROPERTY_CHANGE_SUPPORT_FIELD_NAME + "Lock").makePrivate().makeFinal() //
+			type.editor().injectField(FieldDecl(Type(Object.class).withDimensions(1), PROPERTY_CHANGE_SUPPORT_FIELD_NAME + "Lock").makePrivate().makeFinal() //
 					.withInitialization(NewArray(Type(Object.class)).withDimensionExpression(Number(0))));
 		}
 	}
 
 	private void generateGetPropertySupportMethod(final TYPE_TYPE type) {
 		if (type.hasMethod(PROPERTY_CHANGE_SUPPORT_METHOD_NAME, 0)) return;
-		type.injectMethod(MethodDecl(Type(PropertyChangeSupport.class), PROPERTY_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
+		type.editor().injectMethod(MethodDecl(Type(PropertyChangeSupport.class), PROPERTY_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
 				.withStatement(If(Equal(Field(PROPERTY_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
 						.withStatement(Synchronized(Field(PROPERTY_CHANGE_SUPPORT_FIELD_NAME + "Lock")) //
 								.withStatement(If(Equal(Field(PROPERTY_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
@@ -178,23 +178,23 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 
 	private void generatePropertyChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
 		if (type.hasMethod(methodName, 1)) return;
-		type.injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(PropertyChangeListener.class), LISTENER_ARG_NAME)) //
+		type.editor().injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(PropertyChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 
 	private void generateVetoableChangeSupportFields(final TYPE_TYPE type) {
 		if (!type.hasField(VETOABLE_CHANGE_SUPPORT_FIELD_NAME)) {
-			type.injectField(FieldDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_FIELD_NAME).makePrivate().makeTransient().makeVolatile());
+			type.editor().injectField(FieldDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_FIELD_NAME).makePrivate().makeTransient().makeVolatile());
 		}
 		if (!type.hasField(VETOABLE_CHANGE_SUPPORT_FIELD_NAME + "Lock")) {
-			type.injectField(FieldDecl(Type(Object.class).withDimensions(1), VETOABLE_CHANGE_SUPPORT_FIELD_NAME + "Lock").makePrivate().makeFinal() //
+			type.editor().injectField(FieldDecl(Type(Object.class).withDimensions(1), VETOABLE_CHANGE_SUPPORT_FIELD_NAME + "Lock").makePrivate().makeFinal() //
 					.withInitialization(NewArray(Type(Object.class)).withDimensionExpression(Number(0))));
 		}
 	}
 
 	private void generateGetVetoableSupportMethod(final TYPE_TYPE type) {
 		if (type.hasMethod(VETOABLE_CHANGE_SUPPORT_METHOD_NAME, 0)) return;
-		type.injectMethod(MethodDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
+		type.editor().injectMethod(MethodDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
 				.withStatement(If(Equal(Field(VETOABLE_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
 						.withStatement(Synchronized(Field(VETOABLE_CHANGE_SUPPORT_FIELD_NAME + "Lock")) //
 								.withStatement(If(Equal(Field(VETOABLE_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
@@ -210,7 +210,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 
 	private void generateVetoableChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
 		if (type.hasMethod(methodName, 1)) return;
-		type.injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(VetoableChangeListener.class), LISTENER_ARG_NAME)) //
+		type.editor().injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(VetoableChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011-2012 Philipp Eichhorn
+ * Copyright © 2012 Philipp Eichhorn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,41 +22,38 @@
 package lombok.ast;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
-import lombok.core.LombokNode;
+public interface IMethodEditor<AST_BASE_TYPE> {
 
-public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
+	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-	public IFieldEditor<AST_BASE_TYPE> editor();
+	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
 
-	public boolean isPrivate();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
 
-	public boolean isFinal();
+	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
-	public boolean isStatic();
+	public void replaceReturnType(final TypeRef returnType);
 
-	public boolean isInitialized();
+	public void replaceReturns(Statement<?> replacement);
 
-	public boolean isPrimitive();
+	public void replaceVariableName(String oldName, String newName);
 
-	public AST_VARIABLE_DECL_TYPE get();
+	public void replaceBody(Statement<?>... statements);
 
-	public LOMBOK_NODE_TYPE node();
+	public void replaceBody(List<Statement<?>> statements);
 
-	public TypeRef type();
+	public void replaceBody(final Block body);
 
-	public TypeRef boxedType();
+	public void forceQualifiedThis();
 
-	public boolean isOfType(final String typeName);
+	public void makePrivate();
 
-	public String name();
+	public void makePackagePrivate();
 
-	public Expression<?> initialization();
+	public void makeProtected();
 
-	public List<TypeRef> typeArguments();
+	public void makePublic();
 
-	public List<Annotation> annotations();
-
-	public List<Annotation> annotations(final Pattern namePattern);
+	public void rebuild();
 }

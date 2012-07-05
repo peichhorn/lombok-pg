@@ -32,7 +32,6 @@ import lombok.core.util.As;
 import lombok.javac.Javac;
 import lombok.javac.JavacNode;
 
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -42,30 +41,18 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JCVariableDecl> {
 	private final JavacNode fieldNode;
-	private final JavacASTMaker builder;
+	private final JavacFieldEditor editor;
 
 	private JavacField(final JavacNode fieldNode, final JCTree source) {
 		if (!(fieldNode.get() instanceof JCVariableDecl)) {
 			throw new IllegalArgumentException();
 		}
 		this.fieldNode = fieldNode;
-		builder = new JavacASTMaker(fieldNode, source);
+		editor = new JavacFieldEditor(this, source);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
-		return builder.<T> build(node);
-	}
-
-	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node, extectedType);
-	}
-
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
-		return builder.build(nodes);
-	}
-
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
-		return builder.build(nodes, extectedType);
+	public JavacFieldEditor editor() {
+		return editor;
 	}
 
 	public boolean isPrivate() {
@@ -122,33 +109,6 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 
 	public lombok.ast.Expression<?> initialization() {
 		return get().init == null ? null : Expr(get().init);
-	}
-
-	public void replaceInitialization(lombok.ast.Expression<?> initialization) {
-		get().init = (initialization == null) ? null : build(initialization, JCExpression.class);
-	}
-
-	public void makePrivate() {
-		makePackagePrivate();
-		get().mods.flags |= PRIVATE;
-	}
-
-	public void makePackagePrivate() {
-		get().mods.flags &= ~(PRIVATE | PROTECTED | PUBLIC);
-	}
-
-	public void makeProtected() {
-		makePackagePrivate();
-		get().mods.flags |= PROTECTED;
-	}
-
-	public void makePublic() {
-		makePackagePrivate();
-		get().mods.flags |= PUBLIC;
-	}
-
-	public void makeNonFinal() {
-		get().mods.flags &= ~Flags.FINAL;
 	}
 
 	public List<lombok.ast.TypeRef> typeArguments() {

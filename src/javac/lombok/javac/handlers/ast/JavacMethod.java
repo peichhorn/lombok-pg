@@ -25,7 +25,6 @@ import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
 import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
-import static lombok.javac.handlers.Javac.*;
 import static lombok.javac.handlers.ast.JavacASTUtil.boxedType;
 import static lombok.javac.handlers.ast.JavacResolver.METHOD;
 
@@ -38,7 +37,6 @@ import lombok.core.util.As;
 import lombok.core.util.Is;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.Javac;
-import lombok.javac.handlers.replace.*;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
@@ -57,7 +55,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNode, JCTree, JCMethodDecl> {
 	private final JavacNode methodNode;
 	private final JCTree source;
-	private final JavacASTMaker builder;
+	private final JavacMethodEditor editor;
 
 	private JavacMethod(final JavacNode methodNode, final JCTree source) {
 		if (!(methodNode.get() instanceof JCMethodDecl)) {
@@ -65,23 +63,11 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 		}
 		this.methodNode = methodNode;
 		this.source = source;
-		builder = new JavacASTMaker(methodNode, source);
+		editor = new JavacMethodEditor(this, source);
 	}
 
-	public <T extends JCTree> T build(final lombok.ast.Node<?> node) {
-		return builder.<T> build(node);
-	}
-
-	public <T extends JCTree> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node, extectedType);
-	}
-
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
-		return builder.build(nodes);
-	}
-
-	public <T extends JCTree> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
-		return builder.build(nodes, extectedType);
+	public JavacMethodEditor editor() {
+		return editor;
 	}
 
 	public lombok.ast.TypeRef returns() {
@@ -110,23 +96,6 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	private JCExpression returnType() {
 		return isConstructor() ? null : get().restype;
-	}
-
-	public void replaceReturnType(final lombok.ast.TypeRef returnType) {
-		if (isConstructor()) return;
-		get().restype = build(returnType);
-	}
-
-	public void replaceReturns(final lombok.ast.Statement<?> replacement) {
-		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
-	}
-
-	public void replaceVariableName(final String oldName, final String newName) {
-		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
-	}
-
-	public void forceQualifiedThis() {
-		new ThisReferenceReplaceVisitor(this, This(Type(surroundingType().name()))).visit(get());
 	}
 
 	public AccessLevel accessLevel() {
@@ -194,48 +163,6 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public String name() {
 		return node().getName();
-	}
-
-	public void makePrivate() {
-		makePackagePrivate();
-		get().mods.flags |= PRIVATE;
-	}
-
-	public void makePackagePrivate() {
-		get().mods.flags &= ~(PRIVATE | PROTECTED | PUBLIC);
-	}
-
-	public void makeProtected() {
-		makePackagePrivate();
-		get().mods.flags |= PROTECTED;
-	}
-
-	public void makePublic() {
-		makePackagePrivate();
-		get().mods.flags |= PUBLIC;
-	}
-
-	public void replaceBody(final lombok.ast.Statement<?>... statements) {
-		replaceBody(As.list(statements));
-	}
-
-	public void replaceBody(final List<lombok.ast.Statement<?>> statements) {
-		replaceBody(Block().withStatements(statements));
-	}
-
-	public void replaceBody(final lombok.ast.Block body) {
-		final lombok.ast.Block bodyWithConstructorCall = new lombok.ast.Block();
-		if (!isEmpty()) {
-			final JCStatement suspect = get().body.stats.get(0);
-			if (isConstructorCall(suspect)) bodyWithConstructorCall.withStatement(Stat(suspect));
-		}
-		bodyWithConstructorCall.withStatements(body.getStatements());
-		get().body = builder.build(bodyWithConstructorCall);
-		addSuppressWarningsAll(get().mods, node(), get().pos);
-	}
-
-	public void rebuild() {
-		node().rebuild();
 	}
 
 	public JavacType surroundingType() {

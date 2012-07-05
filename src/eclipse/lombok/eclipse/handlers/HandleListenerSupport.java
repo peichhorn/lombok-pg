@@ -85,7 +85,7 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			}
 		}
 
-		type.rebuild();
+		type.editor().rebuild();
 	}
 
 	private void addFireListenerMethods(final EclipseType type, final TypeBinding interfaze) {

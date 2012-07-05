@@ -88,6 +88,6 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 		}
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 				.withStatement(Return(This()));
-		type.injectMethod(methodDecl);
+		type.editor().injectMethod(methodDecl);
 	}
 }

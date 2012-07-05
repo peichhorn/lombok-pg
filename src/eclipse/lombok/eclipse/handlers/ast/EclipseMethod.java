@@ -22,7 +22,6 @@
 package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
-import static lombok.eclipse.Eclipse.ECLIPSE_DO_NOT_TOUCH_FLAG;
 import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
@@ -41,7 +40,6 @@ import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
@@ -52,14 +50,11 @@ import lombok.core.util.Each;
 import lombok.core.util.Is;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.Eclipse;
-import lombok.eclipse.handlers.replace.ReturnStatementReplaceVisitor;
-import lombok.eclipse.handlers.replace.ThisReferenceReplaceVisitor;
-import lombok.eclipse.handlers.replace.VariableNameReplaceVisitor;
 
 public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, EclipseNode, ASTNode, AbstractMethodDeclaration> {
 	private final EclipseNode methodNode;
 	private final ASTNode source;
-	private final EclipseASTMaker builder;
+	private final EclipseMethodEditor editor;
 
 	private EclipseMethod(final EclipseNode methodNode, final ASTNode source) {
 		if (!(methodNode.get() instanceof AbstractMethodDeclaration)) {
@@ -67,23 +62,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		}
 		this.methodNode = methodNode;
 		this.source = source;
-		builder = new EclipseASTMaker(methodNode, source);
+		editor = new EclipseMethodEditor(this, source);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
-		return builder.<T> build(node);
-	}
-
-	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node, extectedType);
-	}
-
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
-		return builder.build(nodes);
-	}
-
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
-		return builder.build(nodes, extectedType);
+	public EclipseMethodEditor editor() {
+		return editor;
 	}
 
 	public lombok.ast.TypeRef returns() {
@@ -116,25 +99,6 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 		if (isConstructor()) return null;
 		MethodDeclaration methodDecl = (MethodDeclaration) get();
 		return methodDecl.returnType;
-	}
-
-	public void replaceReturnType(final lombok.ast.TypeRef returnType) {
-		if (isConstructor()) return;
-		MethodDeclaration methodDecl = (MethodDeclaration) get();
-		methodDecl.returnType = build(returnType);
-	}
-
-	public void replaceReturns(final lombok.ast.Statement<?> replacement) {
-		new ReturnStatementReplaceVisitor(this, replacement).visit(get());
-	}
-
-	@Override
-	public void replaceVariableName(final String oldName, final String newName) {
-		new VariableNameReplaceVisitor(this, oldName, newName).visit(get());
-	}
-
-	public void forceQualifiedThis() {
-		new ThisReferenceReplaceVisitor(this, This(Type(surroundingType().name()))).visit(get());
 	}
 
 	public AccessLevel accessLevel() {
@@ -203,51 +167,6 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public String name() {
 		return node().getName();
-	}
-
-	public void makePrivate() {
-		makePackagePrivate();
-		get().modifiers |= AccPrivate;
-	}
-
-	public void makePackagePrivate() {
-		get().modifiers &= ~(AccPrivate | AccProtected | AccPublic);
-	}
-
-	public void makeProtected() {
-		makePackagePrivate();
-		get().modifiers |= AccProtected;
-	}
-
-	public void makePublic() {
-		makePackagePrivate();
-		get().modifiers |= AccPublic;
-	}
-
-	public void replaceBody(final lombok.ast.Statement<?>... statements) {
-		replaceBody(As.list(statements));
-	}
-
-	public void replaceBody(final List<lombok.ast.Statement<?>> statements) {
-		get().bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
-		get().statements = build(statements).toArray(new Statement[0]);
-		final List<Annotation> annotations = new ArrayList<Annotation>();
-		Annotation[] originalAnnotations = get().annotations;
-		for (Annotation originalAnnotation : Each.elementIn(originalAnnotations)) {
-			if (!originalAnnotation.type.toString().endsWith("SuppressWarnings")) {
-				annotations.add(originalAnnotation);
-			}
-		}
-		annotations.add(build(Annotation(Type("java.lang.SuppressWarnings")).withValue(String("all")), Annotation.class));
-		get().annotations = annotations.toArray(new Annotation[0]);
-	}
-
-	public void replaceBody(final lombok.ast.Block body) {
-		replaceBody(body.getStatements());
-	}
-
-	public void rebuild() {
-		node().rebuild();
 	}
 
 	public EclipseType surroundingType() {

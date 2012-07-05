@@ -63,8 +63,8 @@ public class YieldHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_TYPE
 
 		final String yielderName = collector.yielderName(method);
 		ClassDecl yielder = collector.getYielder();
-		method.replaceBody(yielder, Return(New(Type(yielderName))));
-		method.rebuild();
+		method.editor().replaceBody(yielder, Return(New(Type(yielderName))));
+		method.editor().rebuild();
 
 		return true;
 	}

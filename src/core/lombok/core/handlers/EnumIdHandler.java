@@ -47,13 +47,13 @@ public class EnumIdHandler<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, FIELD_TYPE
 		String lookupFieldName = "$" + camelCaseToConstant(camelCase(fieldName, "lookup"));
 		String foreachVarName = decapitalize(type.name());
 		String exceptionText = "Enumeration '" + type.name() + "' has no value for '" + fieldName + " = %s'";
-		type.injectField(FieldDecl(Type(Map.class).withTypeArgument(field.boxedType()).withTypeArgument(Type(type.name())), lookupFieldName).makePrivate().makeStatic().makeFinal() //
+		type.editor().injectField(FieldDecl(Type(Map.class).withTypeArgument(field.boxedType()).withTypeArgument(Type(type.name())), lookupFieldName).makePrivate().makeStatic().makeFinal() //
 				.withInitialization(New(Type(HashMap.class).withTypeArgument(field.boxedType()).withTypeArgument(Type(type.name())))));
 
-		type.injectInitializer(Initializer().makeStatic().withStatement(Foreach(LocalDecl(Type(type.name()), foreachVarName)).In(Call(Name(type.name()), "values")).Do(Block() //
+		type.editor().injectInitializer(Initializer().makeStatic().withStatement(Foreach(LocalDecl(Type(type.name()), foreachVarName)).In(Call(Name(type.name()), "values")).Do(Block() //
 				.withStatement(Call(Name(lookupFieldName), "put").withArgument(Field(Name(foreachVarName), fieldName)).withArgument(Name(foreachVarName))))));
 
-		type.injectMethod(MethodDecl(Type(type.name()), camelCase("find", "by", fieldName)).makePublic().makeStatic().withArgument(Arg(field.type(), fieldName)) //
+		type.editor().injectMethod(MethodDecl(Type(type.name()), camelCase("find", "by", fieldName)).makePublic().makeStatic().withArgument(Arg(field.type(), fieldName)) //
 				.withStatement(If(Call(Name(lookupFieldName), "containsKey").withArgument(Name(fieldName))).Then(Block().withStatement(Return(Call(Name(lookupFieldName), "get").withArgument(Name(fieldName)))))) //
 				.withStatement(Throw(New(Type(IllegalArgumentException.class)).withArgument(Call(Name(String.class), "format").withArgument(String(exceptionText)).withArgument(Name(fieldName))))));
 	}

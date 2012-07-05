@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -47,30 +46,18 @@ import lombok.eclipse.EclipseNode;
 
 public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNode, FieldDeclaration> {
 	private final EclipseNode fieldNode;
-	private final EclipseASTMaker builder;
+	private final EclipseFieldEditor editor;
 
 	private EclipseField(final EclipseNode fieldNode, final ASTNode source) {
 		if (!(fieldNode.get() instanceof FieldDeclaration)) {
 			throw new IllegalArgumentException();
 		}
 		this.fieldNode = fieldNode;
-		builder = new EclipseASTMaker(fieldNode, source);
+		editor = new EclipseFieldEditor(this, source);
 	}
 
-	public <T extends ASTNode> T build(final lombok.ast.Node<?> node) {
-		return builder.<T> build(node);
-	}
-
-	public <T extends ASTNode> T build(final lombok.ast.Node<?> node, final Class<T> extectedType) {
-		return builder.build(node, extectedType);
-	}
-
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
-		return builder.build(nodes);
-	}
-
-	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
-		return builder.build(nodes, extectedType);
+	public EclipseFieldEditor editor() {
+		return editor;
 	}
 
 	public boolean isPrivate() {
@@ -129,33 +116,6 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 
 	public lombok.ast.Expression<?> initialization() {
 		return get().initialization == null ? null : Expr(get().initialization);
-	}
-
-	public void replaceInitialization(lombok.ast.Expression<?> initialization) {
-		get().initialization = (initialization == null) ? null : build(initialization, Expression.class);
-	}
-
-	public void makePrivate() {
-		makePackagePrivate();
-		get().modifiers |= AccPrivate;
-	}
-
-	public void makePackagePrivate() {
-		get().modifiers &= ~(AccPrivate | AccProtected | AccPublic);
-	}
-
-	public void makeProtected() {
-		makePackagePrivate();
-		get().modifiers |= AccProtected;
-	}
-
-	public void makePublic() {
-		makePackagePrivate();
-		get().modifiers |= AccPublic;
-	}
-
-	public void makeNonFinal() {
-		get().modifiers &= ~AccFinal;
 	}
 
 	public List<lombok.ast.TypeRef> typeArguments() {

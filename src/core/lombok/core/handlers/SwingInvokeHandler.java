@@ -50,7 +50,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			return;
 		}
 
-		method.forceQualifiedThis();
+		method.editor().forceQualifiedThis();
 
 		String field = "$" + camelCase(method.name(), "runnable");
 
@@ -63,7 +63,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			elseStatement = Block().withStatement(elseStatementRun);
 		}
 
-		method.replaceBody(Block().posHint(method.get()) //
+		method.editor().replaceBody(Block().posHint(method.get()) //
 				.withStatements(validation.validateParameterOf(method)) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(LocalDecl(Type(Runnable.class), field).makeFinal().withInitialization(New(Type(Runnable.class)) //
@@ -74,7 +74,7 @@ public final class SwingInvokeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 						.Then(Block().withStatement(Call(Name(field), "run"))) //
 						.Else(elseStatement)));
 
-		method.rebuild();
+		method.editor().rebuild();
 	}
 
 	private Try generateTryCatchBlock(final Call elseStatementRun, final METHOD_TYPE method) {

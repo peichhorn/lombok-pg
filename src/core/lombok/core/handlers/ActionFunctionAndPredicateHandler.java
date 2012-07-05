@@ -43,7 +43,7 @@ public final class ActionFunctionAndPredicateHandler<TYPE_TYPE extends IType<MET
 			boxedArgumentTypes.add(argument.getType());
 		}
 		if ((template.forcedReturnType == null) && method.returns("void")) {
-			method.replaceReturns(Return(Null()));
+			method.editor().replaceReturns(Return(Null()));
 		}
 		final TypeRef interfaceType = Type(template.typeName).withTypeArguments(boxedArgumentTypes);
 		if (template.forcedReturnType == null) {
@@ -62,9 +62,9 @@ public final class ActionFunctionAndPredicateHandler<TYPE_TYPE extends IType<MET
 						.withMethod(innerMethod))));
 		if (method.isStatic()) methodReplacement.makeStatic();
 		methodReplacement.withAccessLevel(method.accessLevel());
-		type.injectMethod(methodReplacement);
-		type.removeMethod(method);
-		type.rebuild();
+		type.editor().injectMethod(methodReplacement);
+		type.editor().removeMethod(method);
+		type.editor().rebuild();
 	}
 
 	private List<Argument> withUnderscoreName(final List<Argument> arguments) {

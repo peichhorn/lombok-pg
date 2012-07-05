@@ -33,20 +33,20 @@ public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends I
 
 	public void addListenerField(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
-		type.injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(type(interfaze))), "$registered" + interfaceName).makePrivate().makeFinal() //
+		type.editor().injectField(FieldDecl(Type("java.util.List").withTypeArgument(Type(type(interfaze))), "$registered" + interfaceName).makePrivate().makeFinal() //
 				.withInitialization(New(Type("java.util.concurrent.CopyOnWriteArrayList").withTypeArgument(Type(type(interfaze))))));
 	}
 
 	public void addAddListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
-		type.injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
+		type.editor().injectMethod(MethodDecl(Type("void"), "add" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
 				.withStatement(If(Not(Call(Name("$registered" + interfaceName), "contains").withArgument(Name("l")))) //
 						.Then(Call(Name("$registered" + interfaceName), "add").withArgument(Name("l")))));
 	}
 
 	public void addRemoveListenerMethod(final TYPE_TYPE type, final Object interfaze) {
 		String interfaceName = interfaceName(name(interfaze));
-		type.injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
+		type.editor().injectMethod(MethodDecl(Type("void"), "remove" + interfaceName).makePublic().withArgument(Arg(Type(type(interfaze)), "l")) //
 				.withStatement(Call(Name("$registered" + interfaceName), "remove").withArgument(Name("l"))));
 	}
 
@@ -56,7 +56,7 @@ public abstract class ListenerSupportHandler<TYPE_TYPE extends IType<? extends I
 		createParamsAndArgs(method, params, args);
 		String interfaceName = interfaceName(name(interfaze));
 		String methodName = name(method);
-		type.injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
+		type.editor().injectMethod(MethodDecl(Type("void"), camelCase("fire", methodName)).makeProtected().withArguments(params) //
 				.withStatement(Foreach(LocalDecl(Type(type(interfaze)), "l")).In(Name("$registered" + interfaceName)) //
 						.Do(Call(Name("l"), methodName).withArguments(args))));
 	}

@@ -43,9 +43,9 @@ public class SanitizeHandler<METHOD_TYPE extends IMethod<?, ?, ?, ?>> {
 			return;
 		}
 
-		method.replaceBody(Block().posHint(method.get()) //
+		method.editor().replaceBody(Block().posHint(method.get()) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatements(method.statements()));
-		method.rebuild();
+		method.editor().rebuild();
 	}
 }

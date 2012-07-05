@@ -111,7 +111,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			unLockCall = Call(Field(completeLockName), "unlock");
 		}
 
-		method.replaceBody(Block().posHint(method.get()) //
+		method.editor().replaceBody(Block().posHint(method.get()) //
 				.withStatements(validation.validateParameterOf(method)) //
 				.withStatements(sanitizer.sanitizeParameterOf(method)) //
 				.withStatement(lockCall) //
@@ -124,7 +124,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 						) //
 				));
 
-		method.rebuild();
+		method.editor().rebuild();
 	}
 
 	private String createCompleteLockName(final String lockName, final boolean isReadWriteLock) {
@@ -165,10 +165,10 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 		}
 		if (!type.hasField(trimmedLockName)) {
 			if (isReadWriteLock) {
-				type.injectField(FieldDecl(Type(ReadWriteLock.class), trimmedLockName).makePrivate().makeFinal() //
+				type.editor().injectField(FieldDecl(Type(ReadWriteLock.class), trimmedLockName).makePrivate().makeFinal() //
 						.withInitialization(New(Type(ReentrantReadWriteLock.class))));
 			} else {
-				type.injectField(FieldDecl(Type(Lock.class), trimmedLockName).makePrivate().makeFinal() //
+				type.editor().injectField(FieldDecl(Type(Lock.class), trimmedLockName).makePrivate().makeFinal() //
 						.withInitialization(New(Type(ReentrantLock.class))));
 			}
 		}
@@ -185,7 +185,7 @@ public final class ConditionAndLockHandler<TYPE_TYPE extends IType<METHOD_TYPE, 
 			return false;
 		}
 		if (!type.hasField(conditionName)) {
-			type.injectField(FieldDecl(Type(Condition.class), conditionName).makePrivate().makeFinal() //
+			type.editor().injectField(FieldDecl(Type(Condition.class), conditionName).makePrivate().makeFinal() //
 					.withInitialization(Call(Name(lockName), "newCondition")));
 		}
 		return true;

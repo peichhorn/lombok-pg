@@ -27,13 +27,8 @@ import lombok.core.AnnotationValues;
 import lombok.core.LombokNode;
 
 public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> {
-	public <T extends AST_BASE_TYPE> T build(Node<?> node);
 
-	public <T extends AST_BASE_TYPE> T build(Node<?> node, Class<T> extectedType);
-
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes);
-
-	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
+	public ITypeEditor<METHOD_TYPE, AST_BASE_TYPE, AST_TYPE_DECL_TYPE, AST_METHOD_DECL_TYPE> editor();
 
 	public boolean isInterface();
 
@@ -65,20 +60,6 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 
 	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
 
-	public void injectInitializer(final Initializer initializerBlock);
-
-	public void injectField(FieldDecl fieldDecl);
-
-	public void injectField(EnumConstant enumConstant);
-
-	public AST_METHOD_DECL_TYPE injectMethod(MethodDecl methodDecl);
-
-	public AST_METHOD_DECL_TYPE injectConstructor(ConstructorDecl constructorDecl);
-
-	public void injectType(ClassDecl typeDecl);
-
-	public void removeMethod(METHOD_TYPE method);
-
 	public String name();
 
 	public List<TypeRef> typeArguments();
@@ -92,18 +73,4 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 	public boolean hasMethod(String methodName);
 
 	public boolean hasMethod(String methodName, int numberOfParameters);
-
-	public void makeEnum();
-
-	public void makePrivate();
-
-	public void makePackagePrivate();
-
-	public void makeProtected();
-
-	public void makePublic();
-
-	public void makeStatic();
-
-	public void rebuild();
 }

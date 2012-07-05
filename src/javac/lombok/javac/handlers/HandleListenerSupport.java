@@ -79,7 +79,7 @@ public class HandleListenerSupport extends JavacAnnotationHandler<ListenerSuppor
 			addFireListenerMethods(type, interfaze);
 		}
 
-		type.rebuild();
+		type.editor().rebuild();
 	}
 
 	private List<TypeSymbol> resolveInterfaces(final JavacNode annotationNode, final Class<? extends java.lang.annotation.Annotation> annotationType,
