@@ -33,7 +33,11 @@ public interface IMethodEditor<AST_BASE_TYPE> {
 
 	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
-	public void replaceReturnType(final TypeRef returnType);
+	public void replaceArguments(Argument... arguments);
+
+	public void replaceArguments(List<Argument> arguments);
+
+	public void replaceReturnType(TypeRef returnType);
 
 	public void replaceReturns(Statement<?> replacement);
 
@@ -43,7 +47,7 @@ public interface IMethodEditor<AST_BASE_TYPE> {
 
 	public void replaceBody(List<Statement<?>> statements);
 
-	public void replaceBody(final Block body);
+	public void replaceBody(Block body);
 
 	public void forceQualifiedThis();
 

@@ -85,6 +85,9 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 
 	private void createConstructor(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
 		TYPE_TYPE type = builderData.getType();
+
+		if (hasCustomConstructor(type)) return;
+
 		ConstructorDecl constructorDecl = ConstructorDecl(type.name()).makePrivate().withArgument(Arg(Type(BUILDER).withTypeArguments(type.typeArguments()), "builder").makeFinal()).withImplicitSuper();
 		for (final FIELD_TYPE field : builderData.getAllFields()) {
 			if (field.isFinal() && field.isInitialized()) {
@@ -98,6 +101,21 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			}
 		}
 		type.editor().injectConstructor(constructorDecl);
+	}
+
+	private boolean hasCustomConstructor(final IType<METHOD_TYPE, ?, ?, ?, ?, ?> type) {
+		for (final METHOD_TYPE method : type.methods()) {
+			if (!method.isConstructor()) continue;
+			final List<Argument> arguments = method.arguments();
+			if (arguments.size() != 1) continue;
+			final Argument argument = arguments.get(0);
+			final String argumentTypeName = argument.getType().toString();
+			if (argumentTypeName.endsWith("Builder")) {
+				method.editor().replaceArguments(Arg(Type(BUILDER).withTypeArguments(type.typeArguments()), argument.getName()).makeFinal());
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void createInitializeBuilderMethod(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final TypeRef fieldDefType) {

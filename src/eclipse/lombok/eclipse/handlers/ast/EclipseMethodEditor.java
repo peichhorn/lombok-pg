@@ -30,6 +30,7 @@ import java.util.List;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.Argument;
 import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Statement;
 
@@ -63,7 +64,7 @@ public final class EclipseMethodEditor implements lombok.ast.IMethodEditor<ASTNo
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes) {
 		return builder.build(nodes);
 	}
-
+	
 	public <T extends ASTNode> List<T> build(final List<? extends lombok.ast.Node<?>> nodes, final Class<T> extectedType) {
 		return builder.build(nodes, extectedType);
 	}
@@ -104,6 +105,14 @@ public final class EclipseMethodEditor implements lombok.ast.IMethodEditor<ASTNo
 	public void makePublic() {
 		makePackagePrivate();
 		get().modifiers |= AccPublic;
+	}
+
+	public void replaceArguments(final lombok.ast.Argument... arguments) {
+		replaceArguments(As.list(arguments));
+	}
+
+	public void replaceArguments(final List<lombok.ast.Argument> arguments) {
+		get().arguments = build(arguments).toArray(new Argument[0]);
 	}
 
 	public void replaceBody(final lombok.ast.Statement<?>... statements) {

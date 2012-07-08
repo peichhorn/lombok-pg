@@ -36,7 +36,7 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, LOMBOK_NODE_
 
 	public boolean returns(Class<?> clazz);
 
-	public boolean returns(final String typeName);
+	public boolean returns(String typeName);
 
 	public AccessLevel accessLevel();
 
@@ -56,7 +56,7 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, LOMBOK_NODE_
 
 	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
 
-	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
+	public LOMBOK_NODE_TYPE getAnnotation(String typeName);
 
 	public boolean hasNonFinalArgument();
 

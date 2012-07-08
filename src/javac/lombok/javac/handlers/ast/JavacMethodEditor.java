@@ -38,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 public final class JavacMethodEditor implements lombok.ast.IMethodEditor<JCTree> {
 	private final JavacMethod method;
@@ -106,6 +107,15 @@ public final class JavacMethodEditor implements lombok.ast.IMethodEditor<JCTree>
 	public void makePublic() {
 		makePackagePrivate();
 		get().mods.flags |= PUBLIC;
+	}
+
+
+	public void replaceArguments(final lombok.ast.Argument... arguments) {
+		replaceArguments(As.list(arguments));
+	}
+
+	public void replaceArguments(final List<lombok.ast.Argument> arguments) {
+		get().params = (com.sun.tools.javac.util.List<JCVariableDecl>) build(arguments, JCVariableDecl.class);
 	}
 
 	public void replaceBody(final lombok.ast.Statement<?>... statements) {

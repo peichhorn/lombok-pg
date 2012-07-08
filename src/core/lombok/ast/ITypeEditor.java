@@ -32,7 +32,7 @@ public interface ITypeEditor<METHOD_TYPE extends IMethod<?, ?, ?, ?>, AST_BASE_T
 
 	public <T extends AST_BASE_TYPE> List<T> build(List<? extends Node<?>> nodes, Class<T> extectedType);
 
-	public void injectInitializer(final Initializer initializerBlock);
+	public void injectInitializer(Initializer initializerBlock);
 
 	public void injectField(FieldDecl fieldDecl);
 

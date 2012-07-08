@@ -48,7 +48,7 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public TypeRef boxedType();
 
-	public boolean isOfType(final String typeName);
+	public boolean isOfType(String typeName);
 
 	public String name();
 
@@ -58,5 +58,5 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public List<Annotation> annotations();
 
-	public List<Annotation> annotations(final Pattern namePattern);
+	public List<Annotation> annotations(Pattern namePattern);
 }

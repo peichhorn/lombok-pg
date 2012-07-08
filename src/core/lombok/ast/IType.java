@@ -58,7 +58,7 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 
 	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
 
-	public LOMBOK_NODE_TYPE getAnnotation(final String typeName);
+	public LOMBOK_NODE_TYPE getAnnotation(String typeName);
 
 	public String name();
 
