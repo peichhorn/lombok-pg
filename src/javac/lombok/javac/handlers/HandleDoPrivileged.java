@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.isNetbeansIDE;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -42,6 +43,7 @@ public class HandleDoPrivileged extends JavacAnnotationHandler<DoPrivileged> {
 
 	@Override
 	public void handle(final AnnotationValues<DoPrivileged> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		if (isNetbeansIDE(annotationNode)) return;
 		deleteAnnotationIfNeccessary(annotationNode, DoPrivileged.class);
 		new DoPrivilegedHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterValidator(), new JavacParameterSanitizer());
 	}

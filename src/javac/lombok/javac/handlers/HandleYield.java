@@ -97,7 +97,15 @@ public class HandleYield extends JavacASTAdapter {
 				final JavacMethod method = JavacMethod.methodOf(statementNode, statement);
 				if ((method == null) || method.isConstructor()) {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
-				} else if (new YieldHandler<JavacMethod, JCTree>().handle(method, new JavacYieldDataCollector())) {
+					return;
+				}
+				if (isNetbeansIDE(statementNode)) {
+					if (!(method.get().body.stats.last() instanceof JCReturn)) {
+						method.get().body.stats = method.get().body.stats.append(method.editor().build(Return(Null()), JCStatement.class));
+					}
+					return;
+				}
+				if (new YieldHandler<JavacMethod, JCTree>().handle(method, new JavacYieldDataCollector())) {
 					methodNames.add(methodName);
 				}
 			}

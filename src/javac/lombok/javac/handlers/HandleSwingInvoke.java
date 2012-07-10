@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.isNetbeansIDE;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import lombok.*;
@@ -42,6 +43,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeLater extends JavacAnnotationHandler<SwingInvokeLater> {
 		@Override
 		public void handle(final AnnotationValues<SwingInvokeLater> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			if (isNetbeansIDE(annotationNode)) return;
 			deleteAnnotationIfNeccessary(annotationNode, SwingInvokeLater.class);
 			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //
 					.handle("invokeLater", SwingInvokeLater.class, new JavacParameterValidator(), new JavacParameterSanitizer());
@@ -52,6 +54,7 @@ public class HandleSwingInvoke {
 	public static class HandleSwingInvokeAndWait extends JavacAnnotationHandler<SwingInvokeAndWait> {
 		@Override
 		public void handle(final AnnotationValues<SwingInvokeAndWait> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			if (isNetbeansIDE(annotationNode)) return;
 			deleteAnnotationIfNeccessary(annotationNode, SwingInvokeAndWait.class);
 			new SwingInvokeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode) //
 					.handle("invokeAndWait", SwingInvokeAndWait.class, new JavacParameterValidator(), new JavacParameterSanitizer());

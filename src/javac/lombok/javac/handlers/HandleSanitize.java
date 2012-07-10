@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.isNetbeansIDE;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -42,6 +43,7 @@ public class HandleSanitize extends JavacAnnotationHandler<Sanitize> {
 
 	@Override
 	public void handle(final AnnotationValues<Sanitize> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		if (isNetbeansIDE(annotationNode)) return;
 		deleteAnnotationIfNeccessary(annotationNode, Sanitize.class);
 		new SanitizeHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterSanitizer());
 	}

@@ -21,6 +21,7 @@
  */
 package lombok.javac.handlers;
 
+import static lombok.javac.handlers.Javac.isNetbeansIDE;
 import static lombok.javac.handlers.JavacHandlerUtil.deleteAnnotationIfNeccessary;
 
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -42,6 +43,7 @@ public class HandleValidate extends JavacAnnotationHandler<Validate> {
 
 	@Override
 	public void handle(final AnnotationValues<Validate> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+		if (isNetbeansIDE(annotationNode)) return;
 		deleteAnnotationIfNeccessary(annotationNode, Validate.class);
 		new ValidateHandler<JavacMethod>(JavacMethod.methodOf(annotationNode, source), annotationNode).handle(new JavacParameterValidator());
 	}
