@@ -41,7 +41,6 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Options;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Javac {
@@ -180,10 +179,5 @@ public final class Javac {
 
 	public static boolean matchesType(final JCAnnotation ann, final String typeName) {
 		return typeName.replace("$", ".").endsWith(ann.annotationType.toString());
-	}
-
-	public static boolean isNetbeansIDE(final JavacNode node) {
-		final Options options = Options.instance(node.getContext());
-		return (options.keySet().contains("ide") && !options.keySet().contains("backgroundCompilation"));
 	}
 }

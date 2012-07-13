@@ -31,6 +31,7 @@ package lombok.javac.handlers;
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.javac.handlers.Javac.*;
+import static lombok.javac.handlers.JavacHandlerUtil.*;
 
 import java.util.*;
 
@@ -99,7 +100,7 @@ public class HandleYield extends JavacASTAdapter {
 					statementNode.addError(canBeUsedInBodyOfMethodsOnly("yield"));
 					return;
 				}
-				if (isNetbeansIDE(statementNode)) {
+				if (inNetbeansEditor(statementNode)) {
 					if (!(method.get().body.stats.last() instanceof JCReturn)) {
 						method.get().body.stats = method.get().body.stats.append(method.editor().build(Return(Null()), JCStatement.class));
 					}

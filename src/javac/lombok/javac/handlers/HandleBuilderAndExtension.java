@@ -87,6 +87,7 @@ public class HandleBuilderAndExtension {
 
 		@Override
 		public void handle(final AnnotationValues<Builder.Extension> annotation, final JCAnnotation source, final JavacNode annotationNode) {
+			if (inNetbeansEditor(annotationNode)) return;
 			deleteAnnotationIfNeccessary(annotationNode, Builder.Extension.class);
 
 			final JavacMethod method = JavacMethod.methodOf(annotationNode, source);
