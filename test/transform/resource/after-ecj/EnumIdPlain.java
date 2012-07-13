@@ -17,10 +17,6 @@ class EnumIdPlain {
     }
     <clinit>() {
     }
-    private @java.lang.SuppressWarnings("all") Status(final int code) {
-      super();
-      this.code = code;
-    }
     public static @java.lang.SuppressWarnings("all") Status findByCode(final int code) {
       if ($CODE_LOOKUP.containsKey(code))
           {
@@ -30,6 +26,10 @@ class EnumIdPlain {
     }
     public @java.lang.SuppressWarnings("all") int getCode() {
       return this.code;
+    }
+    private @java.lang.SuppressWarnings("all") Status(final int code) {
+      super();
+      this.code = code;
     }
   }
   EnumIdPlain() {

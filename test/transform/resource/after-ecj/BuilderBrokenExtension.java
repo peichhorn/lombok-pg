@@ -28,6 +28,9 @@
   }
   private final String text;
   private final int id;
+  private @lombok.Builder.Extension void brokenExtension() {
+    this.id = 42;
+  }
   private @java.lang.SuppressWarnings("all") BuilderBrokenExtension(final $Builder builder) {
     super();
     this.text = builder.text;
@@ -35,8 +38,5 @@
   }
   public static @java.lang.SuppressWarnings("all") TextDef builderBrokenExtension() {
     return new $Builder();
-  }
-  private @lombok.Builder.Extension void brokenExtension() {
-    this.id = 42;
   }
 }

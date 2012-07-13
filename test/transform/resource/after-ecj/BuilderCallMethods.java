@@ -42,6 +42,8 @@
   }
   private final String text;
   private final int id;
+  private void bar() throws Exception {
+  }
   private @java.lang.SuppressWarnings("all") BuilderCallMethods(final $Builder builder) {
     super();
     this.text = builder.text;
@@ -49,7 +51,5 @@
   }
   static @java.lang.SuppressWarnings("all") TextDef builderCallMethods() {
     return new $Builder();
-  }
-  private void bar() throws Exception {
   }
 }

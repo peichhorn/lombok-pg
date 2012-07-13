@@ -1,6 +1,9 @@
 import lombok.Function;
 import lombok.val;
 public class FunctionAndVal {
+  public FunctionAndVal() {
+    super();
+  }
   private static @Function @java.lang.SuppressWarnings("all") lombok.Functions.Function0<String> needsMoreVal() {
     return new lombok.Functions.Function0<String>() {
   x() {
@@ -11,8 +14,5 @@ public class FunctionAndVal {
     return part;
   }
 };
-  }
-  public FunctionAndVal() {
-    super();
   }
 }

@@ -26,29 +26,29 @@
     this.x = x;
     this.name = name;
   }
+  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final int x, final String name) {
+    return new AllArgsConstructor1(x, name);
+  }
   private @java.lang.SuppressWarnings("all") AllArgsConstructor1(final java.lang.String arg0, final int x, final String name) {
     super(arg0);
     this.x = x;
     this.name = name;
+  }
+  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final java.lang.String arg0, final int x, final String name) {
+    return new AllArgsConstructor1(arg0, x, name);
   }
   private @java.lang.SuppressWarnings("all") AllArgsConstructor1(final java.lang.Throwable arg0, final int x, final String name) {
     super(arg0);
     this.x = x;
     this.name = name;
   }
+  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final java.lang.Throwable arg0, final int x, final String name) {
+    return new AllArgsConstructor1(arg0, x, name);
+  }
   private @java.lang.SuppressWarnings("all") AllArgsConstructor1(final java.lang.String arg0, final java.lang.Throwable arg1, final int x, final String name) {
     super(arg0, arg1);
     this.x = x;
     this.name = name;
-  }
-  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final int x, final String name) {
-    return new AllArgsConstructor1(x, name);
-  }
-  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final java.lang.String arg0, final int x, final String name) {
-    return new AllArgsConstructor1(arg0, x, name);
-  }
-  public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final java.lang.Throwable arg0, final int x, final String name) {
-    return new AllArgsConstructor1(arg0, x, name);
   }
   public static @java.lang.SuppressWarnings("all") AllArgsConstructor1 create(final java.lang.String arg0, final java.lang.Throwable arg1, final int x, final String name) {
     return new AllArgsConstructor1(arg0, arg1, x, name);

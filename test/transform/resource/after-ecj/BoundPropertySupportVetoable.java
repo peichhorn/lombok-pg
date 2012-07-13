@@ -11,6 +11,9 @@ class BoundPropertySupportVetoable {
   private @BoundSetter(throwVetoException = true) String surname;
   <clinit>() {
   }
+  BoundPropertySupportVetoable() {
+    super();
+  }
   private @java.lang.SuppressWarnings("all") java.beans.PropertyChangeSupport getPropertyChangeSupport() {
     if ((this.$propertyChangeSupport == null))
         {
@@ -66,8 +69,5 @@ class BoundPropertySupportVetoable {
     getVetoableChangeSupport().fireVetoableChange(PROP_SURNAME, $old, surname);
     this.surname = surname;
     getPropertyChangeSupport().firePropertyChange(PROP_SURNAME, $old, surname);
-  }
-  BoundPropertySupportVetoable() {
-    super();
   }
 }

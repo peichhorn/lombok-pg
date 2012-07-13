@@ -29,12 +29,12 @@ import lombok.Builder;
   }
   private final String name;
   private final String surname;
-  public static @java.lang.SuppressWarnings("all") NameDef builderCustomConstructor() {
-    return new $Builder();
-  }
   private BuilderCustomConstructor(final $Builder builder) {
     super();
     this.name = builder.name.trim();
     this.surname = builder.surname.trim();
+  }
+  public static @java.lang.SuppressWarnings("all") NameDef builderCustomConstructor() {
+    return new $Builder();
   }
 }

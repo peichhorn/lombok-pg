@@ -2,22 +2,22 @@
   INSTANCE(),
   <clinit>() {
   }
-  public static @java.lang.SuppressWarnings("all") SingletonPlain1 getInstance() {
-    return INSTANCE;
-  }
   SingletonPlain1() {
     super();
+  }
+  public static @java.lang.SuppressWarnings("all") SingletonPlain1 getInstance() {
+    return INSTANCE;
   }
 }
 @lombok.Singleton enum SingletonPlain2 {
   INSTANCE(),
   <clinit>() {
   }
-  public static @java.lang.SuppressWarnings("all") SingletonPlain2 getInstance() {
-    return INSTANCE;
-  }
   SingletonPlain2() {
     super();
+  }
+  public static @java.lang.SuppressWarnings("all") SingletonPlain2 getInstance() {
+    return INSTANCE;
   }
 }
 @lombok.Singleton class SingletonPlain3 {
@@ -36,10 +36,10 @@
     <clinit>() {
     }
   }
-  public static @java.lang.SuppressWarnings("all") SingletonPlain5 getInstance() {
-    return SingletonPlain5Holder.INSTANCE;
-  }
   SingletonPlain5() {
     super();
+  }
+  public static @java.lang.SuppressWarnings("all") SingletonPlain5 getInstance() {
+    return SingletonPlain5Holder.INSTANCE;
   }
 }

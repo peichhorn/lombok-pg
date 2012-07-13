@@ -4,11 +4,12 @@ class LazyGetterPlain {
       super();
     }
   }
-
   private volatile boolean $fieldNameInitialized;
   private final java.lang.Object[] $fieldNameLock = new java.lang.Object[0];
   private @lombok.LazyGetter ValueType fieldName;
-
+  LazyGetterPlain() {
+    super();
+  }
   public @java.lang.SuppressWarnings("all") ValueType getFieldName() {
     if ((! this.$fieldNameInitialized))
         {
@@ -22,9 +23,5 @@ class LazyGetterPlain {
             }
         }
     return this.fieldName;
-  }
-
-  LazyGetterPlain() {
-    super();
   }
 }

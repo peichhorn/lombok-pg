@@ -2,6 +2,9 @@ import lombok.Functions.Function1;
 import lombok.Function;
 import lombok.Validate.NotNull;
 class FunctionPlain {
+  FunctionPlain() {
+    super();
+  }
   public static @Function @java.lang.SuppressWarnings("all") lombok.Functions.Function1<String, java.lang.Boolean> startsWith(final @NotNull String _prefix) {
     return new lombok.Functions.Function1<String, java.lang.Boolean>() {
   x() {
@@ -51,8 +54,5 @@ class FunctionPlain {
     return null;
   }
 };
-  }
-  FunctionPlain() {
-    super();
   }
 }

@@ -5,13 +5,6 @@ import java.lang.annotation.*;
   @lombok.NonNull int i;
   @lombok.NonNull String s;
   @NotNull Object o;
-  public @java.beans.ConstructorProperties({"i", "s"}) @java.lang.SuppressWarnings("all") NonNullPlain(final @lombok.NonNull int i, final @lombok.NonNull String s) {
-    super();
-    if ((s == null))
-        throw new java.lang.NullPointerException("s");
-    this.i = i;
-    this.s = s;
-  }
   public @lombok.NonNull @java.lang.SuppressWarnings("all") int getI() {
     return this.i;
   }
@@ -31,5 +24,12 @@ import java.lang.annotation.*;
   }
   public @java.lang.SuppressWarnings("all") void setO(final Object o) {
     this.o = o;
+  }
+  public @java.beans.ConstructorProperties({"i", "s"}) @java.lang.SuppressWarnings("all") NonNullPlain(final @lombok.NonNull int i, final @lombok.NonNull String s) {
+    super();
+    if ((s == null))
+        throw new java.lang.NullPointerException("s");
+    this.i = i;
+    this.s = s;
   }
 }

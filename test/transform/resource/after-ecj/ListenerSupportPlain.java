@@ -1,6 +1,9 @@
 @lombok.ListenerSupport({java.awt.event.KeyListener.class, java.awt.event.MouseWheelListener.class}) class ListenerSupportPlain1 {
   private final java.util.List<java.awt.event.KeyListener> $registeredKeyListener = new java.util.concurrent.CopyOnWriteArrayList<java.awt.event.KeyListener>();
   private final java.util.List<java.awt.event.MouseWheelListener> $registeredMouseWheelListener = new java.util.concurrent.CopyOnWriteArrayList<java.awt.event.MouseWheelListener>();
+  ListenerSupportPlain1() {
+    super();
+  }
   public @java.lang.SuppressWarnings("all") void addKeyListener(final java.awt.event.KeyListener l) {
     if ((! $registeredKeyListener.contains(l)))
         $registeredKeyListener.add(l);
@@ -31,9 +34,6 @@
     for (java.awt.event.MouseWheelListener l : $registeredMouseWheelListener) 
       l.mouseWheelMoved(arg0);
   }
-  ListenerSupportPlain1() {
-    super();
-  }
 }
 @lombok.ListenerSupport(java.lang.String.class) class ListenerSupportPlain2 {
   ListenerSupportPlain2() {
@@ -42,6 +42,9 @@
 }
 @lombok.ListenerSupport(javax.swing.event.MouseInputListener.class) class ListenerSupportPlain3 {
   private final java.util.List<javax.swing.event.MouseInputListener> $registeredMouseInputListener = new java.util.concurrent.CopyOnWriteArrayList<javax.swing.event.MouseInputListener>();
+  ListenerSupportPlain3() {
+    super();
+  }
   public @java.lang.SuppressWarnings("all") void addMouseInputListener(final javax.swing.event.MouseInputListener l) {
     if ((! $registeredMouseInputListener.contains(l)))
         $registeredMouseInputListener.add(l);
@@ -76,8 +79,5 @@
   protected @java.lang.SuppressWarnings("all") void fireMouseMoved(final java.awt.event.MouseEvent arg0) {
     for (javax.swing.event.MouseInputListener l : $registeredMouseInputListener) 
       l.mouseMoved(arg0);
-  }
-  ListenerSupportPlain3() {
-    super();
   }
 }

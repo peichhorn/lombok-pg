@@ -2,6 +2,9 @@ import lombok.Actions.Action1;
 import lombok.Action;
 import lombok.Validate.NotNull;
 class ActionPlain {
+  ActionPlain() {
+    super();
+  }
   public static @Action @java.lang.SuppressWarnings("all") lombok.Actions.Action0 testAction0() {
     return new lombok.Actions.Action0() {
   x() {
@@ -56,8 +59,5 @@ class ActionPlain {
     return ;
   }
 };
-  }
-  ActionPlain() {
-    super();
   }
 }

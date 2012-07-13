@@ -3,9 +3,6 @@ class ConditionPlain {
   private final java.util.concurrent.locks.Lock $canResumeLock = new java.util.concurrent.locks.ReentrantLock();
   private final java.util.concurrent.locks.Condition canResume = $canResumeLock.newCondition();
   private volatile @lombok.Getter(AccessLevel.PRIVATE) boolean paused;
-  private @java.lang.SuppressWarnings("all") boolean isPaused() {
-    return this.paused;
-  }
   ConditionPlain() {
     super();
   }
@@ -37,5 +34,8 @@ class ConditionPlain {
       {
         this.$canResumeLock.unlock();
       }
+  }
+  private @java.lang.SuppressWarnings("all") boolean isPaused() {
+    return this.paused;
   }
 }

@@ -15,6 +15,9 @@ class BoundPropertySupportPlain {
   @BoundSetter(AccessLevel.PRIVATE) double d;
   <clinit>() {
   }
+  BoundPropertySupportPlain() {
+    super();
+  }
   private @java.lang.SuppressWarnings("all") java.beans.PropertyChangeSupport getPropertyChangeSupport() {
     if ((this.$propertyChangeSupport == null))
         {
@@ -58,8 +61,5 @@ class BoundPropertySupportPlain {
     final double $old = this.d;
     this.d = d;
     getPropertyChangeSupport().firePropertyChange(PROP_D, $old, d);
-  }
-  BoundPropertySupportPlain() {
-    super();
   }
 }

@@ -1,6 +1,9 @@
 import lombok.Predicate;
 import lombok.Validate.NotNull;
 class PredicatePlain {
+  PredicatePlain() {
+    super();
+  }
   public @Predicate @java.lang.SuppressWarnings("all") lombok.Predicates.Predicate1<Iterable<String>> containsEmptyString() {
     return new lombok.Predicates.Predicate1<Iterable<String>>() {
   x() {
@@ -17,8 +20,5 @@ class PredicatePlain {
     return false;
   }
 };
-  }
-  PredicatePlain() {
-    super();
   }
 }
