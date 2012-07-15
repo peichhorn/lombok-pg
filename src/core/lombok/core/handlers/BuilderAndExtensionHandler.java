@@ -31,8 +31,9 @@ import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.util.Names;
 
-public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
+public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
 	public static final String OPTIONAL_DEF = "OptionalDef";
 	public static final String BUILDER = "$Builder";
 
@@ -56,31 +57,71 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			final IParameterSanitizer<METHOD_TYPE> sanitizer, final Builder builder) {
 		TYPE_TYPE builderType = type.<TYPE_TYPE> memberType(BUILDER);
 		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = new BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE>(type, builder).collect();
-		List<String> requiredFieldNames = builderData.getAllRequiredFieldNames();
-		List<String> uninitializedRequiredFieldNames = new ArrayList<String>();
-		for (FIELD_TYPE field : builderType.fields()) {
+
+		final ExtensionType extensionType = getExtensionType(method, builderData);
+		if (extensionType == ExtensionType.NONE) return;
+
+		TYPE_TYPE interfaceType;
+		if (extensionType  == ExtensionType.REQUIRED) {
+			interfaceType = type.<TYPE_TYPE> memberType(builderData.getRequiredFieldDefTypeNames().get(0));
+		} else {
+			interfaceType = type.<TYPE_TYPE> memberType(OPTIONAL_DEF);
+		}
+		builderType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).posHint(method.get()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
+				.withStatements(validation.validateParameterOf(method)) //
+				.withStatements(sanitizer.sanitizeParameterOf(method)) //
+				.withStatements(method.statements()) //
+				.withStatement(Return(This())));
+		interfaceType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
+		type.editor().removeMethod(method);
+	}
+
+	private ExtensionType getExtensionType(final METHOD_TYPE method, final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
+		if (method.isConstructor() || (method.accessLevel() != AccessLevel.PRIVATE) || !method.returns("void")) {
+			method.node().addWarning("@Builder.Extension: The method '" + method.name() + "' is not a valid extension and was ignored.");
+			return ExtensionType.NONE;
+		}
+
+		final String[] extensionFieldNames = extensionFieldNames(method, builderData);
+		List<String> allFieldNames = builderData.getAllFieldNames();
+		for (String potentialFieldName : extensionFieldNames) {
+			if (!allFieldNames.contains(Names.decapitalize(potentialFieldName))) {
+				method.node().addWarning("@Builder.Extension: The method '" + method.name() + "' is not a valid extension and was ignored.");
+				return ExtensionType.NONE;
+			}
+		}
+
+		List<String> requiredFieldNames = builderData.getRequiredFieldNames();
+		Set<String> uninitializedRequiredFieldNames = new HashSet<String>();
+		for (FIELD_TYPE field : builderData.getAllFields()) {
 			if (requiredFieldNames.contains(field.name()) && !field.isInitialized()) {
 				uninitializedRequiredFieldNames.add(field.name());
 			}
 		}
 
-		IExtensionCollector extensionCollector = getExtensionCollector().withRequiredFieldNames(uninitializedRequiredFieldNames);
-		collectExtensions(method, extensionCollector);
-		if (extensionCollector.isExtension()) {
-			TYPE_TYPE interfaceType;
-			if (extensionCollector.isRequiredFieldsExtension()) {
-				interfaceType = type.<TYPE_TYPE> memberType(builderData.getRequiredFieldDefTypeNames().get(0));
-			} else {
-				interfaceType = type.<TYPE_TYPE> memberType(OPTIONAL_DEF);
-			}
-			builderType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).posHint(method.get()).makePublic().implementing().withArguments(method.arguments(INCLUDE_ANNOTATIONS)) //
-					.withStatements(validation.validateParameterOf(method)) //
-					.withStatements(sanitizer.sanitizeParameterOf(method)) //
-					.withStatements(method.statements()) //
-					.withStatement(Return(This())));
-			interfaceType.editor().injectMethod(MethodDecl(Type(OPTIONAL_DEF).withTypeArguments(type.typeArguments()), method.name()).makePublic().withNoBody().withArguments(method.arguments(INCLUDE_ANNOTATIONS)));
-			type.editor().removeMethod(method);
+		boolean containsRequiredFields = false;
+		for (String potentialFieldName : extensionFieldNames) {
+			containsRequiredFields |= uninitializedRequiredFieldNames.remove(Names.decapitalize(potentialFieldName));
 		}
+
+		if (containsRequiredFields) {
+			if (uninitializedRequiredFieldNames.isEmpty()) {
+				return ExtensionType.REQUIRED;
+			} else {
+				method.node().addWarning("@Builder.Extension: The method '" + method.name() + "' is not a valid extension and was ignored.");
+				return ExtensionType.NONE;
+			}
+		}
+		return ExtensionType.OPTIONAL;
+	}
+
+	private String[] extensionFieldNames(final METHOD_TYPE method, final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
+		final String prefix = builderData.getPrefix();
+		String methodName = method.name();
+		if (methodName.startsWith(prefix)) {
+			methodName = methodName.substring(prefix.length());
+		}
+		return methodName.split("And");
 	}
 
 	private void createConstructor(final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
@@ -320,16 +361,13 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 		return field.isOfType("Map");
 	}
 
-	protected abstract void collectExtensions(METHOD_TYPE method, IExtensionCollector collector);
-
-	protected abstract IExtensionCollector getExtensionCollector();
-
 	@Getter
-	public static class BuilderData<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
+	private static class BuilderData<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
 		private final List<FIELD_TYPE> requiredFields = new ArrayList<FIELD_TYPE>();
 		private final List<FIELD_TYPE> optionalFields = new ArrayList<FIELD_TYPE>();
 		private final List<TypeRef> requiredFieldDefTypes = new ArrayList<TypeRef>();
-		private final List<String> allRequiredFieldNames = new ArrayList<String>();
+		private final List<String> requiredFieldNames = new ArrayList<String>();
+		private final List<String> optionalFieldNames = new ArrayList<String>();
 		private final List<String> requiredFieldDefTypeNames = new ArrayList<String>();;
 		private final TYPE_TYPE type;
 		private final String prefix;
@@ -354,12 +392,13 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 				if (excludes.contains(fieldName)) continue;
 				if ((!field.isInitialized()) && (field.isFinal() || !field.annotations(NON_NULL_PATTERN).isEmpty())) {
 					requiredFields.add(field);
-					allRequiredFieldNames.add(fieldName);
+					requiredFieldNames.add(fieldName);
 					String typeName = capitalize(camelCase(fieldName, "def"));
 					requiredFieldDefTypeNames.add(typeName);
 					requiredFieldDefTypes.add(Type(typeName));
 				} else if ((generateConvenientMethodsEnabled && isInitializedMapOrCollection(field)) || !field.isFinal()) {
 					optionalFields.add(field);
+					optionalFieldNames.add(fieldName);
 				}
 			}
 			return this;
@@ -370,13 +409,17 @@ public abstract class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_
 			allFields.addAll(getOptionalFields());
 			return allFields;
 		}
+
+		public List<String> getAllFieldNames() {
+			List<String> allFieldNames = new ArrayList<String>(getRequiredFieldNames());
+			allFieldNames.addAll(getOptionalFieldNames());
+			return allFieldNames;
+		}
 	}
 
-	public static interface IExtensionCollector {
-		public IExtensionCollector withRequiredFieldNames(final List<String> fieldNames);
-
-		public boolean isRequiredFieldsExtension();
-
-		public boolean isExtension();
+	private enum ExtensionType {
+		NONE,
+		REQUIRED,
+		OPTIONAL;
 	}
 }

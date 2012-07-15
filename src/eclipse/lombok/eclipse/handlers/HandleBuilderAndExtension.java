@@ -21,30 +21,21 @@
  */
 package lombok.eclipse.handlers;
 
-import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.AccPrivate;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
-import java.util.*;
-
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BuilderAndExtensionHandler;
-import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
-import lombok.eclipse.DeferUntilPostDiet;
-import lombok.eclipse.EclipseASTVisitor;
+import lombok.eclipse.DeferUntilBuildFieldsAndMethods;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseField;
 import lombok.eclipse.handlers.ast.EclipseMethod;
 import lombok.eclipse.handlers.ast.EclipseType;
 
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
-import org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleBuilderAndExtension {
@@ -76,7 +67,7 @@ public class HandleBuilderAndExtension {
 				// continue with creating the builder
 			}
 
-			new EclispeBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
+			new BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField>().handleBuilder(type, annotation.getInstance());
 		}
 	}
 
@@ -84,7 +75,7 @@ public class HandleBuilderAndExtension {
 	 * Handles the {@code lombok.Builder.Extension} annotation for eclipse.
 	 */
 	@ProviderFor(EclipseAnnotationHandler.class)
-	@DeferUntilPostDiet
+	@DeferUntilBuildFieldsAndMethods
 	public static class HandleBuilderExtension extends EclipseAnnotationHandler<Builder.Extension> {
 
 		@Override
@@ -95,7 +86,7 @@ public class HandleBuilderAndExtension {
 				annotationNode.addError(canBeUsedOnMethodOnly(Builder.Extension.class));
 				return;
 			}
-			if (method.isAbstract() || method.isEmpty()) {
+			if (method.isAbstract()) {
 				annotationNode.addError(canBeUsedOnConcreteMethodOnly(Builder.Extension.class));
 				return;
 			}
@@ -113,89 +104,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (Annotation) builderNode.get(), builderNode);
 			}
 
-			new EclispeBuilderAndExtensionHandler().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance());
-		}
-	}
-
-	private static class EclispeBuilderAndExtensionHandler extends BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField> {
-
-		@Override
-		protected void collectExtensions(final EclipseMethod method, final IExtensionCollector collector) {
-			method.node().traverse((EclipseASTVisitor) collector);
-		}
-
-		@Override
-		protected IExtensionCollector getExtensionCollector() {
-			return new ExtensionCollector();
-		}
-	}
-
-	private static class ExtensionCollector extends EclipseASTAdapterWithTypeDepth implements IExtensionCollector {
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
-		@Getter
-		private boolean isRequiredFieldsExtension;
-		@Getter
-		private boolean isExtension;
-		private boolean containsRequiredFields;
-
-		public ExtensionCollector() {
-			super(1);
-		}
-
-		@Override
-		public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
-			allRequiredFieldNames.clear();
-			allRequiredFieldNames.addAll(fieldNames);
-			return this;
-		}
-
-		@Override
-		public void visitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
-			if (isOfInterest() && (method instanceof MethodDeclaration)) {
-				containsRequiredFields = false;
-				isRequiredFieldsExtension = false;
-				isExtension = false;
-				requiredFieldNames.clear();
-				requiredFieldNames.addAll(allRequiredFieldNames);
-			}
-		}
-
-		@Override
-		public void visitStatement(final EclipseNode statementNode, final Statement statement) {
-			if (isOfInterest()) {
-				if (statement instanceof Assignment) {
-					Assignment assign = (Assignment) statement;
-					String fieldName = assign.lhs.toString();
-					if (fieldName.startsWith("this.")) {
-						fieldName = fieldName.substring(5);
-					}
-					if (requiredFieldNames.remove(fieldName)) {
-						containsRequiredFields = true;
-					}
-				}
-			}
-		}
-
-		@Override
-		public void endVisitMethod(final EclipseNode methodNode, final AbstractMethodDeclaration method) {
-			if (isOfInterest() && (method instanceof MethodDeclaration)) {
-				MethodDeclaration meth = (MethodDeclaration) method;
-				if (((meth.modifiers & AccPrivate) != 0) && "void".equals(meth.returnType.toString())) {
-					if (containsRequiredFields) {
-						if (requiredFieldNames.isEmpty()) {
-							isRequiredFieldsExtension = true;
-							isExtension = true;
-						} else {
-							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.");
-						}
-					} else {
-						isExtension = true;
-					}
-				} else {
-					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.");
-				}
-			}
+			new BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField>().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance());
 		}
 	}
 }

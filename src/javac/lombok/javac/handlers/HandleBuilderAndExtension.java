@@ -24,25 +24,17 @@ package lombok.javac.handlers;
 import static lombok.core.util.ErrorMessages.*;
 import static lombok.core.util.Names.*;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
-import static com.sun.tools.javac.code.Flags.*;
-
-import java.util.*;
 
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BuilderAndExtensionHandler;
-import lombok.core.handlers.BuilderAndExtensionHandler.IExtensionCollector;
-import lombok.javac.JavacASTVisitor;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.handlers.ast.JavacField;
 import lombok.javac.handlers.ast.JavacMethod;
 import lombok.javac.handlers.ast.JavacType;
 
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.mangosdk.spi.ProviderFor;
 
 public class HandleBuilderAndExtension {
@@ -75,7 +67,7 @@ public class HandleBuilderAndExtension {
 				// continue with creating the builder
 			}
 
-			new JavacBuilderAndExtensionHandler().handleBuilder(type, annotation.getInstance());
+			new BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField>().handleBuilder(type, annotation.getInstance());
 		}
 	}
 
@@ -114,88 +106,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation) builderNode.get(), builderNode);
 			}
 
-			new JavacBuilderAndExtensionHandler().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance());
-		}
-	}
-
-	private static class JavacBuilderAndExtensionHandler extends BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField> {
-
-		@Override
-		protected void collectExtensions(final JavacMethod method, final IExtensionCollector collector) {
-			method.node().traverse((JavacASTVisitor) collector);
-		}
-
-		@Override
-		protected IExtensionCollector getExtensionCollector() {
-			return new ExtensionCollector();
-		}
-	}
-
-	private static class ExtensionCollector extends JavacASTAdapterWithTypeDepth implements IExtensionCollector {
-		private final Set<String> allRequiredFieldNames = new HashSet<String>();
-		private final Set<String> requiredFieldNames = new HashSet<String>();
-		@Getter
-		private boolean isRequiredFieldsExtension;
-		@Getter
-		private boolean isExtension;
-		private boolean containsRequiredFields;
-
-		public ExtensionCollector() {
-			super(1);
-		}
-
-		@Override
-		public ExtensionCollector withRequiredFieldNames(final List<String> fieldNames) {
-			allRequiredFieldNames.clear();
-			allRequiredFieldNames.addAll(fieldNames);
-			return this;
-		}
-
-		@Override
-		public void visitMethod(final JavacNode methodNode, final JCMethodDecl method) {
-			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
-				containsRequiredFields = false;
-				isRequiredFieldsExtension = false;
-				isExtension = false;
-				requiredFieldNames.clear();
-				requiredFieldNames.addAll(allRequiredFieldNames);
-			}
-		}
-
-		@Override
-		public void visitStatement(final JavacNode statementNode, final JCTree statement) {
-			if (isOfInterest()) {
-				if (statement instanceof JCAssign) {
-					JCAssign assign = (JCAssign) statement;
-					String fieldName = assign.lhs.toString();
-					if (fieldName.startsWith("this.")) {
-						fieldName = fieldName.substring(5);
-					}
-					if (requiredFieldNames.remove(fieldName)) {
-						containsRequiredFields = true;
-					}
-				}
-			}
-		}
-
-		@Override
-		public void endVisitMethod(final JavacNode methodNode, final JCMethodDecl method) {
-			if (isOfInterest() && !"<init>".equals(method.name.toString())) {
-				if (((method.mods.flags & PRIVATE) != 0) && "void".equals(method.restype.toString())) {
-					if (containsRequiredFields) {
-						if (requiredFieldNames.isEmpty()) {
-							isRequiredFieldsExtension = true;
-							isExtension = true;
-						} else {
-							methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' does not contain all required fields and was skipped.");
-						}
-					} else {
-						isExtension = true;
-					}
-				} else {
-					methodNode.addWarning("@Builder.Extension: The method '" + methodNode.getName() + "' is not a valid extension and was skipped.");
-				}
-			}
+			new BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField>().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance());
 		}
 	}
 }

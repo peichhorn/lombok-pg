@@ -1,1 +1,1 @@
-7:22 WARNING @Builder.Extension: The method 'brokenExtension' does not contain all required fields and was skipped.
+7:22 WARNING @Builder.Extension: The method 'brokenExtension' is not a valid extension and was ignored.

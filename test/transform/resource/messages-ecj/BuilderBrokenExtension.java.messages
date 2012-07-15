@@ -1,2 +1,2 @@
-7 warning @Builder.Extension: The method 'brokenExtension' does not contain all required fields and was skipped.
+7 warning @Builder.Extension: The method 'brokenExtension' is not a valid extension and was ignored.
 8 error The final field BuilderBrokenExtension.id cannot be assigned
