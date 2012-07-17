@@ -176,7 +176,7 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 				List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
 				createFluentSetter(builderData, names.get(i), field, interfaceMethods, builderMethods);
 
-				type.editor().injectType(InterfaceDecl(name).makePublic().makeStatic().withMethods(interfaceMethods));
+				type.editor().injectType(InterfaceDecl(name).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 				field = fields.get(i);
 				name = names.get(i);
 			}

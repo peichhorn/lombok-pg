@@ -13,3 +13,9 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		this.foo = clazz.getSimpleName();
 	}
 }
+
+@Builder
+class DomainContainer<D> {
+	private final int a;
+	private final D domain;
+}

@@ -52,3 +52,42 @@ import lombok.Builder;
     return new $Builder<K, V>();
   }
 }
+@Builder class DomainContainer<D> {
+  public static @java.lang.SuppressWarnings("all") interface ADef<D> {
+    public DomainDef<D> a(final int a);
+  }
+  public static @java.lang.SuppressWarnings("all") interface DomainDef<D> {
+    public OptionalDef<D> domain(final D domain);
+  }
+  public static @java.lang.SuppressWarnings("all") interface OptionalDef<D> {
+    public DomainContainer<D> build();
+  }
+  private static @java.lang.SuppressWarnings("all") class $Builder<D> implements ADef<D>, DomainDef<D>, OptionalDef<D> {
+    private int a;
+    private D domain;
+    public DomainDef<D> a(final int a) {
+      this.a = a;
+      return this;
+    }
+    public OptionalDef<D> domain(final D domain) {
+      this.domain = domain;
+      return this;
+    }
+    public DomainContainer<D> build() {
+      return new DomainContainer<D>(this);
+    }
+    private $Builder() {
+      super();
+    }
+  }
+  private final int a;
+  private final D domain;
+  private @java.lang.SuppressWarnings("all") DomainContainer(final $Builder<D> builder) {
+    super();
+    this.a = builder.a;
+    this.domain = builder.domain;
+  }
+  public static @java.lang.SuppressWarnings("all") <D>ADef<D> domainContainer() {
+    return new $Builder<D>();
+  }
+}

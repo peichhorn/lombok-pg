@@ -76,3 +76,61 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		}
 	}
 }
+class DomainContainer<D> {
+	private final int a;
+	private final D domain;
+	
+	@java.lang.SuppressWarnings("all")
+	private DomainContainer(final $Builder<D> builder) {
+		super();
+		this.a = builder.a;
+		this.domain = builder.domain;
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static <D> ADef<D> domainContainer() {
+		return new $Builder<D>();
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static interface ADef<D> {
+		
+		DomainDef<D> a(final int a);
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static interface DomainDef<D> {
+		
+		OptionalDef<D> domain(final D domain);
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static interface OptionalDef<D> {
+		
+		DomainContainer<D> build();
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	private static class $Builder<D> implements ADef<D>, DomainDef<D>, OptionalDef<D> {
+		private int a;
+		private D domain;
+		
+		public DomainDef<D> a(final int a) {
+			this.a = a;
+			return this;
+		}
+		
+		public OptionalDef<D> domain(final D domain) {
+			this.domain = domain;
+			return this;
+		}
+		
+		public DomainContainer<D> build() {
+			return new DomainContainer<D>(this);
+		}
+		
+		private $Builder() {
+			super();
+		}
+	}
+}
