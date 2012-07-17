@@ -24,7 +24,10 @@ class BuilderExtensions {
 		IdDef text(final String text);
 		
 		@java.lang.SuppressWarnings("all")
-		OptionalDef idAndText(final String id, final String text);
+		OptionalDef idAndText(final int id, final String text);
+		
+		@java.lang.SuppressWarnings("all")
+		OptionalDef idAsStringAndText(final String id, final String text);
 	}
 	
 	@java.lang.SuppressWarnings("all")
@@ -80,7 +83,14 @@ class BuilderExtensions {
 		}
 		
 		@java.lang.SuppressWarnings("all")
-		public OptionalDef idAndText(final String id, final String text) {
+		public OptionalDef idAndText(final int id, final String text) {
+			this.id = id;
+			this.text = text;
+			return this;
+		}
+		
+		@java.lang.SuppressWarnings("all")
+		public OptionalDef idAsStringAndText(final String id, final String text) {
 			this.id = java.lang.Integer.valueOf(id);
 			this.text = text;
 			return this;

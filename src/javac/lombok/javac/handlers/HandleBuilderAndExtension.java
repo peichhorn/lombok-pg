@@ -106,7 +106,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation) builderNode.get(), builderNode);
 			}
 
-			new BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField>().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance());
+			new BuilderAndExtensionHandler<JavacType, JavacMethod, JavacField>().handleExtension(type, method, new JavacParameterValidator(), new JavacParameterSanitizer(), builderAnnotation.getInstance(), annotation.getInstance());
 		}
 	}
 }

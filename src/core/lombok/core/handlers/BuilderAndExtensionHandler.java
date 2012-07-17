@@ -31,6 +31,7 @@ import java.util.*;
 
 import lombok.*;
 import lombok.ast.*;
+import lombok.core.util.Is;
 import lombok.core.util.Names;
 
 public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIELD_TYPE, ?, ?, ?, ?>, METHOD_TYPE extends IMethod<TYPE_TYPE, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
@@ -54,11 +55,11 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 	}
 
 	public void handleExtension(final TYPE_TYPE type, final METHOD_TYPE method, final IParameterValidator<METHOD_TYPE> validation,
-			final IParameterSanitizer<METHOD_TYPE> sanitizer, final Builder builder) {
+			final IParameterSanitizer<METHOD_TYPE> sanitizer, final Builder builder, final Builder.Extension extension) {
 		TYPE_TYPE builderType = type.<TYPE_TYPE> memberType(BUILDER);
 		final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData = new BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE>(type, builder).collect();
 
-		final ExtensionType extensionType = getExtensionType(method, builderData);
+		final ExtensionType extensionType = getExtensionType(method, builderData, extension.fields());
 		if (extensionType == ExtensionType.NONE) return;
 
 		TYPE_TYPE interfaceType;
@@ -76,13 +77,13 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 		type.editor().removeMethod(method);
 	}
 
-	private ExtensionType getExtensionType(final METHOD_TYPE method, final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData) {
+	private ExtensionType getExtensionType(final METHOD_TYPE method, final BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> builderData, final String[] fields) {
 		if (method.isConstructor() || (method.accessLevel() != AccessLevel.PRIVATE) || !method.returns("void")) {
 			method.node().addWarning("@Builder.Extension: The method '" + method.name() + "' is not a valid extension and was ignored.");
 			return ExtensionType.NONE;
 		}
 
-		final String[] extensionFieldNames = extensionFieldNames(method, builderData);
+		final String[] extensionFieldNames = Is.notEmpty(fields) ? fields : extensionFieldNames(method, builderData);
 		List<String> allFieldNames = builderData.getAllFieldNames();
 		for (String potentialFieldName : extensionFieldNames) {
 			if (!allFieldNames.contains(Names.decapitalize(potentialFieldName))) {

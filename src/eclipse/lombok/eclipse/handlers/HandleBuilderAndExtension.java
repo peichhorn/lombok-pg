@@ -104,7 +104,7 @@ public class HandleBuilderAndExtension {
 				new HandleBuilder().handle(builderAnnotation, (Annotation) builderNode.get(), builderNode);
 			}
 
-			new BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField>().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance());
+			new BuilderAndExtensionHandler<EclipseType, EclipseMethod, EclipseField>().handleExtension(type, method, new EclipseParameterValidator(), new EclipseParameterSanitizer(), builderAnnotation.getInstance(), annotation.getInstance());
 		}
 	}
 }

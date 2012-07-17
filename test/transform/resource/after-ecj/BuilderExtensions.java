@@ -1,7 +1,8 @@
 @lombok.Builder(exclude = {"optionalVal3"},convenientMethods = false) class BuilderExtensions {
   public static @java.lang.SuppressWarnings("all") interface TextDef {
     public IdDef text(final String text);
-    public @java.lang.SuppressWarnings("all") OptionalDef idAndText(final String id, final String text);
+    public @java.lang.SuppressWarnings("all") OptionalDef idAndText(final int id, final String text);
+    public @java.lang.SuppressWarnings("all") OptionalDef idAsStringAndText(final String id, final String text);
   }
   public static @java.lang.SuppressWarnings("all") interface IdDef {
     public OptionalDef id(final int id);
@@ -39,7 +40,12 @@
     private $Builder() {
       super();
     }
-    public @java.lang.SuppressWarnings("all") OptionalDef idAndText(final String id, final String text) {
+    public @java.lang.SuppressWarnings("all") OptionalDef idAndText(final int id, final String text) {
+      this.id = id;
+      this.text = text;
+      return this;
+    }
+    public @java.lang.SuppressWarnings("all") OptionalDef idAsStringAndText(final String id, final String text) {
       this.id = java.lang.Integer.valueOf(id);
       this.text = text;
       return this;

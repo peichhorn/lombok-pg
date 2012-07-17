@@ -7,7 +7,13 @@ class BuilderExtensions {
 	private long optionalVal3;
 	
 	@lombok.Builder.Extension
-	private void idAndText(String id, String text) {
+	private void idAndText(int id, String text) {
+		this.id = id;
+		this.text = text;
+	}	
+
+	@lombok.Builder.Extension(fields={"id", "text"})
+	private void idAsStringAndText(String id, String text) {
 		this.id = java.lang.Integer.valueOf(id);
 		this.text = text;
 	}
