@@ -3,7 +3,7 @@ class ApplicationPlain1 implements lombok.Application {
   ApplicationPlain1() {
     super();
   }
-  public @Override void runApp(String[] args) throws Throwable {
+  public void runApp(String[] args) throws Throwable {
   }
   public static @java.lang.SuppressWarnings("all") void main(final java.lang.String[] args) throws java.lang.Throwable {
     new ApplicationPlain1().runApp(args);

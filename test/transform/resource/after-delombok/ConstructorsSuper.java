@@ -5,7 +5,6 @@ class RequiredArgsConstructor1 extends Exception {
 	@java.beans.ConstructorProperties({"x"})
 	@java.lang.SuppressWarnings("all")
 	public RequiredArgsConstructor1(final int x) {
-		super();
 		this.x = x;
 	}
 	
@@ -36,7 +35,6 @@ class AllArgsConstructor1 extends Exception {
 	
 	@java.lang.SuppressWarnings("all")
 	private AllArgsConstructor1(final int x, final String name) {
-		super();
 		this.x = x;
 		this.name = name;
 	}
@@ -88,7 +86,6 @@ class NoArgsConstructor1 extends Exception {
 	
 	@java.lang.SuppressWarnings("all")
 	public NoArgsConstructor1() {
-		super();
 	}
 	
 	@java.beans.ConstructorProperties({"arg0"})

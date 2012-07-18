@@ -1,1 +1,2 @@
 1:1 WARNING Not generating 'public static $Builder builderFactoryMethodExists()' A method with that name already exists
+2:1 ERROR variable text might not have been initialized

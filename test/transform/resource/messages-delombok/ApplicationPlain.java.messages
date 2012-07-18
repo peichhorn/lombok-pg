@@ -1,0 +1,3 @@
+8:1 ERROR cannot find symbol
+symbol  : method runApp(java.lang.String[])
+location: class ApplicationPlain2

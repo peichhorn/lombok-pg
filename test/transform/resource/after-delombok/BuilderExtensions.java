@@ -7,7 +7,6 @@ class BuilderExtensions {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderExtensions(final $Builder builder) {
-		super();
 		this.text = builder.text;
 		this.id = builder.id;
 		this.optionalVal1 = builder.optionalVal1;
@@ -79,7 +78,6 @@ class BuilderExtensions {
 		}
 		
 		private $Builder() {
-			super();
 		}
 		
 		@java.lang.SuppressWarnings("all")

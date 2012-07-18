@@ -3,7 +3,6 @@ class BuilderCustomConstructor {
 	private final String surname;
 	
 	private BuilderCustomConstructor(final $Builder builder) {
-		super();
 		this.name = builder.name.trim();
 		this.surname = builder.surname.trim();
 	}
@@ -51,7 +50,6 @@ class BuilderCustomConstructor {
 		}
 		
 		private $Builder() {
-			super();
 		}
 	}
 }

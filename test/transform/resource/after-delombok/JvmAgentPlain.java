@@ -2,9 +2,7 @@ import java.lang.instrument.Instrumentation;
 
 class JvmAgentPlain {
 	JvmAgentPlain() {
-		super();
 	}
-	@Override
 	public void runAgent(boolean injected, String params, Instrumentation instrumentation) throws Throwable {
 	}
 	@java.lang.SuppressWarnings("all")

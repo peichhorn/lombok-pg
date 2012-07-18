@@ -1,7 +1,6 @@
 import java.lang.instrument.Instrumentation;
 
 class ApplicationPlain1 {
-	@Override
 	public void runApp(String[] args) throws Throwable {
 	}
 	@java.lang.SuppressWarnings("all")

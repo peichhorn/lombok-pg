@@ -7,7 +7,6 @@ class BuilderNonNull {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderNonNull(final $Builder builder) {
-		super();
 		this.nonNullValue = builder.nonNullValue;
 		this.anotherValue = builder.anotherValue;
 	}
@@ -51,7 +50,6 @@ class BuilderNonNull {
 		}
 		
 		private $Builder() {
-			super();
 		}
 	}
 }

@@ -13,7 +13,6 @@ class YieldIfThenElse {
 			private java.lang.String $next;
 			
 			private $YielderTest() {
-				super();
 			}
 			
 			public java.util.Iterator<java.lang.String> iterator() {

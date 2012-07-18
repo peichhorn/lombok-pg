@@ -11,7 +11,6 @@ class BuilderCallMethods {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderCallMethods(final $Builder builder) {
-		super();
 		this.text = builder.text;
 		this.id = builder.id;
 	}
@@ -68,7 +67,6 @@ class BuilderCallMethods {
 		}
 		
 		private $Builder() {
-			super();
 		}
 	}
 }

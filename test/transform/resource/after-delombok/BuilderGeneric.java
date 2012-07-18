@@ -8,7 +8,6 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderGeneric(final $Builder<K, V> builder) {
-		super();
 		this.foo = builder.foo;
 		this.bar.putAll(builder.bar);
 	}
@@ -66,7 +65,6 @@ class BuilderGeneric<K extends Comparable<K>, V extends List<K>> {
 		}
 		
 		private $Builder() {
-			super();
 		}
 		
 		@java.lang.SuppressWarnings("all")
@@ -82,7 +80,6 @@ class DomainContainer<D> {
 	
 	@java.lang.SuppressWarnings("all")
 	private DomainContainer(final $Builder<D> builder) {
-		super();
 		this.a = builder.a;
 		this.domain = builder.domain;
 	}
@@ -130,7 +127,6 @@ class DomainContainer<D> {
 		}
 		
 		private $Builder() {
-			super();
 		}
 	}
 }

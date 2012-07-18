@@ -22,7 +22,6 @@ class YieldAndVal {
 			private T $next;
 			
 			private $YielderNeedsMoreVal() {
-				super();
 			}
 			
 			public java.util.Iterator<T> iterator() {

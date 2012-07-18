@@ -1,7 +1,7 @@
 import java.lang.instrument.Instrumentation;
 
 class ApplicationPlain1 implements lombok.Application {
-	@Override public void runApp(String[] args) throws Throwable {
+	public void runApp(String[] args) throws Throwable {
 
 	}
 }

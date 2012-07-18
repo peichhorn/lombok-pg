@@ -1,1 +1,2 @@
 7:22 WARNING @Builder.Extension: The method 'brokenExtension' is not a valid extension and was ignored.
+8:21 ERROR cannot assign a value to final variable id

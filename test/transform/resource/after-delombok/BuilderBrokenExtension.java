@@ -8,7 +8,6 @@ class BuilderBrokenExtension {
 	
 	@java.lang.SuppressWarnings("all")
 	private BuilderBrokenExtension(final $Builder builder) {
-		super();
 		this.text = builder.text;
 		this.id = builder.id;
 	}
@@ -57,7 +56,6 @@ class BuilderBrokenExtension {
 		}
 		
 		private $Builder() {
-			super();
 		}
 	}
 }

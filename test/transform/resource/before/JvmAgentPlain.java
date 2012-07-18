@@ -5,7 +5,7 @@ class JvmAgentPlain implements JvmAgent {
 	JvmAgentPlain() {
 		super();
 	}
-	@Override public void runAgent(boolean injected, String params, Instrumentation instrumentation) throws Throwable {
+	public void runAgent(boolean injected, String params, Instrumentation instrumentation) throws Throwable {
 
 	}
 }
