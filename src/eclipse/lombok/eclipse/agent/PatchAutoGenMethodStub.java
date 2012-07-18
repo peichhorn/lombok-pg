@@ -56,6 +56,21 @@ public final class PatchAutoGenMethodStub {
 			.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
 			.replacementMethod(new Hook(HOOK_NAME, "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
 			.build());
+		
+		// some special magic if ScalaIDE is installed.. 
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod_aroundBody0", "void", METHODVERIFIER, METHODBINDING))
+			.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods_aroundBody2", "void", METHODVERIFIER, METHODBINDINGS, "int"))
+			.methodToReplace(new Hook(TYPEDECLARATION, "addMissingAbstractMethodFor", METHODDECLARATION, METHODBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "addMissingAbstractMethodFor", METHODDECLARATION, TYPEDECLARATION, METHODBINDING))
+			.build());
+
+		sm.addScript(replaceMethodCall()
+			.target(new MethodTarget(METHODVERIFIER, "checkAbstractMethod_aroundBody0", "void", METHODVERIFIER, METHODBINDING))
+			.target(new MethodTarget(METHODVERIFIER, "checkInheritedMethods_aroundBody2", "void", METHODVERIFIER, METHODBINDINGS, "int"))
+			.methodToReplace(new Hook(PROBLEMREPORTER, "abstractMethodMustBeImplemented", "void", SOURCETYPEBINDING, METHODBINDING))
+			.replacementMethod(new Hook(HOOK_NAME, "abstractMethodMustBeImplemented", "void", PROBLEMREPORTER, SOURCETYPEBINDING, METHODBINDING))
+			.build());
 	}
 
 	private static final ThreadLocal<Boolean> ISSUE_WAS_FIXED = new ThreadLocal<Boolean>() {
