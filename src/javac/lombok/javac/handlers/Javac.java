@@ -22,6 +22,7 @@
 package lombok.javac.handlers;
 
 import static lombok.javac.handlers.JavacHandlerUtil.chainDotsString;
+import static lombok.javac.handlers.JavacHandlerUtil.inNetbeansEditor;
 
 import java.util.*;
 
@@ -92,6 +93,7 @@ public final class Javac {
 	 * imports this exact interface (not star imports).
 	 */
 	public static void markInterfaceAsProcessed(final JavacNode typeNode, final Class<?> interfazeType) {
+		if (inNetbeansEditor(typeNode)) return;
 		JCClassDecl typeDecl = null;
 		if (typeNode.get() instanceof JCClassDecl) typeDecl = (JCClassDecl) typeNode.get();
 		if (typeDecl != null) {
@@ -120,6 +122,7 @@ public final class Javac {
 	}
 
 	public static void deleteImport(final JavacNode node, final String name, final boolean deleteStatic) {
+		if (inNetbeansEditor(node)) return;
 		if (!node.shouldDeleteLombokAnnotations()) return;
 		String adjustedName = name.replace("$", ".");
 		JCCompilationUnit unit = (JCCompilationUnit) node.top().get();

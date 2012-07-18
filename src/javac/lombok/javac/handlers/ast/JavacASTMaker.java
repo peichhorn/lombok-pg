@@ -168,8 +168,15 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	}
 
 	private TreeMaker M(final lombok.ast.Node<?> node) {
-		final JCTree posHint = node.posHint();
-		return sourceNode.getTreeMaker().at(posHint == null ? source.pos : posHint.pos);
+		
+		final int pos; 
+		if ((node.upTo(lombok.ast.EnumConstant.class) != null) || (node.upTo(lombok.ast.FieldDecl.class) != null)) {
+			pos = -1;
+		} else {
+			final JCTree posHint = node.posHint();
+			pos = posHint == null ? source.pos : posHint.pos;
+		}
+		return sourceNode.getTreeMaker().at(pos);
 	}
 
 	private Name name(final String name) {
@@ -366,7 +373,7 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitEnumConstant(final lombok.ast.EnumConstant node, final Void p) {
-		final JCModifiers mods = setGeneratedBy(M(node).at(-1).Modifiers(ENUM | STATIC | FINAL | PUBLIC, build(node.getAnnotations(), JCAnnotation.class)), source);
+		final JCModifiers mods = setGeneratedBy(M(node).Modifiers(ENUM | STATIC | FINAL | PUBLIC, build(node.getAnnotations(), JCAnnotation.class)), source);
 		lombok.ast.ClassDecl enumClassDecl = node.upTo(lombok.ast.ClassDecl.class);
 		final JCExpression varType;
 		if (enumClassDecl == null) {
