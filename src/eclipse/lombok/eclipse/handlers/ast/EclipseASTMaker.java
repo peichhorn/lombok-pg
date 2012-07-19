@@ -125,6 +125,7 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 import lombok.*;
+import lombok.ast.DefaultValue;
 import lombok.ast.Node;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
@@ -433,6 +434,35 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	}
 
 	@Override
+	public ASTNode visitDefaultValue(DefaultValue node, Void p) {
+		lombok.ast.Expression<?> returnValue = Null();
+		final TypeReference type = build(node.getType());
+		if (type instanceof SingleTypeReference) {
+			final String name = As.string(type.getLastToken());
+			if ("int".equals(name)) {
+				returnValue = Number(Integer.valueOf(0));
+			} else if ("byte".equals(name)) {
+				returnValue = Number(Integer.valueOf(0));
+			} else if ("short".equals(name)) {
+				returnValue = Number(Integer.valueOf(0));
+			} else if ("char".equals(name)) {
+				returnValue = Char("");
+			} else if ("long".equals(name)) {
+				returnValue = Number(Long.valueOf(0));
+			} else if ("float".equals(name)) {
+				returnValue = Number(Float.valueOf(0));
+			} else if ("double".equals(name)) {
+				returnValue = Number(Double.valueOf(0));
+			} else if ("boolean".equals(name)) {
+				returnValue = False();
+			} else if ("void".equals(name)) {
+				returnValue = null;
+			}
+		}
+		return build(returnValue);
+	}
+
+	@Override
 	public ASTNode visitEnumConstant(final lombok.ast.EnumConstant node, final Void p) {
 		final AllocationExpression allocationExpression = new AllocationExpression();
 		setGeneratedByAndCopyPos(allocationExpression, source, posHintOf(node));
@@ -648,35 +678,11 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 
 	@Override
 	public ASTNode visitReturnDefault(final lombok.ast.ReturnDefault node, final Void p) {
-		lombok.ast.Return returnDefault = Return(Null());
 		lombok.ast.TypeRef returnType = node.upTo(lombok.ast.MethodDecl.class).getReturnType();
 		if (returnType == null) {
 			returnType = Type(methodNodeOf(sourceNode).getName());
 		}
-		final TypeReference type = build(returnType);
-		if (type instanceof SingleTypeReference) {
-			final String name = As.string(type.getLastToken());
-			if ("int".equals(name)) {
-				returnDefault = Return(Number(Integer.valueOf(0)));
-			} else if ("byte".equals(name)) {
-				returnDefault = Return(Number(Integer.valueOf(0)));
-			} else if ("short".equals(name)) {
-				returnDefault = Return(Number(Integer.valueOf(0)));
-			} else if ("char".equals(name)) {
-				returnDefault = Return(Char(""));
-			} else if ("long".equals(name)) {
-				returnDefault = Return(Number(Long.valueOf(0)));
-			} else if ("float".equals(name)) {
-				returnDefault = Return(Number(Float.valueOf(0)));
-			} else if ("double".equals(name)) {
-				returnDefault = Return(Number(Double.valueOf(0)));
-			} else if ("boolean".equals(name)) {
-				returnDefault = Return(False());
-			} else if ("void".equals(name)) {
-				returnDefault = Return();
-			}
-		}
-		return build(returnDefault);
+		return build(Return(DefaultValue(returnType)));
 	}
 
 	@Override

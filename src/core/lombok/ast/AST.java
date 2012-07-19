@@ -101,6 +101,10 @@ public final class AST {
 		return new Continue(label);
 	}
 
+	public static DefaultValue DefaultValue(final TypeRef type) {
+		return new DefaultValue(type);
+	}
+
 	public static DoWhile Do(final Statement<?> action) {
 		return new DoWhile(action);
 	}

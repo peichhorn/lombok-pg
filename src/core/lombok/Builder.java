@@ -155,6 +155,12 @@ public @interface Builder {
 	String[] callMethods() default {};
 
 	/**
+	 * <p>Instruct lombok to generate a reset() method, so you can reuse the Builder instance.</p>
+	 * <p>Normally reusing the Builder instance is not necessary, therefore this feature is turned off by default.</p>
+	 */
+	boolean allowReset() default false;
+
+	/**
 	 * <p>
 	 * Use this on methods in a {@link Builder @Builder}-annotated class to specify extensions for the generated
 	 * builder. To decide if an extension initializes required fields or not, {@link Builder.Extension @Builder.Extension}

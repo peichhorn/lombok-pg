@@ -83,6 +83,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
 import lombok.RequiredArgsConstructor;
+import lombok.ast.DefaultValue;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.javac.Javac;
@@ -366,6 +367,21 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	}
 
 	@Override
+	public JCTree visitDefaultValue(final DefaultValue node, final Void p) {
+		lombok.ast.Expression<?> defaultValue = Null();
+		final JCExpression type = build(node.getType());
+		if (type instanceof JCPrimitiveTypeTree) {
+			JCPrimitiveTypeTree primitiveType = (JCPrimitiveTypeTree) type;
+			if (primitiveType.typetag == TYPES.get("void")) {
+				defaultValue = null;
+			} else {
+				defaultValue = Expr(M(node).Literal(primitiveType.typetag, 0));
+			}
+		}
+		return build(defaultValue);
+	}
+
+	@Override
 	public JCTree visitDoWhile(final lombok.ast.DoWhile node, final Void p) {
 		final JCDoWhileLoop doStatement = setGeneratedBy(M(node).DoLoop(build(node.getAction(), JCStatement.class), build(node.getCondition(), JCExpression.class)), source);
 		return doStatement;
@@ -506,21 +522,11 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 
 	@Override
 	public JCTree visitReturnDefault(final lombok.ast.ReturnDefault node, final Void p) {
-		lombok.ast.Return returnDefault = Return(Null());
 		lombok.ast.TypeRef returnType = node.upTo(lombok.ast.MethodDecl.class).getReturnType();
 		if (returnType == null) {
 			returnType = Type(methodNodeOf(sourceNode).getName());
 		}
-		final JCExpression type = build(returnType);
-		if (type instanceof JCPrimitiveTypeTree) {
-			JCPrimitiveTypeTree primitiveType = (JCPrimitiveTypeTree) type;
-			if (primitiveType.typetag == TYPES.get("void")) {
-				returnDefault = Return();
-			} else {
-				returnDefault = Return(Expr(M(node).Literal(primitiveType.typetag, 0)));
-			}
-		}
-		return build(returnDefault);
+		return build(Return(DefaultValue(returnType)));
 	}
 
 	@Override

@@ -51,6 +51,8 @@ public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
 
 	RETURN_TYPE visitContinue(Continue node, PARAMETER_TYPE p);
 
+	RETURN_TYPE visitDefaultValue(DefaultValue node, PARAMETER_TYPE p);
+
 	RETURN_TYPE visitDoWhile(DoWhile node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitEnumConstant(EnumConstant node, PARAMETER_TYPE p);

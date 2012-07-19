@@ -21,6 +21,8 @@
  */
 package lombok.ast;
 
+import static lombok.ast.AST.*;
+
 import java.io.PrintStream;
 import java.util.*;
 import java.util.Map.Entry;
@@ -256,6 +258,11 @@ public final class ASTPrinter implements ASTVisitor<ASTPrinter.State, ASTPrinter
 	}
 
 	@Override
+	public State visitDefaultValue(final DefaultValue node, final State state) {
+		return state.print("defaultValue");
+	}
+
+	@Override
 	public State visitDoWhile(final DoWhile node, final State state) {
 		return state.print("do ").print(node.getAction(), this).print("\nwhile ( ").print(node.getCondition(), this).print(")");
 	}
@@ -440,7 +447,7 @@ public final class ASTPrinter implements ASTVisitor<ASTPrinter.State, ASTPrinter
 
 	@Override
 	public State visitReturnDefault(final ReturnDefault node, final State state) {
-		return state.print("return defaultValue");
+		return state.print(Return(DefaultValue(null)));
 	}
 
 	@Override
