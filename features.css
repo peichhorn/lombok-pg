@@ -3,17 +3,36 @@ body {
 	background-image: url(gradient.png);
 	background-repeat: repeat-x;
 	background-attachment: fixed;
+	background-position: 0px 70px;
 }
 
 #pepper {
 	background-image: url(lombok-background.png);
 	background-repeat: no-repeat;
 	background-attachment: fixed;
-	background-position: 50px 20px;
+	background-position: 50px 90px;
+	position: absolute;
+	top: 70px;
 }
 
 * html #pepper {
 	background: none;
+}
+
+.deprecation {
+	padding: 20px 0px 20px 0px;
+	position: fixed;
+	width: 100%;
+	min-height: 30px;
+	background-color: #222222;
+	color: white;
+	font-size: 1.5em;
+	text-align: center;
+	z-index: 100;
+}
+
+.deprecation a {
+	color: #ccccff;
 }
 
 .meat {
