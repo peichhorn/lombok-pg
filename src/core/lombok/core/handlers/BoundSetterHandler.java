@@ -95,13 +95,13 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 
 	private void generateSetter(final TYPE_TYPE type, final List<FIELD_TYPE> fields, final AccessLevel level, final boolean vetoable, final boolean throwVetoException) {
 		if (!fields.isEmpty()) {
-			if (!type.hasMethod(PROPERTY_CHANGE_SUPPORT_METHOD_NAME, 0)) {
+			if (!hasAllPropertyChangeMethods(type)) {
 				generatePropertyChangeSupportFields(type);
 				generateGetPropertySupportMethod(type);
 				generatePropertyChangeListenerMethods(type);
 				generateFirePropertyChangeMethod(type);
 			}
-			if (vetoable && !type.hasMethod(VETOABLE_CHANGE_SUPPORT_METHOD_NAME, 0)) {
+			if (vetoable && !hasAllVetoableChangeMethods(type)) {
 				generateVetoableChangeSupportFields(type);
 				generateGetVetoableSupportMethod(type);
 				generateVetoableChangeListenerMethods(type);
@@ -113,6 +113,20 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 			generatePropertyNameConstant(type, field, propertyNameFieldName);
 			generateSetter(type, field, level, vetoable, throwVetoException, propertyNameFieldName);
 		}
+	}
+
+	private boolean hasAllPropertyChangeMethods(final TYPE_TYPE type) {
+		for (String methodName : PROPERTY_CHANGE_METHOD_NAMES) {
+			if (!type.hasMethodIncludingSupertypes(methodName, Type(PropertyChangeListener.class))) return false;
+		}
+		return type.hasMethodIncludingSupertypes(FIRE_PROPERTY_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
+	}
+
+	private boolean hasAllVetoableChangeMethods(final TYPE_TYPE type) {
+		for (String methodName : VETOABLE_CHANGE_METHOD_NAMES) {
+			if (!type.hasMethodIncludingSupertypes(methodName, Type(VetoableChangeListener.class))) return false;
+		}
+		return type.hasMethodIncludingSupertypes(FIRE_VETOABLE_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
 	}
 
 	private void generatePropertyNameConstant(final TYPE_TYPE type, final FIELD_TYPE field, final String propertyNameFieldName) {
@@ -127,7 +141,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		boolean isBoolean = field.isOfType("boolean");
 		AnnotationValues<Accessors> accessors = AnnotationValues.of(Accessors.class, field.node());
 		String setterName = toSetterName(accessors, fieldName, isBoolean);
-		if (type.hasMethod(setterName, 1)) return;
+		if (type.hasMethod(setterName, field.type())) return;
 		String oldValueName = OLD_VALUE_VARIABLE_NAME;
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type("void"), setterName).withAccessLevel(level).withArgument(Arg(field.type(), fieldName).withAnnotations(nonNulls));
@@ -166,7 +180,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private void generateGetPropertySupportMethod(final TYPE_TYPE type) {
-		if (type.hasMethod(PROPERTY_CHANGE_SUPPORT_METHOD_NAME, 0)) return;
+		if (type.hasMethod(PROPERTY_CHANGE_SUPPORT_METHOD_NAME)) return;
 		type.editor().injectMethod(MethodDecl(Type(PropertyChangeSupport.class), PROPERTY_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
 				.withStatement(If(Equal(Field(PROPERTY_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
 						.withStatement(Synchronized(Field(PROPERTY_CHANGE_SUPPORT_FIELD_NAME + "Lock")) //
@@ -182,13 +196,13 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private void generatePropertyChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
-		if (type.hasMethod(methodName, 1)) return;
+		if (type.hasMethod(methodName, Type(PropertyChangeListener.class))) return;
 		type.editor().injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(PropertyChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 
 	private void generateFirePropertyChangeMethod(final TYPE_TYPE type) {
-		if (type.hasMethod(FIRE_PROPERTY_CHANGE_METHOD_NAME, 3)) return;
+		if (type.hasMethod(FIRE_PROPERTY_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class))) return;
 		type.editor().injectMethod(MethodDecl(Type("void"), FIRE_PROPERTY_CHANGE_METHOD_NAME).makePublic() //
 				.withArgument(Arg(Type(String.class), PROPERTY_NAME_ARG_NAME)).withArgument(Arg(Type(Object.class), OLD_VALUE_ARG_NAME)).withArgument(Arg(Type(Object.class), NEW_VALUE_ARG_NAME)) //
 				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
@@ -206,7 +220,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private void generateGetVetoableSupportMethod(final TYPE_TYPE type) {
-		if (type.hasMethod(VETOABLE_CHANGE_SUPPORT_METHOD_NAME, 0)) return;
+		if (type.hasMethod(VETOABLE_CHANGE_SUPPORT_METHOD_NAME)) return;
 		type.editor().injectMethod(MethodDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_METHOD_NAME).makePrivate() //
 				.withStatement(If(Equal(Field(VETOABLE_CHANGE_SUPPORT_FIELD_NAME), Null())).Then(Block() //
 						.withStatement(Synchronized(Field(VETOABLE_CHANGE_SUPPORT_FIELD_NAME + "Lock")) //
@@ -222,13 +236,13 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private void generateVetoableChangeListenerMethod(final String methodName, final TYPE_TYPE type) {
-		if (type.hasMethod(methodName, 1)) return;
+		if (type.hasMethod(methodName, Type(VetoableChangeListener.class))) return;
 		type.editor().injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(VetoableChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 
 	private void generateFireVetoableChangeMethod(final TYPE_TYPE type) {
-		if (type.hasMethod(FIRE_VETOABLE_CHANGE_METHOD_NAME, 3)) return;
+		if (type.hasMethod(FIRE_VETOABLE_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class))) return;
 		type.editor().injectMethod(MethodDecl(Type("void"), FIRE_VETOABLE_CHANGE_METHOD_NAME).makePublic().withThrownException(Type(PropertyVetoException.class)) //
 				.withArgument(Arg(Type(String.class), PROPERTY_NAME_ARG_NAME)).withArgument(Arg(Type(Object.class), OLD_VALUE_ARG_NAME)).withArgument(Arg(Type(Object.class), NEW_VALUE_ARG_NAME)) //
 				.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), FIRE_VETOABLE_CHANGE_METHOD_NAME) //

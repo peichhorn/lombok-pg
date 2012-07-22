@@ -47,7 +47,7 @@ public final class SingletonHandler<TYPE_TYPE extends IType<METHOD_TYPE, ?, ?, ?
 			return;
 		}
 
-		if (type.hasMethod("getInstance", 0)) {
+		if (type.hasMethod("getInstance")) {
 			return;
 		}
 

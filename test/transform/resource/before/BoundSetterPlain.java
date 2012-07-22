@@ -1,7 +1,7 @@
 import lombok.AccessLevel;
 import lombok.BoundSetter;
 
-class BoundPropertySupportPlain {
+class BoundSetterPlain {
 	@BoundSetter int i;
 	@BoundSetter(AccessLevel.PUBLIC) String s;
 	@BoundSetter(AccessLevel.PROTECTED) float f;

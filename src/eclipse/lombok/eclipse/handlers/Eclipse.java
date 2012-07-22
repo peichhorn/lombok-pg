@@ -23,6 +23,7 @@ package lombok.eclipse.handlers;
 
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import lombok.*;
@@ -44,6 +45,9 @@ import org.eclipse.jdt.internal.compiler.ast.MessageSend;
 import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
 import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
+import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
+import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Eclipse {
@@ -220,5 +224,35 @@ public final class Eclipse {
 
 	public static boolean matchesType(final Annotation ann, final String typeName) {
 		return typeName.replace("$", ".").endsWith(ann.type.toString());
+	}
+
+	public static void ensureAllClassScopeMethodWereBuild(final TypeBinding binding) {
+		if (binding instanceof SourceTypeBinding) {
+			ClassScope cs = ((SourceTypeBinding) binding).scope;
+			if (cs != null) {
+				try {
+					Reflection.classScopeBuildFieldsAndMethodsMethod.invoke(cs);
+				} catch (final Exception e) {
+					// See 'Reflection' class for why we ignore this exception.
+				}
+			}
+		}
+	}
+
+	private static final class Reflection {
+		public static final Method classScopeBuildFieldsAndMethodsMethod;
+
+		static {
+			Method m = null;
+			try {
+				m = ClassScope.class.getDeclaredMethod("buildFieldsAndMethods");
+				m.setAccessible(true);
+			} catch (final Exception e) {
+				// That's problematic, but as long as no local classes are used we don't actually need it.
+				// Better fail on local classes than crash altogether.
+			}
+
+			classScopeBuildFieldsAndMethodsMethod = m;
+		}
 	}
 }

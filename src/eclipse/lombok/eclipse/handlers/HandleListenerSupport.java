@@ -23,8 +23,8 @@ package lombok.eclipse.handlers;
 
 import static lombok.ast.AST.*;
 import static lombok.core.util.ErrorMessages.*;
+import static lombok.eclipse.handlers.Eclipse.ensureAllClassScopeMethodWereBuild;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import lombok.*;
@@ -42,10 +42,8 @@ import lombok.eclipse.handlers.ast.EclipseType;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.mangosdk.spi.ProviderFor;
 
@@ -116,36 +114,6 @@ public class HandleListenerSupport extends EclipseAnnotationHandler<ListenerSupp
 			for (ReferenceBinding iface : Each.elementIn(interfaces)) {
 				getInterfaceMethods(iface, methods, banList);
 			}
-		}
-	}
-
-	private void ensureAllClassScopeMethodWereBuild(final TypeBinding binding) {
-		if (binding instanceof SourceTypeBinding) {
-			ClassScope cs = ((SourceTypeBinding) binding).scope;
-			if (cs != null) {
-				try {
-					Reflection.classScopeBuildFieldsAndMethodsMethod.invoke(cs);
-				} catch (final Exception e) {
-					// See 'Reflection' class for why we ignore this exception.
-				}
-			}
-		}
-	}
-
-	private static final class Reflection {
-		public static final Method classScopeBuildFieldsAndMethodsMethod;
-
-		static {
-			Method m = null;
-			try {
-				m = ClassScope.class.getDeclaredMethod("buildFieldsAndMethods");
-				m.setAccessible(true);
-			} catch (final Exception e) {
-				// That's problematic, but as long as no local classes are used we don't actually need it.
-				// Better fail on local classes than crash altogether.
-			}
-
-			classScopeBuildFieldsAndMethodsMethod = m;
 		}
 	}
 

@@ -24,6 +24,7 @@ package lombok.eclipse.handlers;
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BoundSetterHandler;
+import lombok.eclipse.DeferUntilBuildFieldsAndMethods;
 import lombok.eclipse.EclipseAnnotationHandler;
 import lombok.eclipse.EclipseNode;
 import lombok.eclipse.handlers.ast.EclipseField;
@@ -34,6 +35,7 @@ import org.mangosdk.spi.ProviderFor;
 /**
  * Handles the {@code lombok.BoundSetter} annotation for eclipse.
  */
+@DeferUntilBuildFieldsAndMethods
 @ProviderFor(EclipseAnnotationHandler.class)
 public class HandleBoundSetter extends EclipseAnnotationHandler<BoundSetter> {
 

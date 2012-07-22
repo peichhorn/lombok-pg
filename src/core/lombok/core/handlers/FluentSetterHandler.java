@@ -78,7 +78,7 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level) {
 		String fieldName = field.name();
 		TypeRef fieldType = field.type();
-		if (type.hasMethod(fieldName, 1)) return;
+		if (type.hasMethod(fieldName, fieldType)) return;
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);
 		List<lombok.ast.Annotation> nullables = field.annotations(TransformationsUtil.NULLABLE_PATTERN);
 		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeArguments()), fieldName).withAccessLevel(level) //

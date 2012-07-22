@@ -1,6 +1,6 @@
 import lombok.AccessLevel;
 import lombok.BoundSetter;
-class BoundPropertySupportPlain {
+class BoundSetterPlain {
   private volatile transient java.beans.PropertyChangeSupport $propertyChangeSupport;
   private final java.lang.Object[] $propertyChangeSupportLock = new java.lang.Object[0];
   public static final java.lang.String PROP_I = "i";
@@ -15,7 +15,7 @@ class BoundPropertySupportPlain {
   @BoundSetter(AccessLevel.PRIVATE) double d;
   <clinit>() {
   }
-  BoundPropertySupportPlain() {
+  BoundSetterPlain() {
     super();
   }
   private @java.lang.SuppressWarnings("all") java.beans.PropertyChangeSupport getPropertyChangeSupport() {

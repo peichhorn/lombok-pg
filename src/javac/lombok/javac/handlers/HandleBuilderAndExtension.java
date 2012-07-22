@@ -102,7 +102,7 @@ public class HandleBuilderAndExtension {
 			}
 			AnnotationValues<Builder> builderAnnotation = createAnnotation(Builder.class, builderNode);
 
-			if (!type.hasMethod(decapitalize(type.name()), 0)) {
+			if (!type.hasMethod(decapitalize(type.name()))) {
 				new HandleBuilder().handle(builderAnnotation, (JCAnnotation) builderNode.get(), builderNode);
 			}
 

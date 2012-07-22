@@ -29,6 +29,7 @@ import lombok.core.AnnotationValues;
 import lombok.core.handlers.BoundSetterHandler;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
+import lombok.javac.ResolutionBased;
 import lombok.javac.handlers.ast.JavacField;
 import lombok.javac.handlers.ast.JavacType;
 
@@ -40,6 +41,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 /**
  * Handles the {@code lombok.BoundSetter} annotation for javac.
  */
+@ResolutionBased
 @ProviderFor(JavacAnnotationHandler.class)
 public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 

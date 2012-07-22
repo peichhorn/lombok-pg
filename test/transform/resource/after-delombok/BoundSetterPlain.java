@@ -1,4 +1,4 @@
-class BoundPropertySupportPlain {
+class BoundSetterPlain {
 	private volatile transient java.beans.PropertyChangeSupport $propertyChangeSupport;
 	private final java.lang.Object[] $propertyChangeSupportLock = new java.lang.Object[0];
 	public static final java.lang.String PROP_I = "i";

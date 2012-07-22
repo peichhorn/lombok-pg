@@ -57,7 +57,7 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 		String methodName = toGetterName(accessors, fieldName, isBoolean);
 
 		for (String altName : toAllGetterNames(accessors, fieldName, isBoolean)) {
-			if (type.hasMethod(altName, 0)) return;
+			if (type.hasMethod(altName)) return;
 		}
 
 		createGetter(type, field, level, methodName);
