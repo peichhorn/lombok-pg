@@ -32,6 +32,11 @@ class BoundPropertySupportVetoable {
 	}
 	
 	@java.lang.SuppressWarnings("all")
+	public void firePropertyChange(final java.lang.String propertyName, final java.lang.Object oldValue, final java.lang.Object newValue) {
+		getPropertyChangeSupport().firePropertyChange(propertyName, oldValue, newValue);
+	}
+	
+	@java.lang.SuppressWarnings("all")
 	private java.beans.VetoableChangeSupport getVetoableChangeSupport() {
 		if (this.$vetoableChangeSupport == null) {
 			synchronized (this.$vetoableChangeSupportLock) {
@@ -54,22 +59,27 @@ class BoundPropertySupportVetoable {
 	}
 	
 	@java.lang.SuppressWarnings("all")
+	public void fireVetoableChange(final java.lang.String propertyName, final java.lang.Object oldValue, final java.lang.Object newValue) throws java.beans.PropertyVetoException {
+		getVetoableChangeSupport().fireVetoableChange(propertyName, oldValue, newValue);
+	}
+	
+	@java.lang.SuppressWarnings("all")
 	public void setName(final String name) {
 		final String $old = this.name;
 		try {
-			getVetoableChangeSupport().fireVetoableChange(PROP_NAME, $old, name);
+			fireVetoableChange(PROP_NAME, $old, name);
 		} catch (final java.beans.PropertyVetoException $e) {
 			return;
 		}
 		this.name = name;
-		getPropertyChangeSupport().firePropertyChange(PROP_NAME, $old, name);
+		firePropertyChange(PROP_NAME, $old, name);
 	}
 	
 	@java.lang.SuppressWarnings("all")
 	public void setSurname(final String surname) throws java.beans.PropertyVetoException {
 		final String $old = this.surname;
-		getVetoableChangeSupport().fireVetoableChange(PROP_SURNAME, $old, surname);
+		fireVetoableChange(PROP_SURNAME, $old, surname);
 		this.surname = surname;
-		getPropertyChangeSupport().firePropertyChange(PROP_SURNAME, $old, surname);
+		firePropertyChange(PROP_SURNAME, $old, surname);
 	}
 }

@@ -37,29 +37,32 @@ class BoundPropertySupportPlain {
   public @java.lang.SuppressWarnings("all") void removePropertyChangeListener(final java.beans.PropertyChangeListener listener) {
     getPropertyChangeSupport().removePropertyChangeListener(listener);
   }
+  public @java.lang.SuppressWarnings("all") void firePropertyChange(final java.lang.String propertyName, final java.lang.Object oldValue, final java.lang.Object newValue) {
+    getPropertyChangeSupport().firePropertyChange(propertyName, oldValue, newValue);
+  }
   public @java.lang.SuppressWarnings("all") void setI(final int i) {
     final int $old = this.i;
     this.i = i;
-    getPropertyChangeSupport().firePropertyChange(PROP_I, $old, i);
+    firePropertyChange(PROP_I, $old, i);
   }
   public @java.lang.SuppressWarnings("all") void setS(final String s) {
     final String $old = this.s;
     this.s = s;
-    getPropertyChangeSupport().firePropertyChange(PROP_S, $old, s);
+    firePropertyChange(PROP_S, $old, s);
   }
   protected @java.lang.SuppressWarnings("all") void setF(final float f) {
     final float $old = this.f;
     this.f = f;
-    getPropertyChangeSupport().firePropertyChange(PROP_F, $old, f);
+    firePropertyChange(PROP_F, $old, f);
   }
   @java.lang.SuppressWarnings("all") void setO(final Object o) {
     final Object $old = this.o;
     this.o = o;
-    getPropertyChangeSupport().firePropertyChange(PROP_O, $old, o);
+    firePropertyChange(PROP_O, $old, o);
   }
   private @java.lang.SuppressWarnings("all") void setD(final double d) {
     final double $old = this.d;
     this.d = d;
-    getPropertyChangeSupport().firePropertyChange(PROP_D, $old, d);
+    firePropertyChange(PROP_D, $old, d);
   }
 }

@@ -51,6 +51,9 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	private static final String PROPERTY_CHANGE_SUPPORT_METHOD_NAME = "getPropertyChangeSupport";
 	private static final String VETOABLE_CHANGE_SUPPORT_METHOD_NAME = "getVetoableChangeSupport";
 	private static final String LISTENER_ARG_NAME = "listener";
+	private static final String PROPERTY_NAME_ARG_NAME = "propertyName";
+	private static final String OLD_VALUE_ARG_NAME = "oldValue";
+	private static final String NEW_VALUE_ARG_NAME = "newValue";
 	private static final String[] PROPERTY_CHANGE_METHOD_NAMES = As.array("addPropertyChangeListener", "removePropertyChangeListener");
 	private static final String[] VETOABLE_CHANGE_METHOD_NAMES = As.array("addVetoableChangeListener", "removeVetoableChangeListener");
 	private static final String FIRE_PROPERTY_CHANGE_METHOD_NAME = "firePropertyChange";
@@ -96,11 +99,13 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 				generatePropertyChangeSupportFields(type);
 				generateGetPropertySupportMethod(type);
 				generatePropertyChangeListenerMethods(type);
+				generateFirePropertyChangeMethod(type);
 			}
 			if (vetoable && !type.hasMethod(VETOABLE_CHANGE_SUPPORT_METHOD_NAME, 0)) {
 				generateVetoableChangeSupportFields(type);
 				generateGetVetoableSupportMethod(type);
 				generateVetoableChangeListenerMethods(type);
+				generateFireVetoableChangeMethod(type);
 			}
 		}
 		for (FIELD_TYPE field : fields) {
@@ -135,17 +140,17 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		if (vetoable) {
 			if (throwVetoException) {
 				methodDecl.withThrownException(Type(PropertyVetoException.class));
-				methodDecl.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), FIRE_VETOABLE_CHANGE_METHOD_NAME) //
+				methodDecl.withStatement(Call(FIRE_VETOABLE_CHANGE_METHOD_NAME) //
 						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Name(fieldName)));
 			} else {
-				methodDecl.withStatement(Try(Block().withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), FIRE_VETOABLE_CHANGE_METHOD_NAME) //
+				methodDecl.withStatement(Try(Block().withStatement(Call(FIRE_VETOABLE_CHANGE_METHOD_NAME) //
 						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Name(fieldName)))) //
 						.Catch(Arg(Type(PropertyVetoException.class), E_VALUE_VARIABLE_NAME), Block().withStatement(Return())));
 			}
 		}
 		
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
-				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
+				.withStatement(Call(FIRE_PROPERTY_CHANGE_METHOD_NAME) //
 						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Name(fieldName)));
 		type.editor().injectMethod(methodDecl);
 	}
@@ -182,6 +187,14 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
 	}
 
+	private void generateFirePropertyChangeMethod(final TYPE_TYPE type) {
+		if (type.hasMethod(FIRE_PROPERTY_CHANGE_METHOD_NAME, 3)) return;
+		type.editor().injectMethod(MethodDecl(Type("void"), FIRE_PROPERTY_CHANGE_METHOD_NAME).makePublic() //
+				.withArgument(Arg(Type(String.class), PROPERTY_NAME_ARG_NAME)).withArgument(Arg(Type(Object.class), OLD_VALUE_ARG_NAME)).withArgument(Arg(Type(Object.class), NEW_VALUE_ARG_NAME)) //
+				.withStatement(Call(Call(PROPERTY_CHANGE_SUPPORT_METHOD_NAME), FIRE_PROPERTY_CHANGE_METHOD_NAME) //
+						.withArgument(Name(PROPERTY_NAME_ARG_NAME)).withArgument(Name(OLD_VALUE_ARG_NAME)).withArgument(Name(NEW_VALUE_ARG_NAME))));
+	}
+
 	private void generateVetoableChangeSupportFields(final TYPE_TYPE type) {
 		if (!type.hasField(VETOABLE_CHANGE_SUPPORT_FIELD_NAME)) {
 			type.editor().injectField(FieldDecl(Type(VetoableChangeSupport.class), VETOABLE_CHANGE_SUPPORT_FIELD_NAME).makePrivate().makeTransient().makeVolatile());
@@ -212,5 +225,13 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 		if (type.hasMethod(methodName, 1)) return;
 		type.editor().injectMethod(MethodDecl(Type("void"), methodName).makePublic().withArgument(Arg(Type(VetoableChangeListener.class), LISTENER_ARG_NAME)) //
 				.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), methodName).withArgument(Name(LISTENER_ARG_NAME))));
+	}
+
+	private void generateFireVetoableChangeMethod(final TYPE_TYPE type) {
+		if (type.hasMethod(FIRE_VETOABLE_CHANGE_METHOD_NAME, 3)) return;
+		type.editor().injectMethod(MethodDecl(Type("void"), FIRE_VETOABLE_CHANGE_METHOD_NAME).makePublic().withThrownException(Type(PropertyVetoException.class)) //
+				.withArgument(Arg(Type(String.class), PROPERTY_NAME_ARG_NAME)).withArgument(Arg(Type(Object.class), OLD_VALUE_ARG_NAME)).withArgument(Arg(Type(Object.class), NEW_VALUE_ARG_NAME)) //
+				.withStatement(Call(Call(VETOABLE_CHANGE_SUPPORT_METHOD_NAME), FIRE_VETOABLE_CHANGE_METHOD_NAME) //
+						.withArgument(Name(PROPERTY_NAME_ARG_NAME)).withArgument(Name(OLD_VALUE_ARG_NAME)).withArgument(Name(NEW_VALUE_ARG_NAME))));
 	}
 }

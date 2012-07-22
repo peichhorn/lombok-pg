@@ -33,6 +33,9 @@ class BoundPropertySupportVetoable {
   public @java.lang.SuppressWarnings("all") void removePropertyChangeListener(final java.beans.PropertyChangeListener listener) {
     getPropertyChangeSupport().removePropertyChangeListener(listener);
   }
+  public @java.lang.SuppressWarnings("all") void firePropertyChange(final java.lang.String propertyName, final java.lang.Object oldValue, final java.lang.Object newValue) {
+    getPropertyChangeSupport().firePropertyChange(propertyName, oldValue, newValue);
+  }
   private @java.lang.SuppressWarnings("all") java.beans.VetoableChangeSupport getVetoableChangeSupport() {
     if ((this.$vetoableChangeSupport == null))
         {
@@ -52,22 +55,25 @@ class BoundPropertySupportVetoable {
   public @java.lang.SuppressWarnings("all") void removeVetoableChangeListener(final java.beans.VetoableChangeListener listener) {
     getVetoableChangeSupport().removeVetoableChangeListener(listener);
   }
+  public @java.lang.SuppressWarnings("all") void fireVetoableChange(final java.lang.String propertyName, final java.lang.Object oldValue, final java.lang.Object newValue) throws java.beans.PropertyVetoException {
+    getVetoableChangeSupport().fireVetoableChange(propertyName, oldValue, newValue);
+  }
   public @java.lang.SuppressWarnings("all") void setName(final String name) {
     final String $old = this.name;
     try 
       {
-        getVetoableChangeSupport().fireVetoableChange(PROP_NAME, $old, name);
+        fireVetoableChange(PROP_NAME, $old, name);
       }
     catch (final java.beans.PropertyVetoException $e)       {
         return ;
       }
     this.name = name;
-    getPropertyChangeSupport().firePropertyChange(PROP_NAME, $old, name);
+    firePropertyChange(PROP_NAME, $old, name);
   }
   public @java.lang.SuppressWarnings("all") void setSurname(final String surname) throws java.beans.PropertyVetoException {
     final String $old = this.surname;
-    getVetoableChangeSupport().fireVetoableChange(PROP_SURNAME, $old, surname);
+    fireVetoableChange(PROP_SURNAME, $old, surname);
     this.surname = surname;
-    getPropertyChangeSupport().firePropertyChange(PROP_SURNAME, $old, surname);
+    firePropertyChange(PROP_SURNAME, $old, surname);
   }
 }
