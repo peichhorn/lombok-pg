@@ -153,6 +153,14 @@ public final class AST {
 		return new Initializer();
 	}
 
+	public static JavaDoc JavaDoc() {
+		return new JavaDoc();
+	}
+
+	public static JavaDoc JavaDoc(final String statement) {
+		return new JavaDoc(statement);
+	}
+
 	public static InstanceOf InstanceOf(final Expression<?> expression, final TypeRef type) {
 		return new InstanceOf(expression, type);
 	}

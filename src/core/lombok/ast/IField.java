@@ -40,6 +40,8 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public boolean isPrimitive();
 
+	public boolean hasJavaDoc();
+
 	public AST_VARIABLE_DECL_TYPE get();
 
 	public LOMBOK_NODE_TYPE node();

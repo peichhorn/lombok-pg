@@ -32,9 +32,18 @@ public final class EnumConstant extends AbstractVariableDecl<EnumConstant> {
 		super(null, name);
 	}
 
+	public JavaDoc getJavaDoc() {
+		return javaDoc;
+	}
+
 	public EnumConstant withArgument(final Expression<?> arg) {
 		args.add(child(arg));
 		return this;
+	}
+
+	public EnumConstant withJavaDoc(final JavaDoc javaDoc) {
+		this.javaDoc = child(javaDoc);
+		return self();
 	}
 
 	@Override

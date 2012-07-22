@@ -35,6 +35,7 @@ public abstract class AbstractVariableDecl<SELF_TYPE extends AbstractVariableDec
 	protected final TypeRef type;
 	@Getter
 	protected final String name;
+	protected JavaDoc javaDoc;
 
 	public AbstractVariableDecl(final TypeRef type, final String name) {
 		this.type = child(type);

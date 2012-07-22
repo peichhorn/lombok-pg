@@ -80,6 +80,10 @@ import org.eclipse.jdt.internal.compiler.ast.IfStatement;
 import org.eclipse.jdt.internal.compiler.ast.Initializer;
 import org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
 import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
+import org.eclipse.jdt.internal.compiler.ast.Javadoc;
+import org.eclipse.jdt.internal.compiler.ast.JavadocReturnStatement;
+import org.eclipse.jdt.internal.compiler.ast.JavadocSingleNameReference;
+import org.eclipse.jdt.internal.compiler.ast.JavadocSingleTypeReference;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
 import org.eclipse.jdt.internal.compiler.ast.MagicLiteral;
@@ -125,8 +129,6 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 
 import lombok.*;
-import lombok.ast.DefaultValue;
-import lombok.ast.Node;
 import lombok.core.util.As;
 import lombok.core.util.Cast;
 import lombok.core.util.Each;
@@ -194,7 +196,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		return list;
 	}
 
-	private ASTNode posHintOf(final Node<?> node) {
+	private ASTNode posHintOf(final lombok.ast.Node<?> node) {
 		ASTNode posHint = node.posHint();
 		return posHint == null ? source : posHint;
 	}
@@ -211,7 +213,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		return mods;
 	}
 
-	private Statement getEmptyStatement(final Node<?> node) {
+	private Statement getEmptyStatement(final lombok.ast.Node<?> node) {
 		final EmptyStatement emptyStatement = new EmptyStatement(0, 0);
 		setGeneratedByAndCopyPos(emptyStatement, source, posHintOf(node));
 		return emptyStatement;
@@ -416,6 +418,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (!node.getStatements().isEmpty()) {
 			constructorDeclaration.statements = toArray(build(node.getStatements()), new Statement[0]);
 		}
+		constructorDeclaration.javadoc = build(node.getJavaDoc());
 		return constructorDeclaration;
 	}
 
@@ -434,7 +437,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	}
 
 	@Override
-	public ASTNode visitDefaultValue(DefaultValue node, Void p) {
+	public ASTNode visitDefaultValue(lombok.ast.DefaultValue node, Void p) {
 		lombok.ast.Expression<?> returnValue = Null();
 		final TypeReference type = build(node.getType());
 		if (type instanceof SingleTypeReference) {
@@ -470,6 +473,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		allocationExpression.enumConstant = new FieldDeclaration(node.getName().toCharArray(), 0, 0);
 		setGeneratedByAndCopyPos(allocationExpression.enumConstant, source, posHintOf(node));
 		allocationExpression.enumConstant.initialization = allocationExpression;
+		allocationExpression.enumConstant.javadoc = build(node.getJavaDoc());
 		return allocationExpression.enumConstant;
 	}
 
@@ -484,6 +488,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		if (node.getInitialization() != null) {
 			fieldDeclaration.initialization = build(node.getInitialization());
 		}
+		fieldDeclaration.javadoc = build(node.getJavaDoc());
 		return fieldDeclaration;
 	}
 
@@ -534,6 +539,36 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	}
 
 	@Override
+	public ASTNode visitJavaDoc(final lombok.ast.JavaDoc node, final Void p) {
+		final Javadoc javadoc = new Javadoc(0, 0);
+		setGeneratedByAndCopyPos(javadoc, source, posHintOf(node));
+		// TODO node.getMessage()
+		final List<JavadocSingleNameReference> argumentReferences = new ArrayList<JavadocSingleNameReference>();
+		for (Map.Entry<String, String> argumentReference : node.getArgumentReferences().entrySet()) {
+			final JavadocSingleNameReference ref = new JavadocSingleNameReference((argumentReference.getKey()).toCharArray(), 0, 0, 0); // TODO argumentReference.getValue()
+			setGeneratedByAndCopyPos(ref, source, posHintOf(node));
+			argumentReferences.add(ref);
+		}
+		javadoc.paramReferences = toArray(argumentReferences, new JavadocSingleNameReference[0]);
+		final List<JavadocSingleTypeReference> paramTypeReferences = new ArrayList<JavadocSingleTypeReference>();
+		for (Map.Entry<String, String> paramTypeReference : node.getParamTypeReferences().entrySet()) {
+			final JavadocSingleTypeReference ref = new JavadocSingleTypeReference((paramTypeReference.getKey()).toCharArray(), 0, 0, 0); // TODO paramTypeReference.getValue()
+			setGeneratedByAndCopyPos(ref, source, posHintOf(node));
+			paramTypeReferences.add(ref);
+		}
+		javadoc.paramTypeParameters = toArray(paramTypeReferences, new JavadocSingleTypeReference[0]);
+		final List<TypeReference> exceptionReferences = new ArrayList<TypeReference>();
+		for (Map.Entry<lombok.ast.TypeRef, String> exceptionReference : node.getExceptionReferences().entrySet()) {
+			final TypeReference ref = build(exceptionReference.getKey()); // TODO exceptionReference.getValue()
+			setGeneratedByAndCopyPos(ref, source, posHintOf(node));
+			exceptionReferences.add(ref);
+		}
+		javadoc.exceptionReferences = toArray(exceptionReferences, new TypeReference[0]);
+		if (node.getReturnMessage() != null) javadoc.returnStatement = new JavadocReturnStatement(0, 0); // TODO node.getReturnStatement()
+		return javadoc;
+	}
+
+	@Override
 	public ASTNode visitLocalDecl(final lombok.ast.LocalDecl node, final Void p) {
 		final LocalDeclaration localDeclaration = new LocalDeclaration(node.getName().toCharArray(), 0, 0);
 		setGeneratedByAndCopyPos(localDeclaration, source, posHintOf(node));
@@ -565,6 +600,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 		} else {
 			methodDeclaration.statements = toArray(build(node.getStatements()), new Statement[0]);
 		}
+		methodDeclaration.javadoc = build(node.getJavaDoc());
 		return methodDeclaration;
 	}
 

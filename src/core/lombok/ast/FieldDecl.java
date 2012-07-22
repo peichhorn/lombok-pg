@@ -36,6 +36,10 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 		return type;
 	}
 
+	public JavaDoc getJavaDoc() {
+		return javaDoc;
+	}
+
 	public FieldDecl makePublic() {
 		return withModifier(PUBLIC);
 	}
@@ -59,6 +63,11 @@ public final class FieldDecl extends AbstractVariableDecl<FieldDecl> {
 	public FieldDecl withInitialization(final Expression<?> initialization) {
 		this.initialization = child(initialization);
 		return this;
+	}
+
+	public FieldDecl withJavaDoc(final JavaDoc javaDoc) {
+		this.javaDoc = child(javaDoc);
+		return self();
 	}
 
 	@Override

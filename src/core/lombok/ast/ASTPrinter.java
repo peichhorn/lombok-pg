@@ -326,6 +326,24 @@ public final class ASTPrinter implements ASTVisitor<ASTPrinter.State, ASTPrinter
 	}
 
 	@Override
+	public State visitJavaDoc(final JavaDoc node, final State state) {
+		state.print("/**\n");
+		if (node.getMessage() != null) state.printIndent().print(" * ").print(node.getMessage()).print("\n");
+		for (Map.Entry<String, String> argumentReference : node.getArgumentReferences().entrySet()) {
+			state.printIndent().print(" * @param ").print(argumentReference.getKey()).print(" ").print(argumentReference.getValue()).print("\n");
+		}
+		for (Map.Entry<String, String> paramTypeReference : node.getParamTypeReferences().entrySet()) {
+			state.printIndent().print(" * @param ").print(paramTypeReference.getKey()).print(" ").print(paramTypeReference.getValue()).print("\n");
+		}
+		for (Map.Entry<TypeRef, String> exceptionReference : node.getExceptionReferences().entrySet()) {
+			state.printIndent().print(" * @throws ").print(exceptionReference.getKey().getTypeName()).print(" ").print(exceptionReference.getValue()).print("\n");
+		}
+		if (node.getReturnMessage() != null) state.printIndent().print(" * @return ").print(node.getReturnMessage()).print("\n");
+		state.printIndent().print(" */\n");
+		return null;
+	}
+
+	@Override
 	public State visitLocalDecl(final LocalDecl node, final State state) {
 		for (Annotation annotation : node.getAnnotations()) {
 			state.print(annotation, this).print(" ");

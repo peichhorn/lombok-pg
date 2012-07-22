@@ -71,6 +71,8 @@ public interface ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> {
 
 	RETURN_TYPE visitInstanceOf(InstanceOf node, PARAMETER_TYPE p);
 
+	RETURN_TYPE visitJavaDoc(JavaDoc node, PARAMETER_TYPE p);
+
 	RETURN_TYPE visitLocalDecl(LocalDecl node, PARAMETER_TYPE p);
 
 	RETURN_TYPE visitMethodDecl(MethodDecl node, PARAMETER_TYPE p);

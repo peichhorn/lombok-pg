@@ -37,6 +37,7 @@ public abstract class AbstractMethodDecl<SELF_TYPE extends AbstractMethodDecl<SE
 	protected final List<TypeRef> thrownExceptions = new ArrayList<TypeRef>();
 	protected final List<Statement<?>> statements = new ArrayList<Statement<?>>();
 	protected final String name;
+	protected JavaDoc javaDoc;
 
 	public SELF_TYPE makePrivate() {
 		return withModifier(PRIVATE);
@@ -119,6 +120,11 @@ public abstract class AbstractMethodDecl<SELF_TYPE extends AbstractMethodDecl<SE
 
 	public SELF_TYPE withTypeParameters(final List<TypeParam> typeParameters) {
 		for (TypeParam typeParameter : typeParameters) withTypeParameter(typeParameter);
+		return self();
+	}
+
+	public SELF_TYPE withJavaDoc(final JavaDoc javaDoc) {
+		this.javaDoc = child(javaDoc);
 		return self();
 	}
 }

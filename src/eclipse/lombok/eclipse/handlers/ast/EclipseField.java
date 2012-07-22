@@ -80,6 +80,10 @@ public final class EclipseField implements lombok.ast.IField<EclipseNode, ASTNod
 		return Eclipse.isPrimitive(get().type);
 	}
 
+	public boolean hasJavaDoc() {
+		return get().javadoc != null;
+	}
+
 	public FieldDeclaration get() {
 		return (FieldDeclaration) fieldNode.get();
 	}

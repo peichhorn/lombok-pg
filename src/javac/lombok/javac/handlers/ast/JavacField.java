@@ -35,6 +35,7 @@ import lombok.javac.JavacNode;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -73,6 +74,11 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 
 	public boolean isPrimitive() {
 		return Javac.isPrimitive(get().vartype);
+	}
+
+	public boolean hasJavaDoc() {
+		final JCCompilationUnit compilationUnit = (JCCompilationUnit) fieldNode.top().get();
+		return compilationUnit.docComments.get(get()) != null;
 	}
 
 	public JCVariableDecl get() {
