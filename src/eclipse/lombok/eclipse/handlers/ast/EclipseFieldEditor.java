@@ -58,7 +58,7 @@ public final class EclipseFieldEditor implements lombok.ast.IFieldEditor<ASTNode
 	}
 
 	public void replaceInitialization(lombok.ast.Expression<?> initialization) {
-		get().initialization = (initialization == null) ? null : build(initialization, Expression.class);
+		get().initialization = (initialization == null) ? null : build(initialization.posHint(get().initialization), Expression.class);
 	}
 
 	public void makePrivate() {

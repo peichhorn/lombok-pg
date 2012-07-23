@@ -23,10 +23,14 @@ package lombok.ast;
 
 import lombok.*;
 
-@RequiredArgsConstructor
 @Getter
 public class WrappedStatement extends Statement<WrappedStatement> {
 	private final Object wrappedObject;
+
+	public WrappedStatement(final Object wrappedObject) {
+		this.wrappedObject = wrappedObject;
+		posHint(wrappedObject);
+	}
 
 	@Override
 	public <RETURN_TYPE, PARAMETER_TYPE> RETURN_TYPE accept(final ASTVisitor<RETURN_TYPE, PARAMETER_TYPE> v, final PARAMETER_TYPE p) {

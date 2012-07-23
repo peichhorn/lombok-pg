@@ -169,7 +169,6 @@ public final class JavacASTMaker implements lombok.ast.ASTVisitor<JCTree, Void> 
 	}
 
 	private TreeMaker M(final lombok.ast.Node<?> node) {
-
 		final int pos;
 		if ((node.upTo(lombok.ast.EnumConstant.class) != null) || (node.upTo(lombok.ast.FieldDecl.class) != null)) {
 			pos = -1;

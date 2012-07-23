@@ -120,7 +120,7 @@ public final class Eclipse {
 		} else if (target instanceof Initializer) {
 			((Initializer) target).declarationSourceStart = target.sourceStart;
 			((Initializer) target).declarationSourceEnd = target.sourceEnd;
-		} else if (target instanceof AbstractVariableDeclaration) {
+		} else if (target instanceof FieldDeclaration) {
 			target.sourceStart = 0;
 			target.sourceEnd = 0;
 			((AbstractVariableDeclaration) target).declarationSourceEnd = -1;

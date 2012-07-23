@@ -37,6 +37,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -480,7 +481,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	@Override
 	public ASTNode visitFieldDecl(final lombok.ast.FieldDecl node, final Void p) {
 		final FieldDeclaration fieldDeclaration = new FieldDeclaration(node.getName().toCharArray(), 0, 0);
-		setGeneratedByAndCopyPos(fieldDeclaration, source, posHintOf(node));
+		setGeneratedBy(fieldDeclaration, source);
 		fieldDeclaration.modifiers = modifiersFor(node.getModifiers());
 		fieldDeclaration.annotations = toArray(build(node.getAnnotations()), new Annotation[0]);
 		fieldDeclaration.bits |= ECLIPSE_DO_NOT_TOUCH_FLAG;
@@ -810,15 +811,17 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 			typeReference = new SingleTypeReference(TypeBinding.VOID.simpleName, 0);
 		} else if (node.getTypeName().contains(".")) {
 			final char[][] typeNameTokens = fromQualifiedName(node.getTypeName());
+			long[] poss = new long[typeNameTokens.length];
+			Arrays.fill(poss, 0);
 			if (Is.notEmpty(paramTypes)) {
 				final TypeReference[][] typeArguments = new TypeReference[typeNameTokens.length][];
 				typeArguments[typeNameTokens.length - 1] = paramTypes;
-				typeReference = new ParameterizedQualifiedTypeReference(typeNameTokens, typeArguments, 0, poss(posHintOf(node), typeNameTokens.length));
+				typeReference = new ParameterizedQualifiedTypeReference(typeNameTokens, typeArguments, 0, poss);
 			} else {
 				if (node.getDims() > 0) {
-					typeReference = new ArrayQualifiedTypeReference(typeNameTokens, node.getDims(), poss(posHintOf(node), typeNameTokens.length));
+					typeReference = new ArrayQualifiedTypeReference(typeNameTokens, node.getDims(), poss);
 				} else {
-					typeReference = new QualifiedTypeReference(typeNameTokens, poss(posHintOf(node), typeNameTokens.length));
+					typeReference = new QualifiedTypeReference(typeNameTokens, poss);
 				}
 			}
 		} else {
@@ -941,7 +944,7 @@ public final class EclipseASTMaker implements lombok.ast.ASTVisitor<ASTNode, Voi
 	@Override
 	public ASTNode visitWrappedStatement(final lombok.ast.WrappedStatement node, final Void p) {
 		Statement statement = (Statement) node.getWrappedObject();
-		setGeneratedBy(statement, source);
+		setGeneratedByAndCopyPos(statement, source, posHintOf(node));
 		return statement;
 	}
 
