@@ -265,7 +265,7 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<!-- stage -->
-	<target name="maven-stage" depends="ensure-maven-ant-tasks, dist, test" description="Deploy release version to Maven staging repository">
+	<target name="maven-stage" depends="ensure-maven-ant-tasks, dist, dist-additional, test" description="Deploy release version to Maven staging repository">
 		<!-- create pom -->
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
