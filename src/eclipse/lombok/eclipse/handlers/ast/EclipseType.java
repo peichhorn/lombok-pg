@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers.ast;
 
 import static lombok.ast.AST.*;
+import static lombok.eclipse.Eclipse.toQualifiedName;
 import static lombok.eclipse.handlers.Eclipse.ensureAllClassScopeMethodWereBuild;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
@@ -32,6 +33,7 @@ import java.util.List;
 import org.eclipse.jdt.internal.compiler.ast.ASTNode;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.MemberValuePair;
 import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
@@ -163,6 +165,16 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	public String name() {
 		return node().getName();
+	}
+
+	public String qualifiedName() {
+		StringBuilder qualifiedName = new StringBuilder(name());
+		for (IType<?, ?, ?, ?, ?, ?> surroundingType = surroundingType(); surroundingType != null; surroundingType = surroundingType.surroundingType()) {
+			qualifiedName.insert(0, surroundingType.name()  + "$");
+		}
+		CompilationUnitDeclaration cud = (CompilationUnitDeclaration) node().top().get();
+		if (cud.currentPackage != null) qualifiedName.insert(0, toQualifiedName(cud.currentPackage.tokens) + ".");
+		return qualifiedName.toString();
 	}
 
 	public List<lombok.ast.TypeRef> typeArguments() {

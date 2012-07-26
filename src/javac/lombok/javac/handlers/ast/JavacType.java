@@ -41,6 +41,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -166,6 +167,16 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 
 	public String name() {
 		return node().getName();
+	}
+
+	public String qualifiedName() {
+		StringBuilder qualifiedName = new StringBuilder(name());
+		for (IType<?, ?, ?, ?, ?, ?> surroundingType = surroundingType(); surroundingType != null; surroundingType = surroundingType.surroundingType()) {
+			qualifiedName.insert(0, surroundingType.name()  + "$");
+		}
+		JCCompilationUnit cu = (JCCompilationUnit) node().top().get();
+		if (cu.getPackageName() != null) qualifiedName.insert(0, cu.getPackageName() + ".");
+		return qualifiedName.toString();
 	}
 
 	public List<lombok.ast.TypeRef> typeArguments() {

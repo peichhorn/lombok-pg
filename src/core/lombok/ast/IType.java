@@ -62,6 +62,8 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 
 	public String name();
 
+	public String qualifiedName();
+
 	public List<TypeRef> typeArguments();
 
 	public List<TypeParam> typeParameters();
