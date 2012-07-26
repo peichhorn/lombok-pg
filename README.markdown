@@ -28,6 +28,7 @@ lombok-pg is a collection of extensions to [lombok](http://projectlombok.org/ind
 - `@SwingInvokeLater` and `@SwingInvokeAndWait` [info] (https://github.com/peichhorn/lombok-pg/wiki/%40SwingInvokeLater-%40SwingInvokeAndWait)
 - `@Validate.NotEmpty`, `@Validate.NotNull` and `@Validate.With` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Validate)
 - `@VisibleForTesting` [info](https://github.com/peichhorn/lombok-pg/wiki/%40VisibleForTesting)
+- `@Warning` [info](https://github.com/peichhorn/lombok-pg/wiki/%40Warning)
 
 #### Interfaces:
 
