@@ -25,6 +25,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
 import static lombok.ast.IMethod.ArgumentStyle.INCLUDE_ANNOTATIONS;
+import static lombok.javac.handlers.JavacHandlerUtil.createAnnotation;
 import static lombok.javac.handlers.ast.JavacASTUtil.boxedType;
 import static lombok.javac.handlers.ast.JavacResolver.METHOD;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AccessLevel;
+import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
 import lombok.core.util.Is;
@@ -131,6 +133,11 @@ public final class JavacMethod implements lombok.ast.IMethod<JavacType, JavacNod
 
 	public JavacNode node() {
 		return methodNode;
+	}
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
+		final JavacNode node = getAnnotation(expectedType);
+		return node == null ? AnnotationValues.of(expectedType, node()) : createAnnotation(expectedType, node);
 	}
 
 	public JavacNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {

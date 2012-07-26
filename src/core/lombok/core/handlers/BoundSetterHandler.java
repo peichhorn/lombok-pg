@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import lombok.*;
 import lombok.ast.*;
-import lombok.core.AnnotationValues;
 import lombok.core.LombokNode;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
@@ -45,7 +44,7 @@ import lombok.core.TransformationsUtil;
 import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
-public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
+public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
 	private static final String PROPERTY_CHANGE_SUPPORT_FIELD_NAME = "$propertyChangeSupport";
 	private static final String VETOABLE_CHANGE_SUPPORT_FIELD_NAME = "$vetoableChangeSupport";
 	private static final String PROPERTY_CHANGE_SUPPORT_METHOD_NAME = "getPropertyChangeSupport";
@@ -109,7 +108,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 			}
 		}
 		for (FIELD_TYPE field : fields) {
-			String propertyNameFieldName = "PROP_" + camelCaseToConstant(field.name());
+			String propertyNameFieldName = "PROP_" + camelCaseToConstant(field.filteredName());
 			generatePropertyNameConstant(type, field, propertyNameFieldName);
 			generateSetter(type, field, level, vetoable, throwVetoException, propertyNameFieldName);
 		}
@@ -130,17 +129,16 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private void generatePropertyNameConstant(final TYPE_TYPE type, final FIELD_TYPE field, final String propertyNameFieldName) {
-		String propertyName = field.name();
+		String propertyName = field.filteredName();
 		if (type.hasField(propertyNameFieldName)) return;
 		type.editor().injectField(FieldDecl(Type(String.class), propertyNameFieldName).makePublic().makeStatic().makeFinal() //
 				.withInitialization(String(propertyName)));
 	}
 
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level, final boolean vetoable, final boolean throwVetoException, final String propertyNameFieldName) {
-		String fieldName = field.name();
+		String fieldName = field.filteredName();
 		boolean isBoolean = field.isOfType("boolean");
-		AnnotationValues<Accessors> accessors = AnnotationValues.of(Accessors.class, field.node());
-		String setterName = toSetterName(accessors, fieldName, isBoolean);
+		String setterName = toSetterName(field.getAnnotationValue(Accessors.class), field.name(), isBoolean);
 		if (type.hasMethod(setterName, field.type())) return;
 		String oldValueName = OLD_VALUE_VARIABLE_NAME;
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);

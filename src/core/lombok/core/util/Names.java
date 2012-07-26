@@ -108,4 +108,34 @@ public class Names {
 		}
 		return builder.toString();
 	}
+
+	/**
+	 * Given the name of a field, return the 'base name' of that field. For example, {@code fFoobar} becomes
+	 * {@code foobar} if {@code f} is in the prefix list. For prefixes that end in a letter character, the next
+	 * character must be a non-lowercase character (i.e. {@code hashCode} is not {@code ashCode} even if {@code h} is in
+	 * the prefix list, but {@code hAshcode} would become {@code ashCode}). The first prefix that matches is used. If
+	 * the prefix list is empty, or the empty string is in the prefix list and no prefix before it matches, the
+	 * fieldName will be returned verbatim.
+	 * 
+	 * If no prefix matches and the empty string is not in the prefix list and the prefix list is not empty,
+	 * {@code null} is returned.
+	 * 
+	 * @param fieldName
+	 *            The full name of a field.
+	 * @param prefixes
+	 *            A list of prefixes, usually provided by the {@code Accessors} settings annotation, listing field
+	 *            prefixes.
+	 * @return The base name of the field.
+	 */
+	public static String removePrefix(String fieldName, String[] prefixes) {
+		if (Is.empty(prefixes)) return fieldName;
+		for (final String prefix : prefixes) {
+			if (prefix.isEmpty()) return fieldName;
+			if (!fieldName.startsWith(prefix)) continue;
+			char followupChar = fieldName.charAt(prefix.length());
+			if (isLetter(prefix.charAt(prefix.length() - 1)) && isLowerCase(followupChar)) continue;
+			return toLowerCase(followupChar) + fieldName.substring(prefix.length() + 1, fieldName.length());
+		}
+		return null;
+	}
 }

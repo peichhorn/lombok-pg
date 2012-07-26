@@ -22,6 +22,7 @@
 package lombok.eclipse.handlers.ast;
 
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
+import static lombok.eclipse.handlers.EclipseHandlerUtil.createAnnotation;
 import static lombok.eclipse.handlers.ast.EclipseASTUtil.boxedType;
 import static lombok.ast.AST.*;
 import static lombok.ast.IMethod.ArgumentStyle.BOXED_TYPES;
@@ -44,6 +45,7 @@ import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
 
 import lombok.AccessLevel;
+import lombok.core.AnnotationValues;
 import lombok.core.AST.Kind;
 import lombok.core.util.As;
 import lombok.core.util.Each;
@@ -135,6 +137,11 @@ public final class EclipseMethod implements lombok.ast.IMethod<EclipseType, Ecli
 
 	public EclipseNode node() {
 		return methodNode;
+	}
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
+		final EclipseNode node = getAnnotation(expectedType);
+		return node == null ? AnnotationValues.of(expectedType, node()) : createAnnotation(expectedType, node);
 	}
 
 	public EclipseNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {

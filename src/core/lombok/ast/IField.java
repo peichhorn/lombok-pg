@@ -24,9 +24,10 @@ package lombok.ast;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import lombok.core.AnnotationValues;
 import lombok.core.LombokNode;
 
-public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
+public interface IField<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_VARIABLE_DECL_TYPE> {
 
 	public IFieldEditor<AST_BASE_TYPE> editor();
 
@@ -46,6 +47,14 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 
 	public LOMBOK_NODE_TYPE node();
 
+	public boolean ignore();
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(Class<A> expectedType);
+
+	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
+
+	public LOMBOK_NODE_TYPE getAnnotation(String typeName);
+
 	public TypeRef type();
 
 	public TypeRef boxedType();
@@ -53,6 +62,10 @@ public interface IField<LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_T
 	public boolean isOfType(String typeName);
 
 	public String name();
+
+	public TYPE_TYPE surroundingType();
+
+	public String filteredName();
 
 	public Expression<?> initialization();
 

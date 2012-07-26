@@ -123,7 +123,9 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 		List<EclipseField> fields = new ArrayList<EclipseField>();
 		for (EclipseNode child : node().down()) {
 			if (child.getKind() != Kind.FIELD) continue;
-			fields.add(EclipseField.fieldOf(child, source));
+			final EclipseField field = EclipseField.fieldOf(child, source);
+			if (field.ignore()) continue;
+			fields.add(field);
 		}
 		return fields;
 	}
@@ -145,7 +147,7 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 
 	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
 		final EclipseNode node = getAnnotation(expectedType);
-		return node == null ? null : createAnnotation(expectedType, node);
+		return node == null ? AnnotationValues.of(expectedType, node()) : createAnnotation(expectedType, node);
 	}
 
 	public EclipseNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {

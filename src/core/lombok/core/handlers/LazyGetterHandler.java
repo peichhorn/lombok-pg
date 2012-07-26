@@ -32,7 +32,7 @@ import lombok.core.DiagnosticsReceiver;
 import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
-public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>> {
+public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TYPE, ?, ?, ?>, ?, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?, ?>> {
 	private final TYPE_TYPE type;
 	private final FIELD_TYPE field;
 	private final DiagnosticsReceiver diagnosticsReceiver;
@@ -51,12 +51,11 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 			return;
 		}
 
-		String fieldName = field.name();
 		boolean isBoolean = field.isOfType("boolean");
-		AnnotationValues<Accessors> accessors = AnnotationValues.of(Accessors.class, field.node());
-		String methodName = toGetterName(accessors, fieldName, isBoolean);
+		AnnotationValues<Accessors> accessors = field.getAnnotationValue(Accessors.class);
+		String methodName = toGetterName(accessors, field.name(), isBoolean);
 
-		for (String altName : toAllGetterNames(accessors, fieldName, isBoolean)) {
+		for (String altName : toAllGetterNames(accessors, field.name(), isBoolean)) {
 			if (type.hasMethod(altName)) return;
 		}
 
@@ -64,7 +63,7 @@ public class LazyGetterHandler<TYPE_TYPE extends IType<? extends IMethod<TYPE_TY
 	}
 
 	private void createGetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level, final String methodName) {
-		String fieldName = field.name();
+		String fieldName = field.filteredName();
 		String initializedFieldName = "$" + fieldName + "Initialized";
 		String lockFieldName = "$" + fieldName + "Lock";
 

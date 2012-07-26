@@ -35,7 +35,7 @@ import lombok.core.AST.Kind;
 import lombok.core.TransformationsUtil;
 
 @RequiredArgsConstructor
-public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
+public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, ?, ?, ?, ?>, FIELD_TYPE extends IField<?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, LOMBOK_NODE_TYPE, ?>, SOURCE_TYPE> {
 	private static final Pattern SETTER_PATTERN = Pattern.compile("^(?:setter|fluentsetter|boundsetter)$", Pattern.CASE_INSENSITIVE);
 
 	private final LOMBOK_NODE_TYPE annotationNode;
@@ -53,7 +53,7 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 		} else if (mayBeField.getKind() == Kind.TYPE) {
 			for (FIELD_TYPE field : type.fields()) {
 				if (!field.annotations(SETTER_PATTERN).isEmpty()) continue;
-				if (field.name().startsWith("$")) continue;
+				if (field.filteredName().startsWith("$")) continue;
 				if (field.isFinal()) continue;
 				if (field.isStatic()) continue;
 				fields.add(field);
@@ -76,17 +76,17 @@ public abstract class FluentSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE,
 	}
 
 	private void generateSetter(final TYPE_TYPE type, final FIELD_TYPE field, final AccessLevel level) {
-		String fieldName = field.name();
+		String filteredFieldName = field.filteredName();
 		TypeRef fieldType = field.type();
-		if (type.hasMethod(fieldName, fieldType)) return;
+		if (type.hasMethod(filteredFieldName, fieldType)) return;
 		List<lombok.ast.Annotation> nonNulls = field.annotations(TransformationsUtil.NON_NULL_PATTERN);
 		List<lombok.ast.Annotation> nullables = field.annotations(TransformationsUtil.NULLABLE_PATTERN);
-		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeArguments()), fieldName).withAccessLevel(level) //
-				.withArgument(Arg(fieldType, fieldName).withAnnotations(nonNulls).withAnnotations(nullables));
+		MethodDecl methodDecl = MethodDecl(Type(type.name()).withTypeArguments(type.typeArguments()), filteredFieldName).withAccessLevel(level) //
+				.withArgument(Arg(fieldType, filteredFieldName).withAnnotations(nonNulls).withAnnotations(nullables));
 		if (!nonNulls.isEmpty() && !field.isPrimitive()) {
-			methodDecl.withStatement(If(Equal(Name(fieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(fieldName)))));
+			methodDecl.withStatement(If(Equal(Name(filteredFieldName), Null())).Then(Throw(New(Type(NullPointerException.class)).withArgument(String(filteredFieldName)))));
 		}
-		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
+		methodDecl.withStatement(Assign(Field(field.name()), Name(filteredFieldName))) //
 				.withStatement(Return(This()));
 		type.editor().injectMethod(methodDecl);
 	}

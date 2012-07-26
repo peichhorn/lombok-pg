@@ -96,7 +96,7 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 
 	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
 		final JavacNode node = getAnnotation(expectedType);
-		return node == null ? null : createAnnotation(expectedType, node);
+		return node == null ? AnnotationValues.of(expectedType, node()) : createAnnotation(expectedType, node);
 	}
 
 	public JavacNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {
@@ -143,7 +143,9 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 		List<JavacField> fields = new ArrayList<JavacField>();
 		for (JavacNode child : node().down()) {
 			if (child.getKind() != Kind.FIELD) continue;
-			fields.add(JavacField.fieldOf(child, source));
+			final JavacField field = JavacField.fieldOf(child, source);
+			if (field.ignore()) continue;
+			fields.add(field);
 		}
 		return fields;
 	}

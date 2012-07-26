@@ -24,6 +24,7 @@ package lombok.ast;
 import java.util.List;
 
 import lombok.AccessLevel;
+import lombok.core.AnnotationValues;
 import lombok.core.LombokNode;
 
 public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, LOMBOK_NODE_TYPE extends LombokNode<?, ?, ?>, AST_BASE_TYPE, AST_METHOD_DECL_TYPE> {
@@ -53,6 +54,8 @@ public interface IMethod<TYPE_TYPE extends IType<?, ?, ?, ?, ?, ?>, LOMBOK_NODE_
 	public AST_METHOD_DECL_TYPE get();
 
 	public LOMBOK_NODE_TYPE node();
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(Class<A> expectedType);
 
 	public LOMBOK_NODE_TYPE getAnnotation(Class<? extends java.lang.annotation.Annotation> clazz);
 

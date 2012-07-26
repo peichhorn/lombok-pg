@@ -23,14 +23,20 @@ package lombok.javac.handlers.ast;
 
 import static com.sun.tools.javac.code.Flags.*;
 import static lombok.ast.AST.*;
+import static lombok.javac.handlers.Javac.matchesType;
+import static lombok.javac.handlers.JavacHandlerUtil.createAnnotation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import lombok.core.AnnotationValues;
+import lombok.core.AST.Kind;
 import lombok.core.util.As;
-import lombok.javac.Javac;
+import lombok.core.util.Names;
+import lombok.experimental.Accessors;
 import lombok.javac.JavacNode;
+import lombok.javac.Javac;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -40,16 +46,27 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
-public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JCVariableDecl> {
+public final class JavacField implements lombok.ast.IField<JavacType, JavacNode, JCTree, JCVariableDecl> {
 	private final JavacNode fieldNode;
+	private final JCTree source;
 	private final JavacFieldEditor editor;
+	private final String filteredName;
 
 	private JavacField(final JavacNode fieldNode, final JCTree source) {
 		if (!(fieldNode.get() instanceof JCVariableDecl)) {
 			throw new IllegalArgumentException();
 		}
 		this.fieldNode = fieldNode;
+		this.source = source;
 		editor = new JavacFieldEditor(this, source);
+		final AnnotationValues<Accessors> accessorsValues;
+		if (getAnnotation(Accessors.class) != null) {
+			accessorsValues = getAnnotationValue(Accessors.class);
+		} else {
+			final JavacType surroundingType = surroundingType();
+			accessorsValues = surroundingType.getAnnotationValue(Accessors.class);
+		}
+		filteredName = Names.removePrefix(name(), accessorsValues.getInstance().prefix());
 	}
 
 	public JavacFieldEditor editor() {
@@ -89,6 +106,30 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 		return fieldNode;
 	}
 
+	public boolean ignore() {
+		return filteredName == null;
+	}
+
+	public <A extends java.lang.annotation.Annotation> AnnotationValues<A> getAnnotationValue(final Class<A> expectedType) {
+		final JavacNode node = getAnnotation(expectedType);
+		return node == null ? AnnotationValues.of(expectedType, node()) : createAnnotation(expectedType, node);
+	}
+
+	public JavacNode getAnnotation(final Class<? extends java.lang.annotation.Annotation> expectedType) {
+		return getAnnotation(expectedType.getName());
+	}
+
+	public JavacNode getAnnotation(final String typeName) {
+		JavacNode annotationNode = null;
+		for (JavacNode child : node().down()) {
+			if (child.getKind() != Kind.ANNOTATION) continue;
+			if (matchesType((JCAnnotation) child.get(), typeName)) {
+				annotationNode = child;
+			}
+		}
+		return annotationNode;
+	}
+
 	public lombok.ast.TypeRef type() {
 		return Type(get().vartype);
 	}
@@ -111,6 +152,14 @@ public final class JavacField implements lombok.ast.IField<JavacNode, JCTree, JC
 
 	public String name() {
 		return node().getName();
+	}
+
+	public String filteredName() {
+		return filteredName == null ? name() : filteredName;
+	}
+
+	public JavacType surroundingType() {
+		return JavacType.typeOf(node(), source);
 	}
 
 	public lombok.ast.Expression<?> initialization() {
