@@ -13,7 +13,7 @@
   </configurations>
   <publications>
     <artifact conf="build"
-      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.11.3.jar" />
+      url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.11.3b.jar" />
     <artifact type="zip" conf="sources"
       url="http://cloud.github.com/downloads/peichhorn/lombok-pg/lombok-0.11.3-sources.jar" />
   </publications>
