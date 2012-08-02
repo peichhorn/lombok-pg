@@ -131,6 +131,17 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 		<java classname="lombok.core.Version" classpath="build/lombok-pg" failonerror="true" output="build/version.txt" />
 		<ivy:loadversion property="lombok.version" file="build/version.txt" />
 		<echo level="info">lombok-pg is based on lombok-${lombok.version}</echo>
+		<condition property="lombok.version.is.snapshot">
+			<matches pattern=".*-SNAPSHOT" string="${lombok.version}" />
+		</condition>
+	</target>
+
+	<target name="init.version.snapshot" depends="version" unless="lombok.version.is.snapshot">
+		<property name="lombok.version.snapshot" value="${lombok.version}-SNAPSHOT" />
+	</target>
+
+	<target name="version.snapshot" depends="version, init.version.snapshot">
+		<property name="lombok.version.snapshot" value="${lombok.version}" />
 	</target>
 
 	<!-- test -->
@@ -234,12 +245,12 @@ the common tasks and can be called on to run the main aspects of all the sub-scr
 	</target>
 
 	<!-- deploy -->
-	<target name="maven-deploy" depends="ensure-maven-ant-tasks, dist, dist-additional, test" description="Deploy snapshot version to Maven snapshot repository">
+	<target name="maven-deploy" depends="ensure-maven-ant-tasks, dist, dist-additional, test, version.snapshot" description="Deploy snapshot version to Maven snapshot repository">
 		<!-- create pom -->
 		<copy tofile="dist/pom.xml" overwrite="true" file="buildScripts/maven-pom.xml">
 			<filterchain>
 				<replacetokens>
-					<token key="VERSION" value="${lombok.version}-SNAPSHOT" />
+					<token key="VERSION" value="${lombok.version.snapshot}" />
 				</replacetokens>
 			</filterchain>
 		</copy>
