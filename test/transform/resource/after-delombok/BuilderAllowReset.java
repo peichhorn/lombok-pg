@@ -24,6 +24,8 @@ class BuilderAllowRest {
 	public static interface FinalFieldDef {
 		
 		OptionalDef finalField(final String finalField);
+		
+		FinalFieldDef reset();
 	}
 	
 	@java.lang.SuppressWarnings("all")

@@ -183,6 +183,10 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 			List<AbstractMethodDecl<?>> interfaceMethods = new ArrayList<AbstractMethodDecl<?>>();
 			createFluentSetter(builderData, OPTIONAL_DEF, field, interfaceMethods, builderMethods);
 
+			if (builderData.isResetAllowed()) {
+				createResetMethod(builderData, interfaceMethods, new ArrayList<AbstractMethodDecl<?>>());
+			}
+
 			type.editor().injectType(InterfaceDecl(name).makePublic().makeStatic().withTypeParameters(type.typeParameters()).withMethods(interfaceMethods));
 		}
 	}
@@ -206,7 +210,7 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 
 		createBuildMethod(builderData, type.name(), interfaceMethods, builderMethods);
 
-		if (builderData.isAllowReset()) {
+		if (builderData.isResetAllowed()) {
 			createResetMethod(builderData, interfaceMethods, builderMethods);
 		}
 
@@ -393,7 +397,7 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 		private final String methodPrefix;
 		private final List<String> callMethods;
 		private final boolean generateConvenientMethodsEnabled;
-		private final boolean allowReset;
+		private final boolean resetAllowed;
 		private final AccessLevel level;
 		private final Set<String> excludes;
 
@@ -404,7 +408,7 @@ public class BuilderAndExtensionHandler<TYPE_TYPE extends IType<METHOD_TYPE, FIE
 			methodPrefix = builder.prefix();
 			callMethods = Arrays.asList(builder.callMethods());
 			level = builder.value();
-			allowReset = builder.allowReset();
+			resetAllowed = builder.allowReset();
 		}
 
 		public BuilderData<TYPE_TYPE, METHOD_TYPE, FIELD_TYPE> collect() {

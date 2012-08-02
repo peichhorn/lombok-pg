@@ -2,6 +2,7 @@ import lombok.Builder;
 @Builder(allowReset = true) class BuilderAllowRest {
   public static @java.lang.SuppressWarnings("all") interface FinalFieldDef {
     public OptionalDef finalField(final String finalField);
+    public FinalFieldDef reset();
   }
   public static @java.lang.SuppressWarnings("all") interface OptionalDef {
     public OptionalDef initializedPrimitiveField(final int initializedPrimitiveField);
