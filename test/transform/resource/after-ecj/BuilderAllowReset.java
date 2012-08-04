@@ -1,7 +1,11 @@
 import lombok.Builder;
 @Builder(allowReset = true) class BuilderAllowRest {
   public static @java.lang.SuppressWarnings("all") interface FinalFieldDef {
-    public OptionalDef finalField(final String finalField);
+    public AnotherFinalFieldDef finalField(final String finalField);
+    public FinalFieldDef reset();
+  }
+  public static @java.lang.SuppressWarnings("all") interface AnotherFinalFieldDef {
+    public OptionalDef anotherFinalField(final String anotherFinalField);
     public FinalFieldDef reset();
   }
   public static @java.lang.SuppressWarnings("all") interface OptionalDef {
@@ -12,8 +16,9 @@ import lombok.Builder;
     public BuilderAllowRest build();
     public FinalFieldDef reset();
   }
-  private static @java.lang.SuppressWarnings("all") class $Builder implements FinalFieldDef, OptionalDef {
+  private static @java.lang.SuppressWarnings("all") class $Builder implements FinalFieldDef, AnotherFinalFieldDef, OptionalDef {
     private String finalField;
+    private String anotherFinalField;
     private int initializedPrimitiveField = $initializedPrimitiveFieldDefault();
     private Boolean initializedField = $initializedFieldDefault();
     private double primitiveField;
@@ -24,8 +29,12 @@ import lombok.Builder;
     static Boolean $initializedFieldDefault() {
       return Boolean.FALSE;
     }
-    public OptionalDef finalField(final String finalField) {
+    public AnotherFinalFieldDef finalField(final String finalField) {
       this.finalField = finalField;
+      return this;
+    }
+    public OptionalDef anotherFinalField(final String anotherFinalField) {
+      this.anotherFinalField = anotherFinalField;
       return this;
     }
     public OptionalDef initializedPrimitiveField(final int initializedPrimitiveField) {
@@ -49,6 +58,7 @@ import lombok.Builder;
     }
     public FinalFieldDef reset() {
       this.finalField = null;
+      this.anotherFinalField = null;
       this.initializedPrimitiveField = $initializedPrimitiveFieldDefault();
       this.initializedField = $initializedFieldDefault();
       this.primitiveField = 0.0d;
@@ -60,6 +70,7 @@ import lombok.Builder;
     }
   }
   private final String finalField;
+  private final String anotherFinalField;
   private int initializedPrimitiveField = $Builder.$initializedPrimitiveFieldDefault();
   private Boolean initializedField = $Builder.$initializedFieldDefault();
   private double primitiveField;
@@ -67,6 +78,7 @@ import lombok.Builder;
   private @java.lang.SuppressWarnings("all") BuilderAllowRest(final $Builder builder) {
     super();
     this.finalField = builder.finalField;
+    this.anotherFinalField = builder.anotherFinalField;
     this.initializedPrimitiveField = builder.initializedPrimitiveField;
     this.initializedField = builder.initializedField;
     this.primitiveField = builder.primitiveField;

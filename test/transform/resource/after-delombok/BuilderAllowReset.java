@@ -1,5 +1,6 @@
 class BuilderAllowRest {
 	private final String finalField;
+	private final String anotherFinalField;
 	private int initializedPrimitiveField = $Builder.$initializedPrimitiveFieldDefault();
 	private Boolean initializedField = $Builder.$initializedFieldDefault();
 	private double primitiveField;
@@ -9,6 +10,7 @@ class BuilderAllowRest {
 	private BuilderAllowRest(final $Builder builder) {
 		
 		this.finalField = builder.finalField;
+		this.anotherFinalField = builder.anotherFinalField;
 		this.initializedPrimitiveField = builder.initializedPrimitiveField;
 		this.initializedField = builder.initializedField;
 		this.primitiveField = builder.primitiveField;
@@ -23,7 +25,15 @@ class BuilderAllowRest {
 	@java.lang.SuppressWarnings("all")
 	public static interface FinalFieldDef {
 		
-		OptionalDef finalField(final String finalField);
+		AnotherFinalFieldDef finalField(final String finalField);
+		
+		FinalFieldDef reset();
+	}
+	
+	@java.lang.SuppressWarnings("all")
+	public static interface AnotherFinalFieldDef {
+		
+		OptionalDef anotherFinalField(final String anotherFinalField);
 		
 		FinalFieldDef reset();
 	}
@@ -45,8 +55,9 @@ class BuilderAllowRest {
 	}
 	
 	@java.lang.SuppressWarnings("all")
-	private static class $Builder implements FinalFieldDef, OptionalDef {
+	private static class $Builder implements FinalFieldDef, AnotherFinalFieldDef, OptionalDef {
 		private String finalField;
+		private String anotherFinalField;
 		private int initializedPrimitiveField = $initializedPrimitiveFieldDefault();
 		private Boolean initializedField = $initializedFieldDefault();
 		private double primitiveField;
@@ -60,8 +71,13 @@ class BuilderAllowRest {
 			return Boolean.FALSE;
 		}
 		
-		public OptionalDef finalField(final String finalField) {
+		public AnotherFinalFieldDef finalField(final String finalField) {
 			this.finalField = finalField;
+			return this;
+		}
+		
+		public OptionalDef anotherFinalField(final String anotherFinalField) {
+			this.anotherFinalField = anotherFinalField;
 			return this;
 		}
 		
@@ -91,6 +107,7 @@ class BuilderAllowRest {
 		
 		public FinalFieldDef reset() {
 			this.finalField = null;
+			this.anotherFinalField = null;
 			this.initializedPrimitiveField = $initializedPrimitiveFieldDefault();
 			this.initializedField = $initializedFieldDefault();
 			this.primitiveField = 0;
