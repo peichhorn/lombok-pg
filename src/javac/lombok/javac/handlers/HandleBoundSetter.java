@@ -24,9 +24,12 @@ package lombok.javac.handlers;
 import static lombok.javac.handlers.Javac.deleteImport;
 import static lombok.javac.handlers.JavacHandlerUtil.*;
 
+import java.util.List;
+
 import lombok.*;
 import lombok.core.AnnotationValues;
 import lombok.core.handlers.BoundSetterHandler;
+import lombok.core.util.As;
 import lombok.javac.JavacAnnotationHandler;
 import lombok.javac.JavacNode;
 import lombok.javac.ResolutionBased;
@@ -35,6 +38,15 @@ import lombok.javac.handlers.ast.JavacType;
 
 import org.mangosdk.spi.ProviderFor;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.model.JavacElements;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 
@@ -58,6 +70,56 @@ public class HandleBoundSetter extends JavacAnnotationHandler<BoundSetter> {
 			@Override
 			protected JavacField fieldOf(JavacNode node, JCTree ast) {
 				return JavacField.fieldOf(node, ast);
+			}
+
+			@Override
+			protected boolean hasMethodIncludingSupertypes(final JavacType type, final String methodName, final lombok.ast.TypeRef... argumentTypes) {
+				return hasMethod(type.get().sym, methodName, type.editor().build(As.list(argumentTypes)));
+			}
+
+			private boolean hasMethod(final TypeSymbol type, final String methodName, final List<JCTree> argumentTypes) {
+				if (type == null) return false;
+				for (Symbol enclosedElement : type.getEnclosedElements()) {
+					if (enclosedElement instanceof MethodSymbol) {
+						if ((enclosedElement.flags() & (Flags.ABSTRACT)) != 0) continue;
+						if ((enclosedElement.flags() & (Flags.PUBLIC)) == 0) continue;
+						MethodSymbol method = (MethodSymbol) enclosedElement;
+						if (!methodName.equals(As.string(method.name))) continue;
+						MethodType methodType = (MethodType) method.type;
+						if (argumentTypes.size() != methodType.argtypes.size()) continue;
+						// TODO check actual types..
+						return true;
+					}
+				}
+				Type supertype = ((ClassSymbol) type).getSuperclass();
+				return hasMethod(supertype.tsym, methodName, argumentTypes);
+			}
+
+			@Override
+			protected boolean lookForBoundSetter(final JavacType type, final boolean needsToBeVetoable) {
+				final TypeSymbol typeSymbol = type.get().sym;
+				if (typeSymbol == null) return false;
+				Type supertype = ((ClassSymbol) typeSymbol).getSuperclass();
+				return lookForBoundSetter0(supertype.tsym, needsToBeVetoable);
+			}
+
+			private boolean lookForBoundSetter0(final TypeSymbol type, final boolean needsToBeVetoable) {
+				if (type == null) return false;
+				if (isAnnotatedWithBoundSetter(type, needsToBeVetoable)) return true;
+				for (Symbol enclosedElement : type.getEnclosedElements()) {
+					if (enclosedElement instanceof VarSymbol) {
+						final VarSymbol var = (VarSymbol) enclosedElement;
+						if (isAnnotatedWithBoundSetter(var, needsToBeVetoable)) return true;
+					}
+				}
+				Type supertype = ((ClassSymbol) type).getSuperclass();
+				return lookForBoundSetter0(supertype.tsym, needsToBeVetoable);
+			}
+
+			private boolean isAnnotatedWithBoundSetter(final Symbol type, final boolean needsToBeVetoable) {
+				final BoundSetter boundSetter = JavacElements.getAnnotation(type, BoundSetter.class);
+				if (boundSetter == null) return false;
+				return needsToBeVetoable ? (boundSetter.vetoable() || boundSetter.throwVetoException()) : true;
 			}
 		}.handle(annotationInstance.value(), annotationInstance.vetoable(), annotationInstance.throwVetoException());
 		deleteAnnotationIfNeccessary(annotationNode, BoundSetter.class);

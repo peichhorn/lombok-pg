@@ -30,13 +30,6 @@ import static lombok.javac.handlers.JavacHandlerUtil.methodExists;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
-import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -229,28 +222,6 @@ public final class JavacType implements lombok.ast.IType<JavacMethod, JavacField
 	public boolean hasMethod(final String methodName, final lombok.ast.TypeRef... argumentTypes) {
 		// TODO check actual types..
 		return (methodExists(methodName, typeNode, false, argumentTypes == null ? 0 : argumentTypes.length) != MemberExistsResult.NOT_EXISTS);
-	}
-
-	public boolean hasMethodIncludingSupertypes(final String methodName, final lombok.ast.TypeRef... argumentTypes) {
-		return hasMethod(get().sym, methodName, editor().build(As.list(argumentTypes)));
-	}
-
-	private boolean hasMethod(final TypeSymbol type, final String methodName, final List<JCTree> argumentTypes) {
-		if (type == null) return false;
-		for (Symbol enclosedElement : type.getEnclosedElements()) {
-			if (enclosedElement instanceof MethodSymbol) {
-				if ((enclosedElement.flags() & (Flags.ABSTRACT)) != 0) continue;
-				if ((enclosedElement.flags() & (Flags.PUBLIC)) == 0) continue;
-				MethodSymbol method = (MethodSymbol) enclosedElement;
-				if (!methodName.equals(As.string(method.name))) continue;
-				MethodType methodType = (MethodType) method.type;
-				if (argumentTypes.size() != methodType.argtypes.size()) continue;
-				// TODO check actual types..
-				return true;
-			}
-		}
-		Type supertype = ((ClassSymbol)type).getSuperclass();
-		return hasMethod(supertype.tsym, methodName, argumentTypes);
 	}
 
 	@Override

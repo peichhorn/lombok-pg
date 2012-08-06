@@ -73,7 +73,4 @@ public interface IType<METHOD_TYPE extends IMethod<?, ?, ?, ?>, FIELD_TYPE exten
 	public boolean hasField(String fieldName);
 
 	public boolean hasMethod(String methodName, TypeRef... argumentTypes);
-
-	/** be aware, this method works with type resolution */
-	public boolean hasMethodIncludingSupertypes(String methodName, TypeRef... argumentTypes);
 }

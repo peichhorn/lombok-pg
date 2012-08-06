@@ -92,6 +92,12 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 
 	protected abstract FIELD_TYPE fieldOf(final LOMBOK_NODE_TYPE node, final SOURCE_TYPE ast);
 
+	protected abstract boolean hasMethodIncludingSupertypes(final TYPE_TYPE type, final String methodName, final TypeRef... argumentTypes);
+
+	protected boolean lookForBoundSetter(final TYPE_TYPE type, final boolean needsToBeVetoable) {
+		return false; // default.. no need to check
+	}
+
 	private void generateSetter(final TYPE_TYPE type, final List<FIELD_TYPE> fields, final AccessLevel level, final boolean vetoable, final boolean throwVetoException) {
 		if (!fields.isEmpty()) {
 			if (!hasAllPropertyChangeMethods(type)) {
@@ -115,17 +121,19 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 	}
 
 	private boolean hasAllPropertyChangeMethods(final TYPE_TYPE type) {
+		if (lookForBoundSetter(type, false)) return true;
 		for (String methodName : PROPERTY_CHANGE_METHOD_NAMES) {
-			if (!type.hasMethodIncludingSupertypes(methodName, Type(PropertyChangeListener.class))) return false;
+			if (!hasMethodIncludingSupertypes(type, methodName, Type(PropertyChangeListener.class))) return false;
 		}
-		return type.hasMethodIncludingSupertypes(FIRE_PROPERTY_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
+		return hasMethodIncludingSupertypes(type, FIRE_PROPERTY_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
 	}
 
 	private boolean hasAllVetoableChangeMethods(final TYPE_TYPE type) {
+		if (lookForBoundSetter(type, true)) return true;
 		for (String methodName : VETOABLE_CHANGE_METHOD_NAMES) {
-			if (!type.hasMethodIncludingSupertypes(methodName, Type(VetoableChangeListener.class))) return false;
+			if (!hasMethodIncludingSupertypes(type, methodName, Type(VetoableChangeListener.class))) return false;
 		}
-		return type.hasMethodIncludingSupertypes(FIRE_VETOABLE_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
+		return hasMethodIncludingSupertypes(type, FIRE_VETOABLE_CHANGE_METHOD_NAME, Type(String.class), Type(Object.class), Type(Object.class));
 	}
 
 	private void generatePropertyNameConstant(final TYPE_TYPE type, final FIELD_TYPE field, final String propertyNameFieldName) {
@@ -160,7 +168,7 @@ public abstract class BoundSetterHandler<TYPE_TYPE extends IType<?, FIELD_TYPE, 
 						.Catch(Arg(Type(PropertyVetoException.class), E_VALUE_VARIABLE_NAME), Block().withStatement(Return())));
 			}
 		}
-		
+
 		methodDecl.withStatement(Assign(Field(fieldName), Name(fieldName))) //
 				.withStatement(Call(FIRE_PROPERTY_CHANGE_METHOD_NAME) //
 						.withArgument(Name(propertyNameFieldName)).withArgument(Name(oldValueName)).withArgument(Name(fieldName)));

@@ -23,7 +23,6 @@ package lombok.eclipse.handlers.ast;
 
 import static lombok.ast.AST.*;
 import static lombok.eclipse.Eclipse.toQualifiedName;
-import static lombok.eclipse.handlers.Eclipse.ensureAllClassScopeMethodWereBuild;
 import static lombok.eclipse.handlers.EclipseHandlerUtil.*;
 import static org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants.*;
 
@@ -41,9 +40,6 @@ import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeParameter;
 import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 import lombok.ast.IType;
 import lombok.core.AST.Kind;
@@ -227,29 +223,6 @@ public final class EclipseType implements lombok.ast.IType<EclipseMethod, Eclips
 	public boolean hasMethod(final String methodName, final lombok.ast.TypeRef... argumentTypes) {
 		// TODO check actual types..
 		return (methodExists(methodName, typeNode, false, argumentTypes == null ? 0 : argumentTypes.length) != MemberExistsResult.NOT_EXISTS);
-	}
-
-	public boolean hasMethodIncludingSupertypes(final String methodName, final lombok.ast.TypeRef... argumentTypes) {
-		return hasMethod(get().binding, methodName, editor().build(As.list(argumentTypes)));
-	}
-
-	private boolean hasMethod(final TypeBinding binding, final String methodName, List<ASTNode> argumentTypes) {
-		if (binding instanceof ReferenceBinding) {
-			ReferenceBinding rb = (ReferenceBinding) binding;
-			MethodBinding[] availableMethods = rb.availableMethods();
-			for (MethodBinding method : Each.elementIn(availableMethods)) {
-				if (method.isAbstract()) continue;
-				if (!method.isPublic()) continue;
-				if (!methodName.equals(As.string(method.selector))) continue;
-				if (argumentTypes.size() != As.list(method.parameters).size()) continue;
-				// TODO check actual types..
-				return true;
-			}
-			ReferenceBinding superclass = rb.superclass();
-			ensureAllClassScopeMethodWereBuild(superclass);
-			return hasMethod(superclass, methodName, argumentTypes);
-		}
-		return false;
 	}
 
 	@Override
